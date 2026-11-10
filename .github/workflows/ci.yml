@@ -138,8 +138,10 @@ jobs:
           node-version: 22.18.0
           cache: npm
       - run: npm ci
+      # Auftrag 141: Die dedizierte Live-Performance-Surface (src/components/liveKpi)
+      # ist mit dem Legacy-Dashboard entfallen; verifyLiveKpiCatalog prüft weiterhin
+      # den Katalog, den die Live-Kacheln der persönlichen Ansicht nutzen.
       - run: npx tsx scripts/verifyLiveKpiCatalog.ts
-      - run: npx tsx scripts/verifyLivePerformanceSurface.ts
 
   size-limit:
     runs-on: ubuntu-latest
@@ -211,23 +213,14 @@ jobs:
         run: npx playwright test e2e/a11y.spec.ts e2e/audit-health.spec.ts e2e/auth.spec.ts e2e/crm-query-export.spec.ts e2e/element-clipping.acceptance.ts e2e/mobile-menu-touch.spec.ts e2e/resources-viewer.spec.ts e2e/routes.spec.ts e2e/semantic-routes.spec.ts e2e/tenant-isolation.spec.ts e2e/visual.spec.ts
       - name: Playwright Simulation & Worker Tests (sequentiell)
         run: npx playwright test e2e/persistence-multisession.spec.ts e2e/worker-responsiveness.spec.ts e2e/run-control.spec.ts e2e/member-management.spec.ts e2e/crm-deals-persistence.spec.ts e2e/crm-lead-qualification.spec.ts --workers=1
-      # Auftrag 079 (Rollout, Entscheidung Marc E2): Die persönliche Ansicht ist Standard, ihre Specs
-      # laufen gegen den regulären Build. Die Rückschaltung (=false) bekommt einen eigenen Build und
-      # Nachweis; danach wieder der reguläre Build für Lighthouse.
-      - name: Playwright persönliches Dashboard und Gesamtabnahme (Standardansicht, Aufträge 077/079)
+      # Auftrag 141: Die persönliche Ansicht ist die einzige `/dashboard`-Variante
+      # (Rollout-Schalter und Rückschaltung entfernt). Die Specs laufen gegen den
+      # regulären Build; Lighthouse folgt direkt danach ohne Neuaufbau.
+      - name: Playwright persönliches Dashboard und Gesamtabnahme (Aufträge 077/079)
         run: npx playwright test e2e/personal-dashboard.spec.ts e2e/personal-dashboard-acceptance.spec.ts e2e/dashboard-config-states.spec.ts --workers=1
         env:
-          E2E_DASHBOARD_V2: 'true'
-      - name: Build mit Rückschaltung auf die bisherige Ansicht (Auftrag 079)
-        run: npx vite build
-        env:
-          VITE_EXECUTIVE_DASHBOARD_V2: 'false'
-      - name: Playwright Rückschaltung (bisherige Ansicht, Konfiguration unberührt)
-        run: npx playwright test e2e/dashboard-rollback.spec.ts --workers=1
-        env:
-          E2E_DASHBOARD_ROLLBACK: 'true'
-      - name: Regulären Build für Lighthouse wiederherstellen
-        run: npx vite build
+          # Serielle Absicherung der geteilten Testbenutzer-Präferenzen (Codex PR #162).
+          E2E_DASHBOARD_SERIAL: 'true'
       - name: Playwright-Chrome für Lighthouse bereitstellen
         run: |
           CHROME_PATH="$(node -e "const { chromium } = require('playwright'); process.stdout.write(chromium.executablePath())")"

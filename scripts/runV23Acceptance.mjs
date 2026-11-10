@@ -39,14 +39,12 @@ export const E2E_PARALLEL = [
   'e2e/tenant-isolation.spec.ts',
   'e2e/visual.spec.ts',
 ];
-/** Aufträge 077/079: persönliche Ansicht, seit dem Rollout Standard (regulärer Build). */
-export const E2E_DASHBOARD_V2 = [
+/** Aufträge 077/079/141: persönliche Ansicht, seit Auftrag 141 die einzige `/dashboard`-Variante. */
+export const E2E_DASHBOARD = [
   'e2e/personal-dashboard.spec.ts',
   'e2e/personal-dashboard-acceptance.spec.ts',
   'e2e/dashboard-config-states.spec.ts',
 ];
-/** Auftrag 079: nur mit Build `VITE_EXECUTIVE_DASHBOARD_V2=false` (Rückschaltung). */
-export const E2E_DASHBOARD_ROLLBACK = ['e2e/dashboard-rollback.spec.ts'];
 export const E2E_SEQUENTIAL = [
   'e2e/persistence-multisession.spec.ts',
   'e2e/worker-responsiveness.spec.ts',
@@ -82,29 +80,19 @@ export const GATES = [
     steps: [
       ['npx', 'playwright', 'test', ...E2E_PARALLEL],
       ['npx', 'playwright', 'test', ...E2E_SEQUENTIAL, '--workers=1'],
+      // Auftrag 141: Die Dashboard-Specs laufen gegen den regulären Build;
+      // Rückschalt-Build und Rollback-Spec sind entfernt. E2E_DASHBOARD_SERIAL
+      // schaltet die Specs frei (Codex PR #162: geteilte Testbenutzer-Präferenzen).
       [
         'env',
-        'E2E_DASHBOARD_V2=true',
+        'E2E_DASHBOARD_SERIAL=true',
         'npx',
         'playwright',
         'test',
-        ...E2E_DASHBOARD_V2,
-        '--workers=1',
-      ],
-      ['env', 'VITE_EXECUTIVE_DASHBOARD_V2=false', 'npx', 'vite', 'build'],
-      [
-        'env',
-        'E2E_DASHBOARD_ROLLBACK=true',
-        'npx',
-        'playwright',
-        'test',
-        ...E2E_DASHBOARD_ROLLBACK,
+        ...E2E_DASHBOARD,
         '--workers=1',
       ],
     ],
-    // Regulären Build wiederherstellen, auch wenn ein Schritt rot war: Befunde und Lighthouse
-    // messen die Standardauslieferung, nie den Rückschalt-Build (Codex PR #61, Auftrag 079).
-    finally: [['npx', 'vite', 'build']],
   },
   { id: 'findings', code: 22, needs: ['build'], steps: [['npm', 'run', 'verify:v23:baseline']] },
   { id: 'lighthouse', code: 23, needs: ['build'], steps: [['npx', 'lhci', 'autorun']] },

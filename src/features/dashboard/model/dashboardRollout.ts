@@ -1,20 +1,10 @@
-// Executive Dashboard, Teilauftrag 7 (Auftrag 077): Rollout-Schalter und Adressen der neuen Ansicht.
-// Entscheidung Marc E1 (05.10.2026): Build-Schalter `VITE_EXECUTIVE_DASHBOARD_V2`.
-// Rollout (Auftrag 079, Entscheidung Marc E2 vom 06.10.2026): Standard an; nur genau `false`
-// schaltet zurück. Dann ist `/dashboard` die bisherige Ansicht und die Detailroute existiert nicht;
-// gespeicherte persönliche Konfigurationen bleiben unberührt. Die bisherige Ansicht bleibt bis zum
-// Release v2.4.0 im Code (Entscheidung E3). Dies ist die einzige Stelle, die den Schalter liest.
-
+// Executive Dashboard, Aufträge 077/079/141: Adressen und Chunk-Loader.
+// Auftrag 141: Die bisherige Ansicht und der Rollout-Schalter sind entfernt;
+// `/dashboard` lädt ausschließlich die persönliche Ansicht.
 export const DASHBOARD_PATH = '/dashboard';
 export const TILE_DETAIL_PREFIX = '/dashboard/tiles/';
 /** Routenmuster für den Router. */
 export const TILE_DETAIL_ROUTE = '/dashboard/tiles/:tileId';
-
-type RolloutEnv = { VITE_EXECUTIVE_DASHBOARD_V2?: string };
-
-export function isPersonalDashboardEnabled(env: RolloutEnv = import.meta.env): boolean {
-  return env.VITE_EXECUTIVE_DASHBOARD_V2 !== 'false';
-}
 
 export function tileDetailPath(tileId: string): string {
   return `${TILE_DETAIL_PREFIX}${encodeURIComponent(tileId)}`;

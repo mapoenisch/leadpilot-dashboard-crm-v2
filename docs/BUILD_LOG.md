@@ -20079,3 +20079,57 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Pflicht-Checks auf `3554251`:** alle 7 grün (lint, typecheck, test, build, e2e, size-limit, livekpi-verifiers; zzgl. CodeQL).
 
 **Status:** Gate-Freigabe-Voraussetzungen erfüllt (Prüfer ohne Befunde auf aktuellem Head, Checks grün, Konversationen gelöst). Merge und etwaiges Release-Tag macht Marc.
+
+## Auftrag 141 — Legacy-Dashboard entfernen (Builder: Devin, 11.11.2026)
+
+**Ziel & Kontext:** Das alte Executive Dashboard (Executive Cockpit V2 mit `LivePerformanceSection`) entfällt ersatzlos. Die persönliche Ansicht ist seit Auftrag 079 Standard; der Build-Schalter `VITE_EXECUTIVE_DASHBOARD_V2`, `isPersonalDashboardEnabled` und die gesamte Rollback-Logik (CI-Rückschalt-Build, `e2e/dashboard-rollback.spec.ts`, Orchestrator-Schritte) sind entfernt. Rückweg ist künftig der Tag `v3.0.0`. Auftragsdatei: `docs/auftraege/ANTIGRAVITY_AUFTRAG_141_LEGACY_DASHBOARD_ENTFERNEN.md`; Plan: `docs/superpowers/plans/2026-11-09-crm-verbindlichkeit-v3-1-plan.md`, Teil-Auftrag 141.
+
+**Geänderte Dateien:**
+
+- Gelöscht: `src/features/overview/pages/ExecutiveDashboardPage.tsx` samt Test, `src/components/executiveCockpit/**` (Komplettverzeichnis: Cockpit, KPI-Rail, Panels, Snapshots und deren Tests — nach `git grep` unbenutzt), `e2e/dashboard-rollback.spec.ts`.
+- Zusätzlich verwaist gelöscht (einziger Konsument war `ExecutiveDashboardPage`): `src/components/liveKpi/**` (LivePerformanceSection, LiveKpiCard, StreamingAreaChart, LiveArrMixDonut, LiveFunnelBarChart, LiveActivityFeed, AnimatedKpiValue samt Tests) und die darauf aufbauenden, nicht mehr lauffähigen Prüfskripte `scripts/verifyLivePerformanceSurface.ts`, `verifyLiveKpiE2e.ts`, `verifyLiveKpiReadLayer.ts`, `verifyMotionPerformance.ts`, `measureAuftrag038Performance.mjs`, `measureAuftrag039ReleaseReadiness.mjs`, `runLiveKpiE2e.ts`. Der Live-KPI-**Datenpfad** bleibt vollständig (`src/services/liveKpi/**`, `src/hooks/useLiveKpi*`, `resolveLive`, Katalog-Live-Einträge — wird von den Live-Kacheln der persönlichen Ansicht genutzt).
+- `src/features/dashboard/model/dashboardRollout.ts` — `isPersonalDashboardEnabled`, `RolloutEnv` und der Schalter-Kommentar entfernt; `DASHBOARD_PATH`, `TILE_DETAIL_*`, `tileDetailPath`, `tileIdFromPath` bleiben.
+- `src/features/dashboard/pages/executiveDashboardEntry.ts` — `loadLegacyExecutiveDashboard` und `executiveDashboardLoader` entfernt; `loadPersonalWithFallback` ist der einzige Dashboard-Loader (lazy, Chunk-Fehlerbehandlung unverändert).
+- `src/app/routePages.tsx` — `React.lazy(loadPersonalWithFallback)` als einzige `s-exec`-Variante (Variable `PersonalDashboardPage`).
+- `src/app/App.tsx`, `src/app/routes.tsx` — Kachel-Detail-Route und Routen-Metadaten für `/dashboard/tiles/:tileId` jetzt unbedingt registriert.
+- `src/features/overview/OverviewView.tsx` — `s-exec` zeigt `PersonalExecutiveDashboard` statt der entfernten Cockpit-Seite.
+- `src/vite-env.d.ts`, `.env.example` — Schalter-Eintrag entfernt; `.env.example` verweist auf Tag `v3.0.0` als Rückweg.
+- `.github/workflows/ci.yml` — Rückschalt-Build (`VITE_EXECUTIVE_DASHBOARD_V2=false`), Rollback-Spec-Schritt und der anschließende Lighthouse-Neubau entfernt; Lighthouse läuft auf dem regulären Build. Im `livekpi-verifiers`-Job entfällt `verifyLivePerformanceSurface.ts` (Seine Surface ist mit dem Legacy-Dashboard entfernt); `verifyLiveKpiCatalog.ts` läuft weiter.
+- `scripts/runV23Acceptance.mjs` + Test — `E2E_DASHBOARD_ROLLBACK` und die beiden Rückschalt-Schritte entfernt; `E2E_DASHBOARD_V2` → `E2E_DASHBOARD` (Specs laufen ohne Schalter-Env gegen den regulären Build), `finally`-Rebuild entfällt.
+- `e2e/personal-dashboard.spec.ts`, `personal-dashboard-acceptance.spec.ts`, `dashboard-config-states.spec.ts` — `test.skip`-Gates und `E2E_DASHBOARD_V2`-Hinweise entfernt (die Specs laufen immer, seriell per `--workers=1` wie bisher).
+- `src/features/dashboard/__tests__/dashboardRollout.vitest.ts` — Schalter- und Loader-Auswahl-Tests entfernt; Adress-, Metadaten- und Chunk-Fehler-Tests bleiben (Metadaten-Test ohne Env-Stubs).
+- `src/features/overview/pages/__tests__/OverviewSupplement.characterization.ui.vitest.tsx` — `ExecutiveDashboardPage`-Charakterisierung entfernt, `DataBasisPage`-Teil bleibt.
+- `docs/dashboard/ACCEPTANCE_079.md` — Historisch-Hinweis: Schalter und Rückschaltung seit Auftrag 141 entfernt.
+- `docs/quality/debt-budget.json` — `react/forbid-dom-props`-Budget 50 → 49 (Ratsche: mit dem Cockpit-Code entfiel eine begründete Ausnahme).
+- `scripts/captureAuftrag141Gate.mjs` + `docs/screenshots/auftrag-141/README.md` — Screenshot-Gate.
+- `docs/auftraege/ANTIGRAVITY_AUFTRAG_141_LEGACY_DASHBOARD_ENTFERNEN.md` — Auftragsdatei.
+- `BUILD_PLAN.md` — nächster Auftrag auf 142 gesetzt.
+
+**Funktionale Prüfungen:** `/dashboard` lädt ausschließlich die persönliche Ansicht; `/dashboard/tiles/:tileId` ist immer registriert und in `routeForPathname` erkannt; `OverviewView` (`s-exec`) zeigt dieselbe persönliche Ansicht; `executiveCockpitData` bleibt (wird vom neuen Dashboard über `resolveBaseline`/Katalog genutzt); kein Codepfad wählt mehr zwischen zwei Dashboards.
+
+**Schutzbereichs-Prüfung:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` — leer.
+
+**Abnahme-Grep:** `git grep -E 'EXECUTIVE_DASHBOARD_V2|isPersonalDashboardEnabled|ExecutiveCockpit\b' -- src/ e2e/ .github/ .env.example` — keine Treffer (exit 1). Verbleibende Nennungen des Schalter-Namens nur in historischen Skript-Kommentaren (`scripts/captureAuftrag077/079/108/109*.mjs`, dokumentieren damalige Aufnahmen) und im Historisch-Hinweis von `ACCEPTANCE_079.md`.
+
+**Automatisierte Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0 Fehler; `npm run format:check` konform; `npm run verify` (Integrity-Suiten) grün; `npm test` 354 Dateien / 2641 Tests grün (10 Testdateien der entfernten Live-KPI-UI); `npm run build` grün; `npx size-limit` 177,01/180 kB Initial-JS und 79,41/250 kB Largest-Chunk im Budget; `npm run verify:quality-budget` sauber (Budget-Ratsche 50→49 dokumentiert). Keine Migrations-/Schema-Änderung — pgTAP-Stand 262 Tests bleibt gültig.
+
+**Screenshot-Matrix:** `docs/screenshots/auftrag-141/README.md` — 24 Aufnahmen (2 Szenarien `/dashboard` + `/dashboard/tiles/cfg_umsatz` × 1440/768/375 px × dark/light × vorher/nachher), 0 px horizontaler Überlauf in allen Nachher-Aufnahmen. Erwartung bestätigt: Der Vorher-Stand (`origin/main` `05c4f35`, Worktree-Build) zeigt unter `/dashboard` bereits die persönliche Ansicht — 21 von 24 Paaren byte-identisch, drei Abweichungen mit 16/41/16 geänderten Pixeln (< 0,001 %, Rasterrauschen an Breakpoints) unter der 0,1-%-Toleranz. Vorher-Build mit `.env.local` (Mock-Supabase `127.0.0.1:54321`), gespeicherte Dashboard-Konfiguration per Route-Mock für die Kachel-Detailroute.
+
+**E2E:** `/dashboard` und `/dashboard/tiles/:tileId` laufen über die bestehenden Specs `personal-dashboard.spec.ts`, `personal-dashboard-acceptance.spec.ts`, `dashboard-config-states.spec.ts` (jetzt ohne Skip-Gate, seriell); CI-Job `e2e` führt sie gegen den regulären Build aus. Orchestrator-Test `führt jede E2E-Datei im Orchestrator und im CI-Job e2e aus` bestätigt Abdeckung.
+
+**Ergebnis & Freigabestatus:** Umgesetzt und lokal verifiziert. Unabhängiges Review (Codex auf GitHub) ausstehend; kein Merge — das macht Marc. Rückweg bei Bedarf: Tag `v3.0.0`.
+
+### Nacharbeit Codex-Review PR #162 (11.11.2026, Head `e46312d` + Folge-Commit)
+
+- **P1 (Live-Performance-Verifier):** Berechtigt — mit `e46312d` behoben: `src/components/liveKpi/**` und `scripts/verifyLivePerformanceSurface.ts` samt weiterer toter Prüfskripte entfernt, CI-Schritt `verifyLivePerformanceSurface` gestrichen, `verifyLiveKpiCatalog` läuft weiter (lokal grün).
+- **P2 (parallele Dashboard-Specs):** Berechtigt — die drei Dashboard-Specs bekamen ohne Skip-Gate erstmals parallel im lokalen Gesamtlauf Zugang zu derselben Testbenutzer-Präferenzzeile. Behoben über `E2E_DASHBOARD_SERIAL=true` (vom entfernten Rollout-Schalter unabhängiges Gate): Skip in allen drei Specs, Env in CI-Job `e2e` und im Orchestrator-Schritt `runV23Acceptance.mjs`; Orchestrator-Test angepasst (11/11 grün).
+
+### Prüfnachweis PR #162 — Auftrag 141 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector), auf GitHub. **Geprüfter Commit:** `85954f97d0` (Head des PR).
+
+**Ergebnis:** Codex-Review auf `85954f9`: „Didn't find any major issues." — keine offenen Befunde. Zwei Befunde aus der ersten Runde (`1c3dce5`) wurden beide als berechtigt behoben und die Threads gelöst: P1 Live-Performance-Verifier (in `e46312d`: verwaiste `src/components/liveKpi/**` und tote Prüfskripte entfernt, CI-Schritt gestrichen), P2 parallele Dashboard-Specs (in `85954f9`: `E2E_DASHBOARD_SERIAL=true` als schalterunabhängiges Skip-Gate in Specs, CI und Orchestrator).
+
+**Pflicht-Checks auf `85954f9`:** alle 7 grün (lint, typecheck, test, build, e2e, size-limit, livekpi-verifiers; zzgl. CodeQL).
+
+**Status:** Gate-Freigabe-Voraussetzungen erfüllt (Prüfer ohne Befunde auf aktuellem Head, Checks grün, Konversationen gelöst). Merge und etwaiges Release-Tag macht Marc.

@@ -2,14 +2,15 @@ import React from 'react';
 import { logger } from '@/services/logger';
 import { APP_ROUTES, AppRouteId } from './routes';
 import {
-  executiveDashboardLoader,
+  loadPersonalWithFallback,
   loadTileDetailPage,
 } from '@/features/dashboard/pages/executiveDashboardEntry';
 
 // 1. Übersicht
-// Auftrag 077: Rollout-Schalter wählt bisherige oder persönliche Ansicht (beide lazy).
-const ExecutiveDashboardPage = React.lazy(executiveDashboardLoader());
-/** Auftrag 077: Kachel-Details, nur bei eingeschaltetem Rollout-Schalter registriert (App.tsx). */
+// Auftrag 141: Rollout-Schalter und bisherige Ansicht entfernt — die persönliche
+// Ansicht ist die einzige `/dashboard`-Variante (lazy, mit Chunk-Fehlerbehandlung).
+const PersonalDashboardPage = React.lazy(loadPersonalWithFallback);
+/** Kachel-Details unter `/dashboard/tiles/:tileId` (immer registriert, App.tsx). */
 export const TileDetailPage = React.lazy(loadTileDetailPage);
 const CompanyProfilePage = React.lazy(() =>
   import('@/features/overview/pages/CompanyProfilePage').then((m) => ({
@@ -258,7 +259,7 @@ export interface RoutePageEntry {
 
 export const ROUTE_PAGE_ENTRIES: readonly RoutePageEntry[] = [
   // 1. Übersicht
-  { id: 's-exec', component: ExecutiveDashboardPage },
+  { id: 's-exec', component: PersonalDashboardPage },
   { id: 's-profil', component: CompanyProfilePage },
   { id: 's-highlights', component: YearHighlightsPage },
   { id: 's-daten', component: DataBasisPage },
