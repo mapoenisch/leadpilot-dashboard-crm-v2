@@ -20302,3 +20302,14 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Pflicht-Checks:** lint, typecheck, build, size-limit, livekpi-verifiers, test, e2e; CodeQL grün.
 
 **Status:** Gate-Freigabe-Voraussetzungen erfüllt. Merge macht Marc. Reine Doku-Änderung (BUILD_LOG.md), kein Produktcode betroffen.
+
+### 3. Nacharbeit nach Codex-Review auf Doku-Commit — Auftrag 144 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `94f0953ca9`  
+**Ergebnis:** 1 P2-Befund (`baseline.kanal_mix` als Prozentverhältnis statt als Fluss).
+
+**Behobener Befund:**
+
+1. **Kanalmix als Prozentverhältnis (`KPI_FAEHIGKEITEN_144.md`):** `baseline.kanal_mix` deklariert laut `extendedEntries.ts` `unit: '%'` und `aggregation: 'verhaeltnis'`. Die Werte `[38, 22, 18, 12, 10]` stellen Prozentanteile dar, keine absoluten Neukundenzahlen. In Tabelle 2.1 und Abschnitt 3.1 wurden Form/Aggregation auf `Anteile / Verhältnis` korrigiert, die fünf tatsächlichen Kanäle ('LinkedIn-Content', 'SEO/Content', 'Partner/Empfehlung', 'Webinare', 'Outbound-E-Mail') benannt und der KPI unter den nicht zeitlich summierbaren Verhältnisgrößen eingeordnet.
+
+**Status:** Befund vollständig behoben; Re-Review angefordert.
