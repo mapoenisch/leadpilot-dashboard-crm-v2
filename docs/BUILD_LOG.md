@@ -20313,3 +20313,14 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 1. **Kanalmix als Prozentverhältnis (`KPI_FAEHIGKEITEN_144.md`):** `baseline.kanal_mix` deklariert laut `extendedEntries.ts` `unit: '%'` und `aggregation: 'verhaeltnis'`. Die Werte `[38, 22, 18, 12, 10]` stellen Prozentanteile dar, keine absoluten Neukundenzahlen. In Tabelle 2.1 und Abschnitt 3.1 wurden Form/Aggregation auf `Anteile / Verhältnis` korrigiert, die fünf tatsächlichen Kanäle ('LinkedIn-Content', 'SEO/Content', 'Partner/Empfehlung', 'Webinare', 'Outbound-E-Mail') benannt und der KPI unter den nicht zeitlich summierbaren Verhältnisgrößen eingeordnet.
 
 **Status:** Befund vollständig behoben; Re-Review angefordert.
+
+### 4. Nacharbeit nach Codex-Review PR #168 — Auftrag 144 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `b99cace659`  
+**Ergebnis:** 1 P2-Befund (`baseline.arr_nach_segment` mit tatsächlichen 4 Branchen-Segmenten dokumentieren).
+
+**Behobener Befund:**
+
+1. **Branchen-Segmente für ARR nach Segment (`KPI_FAEHIGKEITEN_144.md`):** `baseline.arr_nach_segment` bezieht sich laut `src/domain/kundenData.ts` (`CHART_SEGMENT`) und `extendedEntries.ts` auf vier Branchensegmente ('Maschinenbau', 'IT / Software', 'Großhandel', 'Agenturen') mit ARR-Werten `[178560, 112320, 78960, 42000]` (Summe 411.840 € ARR) und Standarddarstellung `balken`, nicht auf drei Größenklassen ('KMU', 'Mittelstand', 'Enterprise') mit Standarddarstellung Ring. In Tabelle 2.1 wurde die Zeile für `baseline.arr_nach_segment` entsprechend präzisiert.
+
+**Status:** Befund vollständig behoben; Re-Review angefordert.
