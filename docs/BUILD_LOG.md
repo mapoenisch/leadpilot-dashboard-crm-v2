@@ -20420,3 +20420,48 @@ Ergebnis: **Exakt 0 Bytes Diff (leer).** Es wurde kein Produktcode modifiziert.
 **Schutzbereichs-Prüfung:** `git diff 779052bddd64f21ecf00b8711b1fcb7061a0fda7 -- src/simulation src/types src/context src/services/data src/features/resources` ergibt exakt 0 Bytes Diff.
 
 **Status:** Gate-Freigabe-Voraussetzungen vollständig erfüllt. PR #169 bereit für Merge durch Marc.
+
+---
+
+## 2026-11-11 — Auftrag 146: Dashboard-Editor Grid-Vergleich und Ziel-Speichermodell (P03)
+
+**Rolle:** Antigravity (Builder) · **Branch:** `auftrag-146-dashboard-editor-grid-ziel-speichermodell`  
+**Prüfer:** Unabhängiges Review durch Codex (chatgpt-codex-connector auf GitHub)  
+**Baseline:** `main`, Commit `e19d8397b988a087fca3a5257184d65a01025653` (Merge von PR #169)
+
+### 1. Kontext & Ziel
+
+Umsetzung von Paket P03 aus dem Dashboard-Editor-Masterplan (`docs/dashboard/DASHBOARD_EDITOR_MASTERPLAN.md`). Aufbauend auf der Bestandsprüfung (Auftrag 144 / P01) und den UX- und Fachverträgen (Auftrag 145 / P02) liefert dieser Auftrag die verbindliche technische Baugrundlage für die Folgeaufträge P04–P07.
+
+### 2. Wesentliche Ergebnisse und Spezifikationen
+
+- **Detailauftrag angelegt:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_146_DASHBOARD_EDITOR_GRID_ZIEL_SPEICHERMODELL.md` mit Aufgaben T1–T6.
+- **Spezifikationsdokument erstellt:** `docs/dashboard/GRID_VERGLEICH_ZIELMODELL_146.md` umfasst:
+  1. **Rasterengine-Evaluation & Micro-Benchmark (24 heterogene Kacheln):**
+     - Bewertung von `react-grid-layout` vs. `@dnd-kit` vs. maßgeschneiderter nativer LeadPilot CSS-Grid-Engine.
+     - Messung: 10.000 vollständige Berechnungszyklen für 24 Kacheln über Desktop (12), Tablet (6) und Mobile (1) in 209,90 ms (0,0210 ms je Layout, < 0,15 % eines 60-FPS-Frames).
+     - Verbindliche Entscheidung für die maßgeschneiderte LeadPilot CSS-Grid-Engine: **0 KiB Zusatz-Bundle** (wahrt das strikte 180-KiB-Initial-Limit aus `.size-limit.json`), 100 % WAI-ARIA `grid`-Konformität (`Alt+Pfeiltasten`), 0 Third-Party-Risiken, keine neuen NPM-Pakete in `package.json`.
+  2. **Vollständiges relationales Ziel-Speichermodell (V2 für Supabase):**
+     - Exakte DDL-Definitionen für `dashboards`, `dashboard_revisions`, `dashboard_teams` und `dashboard_team_members`.
+     - Constraints (`scope IN ('personal', 'team')`), Fremdschlüssel und Lookup-Indizes.
+     - RLS-Sicherheitsmatrix mit strikter Mandantentrennung (`organization_id`) und phasenweiser Freischaltung (in P07 nur `personal`, `team` serverseitig bis P11 gesperrt; Direktzugriffe `INSERT`/`UPDATE`/`DELETE` für alle gesperrt).
+  3. **Atomare Server-RPC-Verträge & Validierung:**
+     - `save_dashboard_v2` mit optimistischem Locking (`expected_revision`), Fehlercode `P0001` (`LP_DASHBOARD_CONFLICT`) und automatischer Ablage in `dashboard_revisions`.
+     - `restore_dashboard_revision_v2` erzeugt deterministisch eine neue Revision an der Spitze der Revisionshistorie.
+     - Serverseitiger JSON-Validator `dashboard_config_v2_invalid_reason` (max. 64 KiB, max. 24 Kacheln, Typsicherheit).
+  4. **Deterministische V1→V2-Kopiermigration:**
+     - 1:1 Erhalt der bestehenden V1-Kachel-IDs ohne UUID-Zwang.
+     - Größen- und Koordinaten-Mapping (`'klein'` → 3x2, `'mittel'` → 6x2/6x3, `'gross'` → 9x3, `'voll'` → 12x3) getrennt je Breakpoint.
+     - Idempotenzgarantie: Bearbeitete V2-Dashboards (`revision > 1`) werden niemals überschrieben; V1-Quelle bleibt unverändert schreibgeschützt.
+- **Projekt-Bauplan aktualisiert:** `BUILD_PLAN.md` auf Auftrag 146 nachgezogen.
+
+### 3. Schutzbereichs-Prüfung
+
+Befehl: `git diff e19d8397b988a087fca3a5257184d65a01025653 -- src/simulation src/types src/context src/services/data src/features/resources`  
+Ergebnis: **Exakt 0 Bytes Diff (leer).** Es wurde kein geschützter Produktcode modifiziert.
+
+### 4. Verifikations-Ergebnisse
+
+- `npx tsc --noEmit`: 0 Fehler (Exit 0)
+- `npm run lint`: 0 Fehler, 0 Warnungen (Exit 0)
+- `npm run format:check`: 0 Abweichungen (Exit 0)
