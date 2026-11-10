@@ -20533,4 +20533,18 @@ Ergebnis: **Exakt 0 Bytes Diff (leer).** Es wurde kein geschützter Produktcode 
    - In `migrateV1ToV2` wird für Kacheln ohne benutzerdefinierten Titel der lesbare Katalogname (`getCatalogEntry(t.catalogId)?.name`) als primärer Fallback aufgelöst (analog zum bestehenden Renderer `DashboardTile.tsx:102`).
    - Die technische `catalogId` dient nur noch als sekundärer Not-Fallback bei unbekannten Metriken.
 
-**Status:** Alle 3 P2-Befunde vollständig behoben; Re-Review durch Codex angefordert.
+**Status:** Alle 3 P2-Befunde vollständig behoben.
+
+### Nacharbeit nach 5. Codex-Review PR #170 — Auftrag 146 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `876104e`  
+**Ergebnis:** 1 P2-Befund (Unterscheidung von Migrationsupdates und persönlichen Nutzeränderungen).
+
+**Behobener Befund:**
+
+1. **P2: Trennung von automatischen Migrationsupdates und manuellen Nutzeränderungen (`GRID_VERGLEICH_ZIELMODELL_146.md`):**
+   - Die Idempotenzprüfung in Abschnitt 5.3 wurde präzisiert: Statt pauschal `revision > 1` ODER `updated_at > created_at` abzufragen (was wiederholte Migrationsläufe bei V1-Änderungen fälschlicherweise als Nutzeränderung deuten und blockieren würde), werden nun `last_migrated_revision` und `user_edited` im Metadatenobjekt geführt.
+   - Kriterium für manuelle Nutzerbearbeitung: `metadata.user_edited = true` ODER `revision > metadata.last_migrated_revision`.
+   - Rein automatisierte Re-Synchronisationen aus V1 führen `last_migrated_revision` nach und belassen `user_edited = false`. Dadurch bleiben unberührte V2-Kopien vor der ersten manuellen Bearbeitung weiterhin synchronisierbar, während tatsächlich vom Nutzer bearbeitete Dashboards strikt geschützt werden.
+
+**Status:** Befund vollständig behoben; Re-Review durch Codex angefordert.

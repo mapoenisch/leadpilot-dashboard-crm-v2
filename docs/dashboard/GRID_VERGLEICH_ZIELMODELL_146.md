@@ -839,6 +839,8 @@ export function migrateV1ToV2(
     metadata: {
       migrated_from_v1: true,
       migrated_at: now,
+      last_migrated_revision: 1,
+      user_edited: false,
     },
     createdAt: now,
     updatedAt: now,
@@ -927,16 +929,31 @@ function packLayout(
 
 ### 5.3 Idempotenz und Nicht-Überschreiben bearbeiteter V2-Kopien
 
-Um Datenverlust bei mehrfachem Ausführen der Kopiermigration auszuschließen, gilt folgender Schutzmechanismus:
+Um Datenverlust bei mehrfachem Ausführen der Kopiermigration auszuschließen und gleichzeitig wiederholte automatische Synchronisationen vor der ersten Nutzerbearbeitung zu ermöglichen (Codex P2), gilt folgender Schutzmechanismus:
 
-1. **Herkunftsmarker bei der Anlage:**
-   Die Transformation `migrateV1ToV2` setzt verbindlich das Feld `config->'metadata'->>'migrated_from_v1' = 'true'` sowie `migrated_at`. Dieser Marker wird über `create_dashboard_v2` atomar persistiert.
-2. **Prüfung auf bestehende V2-Kopie:**
-   Existiert in `dashboards` bereits ein Datensatz für den Anwender mit `config->'metadata'->>'migrated_from_v1' = 'true'`, wird geprüft:
-   - Wurde das V2-Dashboard bereits durch den Nutzer bearbeitet? (`revision > 1` ODER `updated_at > created_at`).
+1. **Herkunfts- und Revisionsmarker bei der Anlage:**
+   Die Transformation `migrateV1ToV2` setzt verbindlich folgende Metadaten:
+
+   ```json
+   "metadata": {
+     "migrated_from_v1": true,
+     "migrated_at": "<ISO-Timestamp>",
+     "last_migrated_revision": 1,
+     "user_edited": false
+   }
+   ```
+
+   Dieser Stand wird über `create_dashboard_v2` initial atomar persistiert.
+
+2. **Prüfung auf tatsächliche Nutzerbearbeitung:**
+   Existiert in `dashboards` bereits ein Datensatz für den Anwender mit `config->'metadata'->>'migrated_from_v1' = 'true'`, wird geprüft, ob tatsächliche manuelle Nutzeränderungen vorliegen:
+   - **Kriterium:** `config->'metadata'->>'user_edited' = 'true'` ODER `d.revision > (config->'metadata'->>'last_migrated_revision')::integer`.
+   - Bei jeder manuellen Bearbeitung über den V2-Editor (P04) setzt der Editor verbindlich `metadata.user_edited = true`.
+   - Rein automatisierte Re-Synchronisationen aus V1 aktualisieren `last_migrated_revision` auf die neu erzeugte Revision (`d.revision + 1`) mit dem Revisionskommentar `'Automatisches V1-Migrationsupdate'`, belassen `user_edited = false` und blockieren zukünftige Migrationen nicht.
+
 3. **Konfliktbehandlung:**
-   - **Falls unbearbeitet (`revision = 1`):** Das Dashboard darf bei geänderter V1-Quelle aktualisiert werden.
-   - **Falls bereits bearbeitet (`revision > 1`):** Die bestehende V2-Kopie wird **unter keinen Umständen überschrieben**. Der Migrationsprozess markiert die V1-Zeile als getrennt und überlässt die Zusammenführung dem Anwender.
+   - **Falls unbearbeitet (`user_edited = false` UND `d.revision = (config->'metadata'->>'last_migrated_revision')::integer`):** Das Dashboard darf bei geänderter V1-Quelle automatisch aktualisiert werden; `last_migrated_revision` wird nachgeführt.
+   - **Falls manuell bearbeitet (`user_edited = true` ODER `d.revision > (config->'metadata'->>'last_migrated_revision')::integer`):** Die bestehende V2-Kopie wird **unter keinen Umständen überschrieben**. Der Migrationsprozess markiert die V1-Zeile als getrennt und überlässt die Zusammenführung dem Anwender.
 
 ---
 
