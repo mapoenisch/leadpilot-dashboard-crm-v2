@@ -20221,3 +20221,116 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Pflicht-Checks auf `02b2dbb`:** alle 7 grün (lint, typecheck, test, build, e2e, size-limit, livekpi-verifiers; zzgl. CodeQL).
 
 **Status:** Gate-Freigabe-Voraussetzungen erfüllt. Merge macht Marc. Reine Doku-Änderung (BUILD_PLAN.md), kein Code betroffen.
+
+## Auftrag 144 – Dashboard-Editor: Bestandsprüfung und Baugrundlage (P01) (10.11.2026)
+
+**Ziel & Kontext:** Vorbereitung des geplanten Umbaus des Dashboard-Editors (Paket P01 des Masterplans `docs/dashboard/DASHBOARD_EDITOR_MASTERPLAN.md`). Erfassung des aktuellen Dashboard-Editors, aller aktiven Katalog-Kennzahlen, der technischen Persistenz- und Rechtestrukturen sowie der Machbarkeit des serverseitigen Alarmbetriebs mit überprüfbaren Nachweisen. Auftragsdatei: `docs/auftraege/ANTIGRAVITY_AUFTRAG_144_DASHBOARD_EDITOR_BESTANDSPRUEFUNG.md`. Keine Produktcodeänderungen.
+
+**Geänderte & neu erstellte Dateien:**
+
+- `docs/dashboard/EDITOR_BESTAND_144.md` (neu: Bestandsbericht, Datenfluss, Bausteine, Lücken, Team- und Alarmbetrieb-Machbarkeit, Fragen für P02/P03)
+- `docs/dashboard/KPI_FAEHIGKEITEN_144.md` (neu: vollständige Fähigkeitsmatrix aller 48 aktiven Katalog-IDs, Zählung und Differenzlisten)
+- `docs/screenshots/auftrag-144/README.md` (neu: textuelle Matrix der 18 Bestandsaufnahmen, SHA-256-Hashes, 0 px Überlauf)
+- `scripts/captureAuftrag144EditorBestand.mjs` (neu: Aufnahme-Harness für die 18 Bestandsaufnahmen)
+- `BUILD_PLAN.md` (Status und Verweis auf Auftrag 144 ergänzt)
+- `docs/auftraege/ANTIGRAVITY_AUFTRAG_144_DASHBOARD_EDITOR_BESTANDSPRUEFUNG.md` (Checkboxen und Status aktualisiert)
+- `docs/BUILD_LOG.md` (dieser Builder-Eintrag)
+
+**Wesentliche Bestandsbefunde:**
+
+1. **Editor & Raster:** 1D-Listenfluss (`tiles: DashboardTileConfig[]`) im 1/6/12-Spalten CSS-Grid (`DashboardGrid.tsx`). Drag-and-Drop (`calculateDropIndex`) sortiert im Array um; kein zweidimensionales `(x, y, w, h)`-Koordinatenmodell. Formatversion 1, maximal 24 Kacheln, 32 KiB JSON-Größenbegrenzung in PostgreSQL.
+2. **KPI-Katalog:** Exakt 48 aktive Einträge (24 `baseline`, 6 `crm`, 13 `live`, 5 `kombination`) aus insgesamt 88 Katalogeinträgen (40 inaktiv: 19 `aufbereiten`, 21 `nicht_geeignet`). 0 doppelte IDs, 100 % Deckung.
+3. **Datenfluss & Historie:** CRM aggregiert den gesamten berechtigten Datenbestand der Organisation aus `imported_funnel_deals` via RLS (nicht paginierte UI-Teilmenge). Live-Store limitiert strikt auf 30 Punkte / 30 Minuten (FIFO). `resolveLive.ts` liefert für Einzel-KPIs `series: null`. Live-Feed ist organisationsübergreifend (`scope: 'organisationsuebergreifend'`).
+4. **Rechte & Teams:** Es existiert kein Team-Modell und kein Owner- oder Team-Bezug an Deals (`imported_funnel_deals` hat `organization_id`, aber kein `owner_id`/`team_id`). Rollen gelten rein organisationsweit (`admin`, `manager`, `viewer`). Auch Viewer dürfen ihr persönliches Layout speichern (`save_dashboard_preferences`). Team-Dashboards beschreiben Freigabe-/Empfängerkreise innerhalb einer Organisation.
+5. **Alarmbetrieb-Machbarkeit:** Aktuell existiert keine Server-Berechnung für Pipeline-Kennzahlen (rein clientseitig in `getPipelineOverview`). Für P13 wird ein PostgreSQL-basierter Worker (`pg_cron` bzw. interne Scheduler-Tabelle) mit reinen PL/pgSQL-Aggregationsfunktionen und automatisiertem Client-/Server-Paritätstest empfohlen.
+
+**Schutzbereichs-Prüfung:**
+`git diff b9e04f5c5d49fabad5b5484ec44216536f61827c -- src/simulation src/types src/context src/services/data src/features/resources` — exakt leer (0 Bytes).
+
+**Automatisierte Verifikation:**
+
+- `npx --no-install tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run format:check`: konform
+- `npm run verify:quality-budget`: konform (0 Fehler in `src/`, Budgets eingehalten)
+- `npm test`: 354 Suiten, 2.641 Tests grün (0 Fehler)
+- `npm run verify`: Alle 25 Integrity- und Domain-Suiten grün (Auftrag 001 bis 025)
+- `npm run build`: Produktions-Build erfolgreich in 3,18 s
+- `npx --no-install size-limit`: Bundle 177,01 kB / 180 kB; Chunk 79,41 kB / 250 kB
+- `node --check scripts/captureAuftrag144EditorBestand.mjs`: Syntaxprüfung fehlerfrei
+- Prettier-Dokumentprüfung (`KPI_FAEHIGKEITEN_144.md`, `EDITOR_BESTAND_144.md`, `README.md`): formatiert und konform
+- Dashboard-E2E (`e2e/personal-dashboard.spec.ts`, `e2e/dashboard-config-states.spec.ts`): Lokal geblockt, da Docker-Daemon auf Host nicht aktiv ist (Supabase-Container offline). In CI (`.github/workflows/ci.yml`, Job `e2e`) mit deterministischem Seed automatisiert.
+
+**Screenshot-Matrix:**
+`docs/screenshots/auftrag-144/README.md` — 18 Bestandsaufnahmen (3 Zustände: Lesemodus, Bearbeitungsmodus, Konfigurator-Drawer × 3 Breiten: 1440, 768, 375 px × 2 Themes: dark, light). 0 px Dokument- und Main-Überlauf in allen 18 Aufnahmen. Bilddateien verbleiben lokal (`.gitignore`).
+
+**Ergebnis & Freigabestatus:** Vollständig umgesetzt und lokal verifiziert. Unabhängiges Review ausstehend (Status: lokal geprüft, unabhängiges Review ausstehend); kein Merge, keine Freigabe von P02 — das folgt nach Review und durch Marc.
+
+### Nacharbeit nach Codex-Review PR #168 — Auftrag 144 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `600f1f4e52`  
+**Ergebnis:** 5 P2-Befunde (Präzisierung von Quellenpfaden, CRM-Prädikaten, Kombinationsregeln, Überlauf-Auswertung und Live-Retention).
+
+**Behobene Befunde:**
+
+1. **Quellenpfade Vertriebs-Baseline-KPIs (`KPI_FAEHIGKEITEN_144.md`):** Pfade auf tatsächliche Resolver-Quellen aus `extendedEntries.ts` präzisiert: `KANAELE.chartKanal.datasets[0]`, `KANAELE.chartRoi.datasets[0]`, `FUNNEL.chart.datasets[0]` (Leads) und `FUNNEL.chart.datasets[3]` (Neukunden/Won; Dataset 1 = MQL).
+2. **CRM-Stufenprädikate & Summationsumfang (`KPI_FAEHIGKEITEN_144.md`, `EDITOR_BESTAND_144.md`):** Tatsächliche Logik von `getPipelineOverview()` in `src/domain/executiveCockpitData.ts` exakt dokumentiert: `totalVolume` summiert sämtliche Deals (inkl. gewonnener und verlorener Deals); `wonVolume` via `stage.toLowerCase().includes('gewonnen')`; `openVolume` schließt `gewonnen` und `verloren` aus; verlorene Deals verbleiben im Gesamtsummenumfang.
+3. **MRR-Kombinationsregeln & Operanden (`KPI_FAEHIGKEITEN_144.md`):** Nenner auf Summe von `baseline.mrr_paketmix` (`MRR_TOTAL`, `sum: true`) korrigiert (statt `arr ÷ 12`); Pro-Zähler auf exaktes Label `Pro (Individuell / Ref. 80€)` korrigiert (`Enterprise` existiert in `CHART_MRR` nicht).
+4. **Dynamische Überlauf-Auswertung (`scripts/captureAuftrag144EditorBestand.mjs`, `docs/screenshots/auftrag-144/README.md`):** Zusammenfassung wird nun dynamisch aus `rows` abgeleitet (`Math.max(...overflowDocument)`, `Math.max(...overflowMain)`), Bestätigung von 0 px Überlauf erfolgt messwertbasiert.
+5. **Initiales Abruffenster vs. laufende Retention (`KPI_FAEHIGKEITEN_144.md`):** Das 30-Minuten-Zeitfenster ist ausschließlich der initiale Fetch-Filter (`fetchLiveKpiHistory`); im laufenden Betrieb begrenzen `mergeIntoHistory()` und `normalizeHistory()` rein die Punktzahl (30 Punkte FIFO) ohne zeitbasierte Eviktion.
+
+**Status:** Alle 5 Befunde vollständig nachgearbeitet; Re-Review angefordert.
+
+### 2. Nacharbeit nach Codex-Re-Review PR #168 — Auftrag 144 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `eafdb16eaf`  
+**Ergebnis:** 2 P2-Befunde (Präzisierung der Live-KPI-Quell-IDs und Abgrenzung des kumulativen Snapshot-Volumens).
+
+**Behobene Befunde:**
+
+1. **Live-KPI-Quell-IDs (`KPI_FAEHIGKEITEN_144.md`):** Für alle 12 Live-KPIs wird in Tabelle 2.3 nun explizit die tatsächliche `source.liveKpiId` dokumentiert (z. B. `arr`, `mrr`, `pipeline_coverage`, etc.), die an `liveKpiStreamStore.getState()` übergeben und in der Supabase-Projektion `live_kpi_public_feed` als Spalte `kpi_id` gefiltert wird, und sauber von der Katalog-ID (`live.arr`, `live.mrr`) unterschieden.
+2. **Abgrenzung gewonnenes Snapshot-Volumen von periodischen Flüssen (`KPI_FAEHIGKEITEN_144.md`):** Für `crm.pipeline_gewonnen` wurde in Tabelle 2.2 und Abschnitt 3.1 klargestellt, dass es sich um einen kumulativen Momentan-Snapshot aller bisher gewonnenen Deals ohne Datumsfilter/Periodisierung handelt (`closeDate` ist ungesichert). Es darf nicht als periodischer Fluss über Zeiträume summiert werden; echte Periodenflüsse (z. B. gewonnen in Q1) erfordern eine nachgewiesene Ereignisbasis (`deal_stage_events`).
+
+**Status:** Beide Folge-Befunde vollständig nachgearbeitet; Re-Review bestanden.
+
+### Prüfnachweis PR #168 — Auftrag 144 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector), auf GitHub. **Geprüfter Commit:** `9c27433dbd` (Head des PR).
+
+**Ergebnis:** Codex-Review auf `9c27433`: „Didn't find any major issues. Hooray!" — 0 offene Befunde. Alle 7 Review-Befunde (5 aus Durchlauf 1, 2 aus Durchlauf 2) vollständig behoben.
+
+**Pflicht-Checks:** lint, typecheck, build, size-limit, livekpi-verifiers, test, e2e; CodeQL grün.
+
+**Status:** Gate-Freigabe-Voraussetzungen erfüllt. Merge macht Marc. Reine Doku-Änderung (BUILD_LOG.md), kein Produktcode betroffen.
+
+### 3. Nacharbeit nach Codex-Review auf Doku-Commit — Auftrag 144 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `94f0953ca9`  
+**Ergebnis:** 1 P2-Befund (`baseline.kanal_mix` als Prozentverhältnis statt als Fluss).
+
+**Behobener Befund:**
+
+1. **Kanalmix als Prozentverhältnis (`KPI_FAEHIGKEITEN_144.md`):** `baseline.kanal_mix` deklariert laut `extendedEntries.ts` `unit: '%'` und `aggregation: 'verhaeltnis'`. Die Werte `[38, 22, 18, 12, 10]` stellen Prozentanteile dar, keine absoluten Neukundenzahlen. In Tabelle 2.1 und Abschnitt 3.1 wurden Form/Aggregation auf `Anteile / Verhältnis` korrigiert, die fünf tatsächlichen Kanäle ('LinkedIn-Content', 'SEO/Content', 'Partner/Empfehlung', 'Webinare', 'Outbound-E-Mail') benannt und der KPI unter den nicht zeitlich summierbaren Verhältnisgrößen eingeordnet.
+
+**Status:** Befund vollständig behoben; Re-Review angefordert.
+
+### 4. Nacharbeit nach Codex-Review PR #168 — Auftrag 144 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `b99cace659`  
+**Ergebnis:** 1 P2-Befund (`baseline.arr_nach_segment` mit tatsächlichen 4 Branchen-Segmenten dokumentieren).
+
+**Behobener Befund:**
+
+1. **Branchen-Segmente für ARR nach Segment (`KPI_FAEHIGKEITEN_144.md`):** `baseline.arr_nach_segment` bezieht sich laut `src/domain/kundenData.ts` (`CHART_SEGMENT`) und `extendedEntries.ts` auf vier Branchensegmente ('Maschinenbau', 'IT / Software', 'Großhandel', 'Agenturen') mit ARR-Werten `[178560, 112320, 78960, 42000]` (Summe 411.840 € ARR) und Standarddarstellung `balken`, nicht auf drei Größenklassen ('KMU', 'Mittelstand', 'Enterprise') mit Standarddarstellung Ring. In Tabelle 2.1 wurde die Zeile für `baseline.arr_nach_segment` entsprechend präzisiert.
+
+**Status:** Befund vollständig behoben; Re-Review angefordert.
+
+### Finaler Prüfnachweis PR #168 — Auftrag 144 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub). **Geprüfter Commit:** `4f9cf33630` (Head des PR).
+
+**Ergebnis:** Codex-Review auf `4f9cf33`: „Didn't find any major issues. What shall we delve into next?“ — 0 offene Befunde. Alle 9 Review-Befunde (5 aus Durchlauf 1, 2 aus Durchlauf 2, 1 aus Durchlauf 3, 1 aus Durchlauf 4) vollständig behoben. Alle 9 Review-Konversationen auf GitHub wurden gelöst.
+
+**Pflicht-Checks:** lint, typecheck, build, size-limit, livekpi-verifiers, test, e2e; CodeQL grün.
+
+**Status:** Gate-Freigabe-Voraussetzungen vollständig erfüllt. Bereit für Merge durch Marc. Reine Doku- und Nachweisänderungen, kein Produktcode betroffen (Schutzbereichs-Diff strikt 0 Bytes gegen `b9e04f5`).
