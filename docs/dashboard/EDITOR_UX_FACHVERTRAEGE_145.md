@@ -379,6 +379,32 @@ export interface TileDisplayOptions {
   compactNumbers?: boolean; // Kompakte Zahlenformatierung (z. B. '120k' statt '120.000')
 }
 
+/** Filterregel für Panel-Abfragen */
+export interface TileFilterRule {
+  field: string; // z. B. 'stage', 'status', 'channel', 'segment'
+  operator: 'eq' | 'neq' | 'in' | 'nin' | 'gt' | 'gte' | 'lt' | 'lte';
+  value: string | number | boolean | string[] | number[];
+}
+
+/** Transformationen für Panel-Abfragen */
+export interface TileTransformationConfig {
+  sortBy?: string; // Sortierdimension
+  sortDirection?: 'asc' | 'desc';
+  limit?: number; // Zeilenbegrenzung (z. B. Top 5)
+  hideEmpty?: boolean; // Leere Einträge ausblenden
+}
+
+/** Vollständige Datenabfrage einer Kachel (Single Source of Truth für den Panel-Editor) */
+export interface TileQueryConfig {
+  metricId: string; // Referenz auf DASHBOARD_CATALOG
+  aggregation?: string; // z. B. 'summe', 'schnitt', 'anzahl', 'verhaeltnis', 'letzter_stand'
+  groupBy?: string; // z. B. 'stage', 'region', 'segment', 'channel'
+  timeframe?: string; // z. B. '30d', 'quarter', 'year', 'all'
+  pipelineId?: string; // Optionaler Pipeline-Filter
+  filters?: TileFilterRule[]; // Detaillierte Filterregeln
+  transformations?: TileTransformationConfig; // Sortierung und Begrenzung
+}
+
 /** Schwellenwert-Regel */
 export interface TileThresholdRule {
   operator: 'gt' | 'gte' | 'lt' | 'lte' | 'between';
@@ -396,6 +422,7 @@ export interface DashboardTileConfigV2 {
   presentation: string; // Renderer (z. B. 'zahl', 'balken', 'donut', etc.)
   layouts: BreakpointGridPositions; // Getrennte Rasterpositionen je Breakpoint
   displayOptions?: TileDisplayOptions; // Editierbare Darstellungsoptionen
+  query?: TileQueryConfig; // Vollständige persistierte Panel-Abfragestruktur
   timeframeOverride?: string; // Optionaler kachelspezifischer Zeitraum
   pipelineOverride?: string; // Optionaler Pipeline-Filter
   aggregationOverride?: string; // Erlaubte Aggregation
@@ -442,7 +469,10 @@ export interface DashboardConfigV2 {
      - `'mittel'`: Desktop `w = 6, h = 4`; Tablet `w = 6, h = 4`; Mobile `w = 1, h = 4`
      - `'gross'`: Desktop `w = 9, h = 5`; Tablet `w = 6, h = 5`; Mobile `w = 1, h = 5`
      - `'voll'`: Desktop `w = 12, h = 6`; Tablet `w = 6, h = 6`; Mobile `w = 1, h = 6`
-   - Die Koordinaten `(x, y)` werden zeilenweise von links nach rechts kollisionsfrei befüllt (Zeilenumbruch, wenn `x + w > 12`).
+   - **Kollisionsfreie Koordinatenberechnung getrennt je Breakpoint:**
+     - **Desktop (12 Spalten):** Start bei `(x = 0, y = 0)`. Wenn `x + w > 12`, erfolgt ein Zeilenumbruch zu `x = 0, y = y + max_h_in_zeile`.
+     - **Tablet (6 Spalten):** Start bei `(x = 0, y = 0)`. Wenn `x + w > 6`, erfolgt ein Zeilenumbruch zu `x = 0, y = y + max_h_in_zeile`.
+     - **Mobile (1 Spalte):** Alle Kacheln erhalten strikt `x = 0, w = 1`. Die Platzierung erfolgt rein vertikal nacheinander: Für Kachel $i$ gilt $x_i = 0$ und $y_i = \sum_{k=0}^{i-1} h_k$.
 3. **Vorbereitung für Teams:**
    - Bereitstellung einer Tabelle `dashboard_teams` und `dashboard_team_members` für Freigabegruppen, die in P07 als relationale Struktur angelegt und in P11 für die Benutzeroberfläche freigeschaltet wird.
 

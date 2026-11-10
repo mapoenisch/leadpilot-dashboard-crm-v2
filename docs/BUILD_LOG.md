@@ -20386,3 +20386,15 @@ Ergebnis: **Exakt 0 Bytes Diff (leer).** Es wurde kein Produktcode modifiziert.
 5. **Editierbare Darstellungsoptionen im V2-Modell (`EDITOR_UX_FACHVERTRAEGE_145.md`):** `TileDisplayOptions` (`subtitle`, `showLegend`, `xAxisLabel`, `yAxisLabel`, `unitSuffix`, `colorScheme`, `compactNumbers`) wurde als eigenständige Schnittstelle definiert und als `displayOptions?: TileDisplayOptions` in `DashboardTileConfigV2` integriert.
 
 **Status:** Alle 5 Befunde vollständig behoben; Re-Review angefordert.
+
+### 2. Nacharbeit nach Codex-Re-Review PR #169 — Auftrag 145 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `e646f5a1c4`  
+**Ergebnis:** 2 P2-Befunde (Vollständige Panel-Abfragestruktur im V2-Modell, Breakpoint-spezifische Migrations-Koordinatenberechnung).
+
+**Behobene Befunde:**
+
+1. **Vollständige Panel-Abfragestruktur im V2-Modell (`EDITOR_UX_FACHVERTRAEGE_145.md`):** `TileQueryConfig` mit `TileFilterRule` und `TileTransformationConfig` wurde als eigenständige Schnittstelle für Metrik, Aggregation, Gruppierung, Zeitraum, Filter und Transformationen definiert und als `query?: TileQueryConfig` in `DashboardTileConfigV2` integriert. Damit bleibt die im Panel-Editor vorgenommene Konfiguration beim Speichern und erneuten Laden vollständig und verlustfrei erhalten.
+2. **Kollisionsfreie Koordinatenberechnung je Breakpoint (`EDITOR_UX_FACHVERTRAEGE_145.md`):** Die Kopiermigrationsregeln in Abschnitt 9.2 wurden präzisiert, sodass Zeilenumbrüche und Platzierungen getrennt je Breakpoint anhand der jeweiligen Spaltenbreite berechnet werden (Desktop: 12 Spalten mit Umbruch bei `x + w > 12`; Tablet: 6 Spalten mit Umbruch bei `x + w > 6`; Mobile: strikt 1 Spalte mit `x = 0, w = 1` und rein vertikaler Platzierung nacheinander).
+
+**Status:** Alle Befunde behoben; Re-Review angefordert.
