@@ -482,6 +482,9 @@ BEGIN
       DETAIL = 'Aktuelle Revision (' || v_new_revision || ') weicht von erwarteter Revision (' || p_expected_revision || ') ab.';
   END IF;
 
+  -- Identitäts-Integrität: Konfigurations-ID mit Dashboard-ID synchronisieren (Codex P2)
+  p_config := jsonb_set(p_config, '{id}', to_jsonb(p_dashboard_id::text), true);
+
   -- Aktualisierung ausführen (Eigentümer- und Revisionsabgleich in WHERE-Klausel)
   UPDATE public.dashboards AS d
   SET title = p_title,
@@ -574,8 +577,13 @@ BEGIN
     RAISE EXCEPTION 'LP_INVALID_SCOPE' USING ERRCODE = '22023';
   END IF;
 
+  -- Eigene ID serverseitig erzeugen und in Konfiguration synchronisieren (Codex P2)
+  v_dashboard_id := gen_random_uuid();
+  p_config := jsonb_set(p_config, '{id}', to_jsonb(v_dashboard_id::text), true);
+
   -- 1. Dashboard-Datensatz anlegen (Revision 1)
   INSERT INTO public.dashboards AS d (
+    id,
     organization_id,
     scope,
     user_id,
@@ -586,6 +594,7 @@ BEGIN
     revision,
     config
   ) VALUES (
+    v_dashboard_id,
     v_org,
     'personal',
     v_user,
@@ -596,7 +605,7 @@ BEGIN
     1,
     p_config
   )
-  RETURNING d.id, d.created_at INTO v_dashboard_id, v_created_at;
+  RETURNING d.created_at INTO v_created_at;
 
   -- 2. Initiale Revision 1 in Historie ablegen
   INSERT INTO public.dashboard_revisions (
@@ -791,10 +800,14 @@ export function migrateV1ToV2(
         : undefined;
     const pipelineOverride = t.pipeline;
 
+    // Titel-Auflösung (Codex P2): Benutzerdefinierter Titel > Katalogname aus DASHBOARD_CATALOG > Katalog-ID
+    const catalogName = getCatalogEntry(t.catalogId)?.name;
+    const resolvedTitle = t.title ?? catalogName ?? t.catalogId;
+
     return {
       id: t.tileId, // 1:1 Erhalt der bestehenden ID (Masterplan 5.1)
       catalogId: t.catalogId, // 1:1 Erhalt des Metrik-Bezugs
-      title: t.title ?? t.catalogId,
+      title: resolvedTitle,
       presentation: t.view,
       layouts: {
         desktop: desktopPositions[idx],
@@ -823,6 +836,10 @@ export function migrateV1ToV2(
     globalTimeframe,
     globalPipeline,
     tiles: v2Tiles,
+    metadata: {
+      migrated_from_v1: true,
+      migrated_at: now,
+    },
     createdAt: now,
     updatedAt: now,
   };
@@ -912,10 +929,12 @@ function packLayout(
 
 Um Datenverlust bei mehrfachem Ausführen der Kopiermigration auszuschließen, gilt folgender Schutzmechanismus:
 
-1. **Prüfung auf bestehende V2-Kopie:**
+1. **Herkunftsmarker bei der Anlage:**
+   Die Transformation `migrateV1ToV2` setzt verbindlich das Feld `config->'metadata'->>'migrated_from_v1' = 'true'` sowie `migrated_at`. Dieser Marker wird über `create_dashboard_v2` atomar persistiert.
+2. **Prüfung auf bestehende V2-Kopie:**
    Existiert in `dashboards` bereits ein Datensatz für den Anwender mit `config->'metadata'->>'migrated_from_v1' = 'true'`, wird geprüft:
    - Wurde das V2-Dashboard bereits durch den Nutzer bearbeitet? (`revision > 1` ODER `updated_at > created_at`).
-2. **Konfliktbehandlung:**
+3. **Konfliktbehandlung:**
    - **Falls unbearbeitet (`revision = 1`):** Das Dashboard darf bei geänderter V1-Quelle aktualisiert werden.
    - **Falls bereits bearbeitet (`revision > 1`):** Die bestehende V2-Kopie wird **unter keinen Umständen überschrieben**. Der Migrationsprozess markiert die V1-Zeile als getrennt und überlässt die Zusammenführung dem Anwender.
 

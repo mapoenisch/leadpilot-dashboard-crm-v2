@@ -20514,4 +20514,23 @@ Ergebnis: **Exakt 0 Bytes Diff (leer).** Es wurde kein geschützter Produktcode 
    - Die Migrationsfunktion `migrateV1ToV2` überführt kachelspezifische Ausnahmen explizit nach `pipelineOverride` und `timeframeOverride` (bei `filterMode === 'eigener_zeitraum'`) sowie in die persistierte Abfragestruktur `query` (`pipelineId`, `timeframe`).
    - Verhindert Datenumfangsänderungen nach der Migration für CRM-Kacheln mit dedizierten Pipeline-Filtern.
 
-**Status:** Befund vollständig behoben; Re-Review durch Codex angefordert.
+**Status:** Befund vollständig behoben.
+
+### Nacharbeit nach 4. Codex-Review PR #170 — Auftrag 146 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `f4a419d`  
+**Ergebnis:** 3 P2-Befunde (Dashboard-ID-Synchronisation, Herkunftsmarker, Kacheltitel-Fallback).
+
+**Behobene Befunde (3 P2):**
+
+1. **P2: Synchronisation der Dashboard-ID mit der Konfiguration (`GRID_VERGLEICH_ZIELMODELL_146.md`):**
+   - In `create_dashboard_v2` wird die Dashboard-UUID vor den INSERTs serverseitig via `v_dashboard_id := gen_random_uuid()` erzeugt und mit `p_config := jsonb_set(p_config, '{id}', to_jsonb(v_dashboard_id::text), true)` in die Konfiguration eingebettet. Dadurch tragen Primärdatensatz, Konfiguration und initiale Revision garantiert dieselbe konsistente ID (wichtig beim Forken von Konfliktentwürfen).
+   - In `save_dashboard_v2` wird `p_config.id` vor dem UPDATE ebenfalls verbindlich mit `p_dashboard_id` synchronisiert.
+2. **P2: Verbindlicher Herkunftsmarker bei der V2-Kopiermigration (`GRID_VERGLEICH_ZIELMODELL_146.md`):**
+   - Die Migrationsfunktion `migrateV1ToV2` setzt nun verbindlich `metadata: { migrated_from_v1: true, migrated_at: now }`.
+   - Abschnitt 5.3 dokumentiert, dass dieser Marker von `create_dashboard_v2` persistiert und bei Folgeausführungen zur Duplikats- und Überschreibungsverhinderung geprüft wird.
+3. **P2: Titelauflösung über Katalognamen als Fallback (`GRID_VERGLEICH_ZIELMODELL_146.md`):**
+   - In `migrateV1ToV2` wird für Kacheln ohne benutzerdefinierten Titel der lesbare Katalogname (`getCatalogEntry(t.catalogId)?.name`) als primärer Fallback aufgelöst (analog zum bestehenden Renderer `DashboardTile.tsx:102`).
+   - Die technische `catalogId` dient nur noch als sekundärer Not-Fallback bei unbekannten Metriken.
+
+**Status:** Alle 3 P2-Befunde vollständig behoben; Re-Review durch Codex angefordert.
