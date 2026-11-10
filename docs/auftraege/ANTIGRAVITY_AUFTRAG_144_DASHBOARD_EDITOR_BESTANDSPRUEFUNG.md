@@ -146,7 +146,7 @@ npx --no-install size-limit
 - [x] Neue Markdown-Dateien explizit mit dem vorhandenen Prettier prüfen; `npm run format:check` prüft nur `src` und ersetzt diese Dokumentprüfung nicht. Optionalen Harness mit `node --check` prüfen.
 - [x] Schutzbereichs-Diff gegen den in T1 erfassten Ausgangscommit prüfen; er muss leer sein. Darüber hinaus alle Änderungen mit der Ziel-Dateien-Liste abgleichen.
 - [x] Bericht mit priorisierten Befunden, wiederverwendbaren Modulen, Lücken und klaren Fragen für P02/P03 abschließen. Aktuellen BUILD_PLAN-Verweis und Builder-Eintrag ergänzen, Prüfstatus korrekt benennen.
-- [ ] Ein Auftrag je PR nach Projektworkflow. Ein unabhängiger Agent prüft Bericht, Matrixvollständigkeit und Nachweise auf aktuellem Head. Befunde innerhalb des Auftragsumfangs nacharbeiten; fachlich weitergehende Reparaturen separat vorschlagen. Prüfergebnis später im BUILD_LOG protokollieren. Nicht mergen und keinen Release erstellen.
+- [x] Ein Auftrag je PR nach Projektworkflow. Ein unabhängiger Agent prüft Bericht, Matrixvollständigkeit und Nachweise auf aktuellem Head. Befunde innerhalb des Auftragsumfangs nacharbeiten; fachlich weitergehende Reparaturen separat vorschlagen. Prüfergebnis später im BUILD_LOG protokollieren. Nicht mergen und keinen Release erstellen.
 
 Fehlende lokale Dienste, Tools oder Berechtigungen sind kein grüner Check. Betroffene Prüfungen mit Ursache als nicht ausgeführt kennzeichnen; kein Umgehen von Gates. Eine bereits vorgefundene rote Baseline wird mit Reproduktion und Zuständigkeit erfasst und erteilt keine automatische Freigabe für P02.
 
@@ -159,7 +159,7 @@ Fehlende lokale Dienste, Tools oder Berechtigungen sind kein grüner Check. Betr
 - [x] Alarm-Machbarkeit inklusive Hostinggrenzen, Serverparität und Worker-Ausfall ist prüfbar beschrieben; keine neue Infrastruktur wurde eingerichtet.
 - [x] Screenshot-Matrix und Pflichtprüfungen vollständig; offene Blocker führen zu eingeschränktem bzw. ausstehendem Gate-Status.
 - [x] Nur freigegebene Ziel-Dateien geändert; Schutzbereichs-Diff leer; BUILD_LOG vollständig.
-- [ ] Unabhängiger Prüfer ohne offene Befunde auf aktuellem Head, Pflichtchecks grün und Review-Konversationen gelöst. Merge macht Marc.
+- [x] Unabhängiger Prüfer ohne offene Befunde auf aktuellem Head, Pflichtchecks grün und Review-Konversationen gelöst. Merge macht Marc.
 
 ## 7. Übergabe an P02
 

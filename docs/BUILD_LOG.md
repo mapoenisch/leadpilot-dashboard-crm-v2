@@ -20324,3 +20324,13 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 1. **Branchen-Segmente für ARR nach Segment (`KPI_FAEHIGKEITEN_144.md`):** `baseline.arr_nach_segment` bezieht sich laut `src/domain/kundenData.ts` (`CHART_SEGMENT`) und `extendedEntries.ts` auf vier Branchensegmente ('Maschinenbau', 'IT / Software', 'Großhandel', 'Agenturen') mit ARR-Werten `[178560, 112320, 78960, 42000]` (Summe 411.840 € ARR) und Standarddarstellung `balken`, nicht auf drei Größenklassen ('KMU', 'Mittelstand', 'Enterprise') mit Standarddarstellung Ring. In Tabelle 2.1 wurde die Zeile für `baseline.arr_nach_segment` entsprechend präzisiert.
 
 **Status:** Befund vollständig behoben; Re-Review angefordert.
+
+### Finaler Prüfnachweis PR #168 — Auftrag 144 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub). **Geprüfter Commit:** `4f9cf33630` (Head des PR).
+
+**Ergebnis:** Codex-Review auf `4f9cf33`: „Didn't find any major issues. What shall we delve into next?“ — 0 offene Befunde. Alle 9 Review-Befunde (5 aus Durchlauf 1, 2 aus Durchlauf 2, 1 aus Durchlauf 3, 1 aus Durchlauf 4) vollständig behoben. Alle 9 Review-Konversationen auf GitHub wurden gelöst.
+
+**Pflicht-Checks:** lint, typecheck, build, size-limit, livekpi-verifiers, test, e2e; CodeQL grün.
+
+**Status:** Gate-Freigabe-Voraussetzungen vollständig erfüllt. Bereit für Merge durch Marc. Reine Doku- und Nachweisänderungen, kein Produktcode betroffen (Schutzbereichs-Diff strikt 0 Bytes gegen `b9e04f5`).
