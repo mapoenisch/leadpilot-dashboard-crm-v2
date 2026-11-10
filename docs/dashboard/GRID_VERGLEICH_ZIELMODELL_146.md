@@ -349,6 +349,16 @@ BEGIN
     RAISE EXCEPTION 'LP_DASHBOARD_INVALID: %', v_reason USING ERRCODE = '22023';
   END IF;
 
+  -- Fall 1: Atomare Neuanlage (wenn p_expected_revision = 0 oder p_dashboard_id IS NULL)
+  -- Ermöglicht die Neuanlage sowie das Retten eines Konfliktentwurfs als neues persönliches Dashboard (P02 §7.2)
+  IF p_expected_revision = 0 OR p_dashboard_id IS NULL THEN
+    RETURN QUERY
+    SELECT c.dashboard_id, c.revision, c.created_at AS updated_at
+    FROM public.create_dashboard_v2(p_title, p_config, 'personal', NULL, NULL) AS c;
+    RETURN;
+  END IF;
+
+  -- Fall 2: Aktualisierung eines bestehenden Dashboards
   -- Dashboard existiert prüfen & Berechtigung validieren
   SELECT scope, revision INTO v_current_scope, v_new_revision
   FROM public.dashboards
@@ -412,7 +422,106 @@ $$;
 
 ---
 
-### 4.3 Revisions-Rollback (`restore_dashboard_revision_v2`)
+### 4.3 Atomare Neuanlage von Dashboards (`create_dashboard_v2`)
+
+Für die erstmalige Anlage eines Dashboards oder die Übernahme eines Konfliktstands als neues persönliches Dashboard (Forking gemäß P02 §7.2) wird die Funktion `create_dashboard_v2` bereitgestellt. Sie erzeugt den Eintrag in `dashboards` (mit `revision = 1`) und die zugehörige initiale Revision 1 in `dashboard_revisions` in einer einzigen atomaren Transaktion:
+
+```sql
+CREATE OR REPLACE FUNCTION public.create_dashboard_v2(
+  p_title TEXT,
+  p_config JSONB,
+  p_scope TEXT DEFAULT 'personal',
+  p_team_id UUID DEFAULT NULL,
+  p_description TEXT DEFAULT NULL
+)
+RETURNS TABLE (
+  dashboard_id UUID,
+  revision INTEGER,
+  created_at TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE
+  v_user UUID := auth.uid();
+  v_org UUID := public.current_organization_id();
+  v_reason TEXT;
+  v_dashboard_id UUID;
+  v_created_at TIMESTAMPTZ;
+BEGIN
+  IF v_user IS NULL OR v_org IS NULL THEN
+    RAISE EXCEPTION 'LP_AUTH_REQUIRED' USING ERRCODE = '42501';
+  END IF;
+
+  -- Schema-Prüfung
+  v_reason := public.dashboard_config_v2_invalid_reason(p_config);
+  IF v_reason IS NOT NULL THEN
+    RAISE EXCEPTION 'LP_DASHBOARD_INVALID: %', v_reason USING ERRCODE = '22023';
+  END IF;
+
+  -- Phase 1: Team-Dashboards bis P11 serverseitig gesperrt
+  IF p_scope = 'team' THEN
+    RAISE EXCEPTION 'LP_TEAM_DASHBOARDS_LOCKED_UNTIL_P11' USING ERRCODE = '42501';
+  END IF;
+
+  IF p_scope IS DISTINCT FROM 'personal' THEN
+    RAISE EXCEPTION 'LP_INVALID_SCOPE' USING ERRCODE = '22023';
+  END IF;
+
+  -- 1. Dashboard-Datensatz anlegen (Revision 1)
+  INSERT INTO public.dashboards (
+    organization_id,
+    scope,
+    user_id,
+    team_id,
+    title,
+    description,
+    created_by_user_id,
+    revision,
+    config
+  ) VALUES (
+    v_org,
+    'personal',
+    v_user,
+    NULL,
+    p_title,
+    p_description,
+    v_user,
+    1,
+    p_config
+  )
+  RETURNING id, created_at INTO v_dashboard_id, v_created_at;
+
+  -- 2. Initiale Revision 1 in Historie ablegen
+  INSERT INTO public.dashboard_revisions (
+    dashboard_id,
+    organization_id,
+    revision,
+    title,
+    config,
+    created_by_user_id,
+    created_at,
+    change_summary
+  ) VALUES (
+    v_dashboard_id,
+    v_org,
+    1,
+    p_title,
+    p_config,
+    v_user,
+    v_created_at,
+    'Dashboard initial erstellt'
+  );
+
+  RETURN QUERY SELECT v_dashboard_id, 1, v_created_at;
+END;
+$$;
+```
+
+---
+
+### 4.4 Revisions-Rollback (`restore_dashboard_revision_v2`)
 
 Das Wiederherstellen einer früheren Revision erzeugt deterministisch eine **neue Revision** an der Spitze der Historie, sodass niemals vergangene Audit-Stände gelöscht werden:
 

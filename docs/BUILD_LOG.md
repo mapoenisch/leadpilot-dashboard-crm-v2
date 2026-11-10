@@ -20465,3 +20465,16 @@ Ergebnis: **Exakt 0 Bytes Diff (leer).** Es wurde kein geschützter Produktcode 
 - `npx tsc --noEmit`: 0 Fehler (Exit 0)
 - `npm run lint`: 0 Fehler, 0 Warnungen (Exit 0)
 - `npm run format:check`: 0 Abweichungen (Exit 0)
+
+### Nacharbeit nach Codex-Review PR #170 — Auftrag 146 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `70eb357f7a`  
+**Ergebnis:** 1 P2-Befund (Atomaren Pfad zur Dashboard-Neuanlage definieren).
+
+**Behobener Befund:**
+
+1. **Atomare Dashboard-Neuanlage & Forking-Pfad (`GRID_VERGLEICH_ZIELMODELL_146.md`):**
+   - Eigenständige atomare Funktion `create_dashboard_v2(p_title, p_config, p_scope, p_team_id, p_description)` spezifiziert, die Dashboard und initiale Revision 1 in einer einzigen Transaktion anlegt.
+   - `save_dashboard_v2` um einen Neuanlagezweig erweitert: Wird `p_expected_revision = 0` oder `p_dashboard_id IS NULL` übergeben (z. B. beim Retten eines Konfliktentwurfs als neues persönliches Dashboard gemäß P02 §7.2), delegiert die Funktion atomar an `create_dashboard_v2`.
+
+**Status:** Befund vollständig behoben; Re-Review angefordert.
