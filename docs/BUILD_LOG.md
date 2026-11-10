@@ -20466,7 +20466,7 @@ Ergebnis: **Exakt 0 Bytes Diff (leer).** Es wurde kein geschützter Produktcode 
 - `npm run lint`: 0 Fehler, 0 Warnungen (Exit 0)
 - `npm run format:check`: 0 Abweichungen (Exit 0)
 
-### Nacharbeit nach Codex-Review PR #170 — Auftrag 146 (11.11.2026)
+### Nacharbeit nach 1. Codex-Review PR #170 — Auftrag 146 (11.11.2026)
 
 **Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `70eb357f7a`  
 **Ergebnis:** 1 P2-Befund (Atomaren Pfad zur Dashboard-Neuanlage definieren).
@@ -20477,4 +20477,27 @@ Ergebnis: **Exakt 0 Bytes Diff (leer).** Es wurde kein geschützter Produktcode 
    - Eigenständige atomare Funktion `create_dashboard_v2(p_title, p_config, p_scope, p_team_id, p_description)` spezifiziert, die Dashboard und initiale Revision 1 in einer einzigen Transaktion anlegt.
    - `save_dashboard_v2` um einen Neuanlagezweig erweitert: Wird `p_expected_revision = 0` oder `p_dashboard_id IS NULL` übergeben (z. B. beim Retten eines Konfliktentwurfs als neues persönliches Dashboard gemäß P02 §7.2), delegiert die Funktion atomar an `create_dashboard_v2`.
 
-**Status:** Befund vollständig behoben; Re-Review angefordert.
+### Nacharbeit nach 2. Codex-Review PR #170 — Auftrag 146 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `928c36f`  
+**Ergebnis:** 1 P1-Befund + 4 P2-Befunde.
+
+**Behobene Befunde (1 P1, 4 P2):**
+
+1. **P1: Eigentümerprüfung für persönliche Dashboards in RPCs (`GRID_VERGLEICH_ZIELMODELL_146.md`):**
+   - In `save_dashboard_v2` und `restore_dashboard_revision_v2` wird vor jeder Aktualisierung oder Wiederherstellung geprüft: Ist `scope = 'personal'`, muss `d.user_id = auth.uid()` gelten, andernfalls Abbruch mit `LP_FORBIDDEN` (Fehlercode `42501`).
+   - In `save_dashboard_v2` wurde zusätzlich in die `UPDATE`-WHERE-Bedingung das Kriterium `AND (d.scope = 'team' OR d.user_id = v_user)` aufgenommen, um Manipulationen mandantenweit auszuschließen.
+2. **P2: Behebung von PL/pgSQL-Namensraumkonflikten mit `RETURNS TABLE` (`GRID_VERGLEICH_ZIELMODELL_146.md`):**
+   - Alle drei RPC-Funktionen (`save_dashboard_v2`, `create_dashboard_v2`, `restore_dashboard_revision_v2`) deklarieren `#variable_conflict use_variable`, um Kollisionen zwischen den Ausgabeparametern (`dashboard_id`, `revision`, `updated_at`) und Tabellenspalten zu eliminieren.
+   - Alle Datenbankspalten in `SELECT`-, `UPDATE`- und `RETURNING`-Klauseln wurden explizit mit Aliasen qualifiziert (`d.*`, `r.*`, `s.*`).
+3. **P2: 1:1-Harmonisierung des Speichervertrags mit `DashboardConfigV2` (P02 §9.1 & §9.2):**
+   - Kachel-Struktur verwendet `catalogId` (Referenz auf `DASHBOARD_CATALOG`, z. B. `baseline.arr`) anstelle des veralteten Arbeitsbegriffs `kpiId`.
+   - Layout-Persistenz erfolgt pro Kachel unter `tile.layouts` (`desktop`, `tablet`, `mobile`) gemäß `BreakpointGridPositions`.
+   - Abschnitt 5.1 und die Migrationsfunktion `migrateV1TilesToV2` in 5.2 wurden vollständig auf `DashboardTileConfigV2` und die Kopiermigrationsregeln aus P02 §9.2 (`'klein'` 3x3, `'mittel'` 6x4, `'gross'` 9x5, `'voll'` 12x6) aktualisiert.
+4. **P2: Umfassende Validierung von Rasterkoordinaten in `dashboard_config_v2_invalid_reason`:**
+   - Eindeutigkeit aller Kachel-IDs im Array wird per Kardinalitätsabgleich validiert.
+   - Alle Koordinaten (`x`, `y`, `w`, `h`) werden auf Ganzzahligkeit und Rastergrenzen validiert: Desktop 12 Spalten (`x+w <= 12`, `w <= 12`, `h <= 24`), Tablet 6 Spalten (`x+w <= 6`, `w <= 6`), Mobile strikt 1 Spalte (`x = 0`, `w = 1`).
+5. **P2: Konsistente Fremdschlüssel-Löschkaskade für `team_id`:**
+   - In `public.dashboards` wurde der Fremdschlüssel für `team_id` von `ON DELETE SET NULL` auf `ON DELETE CASCADE` umgestellt, da der Tabellen-Constraint `chk_dashboard_scope_owner` für `scope = 'team'` zwingend eine nichtleere `team_id` voraussetzt und `SET NULL` zu Constraint-Verletzungen führen würde.
+
+**Status:** Alle 5 Befunde (1 P1, 4 P2) vollständig behoben; Re-Review durch Codex angefordert.

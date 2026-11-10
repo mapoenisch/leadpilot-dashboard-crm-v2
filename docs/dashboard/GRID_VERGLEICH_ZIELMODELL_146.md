@@ -127,7 +127,9 @@ CREATE TABLE IF NOT EXISTS public.dashboards (
   organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
   scope TEXT NOT NULL CHECK (scope IN ('personal', 'team')),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  team_id UUID REFERENCES public.dashboard_teams(id) ON DELETE SET NULL,
+  -- Konsistente Löschstrategie: CASCADE löscht zugeordnete Team-Dashboards, wenn eine Freigabegruppe entfernt wird.
+  -- Dies verhindert Konflikte mit chk_dashboard_scope_owner (welches für scope='team' eine nichtleere team_id erzwingt).
+  team_id UUID REFERENCES public.dashboard_teams(id) ON DELETE CASCADE,
   title TEXT NOT NULL CHECK (char_length(title) >= 1 AND char_length(title) <= 120),
   description TEXT CHECK (description IS NULL OR char_length(description) <= 500),
   created_by_user_id UUID NOT NULL REFERENCES auth.users(id),
@@ -245,6 +247,13 @@ DECLARE
   v_tile JSONB;
   v_tiles JSONB;
   v_layouts JSONB;
+  v_desk JSONB;
+  v_tab JSONB;
+  v_mob JSONB;
+  v_x INTEGER;
+  v_y INTEGER;
+  v_w INTEGER;
+  v_h INTEGER;
 BEGIN
   IF p_config IS NULL OR jsonb_typeof(p_config) <> 'object' THEN
     RETURN 'kein Objekt';
@@ -260,16 +269,25 @@ BEGIN
     RETURN 'ungültige oder fehlende Schema-Version (erwartet: 2)';
   END IF;
 
-  -- Erlaubte Top-Level-Felder
+  -- Erlaubte Top-Level-Felder (100 % konform mit DashboardConfigV2 aus P02 §9.1)
   IF EXISTS (
     SELECT 1 FROM jsonb_object_keys(p_config) AS k
-    WHERE k NOT IN ('version', 'sections', 'tiles', 'layouts', 'variables', 'timeframe', 'metadata')
+    WHERE k NOT IN (
+      'version', 'id', 'title', 'scope', 'teamId', 'ownerUserId',
+      'organizationId', 'globalTimeframe', 'globalPipeline',
+      'tiles', 'sections', 'metadata', 'variables'
+    )
   ) THEN
     RETURN 'unbekanntes Top-Level-Feld im JSON';
   END IF;
 
+  -- Globaler Zeitrahmen (Pflichtfeld in DashboardConfigV2)
+  IF p_config ? 'globalTimeframe' AND jsonb_typeof(p_config->'globalTimeframe') IS DISTINCT FROM 'string' THEN
+    RETURN 'globalTimeframe muss ein String sein';
+  END IF;
+
   v_tiles := p_config->'tiles';
-  IF jsonb_typeof(v_tiles) IS DISTINCT FROM 'array' THEN
+  IF v_tiles IS NULL OR jsonb_typeof(v_tiles) IS DISTINCT FROM 'array' THEN
     RETURN 'tiles muss ein Array sein';
   END IF;
 
@@ -278,30 +296,108 @@ BEGIN
     RETURN 'maximal 24 Kacheln zulässig';
   END IF;
 
-  -- Validierung der Kacheln
+  -- Eindeutigkeit der Kachel-IDs prüfen
+  IF (SELECT count(DISTINCT t->>'id') FROM jsonb_array_elements(v_tiles) AS t) <> jsonb_array_length(v_tiles) THEN
+    RETURN 'Kachel-IDs im Array müssen eindeutig sein';
+  END IF;
+
+  -- Detaillierte Validierung jeder einzelnen Kachel
   FOR v_tile IN SELECT value FROM jsonb_array_elements(v_tiles) LOOP
     IF jsonb_typeof(v_tile) <> 'object' THEN
       RETURN 'Kachel-Eintrag ist kein Objekt';
     END IF;
+
+    -- Erlaubte Kachel-Felder
+    IF EXISTS (
+      SELECT 1 FROM jsonb_object_keys(v_tile) AS k
+      WHERE k NOT IN (
+        'id', 'catalogId', 'title', 'presentation', 'layouts',
+        'displayOptions', 'query', 'threshold', 'thresholdRules',
+        'timeframeOverride', 'pipelineOverride', 'aggregationOverride', 'drilldownUrl'
+      )
+    ) THEN
+      RETURN 'unbekanntes Kachel-Feld im JSON';
+    END IF;
+
     IF jsonb_typeof(v_tile->'id') IS DISTINCT FROM 'string' OR char_length(v_tile->>'id') < 1 THEN
       RETURN 'Kachel-ID fehlt oder ist ungültig';
     END IF;
-    IF jsonb_typeof(v_tile->'kpiId') IS DISTINCT FROM 'string' THEN
-      RETURN 'kpiId fehlt oder ist ungültig';
+
+    -- catalogId verweist auf DASHBOARD_CATALOG (P02 §9.1)
+    IF jsonb_typeof(v_tile->'catalogId') IS DISTINCT FROM 'string' OR char_length(v_tile->>'catalogId') < 1 THEN
+      RETURN 'catalogId fehlt oder ist ungültig';
     END IF;
-    IF jsonb_typeof(v_tile->'presentation') IS DISTINCT FROM 'string' THEN
+
+    IF jsonb_typeof(v_tile->'presentation') IS DISTINCT FROM 'string' OR char_length(v_tile->>'presentation') < 1 THEN
       RETURN 'presentation fehlt oder ist ungültig';
     END IF;
-  END LOOP;
 
-  -- Validierung der Layouts
-  v_layouts := p_config->'layouts';
-  IF v_layouts IS NULL OR jsonb_typeof(v_layouts) <> 'object' THEN
-    RETURN 'layouts-Objekt fehlt';
-  END IF;
-  IF jsonb_typeof(v_layouts->'desktop') IS DISTINCT FROM 'array' THEN
-    RETURN 'layouts.desktop muss ein Array von Positionen sein';
-  END IF;
+    -- Layout-Validierung (BreakpointGridPositions)
+    v_layouts := v_tile->'layouts';
+    IF v_layouts IS NULL OR jsonb_typeof(v_layouts) <> 'object' THEN
+      RETURN 'Kachel-layouts-Objekt fehlt';
+    END IF;
+
+    -- Desktop-Layout ist Pflicht (Master)
+    v_desk := v_layouts->'desktop';
+    IF v_desk IS NULL OR jsonb_typeof(v_desk) <> 'object' THEN
+      RETURN 'desktop-Layout fehlt in Kachel';
+    END IF;
+
+    IF jsonb_typeof(v_desk->'x') IS DISTINCT FROM 'number'
+      OR jsonb_typeof(v_desk->'y') IS DISTINCT FROM 'number'
+      OR jsonb_typeof(v_desk->'w') IS DISTINCT FROM 'number'
+      OR jsonb_typeof(v_desk->'h') IS DISTINCT FROM 'number' THEN
+      RETURN 'desktop-Koordinaten müssen Zahlen sein';
+    END IF;
+
+    v_x := (v_desk->>'x')::INTEGER;
+    v_y := (v_desk->>'y')::INTEGER;
+    v_w := (v_desk->>'w')::INTEGER;
+    v_h := (v_desk->>'h')::INTEGER;
+
+    IF v_x < 0 OR v_y < 0 OR v_w < 1 OR v_w > 12 OR (v_x + v_w) > 12 OR v_h < 1 OR v_h > 24 THEN
+      RETURN 'desktop-Rasterkoordinaten ungültig (12 Spalten, x+w <= 12)';
+    END IF;
+
+    -- Tablet-Layout (optional)
+    IF v_layouts ? 'tablet' AND jsonb_typeof(v_layouts->'tablet') <> 'null' THEN
+      v_tab := v_layouts->'tablet';
+      IF jsonb_typeof(v_tab) <> 'object'
+        OR jsonb_typeof(v_tab->'x') IS DISTINCT FROM 'number'
+        OR jsonb_typeof(v_tab->'y') IS DISTINCT FROM 'number'
+        OR jsonb_typeof(v_tab->'w') IS DISTINCT FROM 'number'
+        OR jsonb_typeof(v_tab->'h') IS DISTINCT FROM 'number' THEN
+        RETURN 'tablet-Koordinaten müssen Zahlen sein';
+      END IF;
+      v_x := (v_tab->>'x')::INTEGER;
+      v_y := (v_tab->>'y')::INTEGER;
+      v_w := (v_tab->>'w')::INTEGER;
+      v_h := (v_tab->>'h')::INTEGER;
+      IF v_x < 0 OR v_y < 0 OR v_w < 1 OR v_w > 6 OR (v_x + v_w) > 6 OR v_h < 1 THEN
+        RETURN 'tablet-Rasterkoordinaten ungültig (6 Spalten, x+w <= 6)';
+      END IF;
+    END IF;
+
+    -- Mobile-Layout (optional)
+    IF v_layouts ? 'mobile' AND jsonb_typeof(v_layouts->'mobile') <> 'null' THEN
+      v_mob := v_layouts->'mobile';
+      IF jsonb_typeof(v_mob) <> 'object'
+        OR jsonb_typeof(v_mob->'x') IS DISTINCT FROM 'number'
+        OR jsonb_typeof(v_mob->'y') IS DISTINCT FROM 'number'
+        OR jsonb_typeof(v_mob->'w') IS DISTINCT FROM 'number'
+        OR jsonb_typeof(v_mob->'h') IS DISTINCT FROM 'number' THEN
+        RETURN 'mobile-Koordinaten müssen Zahlen sein';
+      END IF;
+      v_x := (v_mob->>'x')::INTEGER;
+      v_y := (v_mob->>'y')::INTEGER;
+      v_w := (v_mob->>'w')::INTEGER;
+      v_h := (v_mob->>'h')::INTEGER;
+      IF v_x <> 0 OR v_y < 0 OR v_w <> 1 OR v_h < 1 THEN
+        RETURN 'mobile-Rasterkoordinaten ungültig (1 Spalte, x=0, w=1)';
+      END IF;
+    END IF;
+  END LOOP;
 
   RETURN NULL;
 END;
@@ -331,6 +427,7 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$
+#variable_conflict use_variable
 DECLARE
   v_user UUID := auth.uid();
   v_org UUID := public.current_organization_id();
@@ -338,6 +435,7 @@ DECLARE
   v_new_revision INTEGER;
   v_updated_at TIMESTAMPTZ;
   v_current_scope TEXT;
+  v_owner_user_id UUID;
 BEGIN
   IF v_user IS NULL OR v_org IS NULL THEN
     RAISE EXCEPTION 'LP_AUTH_REQUIRED' USING ERRCODE = '42501';
@@ -360,9 +458,9 @@ BEGIN
 
   -- Fall 2: Aktualisierung eines bestehenden Dashboards
   -- Dashboard existiert prüfen & Berechtigung validieren
-  SELECT scope, revision INTO v_current_scope, v_new_revision
-  FROM public.dashboards
-  WHERE id = p_dashboard_id AND organization_id = v_org;
+  SELECT d.scope, d.user_id, d.revision INTO v_current_scope, v_owner_user_id, v_new_revision
+  FROM public.dashboards AS d
+  WHERE d.id = p_dashboard_id AND d.organization_id = v_org;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'LP_DASHBOARD_NOT_FOUND' USING ERRCODE = 'P0002';
@@ -373,22 +471,28 @@ BEGIN
     RAISE EXCEPTION 'LP_TEAM_DASHBOARDS_LOCKED_UNTIL_P11' USING ERRCODE = '42501';
   END IF;
 
+  -- Persönliche Dashboards dürfen strikt nur vom Eigentümer bearbeitet werden
+  IF v_current_scope = 'personal' AND v_owner_user_id <> v_user THEN
+    RAISE EXCEPTION 'LP_FORBIDDEN' USING ERRCODE = '42501';
+  END IF;
+
   -- Optimistisches Locking: Stimmt die erwartete Revision überein?
   IF v_new_revision <> p_expected_revision THEN
     RAISE EXCEPTION 'LP_DASHBOARD_CONFLICT' USING ERRCODE = 'P0001',
       DETAIL = 'Aktuelle Revision (' || v_new_revision || ') weicht von erwarteter Revision (' || p_expected_revision || ') ab.';
   END IF;
 
-  -- Aktualisierung ausführen
-  UPDATE public.dashboards
+  -- Aktualisierung ausführen (Eigentümer- und Revisionsabgleich in WHERE-Klausel)
+  UPDATE public.dashboards AS d
   SET title = p_title,
       config = p_config,
-      revision = revision + 1,
+      revision = d.revision + 1,
       updated_at = now()
-  WHERE id = p_dashboard_id
-    AND organization_id = v_org
-    AND revision = p_expected_revision
-  RETURNING revision, updated_at INTO v_new_revision, v_updated_at;
+  WHERE d.id = p_dashboard_id
+    AND d.organization_id = v_org
+    AND d.revision = p_expected_revision
+    AND (d.scope = 'team' OR d.user_id = v_user)
+  RETURNING d.revision, d.updated_at INTO v_new_revision, v_updated_at;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'LP_DASHBOARD_CONFLICT' USING ERRCODE = 'P0001';
@@ -443,6 +547,7 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$
+#variable_conflict use_variable
 DECLARE
   v_user UUID := auth.uid();
   v_org UUID := public.current_organization_id();
@@ -470,7 +575,7 @@ BEGIN
   END IF;
 
   -- 1. Dashboard-Datensatz anlegen (Revision 1)
-  INSERT INTO public.dashboards (
+  INSERT INTO public.dashboards AS d (
     organization_id,
     scope,
     user_id,
@@ -491,7 +596,7 @@ BEGIN
     1,
     p_config
   )
-  RETURNING id, created_at INTO v_dashboard_id, v_created_at;
+  RETURNING d.id, d.created_at INTO v_dashboard_id, v_created_at;
 
   -- 2. Initiale Revision 1 in Historie ablegen
   INSERT INTO public.dashboard_revisions (
@@ -540,17 +645,44 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$
+#variable_conflict use_variable
 DECLARE
+  v_user UUID := auth.uid();
   v_org UUID := public.current_organization_id();
+  v_scope TEXT;
+  v_owner_user_id UUID;
   v_target_title TEXT;
   v_target_config JSONB;
 BEGIN
+  IF v_user IS NULL OR v_org IS NULL THEN
+    RAISE EXCEPTION 'LP_AUTH_REQUIRED' USING ERRCODE = '42501';
+  END IF;
+
+  -- Existenz und Eigentümerschaft auf dem Ziel-Dashboard prüfen
+  SELECT d.scope, d.user_id INTO v_scope, v_owner_user_id
+  FROM public.dashboards AS d
+  WHERE d.id = p_dashboard_id AND d.organization_id = v_org;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'LP_DASHBOARD_NOT_FOUND' USING ERRCODE = 'P0002';
+  END IF;
+
+  -- Phase 1: Team-Dashboards bis P11 gesperrt
+  IF v_scope = 'team' THEN
+    RAISE EXCEPTION 'LP_TEAM_DASHBOARDS_LOCKED_UNTIL_P11' USING ERRCODE = '42501';
+  END IF;
+
+  -- Persönliche Dashboards dürfen strikt nur vom Eigentümer wiederhergestellt werden
+  IF v_scope = 'personal' AND v_owner_user_id <> v_user THEN
+    RAISE EXCEPTION 'LP_FORBIDDEN' USING ERRCODE = '42501';
+  END IF;
+
   -- Ziel-Revision aus der Historie laden
-  SELECT title, config INTO v_target_title, v_target_config
-  FROM public.dashboard_revisions
-  WHERE dashboard_id = p_dashboard_id
-    AND organization_id = v_org
-    AND revision = p_target_revision;
+  SELECT r.title, r.config INTO v_target_title, v_target_config
+  FROM public.dashboard_revisions AS r
+  WHERE r.dashboard_id = p_dashboard_id
+    AND r.organization_id = v_org
+    AND r.revision = p_target_revision;
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'LP_REVISION_NOT_FOUND' USING ERRCODE = 'P0002';
@@ -558,13 +690,14 @@ BEGIN
 
   -- Über save_dashboard_v2 als neuen Revisionsschritt persistieren
   RETURN QUERY
-  SELECT * FROM public.save_dashboard_v2(
+  SELECT s.dashboard_id, s.revision AS new_revision, s.updated_at
+  FROM public.save_dashboard_v2(
     p_dashboard_id,
     p_expected_revision,
     v_target_title,
     v_target_config,
     'Wiederhergestellt von Revision ' || p_target_revision
-  );
+  ) AS s;
 END;
 $$;
 ```
@@ -575,36 +708,62 @@ $$;
 
 ### 5.1 Quell- und Zielstrukturen im Vergleich
 
-| Eigenschaft      | V1 (`executive_dashboard_preferences`)              | V2 (`dashboards` / `DashboardConfigV2`)             |
-| :--------------- | :-------------------------------------------------- | :-------------------------------------------------- |
-| **Speicherort**  | Tabelle `executive_dashboard_preferences`           | Tabelle `dashboards` + `dashboard_revisions`        |
-| **Identität**    | Keine Dashboard-ID (PK ist `org_id, user_id`)       | Eigene UUID v4 (`id`)                               |
-| **Kachel-ID**    | Beliebiger String (`tileId`)                        | String (`id`), V1-ID bleibt 1:1 erhalten            |
-| **Metrik-Bezug** | `catalogId` (z. B. `arr`, `win_rate`)               | `kpiId` (1:1 Abbildung auf Katalog-ID)              |
-| **Größenmodell** | String (`'klein'`, `'mittel'`, `'gross'`, `'voll'`) | Exakte Rasterkoordinaten `w`, `h`, `x`, `y`         |
-| **Layouts**      | 1D-Reihenfolge im `tiles`-Array                     | Getrennte Layouts für `desktop`, `tablet`, `mobile` |
-| **Sektionen**    | Nicht vorhanden                                     | Strukturierte Abschnitte (`sections`)               |
+| Eigenschaft      | V1 (`executive_dashboard_preferences`)              | V2 (`dashboards` / `DashboardConfigV2`)                                        |
+| :--------------- | :-------------------------------------------------- | :----------------------------------------------------------------------------- |
+| **Speicherort**  | Tabelle `executive_dashboard_preferences`           | Tabelle `dashboards` + `dashboard_revisions`                                   |
+| **Identität**    | Keine Dashboard-ID (PK ist `org_id, user_id`)       | Eigene UUID v4 (`id`)                                                          |
+| **Kachel-ID**    | Beliebiger String (`tileId`)                        | String (`id`), V1-ID bleibt 1:1 erhalten                                       |
+| **Metrik-Bezug** | `catalogId` (z. B. `arr`, `win_rate`)               | `catalogId` (1:1 Abbildung auf `DASHBOARD_CATALOG`, z. B. `baseline.arr`)      |
+| **Größenmodell** | String (`'klein'`, `'mittel'`, `'gross'`, `'voll'`) | Exakte Rasterkoordinaten `w`, `h`, `x`, `y` je Breakpoint                      |
+| **Layouts**      | 1D-Reihenfolge im `tiles`-Array                     | Getrennte Layouts je Breakpoint unter `tile.layouts` (`desktop/tablet/mobile`) |
+| **Sektionen**    | Nicht vorhanden                                     | Strukturierte Abschnitte (`sections`)                                          |
 
 ---
 
 ### 5.2 Größen- und Koordinaten-Transformationsregeln
 
-#### 1. Dimensionen je Größenklasse
+#### 1. Dimensionen je Größenklasse (P02 §9.2)
 
-- `'klein'`: Desktop `w = 3`, `h = 2`
-- `'mittel'`: Desktop `w = 6`, `h = 2` (Standard) bzw. `h = 3` falls `view IN ('tabelle', 'trichter', 'flaeche')`
-- `'gross'`: Desktop `w = 9`, `h = 3`
-- `'voll'`: Desktop `w = 12`, `h = 3`
+- `'klein'`: Desktop `w = 3, h = 3`; Tablet `w = 3, h = 3`; Mobile `w = 1, h = 3`
+- `'mittel'`: Desktop `w = 6, h = 4`; Tablet `w = 6, h = 4`; Mobile `w = 1, h = 4`
+- `'gross'`: Desktop `w = 9, h = 5`; Tablet `w = 6, h = 5`; Mobile `w = 1, h = 5`
+- `'voll'`: Desktop `w = 12, h = 6`; Tablet `w = 6, h = 6`; Mobile `w = 1, h = 6`
 
-#### 2. Deterministische Platzierung ohne Kollisionen je Breakpoint
+#### 2. Deterministische Kopiermigration ohne Kollisionen je Breakpoint
 
 ```typescript
-export function migrateV1TilesToV2Layouts(v1Tiles: readonly V1TileConfig[]): BreakpointLayouts {
-  return {
-    desktop: packLayout(v1Tiles, 12, 'desktop'),
-    tablet: packLayout(v1Tiles, 6, 'tablet'),
-    mobile: packLayout(v1Tiles, 1, 'mobile'),
-  };
+export interface V1TileConfig {
+  tileId: string;
+  catalogId: string;
+  title: string;
+  size: 'klein' | 'mittel' | 'gross' | 'voll';
+  view: string;
+  sortOrder: number;
+}
+
+/**
+ * Überführt V1-Kacheln deterministisch in V2-Kacheln (DashboardTileConfigV2)
+ * mit kollisionsfreien Breakpoint-Layouts gemäß P02 §9.1 und §9.2.
+ */
+export function migrateV1TilesToV2(v1Tiles: readonly V1TileConfig[]): DashboardTileConfigV2[] {
+  // Sortierung nach V1-Reihenfolge sicherstellen
+  const sorted = [...v1Tiles].sort((a, b) => a.sortOrder - b.sortOrder);
+
+  const desktopPositions = packLayout(sorted, 12, 'desktop');
+  const tabletPositions = packLayout(sorted, 6, 'tablet');
+  const mobilePositions = packLayout(sorted, 1, 'mobile');
+
+  return sorted.map((t, idx) => ({
+    id: t.tileId, // 1:1 Erhalt der bestehenden ID (Masterplan 5.1)
+    catalogId: t.catalogId, // 1:1 Erhalt des Metrik-Bezugs
+    title: t.title,
+    presentation: t.view,
+    layouts: {
+      desktop: desktopPositions[idx],
+      tablet: tabletPositions[idx],
+      mobile: mobilePositions[idx],
+    },
+  }));
 }
 
 function packLayout(
@@ -619,34 +778,43 @@ function packLayout(
 
   for (const t of tiles) {
     let w = 3;
-    let h = 2;
+    let h = 3;
 
     if (mode === 'desktop') {
       if (t.size === 'klein') {
         w = 3;
-        h = 2;
+        h = 3;
       } else if (t.size === 'mittel') {
         w = 6;
-        h = t.view === 'tabelle' || t.view === 'trichter' ? 3 : 2;
+        h = 4;
       } else if (t.size === 'gross') {
         w = 9;
-        h = 3;
+        h = 5;
       } else if (t.size === 'voll') {
         w = 12;
-        h = 3;
+        h = 6;
       }
     } else if (mode === 'tablet') {
       if (t.size === 'klein') {
         w = 3;
-        h = 2;
-      } else {
+        h = 3;
+      } else if (t.size === 'mittel') {
         w = 6;
-        h = t.size === 'voll' ? 4 : 3;
+        h = 4;
+      } else if (t.size === 'gross') {
+        w = 6;
+        h = 5;
+      } else if (t.size === 'voll') {
+        w = 6;
+        h = 6;
       }
     } else {
       // Mobile: Strikt 1 Spalte, 100 % Breite
       w = 1;
-      h = t.size === 'klein' ? 2 : 3;
+      if (t.size === 'klein') h = 3;
+      else if (t.size === 'mittel') h = 4;
+      else if (t.size === 'gross') h = 5;
+      else h = 6;
     }
 
     // Zeilenumbruch prüfen
@@ -657,7 +825,6 @@ function packLayout(
     }
 
     positions.push({
-      tileId: t.tileId, // 1:1 Erhalt der bestehenden Kachel-ID
       x: currentX,
       y: currentY,
       w,
