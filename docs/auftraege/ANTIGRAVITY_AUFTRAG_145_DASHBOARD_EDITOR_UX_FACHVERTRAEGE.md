@@ -8,7 +8,7 @@
 
 **Builder:** Antigravity. **Prüfer:** Codex (chatgpt-codex-connector auf GitHub) gemäß `CLAUDE.md` §4.1. **Merge und Release:** Marc.
 
-**Status:** IN UMSETZUNG DURCH BUILDER.
+**Status:** VOLLSTÄNDIG UMGESETZT UND DURCH CODEX ABGENOMMEN — BEREIT FÜR MERGE DURCH MARC (PR #169).
 
 ---
 
@@ -85,6 +85,6 @@ Am Ende liegen vor:
 
 ### T6 – Verifizieren und PR öffnen
 
-- [ ] Pflichtprüfungen (`tsc`, `lint`, `prettier`) ausführen.
-- [ ] Schutzbereichs-Diff prüfen (strikt 0 Bytes gegen `779052b`).
-- [ ] PR auf GitHub öffnen, Codex-Review einholen und Nacharbeiten durchführen.
+- [x] Pflichtprüfungen (`tsc`, `lint`, `prettier`) ausführen.
+- [x] Schutzbereichs-Diff prüfen (strikt 0 Bytes gegen `779052b`).
+- [x] PR auf GitHub öffnen, Codex-Review einholen und Nacharbeiten durchführen (PR #169, 0 Befunde, CI grün).

@@ -20408,4 +20408,15 @@ Ergebnis: **Exakt 0 Bytes Diff (leer).** Es wurde kein Produktcode modifiziert.
 
 1. **V1-Kachel-ID-Erhalt bei Kopiermigration (`EDITOR_UX_FACHVERTRAEGE_145.md`):** In `DashboardTileConfigV2.id` und Abschnitt 9.2 (Punkt 3) wurde ausdrücklich festgelegt, dass bestehende V1-Kachel-IDs (wie `std_baseline_arr` aus `src/features/dashboard/model/defaultDashboard.ts` oder bestehende Präfix-IDs aus `createTileId`) bei der Kopiermigration 1:1 unverändert übernommen werden. Dies wahrt die strikte Identitätsstabilität aus Masterplan Abschnitt 5.1. Die Anforderung zur Generierung von UUID v4 wurde präzisiert und gilt verbindlich nur für neu im V2-Editor erzeugte Kacheln.
 
-**Status:** Befund behoben; Re-Review angefordert.
+**Status:** Befund behoben; Re-Review durch Codex angefordert.
+
+### 4. Codex-Abnahme und Freigabe PR #169 — Auftrag 145 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `ec3fe531e2`  
+**Ergebnis:** 0 Befunde ("Codex Review: Didn't find any major issues. Keep them coming!"). Alle 8 Review-Threads auf GitHub als gelöst (`resolved`) bestätigt.
+
+**CI-Status:** Alle 7 Pflichtprüfungen auf Commit `ec3fe53` erfolgreich bestanden (`CI/test`, `CI/typecheck`, `CI/lint`, `CI/build`, `CI/size-limit`, `CI/livekpi-verifiers`, `CI/e2e` inkl. Playwright, Axe-Core & Lighthouse).
+
+**Schutzbereichs-Prüfung:** `git diff 779052bddd64f21ecf00b8711b1fcb7061a0fda7 -- src/simulation src/types src/context src/services/data src/features/resources` ergibt exakt 0 Bytes Diff.
+
+**Status:** Gate-Freigabe-Voraussetzungen vollständig erfüllt. PR #169 bereit für Merge durch Marc.
