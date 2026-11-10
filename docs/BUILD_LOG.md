@@ -19754,7 +19754,6 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 - Schutzbereichs-Diff gegen `origin/main` (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`): 100 % leer
 - Screenshot-Matrix: `docs/screenshots/auftrag-138/README.md` (18 Aufnahmen auf 1440/768/375 px, dark/light, alle 0 px Überlauf, Status: ALLE GATES BESTANDEN)
 
-
 ### Nacharbeit PR #159 — Codex-Review auf `9dcdb3c` (09.11.2026)
 
 **Prüfer des Ausgangsstands:** Codex (GitHub-App). **Nacharbeit:** Codex lokal. Die frühere Abschlussmeldung war verfrüht: fünf offene Befunde und ein fehlgeschlagener E2E-Check. Die ursprüngliche Screenshot-Matrix enthielt ausschließlich Nachher-Aufnahmen; ihre Aussage einer bestandenen visuellen Regressionsprüfung wird hiermit korrigiert.
@@ -19769,7 +19768,6 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Lokale Verifikation:** TypeScript 0 Fehler; Lint 0 Fehler; Formatprüfung grün; 368 Vitest-Dateien / 2.671 Tests grün; alle 25 Integritätssuiten grün; Produktions-Build erfolgreich; Size-Limit 179,53 / 180 kB und 86,16 / 250 kB. Schutzbereichs-Diff gegen `edc72ee` vollständig leer. Screenshot-Gate: 36 Aufnahmen / 18 echte Paare, 0 px Überlauf; vier visuell geprüfte Rasterungs-/Schattenabweichungen mit exakten Hashes und Begründung in der Matrix, übrige Paare innerhalb der bestehenden Toleranz. Negativprüfung ohne Ausnahmen sperrt das Gate (Exit 1); erneute Auswertung mit exakt geprüften Hashpaaren besteht (Exit 0). Ergebnis: `docs/screenshots/auftrag-138/README.md`.
 
 **Freigabestatus:** Keine Gate-Freigabe. Da Codex diese Nacharbeit gebaut hat, muss gemäß `CLAUDE.md` §4.1 ein anderer Agent den neuen Stand prüfen. CI und offene Review-Konversationen bleiben separat zu bestätigen. Merge und Release durch Marc.
-
 
 ### E2E-Nacharbeit PR #159 auf `a98ef38` (09.11.2026)
 
@@ -19786,6 +19784,7 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Kontext:** Hinweis 1 (P2) aus PR-Review zu #159: Beim Verschieben von Deals konnten nachgeladene Kanban-Seiten mit dem Refetch von Seite 1 konkurrieren (`reloadLoadedExtraPages()` in `onSuccess`), was bei Offset-Paginierung zu temporär doppelten Karten (doppelte React-Keys) führen konnte. Zudem fehlte eine ID-basierte Deduplizierung.
 
 **Änderungen:**
+
 - `src/features/crm/utils/dealsClientView.ts`:
   - `mergeUniqueDeals(firstPage, extra)`: Führt Seite 1 und Extra-Seiten dedupliziert nach `id` zusammen.
   - `appendUniqueDeals(existing, incoming)`: Verhindert doppelte Deals beim sequentiellen Laden von Folgeseiten.
@@ -19798,6 +19797,7 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
   - Regressionstest `dedupliziert Deals nach ID beim Nachladen und verhindert doppelte Karten` hinzugefügt.
 
 **Verifikation:**
+
 - `npx tsc --noEmit`: 0 Fehler
 - `npm run lint`: 0 Fehler
 - `npm run format:check`: konform
@@ -20153,3 +20153,7 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Screenshot-Matrix:** `docs/screenshots/auftrag-142/README.md` — Login-Seite, 3 Breiten (1440/768/375 px) × vorher/nachher. Vorher = Build von `main` vor dem Release (V3.0.0, Worktree-Build), Nachher = Release-Stand (V3.1.0). Alle Paare mit unterschiedlichem SHA-256 (Versionszeile), 0 px horizontaler Überlauf in allen Aufnahmen. Bilddateien bleiben lokal (`.gitignore`), nur die Matrix ist versioniert.
 
 **Ergebnis & Freigabestatus:** Umgesetzt und lokal verifiziert. Unabhängiges Review (Codex auf GitHub) ausstehend; kein Merge, kein Tag — das macht Marc.
+
+### Nacharbeit Codex-Review PR #163 (11.11.2026, Head `afd3e7a`)
+
+- **P2 (Edge-Function-Deployment in Release Notes):** Berechtigt — `crm-query-export` wurde in 137/139 erweitert (`stageEnteredAt`, `sourceContactId`) und muss auf gehosteten Instanzen zwischen Migrationen und Frontend-Rollout deployed werden, sonst fehlen im Funnel Verweildauern. `docs/releases/V3.1.0.md` ergänzt: Warnhinweis im Upgrade-Abschnitt und neuer Schritt 2 in der Upgrade-Anleitung.
