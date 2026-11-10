@@ -20334,3 +20334,40 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Pflicht-Checks:** lint, typecheck, build, size-limit, livekpi-verifiers, test, e2e; CodeQL grün.
 
 **Status:** Gate-Freigabe-Voraussetzungen vollständig erfüllt. Bereit für Merge durch Marc. Reine Doku- und Nachweisänderungen, kein Produktcode betroffen (Schutzbereichs-Diff strikt 0 Bytes gegen `b9e04f5`).
+
+---
+
+## Auftrag 145 – Dashboard-Editor: UX-Konzept und Fachverträge (P02) (10.11.2026)
+
+**Rolle:** Builder (Antigravity) · **Branch:** `auftrag-145-dashboard-editor-ux-fachvertraege`  
+**Baseline:** `779052bddd64f21ecf00b8711b1fcb7061a0fda7` (Merge PR #168) · **Status:** LOKAL UMGESETZT UND VERIFIZIERT — BEREIT ZUR PRÜFUNG
+
+### 1. Ziel & Kontext
+
+Auftrag 145 setzt Paket P02 aus dem Dashboard-Editor-Masterplan (`docs/dashboard/DASHBOARD_EDITOR_MASTERPLAN.md`) um. Ziel ist die verbindliche Festlegung aller Benutzeroberflächen-, Interaktions- und Fachverträge, um ungeklärte Rechte- und Bedienungsfragen vor Beginn der Implementierung der Rasterengine und des Datenmodells (P03) vollständig auszuräumen.
+
+### 2. Durchgeführte Arbeiten
+
+- **Detailauftrag angelegt:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_145_DASHBOARD_EDITOR_UX_FACHVERTRAEGE.md` mit verbindlichen Grenzen, Aufgaben T1–T6 und Abnahmekriterien.
+- **Spezifikationsdokument erstellt:** `docs/dashboard/EDITOR_UX_FACHVERTRAEGE_145.md` umfasst:
+  1. **UX-Architektur Haupt-Editor:** 4-Zonen-Shell (Top-Bar, Widget-Bibliothek ~260 px, 12-Spalten-Canvas, Inspector ~320 px, Statusleiste), Interaktionsflüsse, Kachelauswahl mit blauem Fokusrahmen, Drag-and-Drop mit Auto-Placement und kollisionsfreiem Auto-Reflow.
+  2. **Panel-Editor:** Großformatige Live-Vorschau, visueller 6-Stufen-Baukasten (Kennzahl → Aggregation → Filter → Gruppierung → Zeitraum → Darstellung) und deklarativer JSON-Abfragemodus mit Schema-Validierung und verlustfreier Rückkonvertierung.
+  3. **Undo/Redo & Sitzungs-Zustandsmanagement:** Entkopplung der clientseitigen Arbeitskopie; Eingabebündelung (Debounce von 600 ms bei Textfeldern; Transaktionen für Drag- und Kollisions-Aktionen); automatische Datenupdates erzeugen keine Undo-Schritte.
+  4. **Responsive & A11y:** Layouts für 1440 px Desktop (12 Spalten), 768 px Tablet (6 Spalten, Slide-Over Drawers) und 375 px Smartphone (1 Spalte, 100 % Breite, vertikales Verschieben per Aktionsmenü); vollständiges WAI-ARIA `grid`-Navigationskonzept per Tastatur (`Alt+Pfeiltasten` zum Verschieben, Shortcuts für Undo/Redo/Save); Einhaltung von WCAG 2.1 AA Kontrasten und `prefers-reduced-motion`.
+  5. **Rechte- & Eigentumsmodell:** Organisation als strikter Mandant; Teams als reine Freigabegruppen (ohne CRM-Owner-Felder an Deals); detaillierte Rollenmatrix für `admin`, `manager`, `viewer` für persönliche vs. geteilte Dashboards.
+  6. **Revisions- & Konfliktmodell:** Optimistisches Locking mit `expected_revision` gegen Mehrbenutzer-Konflikte (HTTP 409 `REVISION_CONFLICT`); dreistufiger Konfliktdialog (Verwerfen & Laden, Fork als persönliches Dashboard, Diff-Ansicht); persistente Revisions-Historie (`dashboard_revisions`) für Audit und Rollback.
+  7. **Schwellenwerte & In-App-Alarme:** Kachelspezifische Schwellenwerte (Warnung/Kritisch) mit subtiler Rand- und Badge-Kennzeichnung; Entkopplung des Frontend-Renderings von der späteren Serverauswertung (P13).
+  8. **Vorgaben für P03:** Exakte TypeScript-Schnittstellen (`DashboardConfigV2`, `DashboardTileConfigV2`, `GridPosition`, `TileThresholdRule`) und Festlegung der deterministischen Kopiermigration von V1 nach V2.
+- **Projekt-Bauplan aktualisiert:** `BUILD_PLAN.md` auf Auftrag 145 nachgezogen.
+
+### 3. Schutzbereichs-Prüfung
+
+Befehl: `git diff 779052bddd64f21ecf00b8711b1fcb7061a0fda7 -- src/simulation src/types src/context src/services/data src/features/resources`  
+Ergebnis: **Exakt 0 Bytes Diff (leer).** Es wurde kein Produktcode modifiziert.
+
+### 4. Verifikations-Ergebnisse
+
+- `npx tsc --noEmit`: 0 Fehler (Exit 0)
+- `npm run lint`: 0 Fehler, 0 Warnungen (Exit 0)
+- `npm run format:check`: 0 Abweichungen (Exit 0)
+- `Prettier (Markdown-Dateien)`: Formatiert mit `npx prettier --write`
