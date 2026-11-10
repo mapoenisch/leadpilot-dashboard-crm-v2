@@ -1,6 +1,6 @@
 # LeadPilot – Verbindlicher Plan nach v3.0.0: CRM-Verbindlichkeit (v3.1.0)
 
-> **Status:** verbindlich, Entscheidung des Chefentwicklers im Auftrag von Marc Pönisch, 09.11.2026.
+> **Status:** abgeschlossen — Release `v3.1.0` (Aufträge 136–142, letzter PR #162; Tag `v3.1.0` durch Marc nach dem Merge).
 > **Gilt ab:** Auftrag 135 ist abgeschlossen und Tag `v3.0.0` ist gesetzt.
 > **Builder dieses Plans:** Antigravity (frei wählbar nach `CLAUDE.md` §4.1) · **Prüfer:** ein anderer Agent, Standard Codex (GitHub-App) · **Merge und Release:** Marc.
 > Teil-Aufträge liegen in diesem Dokument. Der Builder legt zu Beginn jedes Teil-Auftrags die Datei `docs/auftraege/ANTIGRAVITY_AUFTRAG_XXX_*.md` mit dem Inhalt des jeweiligen Abschnitts an (`CLAUDE.md` §3, §5).
