@@ -167,9 +167,14 @@ Für erfahrene Anwender bietet der Panel-Editor eine strukturierte, deklarative 
 
 ### 4.2 Undo/Redo-Regeln & Eingabebündelung (Debounce)
 
-- **Keine starre 50er-Grenze:** Der History-Stack wird als bidirektionale Liste geführt (Speicherbudget: bis zu 200 atomare Aktionen im Speicher).
+- **Keine künstliche Anzahlgrenze (Reversible Commands & Checkpoints):**
+  - Gemäß Masterplan (Abschnitt 4.A) bedeutet „unbegrenzt“ den Verzicht auf eine starre Obergrenze (weder 50 noch 200 Aktionen).
+  - Statt kompletter Snapshots der `DashboardConfigV2` speichert der Verlauf speichereffiziente, **reversible Befehle** (Delta-Patches, z. B. `MoveTile(id, oldGrid, newGrid)`, `UpdateOptions(id, oldOpts, newOpts)`, `AddTile(tile)`, `RemoveTile(tile)`). Dadurch benötigt ein Verlaufsschritt typischerweise unter 1 KiB RAM.
+  - **Sitzungs-Checkpoints & Speicherüberwachung:**
+    - Bei umfangreichen Bearbeitungssitzungen legt der Editor nach Meilensteinen (z. B. nach jeweils 50 Aktionen oder bei manueller Zwischensicherung) interne Checkpoints an.
+    - Sollte das clientseitige Speicherbudget (Soft-Limit: 15 MiB für den History-Puffer) erreicht werden, erfolgt **keine stille Verwurfkürzung**. Stattdessen wird in der Statusleiste ein sichtbarer Hinweis eingeblendet („Verlauf wird ab Checkpoint X konsolidiert“), und ältere Deltas vor dem letzten stabilen Checkpoint werden speicheroptimiert freigegeben.
 - **Eingabebündelung (Debouncing):**
-  - Reine Texteingaben (z. B. Kacheltitel, Beschreibung) in Inspector-Feldern erzeugen nicht pro Tastendruck einen Historienschritt.
+  - Reine Texteingaben (z. B. Kacheltitel, Untertitel, Beschreibungen) in Inspector-Feldern erzeugen nicht pro Tastendruck einen Historienschritt.
   - Ein Undo-Schritt wird erst abgeschlossen, wenn:
     1. Der Fokus das Textfeld verlässt (`onBlur`), ODER
     2. Eine Tipp-Pause von **600 ms** eintritt.
@@ -229,29 +234,32 @@ Für erfahrene Anwender bietet der Panel-Editor eine strukturierte, deklarative 
   - Ein Dashboard kann einem Team freigegeben werden.
   - **Klarstellung:** Deals, Kontakte und Leads besitzen weiterhin **keine** Team- oder Owner-Zuordnung. Team-Dashboards filtern keine Daten nach "Deal-Besitzer", sondern teilen eine gemeinsame Sicht auf Organisationsdaten.
 
-### 6.2 Dashboard-Scope und Eigentum
+### 6.2 Dashboard-Scope, Eigentum und Rechteentzug
 
 1. **Persönliches Dashboard (`scope: 'personal'`):**
    - Gehört exakt einem Benutzer (`owner_user_id`).
    - Jeder Benutzer (einschließlich `viewer`) darf sein eigenes persönliches Dashboard anlegen, umordnen und speichern.
 2. **Team-Dashboard (`scope: 'team'`):**
    - Gehört der Organisation und ist einer Freigabegruppe (`team_id`) zugeordnet.
-   - Berechtigte Rollen können das Layout für das gesamte Team pflegen.
+   - **Bindung an aktive Team-Berechtigung (Rechteentzug):**
+     - Gemäß Masterplan (Abschnitt 4.E) liegt das Eigentum bei der Organisation. Das Feld `created_by_user_id` dient ausschließlich als unveränderlicher historischer Audit-Autor.
+     - Schreib-, Bearbeitungs- und Löschrechte leiten sich **ausschließlich aus der aktuellen Mitgliedschaft** im freigegebenen Team ab.
+     - Scheidet ein Benutzer mit Rolle `manager` aus einem Team aus (oder wird entfernt), verliert er **augenblicklich alle Schreib- und Löschrechte** an allen Dashboards dieses Teams – selbst dann, wenn er das Dashboard ursprünglich selbst angelegt hat. Die bloße historische Urheberschaft begründet nach einem Team-Austritt keinerlei Sonderrechte.
 3. **Organisations-Standard (`scope: 'organization'`):**
-   - Zentrales Dashboard für alle Benutzer der Organisation.
+   - Zentrales Dashboard für alle Benutzer der Organisation; Pflege ausschließlich durch Organisations-`admin`.
 
 ### 6.3 Rollenmatrix für Dashboard-Operationen
 
-| Aktion                                                         | Rolle: `admin` |        Rolle: `manager`         |      Rolle: `viewer`      |
-| -------------------------------------------------------------- | :------------: | :-----------------------------: | :-----------------------: |
-| Eigenes persönliches Dashboard anpassen & speichern            |     ✅ Ja      |              ✅ Ja              |           ✅ Ja           |
-| Eigenes persönliches Dashboard auf Voreinstellung zurücksetzen |     ✅ Ja      |              ✅ Ja              |           ✅ Ja           |
-| Team-Dashboard erstellen                                       |     ✅ Ja      |    ✅ Ja (für eigenes Team)     |          ❌ Nein          |
-| Team-Dashboard bearbeiten & speichern                          |     ✅ Ja      | ✅ Ja (wenn Mitglied/Ersteller) | ❌ Nein (nur Leseansicht) |
-| Team-Dashboard löschen                                         |     ✅ Ja      |  ✅ Ja (nur eigene Erstellung)  |          ❌ Nein          |
-| Organisations-Standard-Dashboard bearbeiten                    |     ✅ Ja      |             ❌ Nein             |          ❌ Nein          |
-| Freigabegruppen (Teams) verwalten                              |     ✅ Ja      |             ❌ Nein             |          ❌ Nein          |
-| Dashboard-Export durchführen (JSON / PDF)                      |     ✅ Ja      |              ✅ Ja              |           ✅ Ja           |
+| Aktion                                                         | Rolle: `admin` |                       Rolle: `manager`                       |      Rolle: `viewer`      |
+| -------------------------------------------------------------- | :------------: | :----------------------------------------------------------: | :-----------------------: |
+| Eigenes persönliches Dashboard anpassen & speichern            |     ✅ Ja      |                            ✅ Ja                             |           ✅ Ja           |
+| Eigenes persönliches Dashboard auf Voreinstellung zurücksetzen |     ✅ Ja      |                            ✅ Ja                             |           ✅ Ja           |
+| Team-Dashboard erstellen                                       |     ✅ Ja      |   ✅ Ja (nur für Teams mit eigener aktiver Mitgliedschaft)   |          ❌ Nein          |
+| Team-Dashboard bearbeiten & speichern                          |     ✅ Ja      | ✅ Ja (strikt an **aktive Mitgliedschaft** im Team gebunden) | ❌ Nein (nur Leseansicht) |
+| Team-Dashboard löschen                                         |     ✅ Ja      | ✅ Ja (strikt an **aktive Mitgliedschaft** im Team gebunden) |          ❌ Nein          |
+| Organisations-Standard-Dashboard bearbeiten                    |     ✅ Ja      |                           ❌ Nein                            |          ❌ Nein          |
+| Freigabegruppen (Teams) verwalten                              |     ✅ Ja      |                           ❌ Nein                            |          ❌ Nein          |
+| Dashboard-Export durchführen (JSON / PDF)                      |     ✅ Ja      |                            ✅ Ja                             |           ✅ Ja           |
 
 ---
 
@@ -342,12 +350,33 @@ Aus den hier definierten UX- und Fachverträgen ergeben sich die bindenden Anfor
 /** Geltungsbereich eines Dashboards */
 export type DashboardScope = 'personal' | 'team' | 'organization';
 
-/** Koordinaten im 12-Spalten-Raster */
+/** Breakpoint-Identifikatoren */
+export type EditorBreakpoint = 'desktop' | 'tablet' | 'mobile';
+
+/** Koordinaten in einem Spaltenraster */
 export interface GridPosition {
-  x: number; // 0..11
-  y: number; // 0..n
-  w: number; // 1..12
-  h: number; // 1..n (Mindesthöhe abhängig vom Kacheltyp)
+  x: number; // Spaltenindex (Desktop: 0..11, Tablet: 0..5, Mobile: 0)
+  y: number; // Zeilenindex (0..n)
+  w: number; // Spaltenbreite (Desktop: 1..12, Tablet: 1..6, Mobile: 1)
+  h: number; // Zeilenhöhe (1..n, Mindesthöhe abhängig vom Kacheltyp)
+}
+
+/** Getrennte Rasterpositionen je Breakpoint mit deterministischer Vererbung */
+export interface BreakpointGridPositions {
+  desktop: GridPosition; // 12-Spalten-Raster (Pflicht)
+  tablet?: GridPosition; // 6-Spalten-Raster (optional; wenn ausgelassen, deterministischer Fallback)
+  mobile?: GridPosition; // 1-Spalten-Raster (optional; wenn ausgelassen, deterministischer Fallback)
+}
+
+/** Editierbare visuelle Darstellungsoptionen aus dem Inspector */
+export interface TileDisplayOptions {
+  subtitle?: string; // Editierbarer Untertitel
+  showLegend?: boolean; // Legendenanzeige ein/aus
+  xAxisLabel?: string; // Achsenbeschriftung X
+  yAxisLabel?: string; // Achsenbeschriftung Y
+  unitSuffix?: string; // Benutzerdefiniertes Einheitensuffix (z. B. '€', '%', 'h')
+  colorScheme?: 'default' | 'monochrome' | 'status'; // Farbschema
+  compactNumbers?: boolean; // Kompakte Zahlenformatierung (z. B. '120k' statt '120.000')
 }
 
 /** Schwellenwert-Regel */
@@ -365,7 +394,8 @@ export interface DashboardTileConfigV2 {
   catalogId: string; // Referenz auf DASHBOARD_CATALOG (z. B. 'baseline.arr')
   title: string; // Benutzerdefinierter Titel
   presentation: string; // Renderer (z. B. 'zahl', 'balken', 'donut', etc.)
-  grid: GridPosition; // 2D-Rasterposition
+  layouts: BreakpointGridPositions; // Getrennte Rasterpositionen je Breakpoint
+  displayOptions?: TileDisplayOptions; // Editierbare Darstellungsoptionen
   timeframeOverride?: string; // Optionaler kachelspezifischer Zeitraum
   pipelineOverride?: string; // Optionaler Pipeline-Filter
   aggregationOverride?: string; // Erlaubte Aggregation
@@ -390,18 +420,29 @@ export interface DashboardConfigV2 {
 }
 ```
 
+#### Vererbungs- und Fallback-Regeln für Breakpoint-Layouts:
+
+1. **Desktop als Master (`desktop`):** Die 12-Spalten-Positionierung ist immer vorhanden und bildet das Master-Layout.
+2. **Deterministischer Fallback für Tablet & Mobile:**
+   - Fehlt `tablet`, skaliert die Render-Engine Kacheln mit `w > 6` auf `w = 6` und ordnet Kacheln kollisionsfrei im 6-Spalten-Raster an.
+   - Fehlt `mobile`, setzt die Engine `w = 1`, `x = 0` und ordnet Kacheln vertikal strikt nach der Desktop-Reihenfolge (`y`, dann `x`).
+3. **Isolierte Speicherung mobiler Anpassungen:**
+   - Verändert ein Anwender auf Tablet oder Smartphone die Reihenfolge (z. B. über das mobile Aktionsmenü `Nach oben` / `Nach unten`), wird ausschließlich `layouts.tablet` bzw. `layouts.mobile` persistiert.
+   - Das Desktop-Layout (`layouts.desktop`) bleibt bei mobiler Nutzung vollständig unangetastet.
+
 ### 9.2 Bindende Anforderungen an das Speichermodell (P03/P07)
 
 1. **Trennung von Metadaten und Konfiguration:**
    - Tabellenstruktur: `dashboards` (ID, Org, Scope, Team, Name, Revision) und `dashboard_revisions` (Historie aller Stände).
-2. **Kopiermigration von V1 nach V2:**
+2. **Kopiermigration von V1 nach V2 anhand der tatsächlichen V1-Größenwerte:**
    - Die bestehende V1-Zeile in `executive_dashboard_preferences` bleibt unangetastet.
-   - V1-Kacheln (1D-Array) werden durch einen deterministischen Algorithmus in ein 12-Spalten-Raster (2D `GridPosition`) umgerechnet:
-     - 4-Spalten-Kacheln (`size = 1`) -> `w = 3`, `h = 3`.
-     - 6-Spalten-Kacheln (`size = 2`) -> `w = 6`, `h = 4`.
-     - 9-Spalten-Kacheln (`size = 3`) -> `w = 9`, `h = 5`.
-     - 12-Spalten-Kacheln (`size = 4`) -> `w = 12`, `h = 6`.
-     - Positionierung erfolgt zeilenweise ohne Überlappungen.
+   - V1 verwendet laut `DashboardTileConfig.size` (`src/features/dashboard/model/dashboardConfig.ts`) ausschließlich die Stringwerte `'klein' | 'mittel' | 'gross' | 'voll'`, die in `DashboardGrid.tsx:44–47` den Desktop-Spaltenbreiten 3, 6, 9 und 12 entsprechen.
+   - Die Kopiermigration überführt diese Werte deterministisch in das neue V2-Breakpoint-Raster (`BreakpointGridPositions`):
+     - `'klein'`: Desktop `w = 3, h = 3`; Tablet `w = 3, h = 3`; Mobile `w = 1, h = 3`
+     - `'mittel'`: Desktop `w = 6, h = 4`; Tablet `w = 6, h = 4`; Mobile `w = 1, h = 4`
+     - `'gross'`: Desktop `w = 9, h = 5`; Tablet `w = 6, h = 5`; Mobile `w = 1, h = 5`
+     - `'voll'`: Desktop `w = 12, h = 6`; Tablet `w = 6, h = 6`; Mobile `w = 1, h = 6`
+   - Die Koordinaten `(x, y)` werden zeilenweise von links nach rechts kollisionsfrei befüllt (Zeilenumbruch, wenn `x + w > 12`).
 3. **Vorbereitung für Teams:**
    - Bereitstellung einer Tabelle `dashboard_teams` und `dashboard_team_members` für Freigabegruppen, die in P07 als relationale Struktur angelegt und in P11 für die Benutzeroberfläche freigeschaltet wird.
 

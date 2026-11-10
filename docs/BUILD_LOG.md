@@ -20371,3 +20371,18 @@ Ergebnis: **Exakt 0 Bytes Diff (leer).** Es wurde kein Produktcode modifiziert.
 - `npm run lint`: 0 Fehler, 0 Warnungen (Exit 0)
 - `npm run format:check`: 0 Abweichungen (Exit 0)
 - `Prettier (Markdown-Dateien)`: Formatiert mit `npx prettier --write`
+
+### Nacharbeit nach Codex-Review PR #169 — Auftrag 145 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `bf74afc99b`  
+**Ergebnis:** 5 P2-Befunde (V1-Größenstringwerte bei Kopiermigration, Breakpoint-spezifische Layouts, Reversible Commands ohne Aktionsgrenze, Bindung von Managerrechten an aktive Teammitgliedschaft, editierbare Darstellungsoptionen im V2-Modell).
+
+**Behobene Befunde:**
+
+1. **V1-Größenstringwerte für Kopiermigration (`EDITOR_UX_FACHVERTRAEGE_145.md`):** Die Kopiermigration in Abschnitt 9.2 wurde von fälschlich angenommenen Zahlenwerten `1..4` auf die tatsächlichen Stringwerte `'klein' | 'mittel' | 'gross' | 'voll'` aus `DashboardTileConfig.size` (`src/features/dashboard/model/dashboardConfig.ts`) umgestellt und den tatsächlichen Desktop-Spaltenbreiten 3, 6, 9 und 12 aus `DashboardGrid.tsx` zugeordnet.
+2. **Breakpoint-spezifische Rasterpositionen (`EDITOR_UX_FACHVERTRAEGE_145.md`):** `DashboardTileConfigV2.layouts` um `BreakpointGridPositions` (`desktop: GridPosition`, `tablet?: GridPosition`, `mobile?: GridPosition`) erweitert. Deterministische Vererbungs- und Fallback-Regeln sowie die isolierte Speicherung mobiler Anpassungen ohne Beeinflussung des Desktop-Master-Layouts wurden verbindlich festgeschrieben.
+3. **Reversible Commands & Checkpoints (`EDITOR_UX_FACHVERTRAEGE_145.md`):** Das künstliche 200-Aktionen-Limit wurde gestrichen. Abschnitt 4.2 spezifiziert nun das speichereffiziente Reversible-Command-Pattern mit Delta-Patches (< 1 KiB RAM pro Aktion), Checkpoints und transparenter Speicherüberwachung (Soft-Limit: 15 MiB) ohne stille Verlaufskürzungen.
+4. **Erstellerrechte an aktive Teammitgliedschaft gebunden (`EDITOR_UX_FACHVERTRAEGE_145.md`):** In Abschnitt 6.2 und 6.3 wurde klargestellt, dass die Urheberschaft (`created_by_user_id`) ein reiner Audit-Autor ist. Schreib- und Löschrechte an Team-Dashboards erfordern zwingend eine aktive Mitgliedschaft in der zugeordneten Freigabegruppe. Scheidet ein `manager` aus einem Team aus, verliert er sofort alle Bearbeitungs- und Löschrechte an dessen Dashboards.
+5. **Editierbare Darstellungsoptionen im V2-Modell (`EDITOR_UX_FACHVERTRAEGE_145.md`):** `TileDisplayOptions` (`subtitle`, `showLegend`, `xAxisLabel`, `yAxisLabel`, `unitSuffix`, `colorScheme`, `compactNumbers`) wurde als eigenständige Schnittstelle definiert und als `displayOptions?: TileDisplayOptions` in `DashboardTileConfigV2` integriert.
+
+**Status:** Alle 5 Befunde vollständig behoben; Re-Review angefordert.
