@@ -416,7 +416,7 @@ export interface TileThresholdRule {
 
 /** Konfiguration einer einzelnen Kachel (V2) */
 export interface DashboardTileConfigV2 {
-  id: string; // Eindeutige Kachel-ID (UUID v4)
+  id: string; // Eindeutige Kachel-ID (bestehende V1-IDs wie 'std_baseline_arr' bleiben erhalten; neue Kacheln erhalten UUID v4)
   catalogId: string; // Referenz auf DASHBOARD_CATALOG (z. B. 'baseline.arr')
   title: string; // Benutzerdefinierter Titel
   presentation: string; // Renderer (z. B. 'zahl', 'balken', 'donut', etc.)
@@ -473,7 +473,9 @@ export interface DashboardConfigV2 {
      - **Desktop (12 Spalten):** Start bei `(x = 0, y = 0)`. Wenn `x + w > 12`, erfolgt ein Zeilenumbruch zu `x = 0, y = y + max_h_in_zeile`.
      - **Tablet (6 Spalten):** Start bei `(x = 0, y = 0)`. Wenn `x + w > 6`, erfolgt ein Zeilenumbruch zu `x = 0, y = y + max_h_in_zeile`.
      - **Mobile (1 Spalte):** Alle Kacheln erhalten strikt `x = 0, w = 1`. Die Platzierung erfolgt rein vertikal nacheinander: Für Kachel $i$ gilt $x_i = 0$ und $y_i = \sum_{k=0}^{i-1} h_k$.
-3. **Vorbereitung für Teams:**
+3. **Strikter ID-Erhalt bei der Migration:**
+   - Bestehende V1-Kachel-IDs (wie Standard-IDs `std_baseline_arr` aus `src/features/dashboard/model/defaultDashboard.ts` oder bestehende Präfix-IDs aus `createTileId`) werden 1:1 unverändert übernommen, um die Identitätsstabilität aus Masterplan Abschnitt 5.1 zu wahren. Erst bei der Neuanlage von Kacheln im V2-Editor werden UUID-v4-Bezeichner generiert.
+4. **Vorbereitung für Teams:**
    - Bereitstellung einer Tabelle `dashboard_teams` und `dashboard_team_members` für Freigabegruppen, die in P07 als relationale Struktur angelegt und in P11 für die Benutzeroberfläche freigeschaltet wird.
 
 ---

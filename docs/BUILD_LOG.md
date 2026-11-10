@@ -20398,3 +20398,14 @@ Ergebnis: **Exakt 0 Bytes Diff (leer).** Es wurde kein Produktcode modifiziert.
 2. **Kollisionsfreie Koordinatenberechnung je Breakpoint (`EDITOR_UX_FACHVERTRAEGE_145.md`):** Die Kopiermigrationsregeln in Abschnitt 9.2 wurden präzisiert, sodass Zeilenumbrüche und Platzierungen getrennt je Breakpoint anhand der jeweiligen Spaltenbreite berechnet werden (Desktop: 12 Spalten mit Umbruch bei `x + w > 12`; Tablet: 6 Spalten mit Umbruch bei `x + w > 6`; Mobile: strikt 1 Spalte mit `x = 0, w = 1` und rein vertikaler Platzierung nacheinander).
 
 **Status:** Alle Befunde behoben; Re-Review angefordert.
+
+### 3. Nacharbeit nach Codex-Re-Review PR #169 — Auftrag 145 (10.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `325094e39f`  
+**Ergebnis:** 1 P2-Befund (Erhalte bestehende Kachel-IDs auch ohne UUID-Format bei Kopiermigration).
+
+**Behobener Befund:**
+
+1. **V1-Kachel-ID-Erhalt bei Kopiermigration (`EDITOR_UX_FACHVERTRAEGE_145.md`):** In `DashboardTileConfigV2.id` und Abschnitt 9.2 (Punkt 3) wurde ausdrücklich festgelegt, dass bestehende V1-Kachel-IDs (wie `std_baseline_arr` aus `src/features/dashboard/model/defaultDashboard.ts` oder bestehende Präfix-IDs aus `createTileId`) bei der Kopiermigration 1:1 unverändert übernommen werden. Dies wahrt die strikte Identitätsstabilität aus Masterplan Abschnitt 5.1. Die Anforderung zur Generierung von UUID v4 wurde präzisiert und gilt verbindlich nur für neu im V2-Editor erzeugte Kacheln.
+
+**Status:** Befund behoben; Re-Review angefordert.
