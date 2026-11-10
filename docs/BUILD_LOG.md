@@ -20165,3 +20165,13 @@ Die Befunde aus den ersten Review-Durchläufen von Codex zu PR #143 wurden analy
 **Ursache:** Race zwischen dem PATCH und einem noch unterwegs befindlichen Deal-Listenabruf (z. B. Kanban-Seite 2 oder langsamer Edge-Function-Kaltstart). Der Abruf war vor dem `page.route`-Gate entwischt, las in der DB aber erst nach dem PATCH und lieferte dem Client den neuen Stand — `expected_stage` passte, der Konflikt blieb aus. Der bestehende Gate deckt nur Abrufe ab Registrierung ab, nicht bereits abgeschickte.
 
 **Fix:** `page.waitForLoadState('networkidle')` nach der initialen Sichtbarkeitsprüfung, bevor der Serverstand per PATCH geändert wird — garantiert, dass kein Listenabruf mehr unterwegs ist. Reine Test-Härtung, kein Produktcode.
+
+### Prüfnachweis PR #163 — Auftrag 142 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector), auf GitHub. **Geprüfter Commit:** `96c3205e48` (Head des PR).
+
+**Ergebnis:** Codex-Review auf `96c3205`: „Didn't find any major issues." — keine offenen Befunde. Zwei Befunde aus früheren Runden wurden als berechtigt behoben und die Threads gelöst: P2 Edge-Function-Deployment in den Release Notes (in `fbc65f9`: `crm-query-export` als eigener Upgrade-Schritt zwischen Migrationen und Frontend) sowie der E2E-Flake `konflikt_zeige_serverstand` (in `96c3205`: `networkidle`-Wartezeit vor dem Server-PATCH gegen den Race mit unterwegs befindlichen Listenabrufen).
+
+**Pflicht-Checks auf `96c3205`:** alle 7 grün (lint, typecheck, test, build, e2e, size-limit, livekpi-verifiers; zzgl. CodeQL). Der zuvor wiederholte E2E-Fehler ist mit dem Race-Fix behoben.
+
+**Status:** Gate-Freigabe-Voraussetzungen erfüllt (Prüfer ohne Befunde auf aktuellem Head, Checks grün, Konversationen gelöst). Merge, `v3.1.0`-Tag und GitHub-Release macht Marc.
