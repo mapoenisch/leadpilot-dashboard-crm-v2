@@ -3,7 +3,13 @@
 // die persönliche Ansicht ist die einzige `/dashboard`-Ansicht.
 import { describe, expect, it } from 'vitest';
 import { routeForPathname } from '@/app/routes';
-import { tileDetailPath, tileIdFromPath } from '../model/dashboardRollout';
+import {
+  getDashboardEditorVersion,
+  isDashboardEditorV2Enabled,
+  setDashboardEditorV2Override,
+  tileDetailPath,
+  tileIdFromPath,
+} from '../model/dashboardRollout';
 import { loadPersonalWithFallback, withChunkFallback } from '../pages/executiveDashboardEntry';
 import { DashboardChunkError, DetailChunkError } from '../pages/DetailChunkError';
 
@@ -58,5 +64,26 @@ describe('Nachladefehler der Detailseite', () => {
     const Page = () => null;
     const module = await withChunkFallback(() => Promise.resolve({ default: Page }))();
     expect(module.default).toBe(Page);
+  });
+});
+
+describe('Dashboard-Editor V2 Rollout-Schalter (P04)', () => {
+  it('ist standardmäßig deaktiviert (V1 aktiv)', () => {
+    setDashboardEditorV2Override(null);
+    expect(isDashboardEditorV2Enabled()).toBe(false);
+    expect(getDashboardEditorVersion()).toBe(1);
+  });
+
+  it('lässt sich per Override für Pilot-Tests aktivieren und zurücksetzen', () => {
+    setDashboardEditorV2Override(true);
+    expect(isDashboardEditorV2Enabled()).toBe(true);
+    expect(getDashboardEditorVersion()).toBe(2);
+
+    setDashboardEditorV2Override(false);
+    expect(isDashboardEditorV2Enabled()).toBe(false);
+    expect(getDashboardEditorVersion()).toBe(1);
+
+    setDashboardEditorV2Override(null);
+    expect(isDashboardEditorV2Enabled()).toBe(false);
   });
 });
