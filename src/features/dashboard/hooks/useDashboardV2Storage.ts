@@ -7,7 +7,7 @@ import { useOrganization } from '@/auth/organizationContext';
 import { useDashboardPreferences } from './useDashboardPreferences';
 import {
   createDashboardV2,
-  loadPersonalDashboardV2,
+  getOrCreatePersonalDashboardV2,
   saveDashboardV2,
   type DashboardV2StorageError,
   type SavedDashboardV2Result,
@@ -42,62 +42,31 @@ export function useDashboardV2Storage(): UseDashboardV2StorageResult {
   const userId = session?.userId ?? 'default-user';
   const isInitializingRef = useRef(false);
 
-  // Lädt oder migriert das V2-Dashboard
+  // Lädt oder migriert das V2-Dashboard über den atomaren Get-or-Create-Pfad
   const loadOrMigrate = useCallback(async () => {
     setStatus('laden');
     setError(null);
 
-    const v2Res = await loadPersonalDashboardV2();
-    if (!v2Res.ok) {
-      setError(v2Res.error);
-      setStatus('fehler');
-      return;
-    }
-
-    if (v2Res.value) {
-      setDashboard(v2Res.value);
-      setStatus('bereit');
-      return;
-    }
-
-    // Wenn noch kein V2 existiert: Einmalige Kopiermigration aus V1 durchführen
     const v1Config = v1Preferences.state?.config ?? DEFAULT_DASHBOARD_CONFIG;
-    const migratedV2 = migrateV1ToV2(v1Config, {
+    const initialV2 = migrateV1ToV2(v1Config, {
       id: 'personal_dashboard_v2',
       title: 'Executive Dashboard',
       ownerUserId: userId,
       organizationId: orgId,
     });
 
-    const createRes = await createDashboardV2({
-      title: migratedV2.title,
-      config: migratedV2,
-      scope: 'personal',
+    const res = await getOrCreatePersonalDashboardV2({
+      initialConfig: initialV2,
+      title: initialV2.title,
     });
 
-    if (!createRes.ok) {
-      // Falls Neuanlage fehlschlägt, als lokalen Entwurf halten
-      const fallback: StoredDashboardV2Row = {
-        id: migratedV2.id,
-        title: migratedV2.title,
-        scope: 'personal',
-        revision: 1,
-        config: migratedV2,
-        updatedAt: new Date().toISOString(),
-      };
-      setDashboard(fallback);
-      setStatus('bereit');
+    if (!res.ok) {
+      setError(res.error);
+      setStatus('fehler');
       return;
     }
 
-    setDashboard({
-      id: createRes.value.dashboardId,
-      title: migratedV2.title,
-      scope: 'personal',
-      revision: createRes.value.revision,
-      config: { ...migratedV2, id: createRes.value.dashboardId },
-      updatedAt: createRes.value.updatedAt,
-    });
+    setDashboard(res.value);
     setStatus('bereit');
   }, [orgId, userId, v1Preferences.state?.config]);
 

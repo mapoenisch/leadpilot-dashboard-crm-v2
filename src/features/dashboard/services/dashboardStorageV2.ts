@@ -5,96 +5,31 @@
 import { supabase, isSupabaseConfigured } from '@/services/db/supabaseClient';
 import { logger } from '@/services/logger';
 import { type DashboardConfigV2, validateDashboardConfigV2 } from '../model/dashboardConfigV2';
+import {
+  type DashboardV2RevisionRow,
+  type DashboardV2StorageError,
+  type SavedDashboardV2Result,
+  type StorageResult,
+  type StoredDashboardV2Row,
+  classifyDashboardV2Error,
+} from './dashboardStorageV2Types';
 
-export type DashboardV2StorageError =
-  | { kind: 'konflikt'; detail?: string }
-  | { kind: 'ungueltig'; detail: string }
-  | { kind: 'nicht_berechtigt' }
-  | { kind: 'nicht_gefunden' }
-  | { kind: 'keine_mitgliedschaft' }
-  | { kind: 'sitzung_abgelaufen' }
-  | { kind: 'nicht_konfiguriert' }
-  | { kind: 'technisch' };
-
-export type StorageResult<T> =
-  { ok: true; value: T } | { ok: false; error: DashboardV2StorageError };
-
-export interface StoredDashboardV2Row {
-  id: string;
-  title: string;
-  scope: 'personal' | 'team';
-  revision: number;
-  config: DashboardConfigV2;
-  updatedAt: string;
-}
-
-export interface DashboardV2RevisionRow {
-  revision: number;
-  title: string;
-  createdByUserId: string;
-  createdAt: string;
-  changeSummary: string | null;
-}
-
-export interface SavedDashboardV2Result {
-  dashboardId: string;
-  revision: number;
-  updatedAt: string;
-}
-
-interface SupabaseErrorLike {
-  code?: string;
-  message?: string;
-  details?: string | null;
-}
-
-const SESSION_CODES = new Set(['PGRST301', 'PGRST302', 'PGRST303']);
-
-export function classifyDashboardV2Error(
-  error: SupabaseErrorLike | null | undefined,
-  status?: number,
-): DashboardV2StorageError {
-  const message = error?.message ?? '';
-  if (message.includes('LP_DASHBOARD_CONFLICT')) {
-    return { kind: 'konflikt', detail: error?.details ?? undefined };
-  }
-  if (message.includes('LP_DASHBOARD_INVALID')) {
-    return { kind: 'ungueltig', detail: error?.details ?? message };
-  }
-  if (message.includes('LP_DASHBOARD_NOT_FOUND') || message.includes('LP_REVISION_NOT_FOUND')) {
-    return { kind: 'nicht_gefunden' };
-  }
-  if (
-    message.includes('LP_FORBIDDEN') ||
-    message.includes('LP_TEAM_DASHBOARDS_LOCKED') ||
-    message.includes('LP_INVALID_SCOPE')
-  ) {
-    return { kind: 'nicht_berechtigt' };
-  }
-  if (message.includes('LP_AUTH_REQUIRED') || message.includes('LP_DASHBOARD_NO_MEMBERSHIP')) {
-    return { kind: 'keine_mitgliedschaft' };
-  }
-  if (status === 401 || SESSION_CODES.has(error?.code ?? '') || /jwt expired/i.test(message)) {
-    return { kind: 'sitzung_abgelaufen' };
-  }
-  return { kind: 'technisch' };
-}
+export type {
+  DashboardV2RevisionRow,
+  DashboardV2StorageError,
+  SavedDashboardV2Result,
+  StorageResult,
+  StoredDashboardV2Row,
+};
+export { classifyDashboardV2Error };
 
 function failTechnically<T>(cause: unknown): StorageResult<T> {
   logger.warn('[dashboardStorageV2] Operation fehlgeschlagen.', cause);
   return { ok: false, error: { kind: 'technisch' } };
 }
 
-// In-Memory-Mock-Speicher für Offline, Tests und lokale Entwicklung
-interface InMemoryEntry {
-  row: StoredDashboardV2Row;
-  revisions: DashboardV2RevisionRow[];
-}
-const inMemoryStore = new Map<string, InMemoryEntry>();
-
-export function resetInMemoryDashboardV2Storage(): void {
-  inMemoryStore.clear();
-}
+import { inMemoryStore, resetInMemoryDashboardV2Storage } from './dashboardInMemoryStoreV2';
+export { resetInMemoryDashboardV2Storage };
 
 /** Lädt das persönliche Dashboard des Nutzers. Liefert null wenn keines existiert. */
 export async function loadPersonalDashboardV2(): Promise<
@@ -141,6 +76,88 @@ export async function loadPersonalDashboardV2(): Promise<
         scope: raw.scope as 'personal' | 'team',
         revision: raw.revision,
         config: valid.config,
+        updatedAt: raw.updated_at,
+      },
+    };
+  } catch (cause) {
+    return failTechnically(cause);
+  }
+}
+
+/**
+ * Atomarer Get-or-Create-Pfad für das persönliche Dashboard (Codex P2).
+ * Verhindert Duplikate und Rennzustände bei initialer Kopiermigration über mehrere Tabs.
+ */
+export async function getOrCreatePersonalDashboardV2(params: {
+  initialConfig: DashboardConfigV2;
+  title?: string;
+}): Promise<StorageResult<StoredDashboardV2Row>> {
+  if (!isSupabaseConfigured || !supabase) {
+    const existing = Array.from(inMemoryStore.values())[0]?.row ?? null;
+    if (existing) {
+      return { ok: true, value: existing };
+    }
+    const createRes = await createDashboardV2({
+      title: params.title ?? params.initialConfig.title ?? 'Executive Dashboard',
+      config: params.initialConfig,
+      scope: 'personal',
+    });
+    if (!createRes.ok) return createRes;
+    const loaded = await loadPersonalDashboardV2();
+    if (!loaded.ok || !loaded.value) {
+      return {
+        ok: false,
+        error: { kind: 'nicht_gefunden' },
+      };
+    }
+    return { ok: true, value: loaded.value };
+  }
+
+  const valid = validateDashboardConfigV2(params.initialConfig);
+  if (!valid.ok) {
+    return { ok: false, error: { kind: 'ungueltig', detail: valid.error } };
+  }
+
+  try {
+    const { data, error, status } = await supabase.rpc('get_or_create_personal_dashboard_v2', {
+      p_initial_config: params.initialConfig,
+      p_title: params.title ?? params.initialConfig.title ?? 'Executive Dashboard',
+    });
+
+    if (error) {
+      const classified = classifyDashboardV2Error(error, status);
+      return classified.kind === 'technisch'
+        ? failTechnically(error)
+        : { ok: false, error: classified };
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) {
+      return { ok: false, error: { kind: 'nicht_gefunden' } };
+    }
+
+    const raw = row as {
+      id: string;
+      title: string;
+      scope: string;
+      revision: number;
+      config: unknown;
+      updated_at: string;
+    };
+
+    const rowValid = validateDashboardConfigV2(raw.config);
+    if (!rowValid.ok) {
+      return { ok: false, error: { kind: 'ungueltig', detail: rowValid.error } };
+    }
+
+    return {
+      ok: true,
+      value: {
+        id: raw.id,
+        title: raw.title,
+        scope: raw.scope as 'personal' | 'team',
+        revision: raw.revision,
+        config: rowValid.config,
         updatedAt: raw.updated_at,
       },
     };
@@ -318,100 +335,4 @@ export async function saveDashboardV2(params: {
   }
 }
 
-/** Liest die Revisionshistorie eines Dashboards. */
-export async function getDashboardV2Revisions(
-  dashboardId: string,
-): Promise<StorageResult<DashboardV2RevisionRow[]>> {
-  if (!isSupabaseConfigured || !supabase) {
-    const entry = inMemoryStore.get(dashboardId);
-    return { ok: true, value: entry?.revisions ?? [] };
-  }
-
-  try {
-    const { data, error, status } = await supabase.rpc('get_dashboard_v2_revisions', {
-      p_dashboard_id: dashboardId,
-    });
-
-    if (error) {
-      const classified = classifyDashboardV2Error(error, status);
-      return classified.kind === 'technisch'
-        ? failTechnically(error)
-        : { ok: false, error: classified };
-    }
-
-    const rows = (Array.isArray(data) ? data : []) as Array<{
-      revision: number;
-      title: string;
-      created_by_user_id: string;
-      created_at: string;
-      change_summary: string | null;
-    }>;
-
-    return {
-      ok: true,
-      value: rows.map((r) => ({
-        revision: r.revision,
-        title: r.title,
-        createdByUserId: r.created_by_user_id,
-        createdAt: r.created_at,
-        changeSummary: r.change_summary,
-      })),
-    };
-  } catch (cause) {
-    return failTechnically(cause);
-  }
-}
-
-/** Stellt eine frühere Revision als neue Revision an der Spitze der Historie wieder her. */
-export async function restoreDashboardV2Revision(params: {
-  dashboardId: string;
-  targetRevision: number;
-  expectedRevision: number;
-}): Promise<StorageResult<SavedDashboardV2Result>> {
-  if (!isSupabaseConfigured || !supabase) {
-    const entry = inMemoryStore.get(params.dashboardId);
-    if (!entry) return { ok: false, error: { kind: 'nicht_gefunden' } };
-    const rev = entry.revisions.find((r) => r.revision === params.targetRevision);
-    if (!rev) return { ok: false, error: { kind: 'nicht_gefunden' } };
-
-    return saveDashboardV2({
-      dashboardId: params.dashboardId,
-      expectedRevision: params.expectedRevision,
-      title: rev.title,
-      config: entry.row.config,
-      changeSummary: `Wiederhergestellt von Revision ${params.targetRevision}`,
-    });
-  }
-
-  try {
-    const { data, error, status } = await supabase.rpc('restore_dashboard_revision_v2', {
-      p_dashboard_id: params.dashboardId,
-      p_target_revision: params.targetRevision,
-      p_expected_revision: params.expectedRevision,
-    });
-
-    if (error) {
-      const classified = classifyDashboardV2Error(error, status);
-      return classified.kind === 'technisch'
-        ? failTechnically(error)
-        : { ok: false, error: classified };
-    }
-
-    const row = (Array.isArray(data) ? data[0] : data) as {
-      dashboard_id: string;
-      new_revision: number;
-      updated_at: string;
-    };
-
-    return {
-      ok: true,
-      value: {
-        dashboardId: row.dashboard_id,
-        revision: row.new_revision,
-        updatedAt: row.updated_at,
-      },
-    };
-  } catch (cause) {
-    return failTechnically(cause);
-  }
-}
+export { getDashboardV2Revisions, restoreDashboardV2Revision } from './dashboardRevisionServiceV2';

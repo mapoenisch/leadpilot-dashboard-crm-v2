@@ -3,6 +3,7 @@ import {
   classifyDashboardV2Error,
   createDashboardV2,
   getDashboardV2Revisions,
+  getOrCreatePersonalDashboardV2,
   loadPersonalDashboardV2,
   resetInMemoryDashboardV2Storage,
   restoreDashboardV2Revision,
@@ -73,6 +74,31 @@ describe('dashboardStorageV2', () => {
     expect(revsRes.value.length).toBe(1);
     expect(revsRes.value[0]?.revision).toBe(1);
     expect(revsRes.value[0]?.changeSummary).toBe('Dashboard initial erstellt');
+  });
+
+  it('erstellt ein Dashboard atomar und gibt bei erneutem Aufruf das existierende Dashboard zurück (Race Condition Schutz)', async () => {
+    const config = makeConfig('dash_atomar_1', 'Atomares Dashboard');
+
+    // 1. Aufruf: Initial erstellen
+    const res1 = await getOrCreatePersonalDashboardV2({
+      initialConfig: config,
+      title: config.title,
+    });
+    expect(res1.ok).toBe(true);
+    if (!res1.ok) return;
+    expect(res1.value.revision).toBe(1);
+    expect(res1.value.title).toBe('Atomares Dashboard');
+
+    // 2. Paralleler / erneuter Aufruf: Muss exakt dasselbe existierende Dashboard liefern
+    const res2 = await getOrCreatePersonalDashboardV2({
+      initialConfig: { ...config, title: 'Zweiter Tab Versuch' },
+      title: 'Zweiter Tab Versuch',
+    });
+    expect(res2.ok).toBe(true);
+    if (!res2.ok) return;
+    expect(res2.value.id).toBe(res1.value.id);
+    expect(res2.value.title).toBe('Atomares Dashboard');
+    expect(res2.value.revision).toBe(1);
   });
 
   it('erhöht bei jedem erfolgreichen Speichern die Revision atomar', async () => {

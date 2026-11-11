@@ -620,8 +620,69 @@ BEGIN
   WHERE d.organization_id = v_org
     AND d.user_id = v_user
     AND d.scope = 'personal'
-  ORDER BY d.updated_at DESC
+  ORDER BY d.created_at ASC
   LIMIT 1;
+END;
+$$;
+
+-- RPC: get_or_create_personal_dashboard_v2
+-- Sichert die initiale Kopiermigration atomar gegen parallele Browser-Tabs/Rennen ab.
+CREATE OR REPLACE FUNCTION public.get_or_create_personal_dashboard_v2(
+  p_initial_config JSONB,
+  p_title TEXT DEFAULT 'Executive Dashboard'
+)
+RETURNS TABLE (
+  id UUID,
+  title TEXT,
+  scope TEXT,
+  revision INTEGER,
+  config JSONB,
+  updated_at TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+#variable_conflict use_variable
+DECLARE
+  v_user UUID := auth.uid();
+  v_org UUID := public.current_organization_id();
+  v_existing_id UUID;
+  v_created_id UUID;
+BEGIN
+  IF v_user IS NULL OR v_org IS NULL THEN
+    RAISE EXCEPTION 'LP_AUTH_REQUIRED' USING ERRCODE = '42501';
+  END IF;
+
+  -- Transaktions-Advisory-Lock sichert atomaren Check-and-Create pro Nutzer & Mandant ab
+  PERFORM pg_advisory_xact_lock(hashtext('personal_dashboard:' || v_org::text || ':' || v_user::text));
+
+  -- Prüfen ob bereits ein persönliches Dashboard existiert
+  SELECT d.id INTO v_existing_id
+  FROM public.dashboards AS d
+  WHERE d.organization_id = v_org
+    AND d.user_id = v_user
+    AND d.scope = 'personal'
+  ORDER BY d.created_at ASC
+  LIMIT 1;
+
+  IF v_existing_id IS NOT NULL THEN
+    RETURN QUERY
+    SELECT d.id, d.title, d.scope, d.revision, d.config, d.updated_at
+    FROM public.dashboards AS d
+    WHERE d.id = v_existing_id;
+    RETURN;
+  END IF;
+
+  -- Andernfalls atomar initial erstellen
+  SELECT c.dashboard_id
+  INTO v_created_id
+  FROM public.create_dashboard_v2(p_title, p_initial_config, 'personal', NULL, NULL) AS c;
+
+  RETURN QUERY
+  SELECT d.id, d.title, d.scope, d.revision, d.config, d.updated_at
+  FROM public.dashboards AS d
+  WHERE d.id = v_created_id;
 END;
 $$;
 
@@ -677,6 +738,9 @@ GRANT EXECUTE ON FUNCTION public.restore_dashboard_revision_v2(UUID, INTEGER, IN
 
 REVOKE ALL ON FUNCTION public.load_personal_dashboard_v2() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.load_personal_dashboard_v2() TO authenticated;
+
+REVOKE ALL ON FUNCTION public.get_or_create_personal_dashboard_v2(JSONB, TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_or_create_personal_dashboard_v2(JSONB, TEXT) TO authenticated;
 
 REVOKE ALL ON FUNCTION public.get_dashboard_v2_revisions(UUID) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.get_dashboard_v2_revisions(UUID) TO authenticated;
