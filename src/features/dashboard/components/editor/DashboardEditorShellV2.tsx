@@ -3,15 +3,19 @@
 // Koordiniert Top-Bar, Widget-Bibliothek, Canvas, Inspector und Statusleiste,
 // steuert Undo/Redo über den Editor-Kern und sichert Entwürfe vor Datenverlust.
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
   AddTileCommand,
   RemoveTileCommand,
   SetGlobalFilterCommand,
   UpdateDashboardMetaCommand,
-  UpdateTileConfigCommand,
 } from '../../core/editorCommands';
+import {
+  BatchMoveTilesCommand,
+  MoveTileCommand,
+  ResizeTileCommand,
+} from '../../core/layoutCommands';
 import { useDashboardEditorV2 } from '../../hooks/useDashboardEditorV2';
 import {
   getCatalogEntry,
@@ -21,7 +25,7 @@ import {
 import type {
   DashboardConfigV2,
   DashboardTileConfigV2,
-  TileThresholdRule,
+  GridPosition,
 } from '../../model/dashboardConfigV2';
 import type { TileDataHook } from '../LazyDashboardTile';
 import { UnsavedChangesDialog } from '../UnsavedChangesDialog';
@@ -30,7 +34,13 @@ import { EditorInspectorV2 } from './EditorInspectorV2';
 import { EditorStatusBarV2 } from './EditorStatusBarV2';
 import { EditorTopBarV2 } from './EditorTopBarV2';
 import { WidgetLibraryV2 } from './WidgetLibraryV2';
-import { computeNextAvailablePosition } from './editorPlacement';
+import {
+  computeNextAvailablePosition,
+  createTileAtGridPosition,
+  reorderMobileTiles,
+} from './editorPlacement';
+import { useEditorShortcuts } from './useEditorShortcuts';
+import { useTileInspectorActions } from './useTileInspectorActions';
 
 export interface DashboardEditorShellV2Props {
   initialConfig: DashboardConfigV2;
@@ -83,53 +93,16 @@ export function DashboardEditorShellV2({
 
   const { config, isDirty, activeBreakpoint, selectedTileId } = state;
 
-  // Tastaturkürzel für Undo / Redo: Cmd+Z, Cmd+Shift+Z, Strg+Y
-  useEffect(() => {
-    if (
-      isSaving ||
-      showDiscardConfirm ||
-      editor.leaveGuard.leaveRequest !== null ||
-      editor.leaveGuard.leaving
-    ) {
-      return;
-    }
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const targetEl = e.target as HTMLElement | null;
-      const tag = targetEl?.tagName;
-      if (
-        tag === 'INPUT' ||
-        tag === 'TEXTAREA' ||
-        tag === 'SELECT' ||
-        targetEl?.isContentEditable
-      ) {
-        return;
-      }
-      const isMod = e.metaKey || e.ctrlKey;
-      if (!isMod) return;
-      if (e.key === 'z' || e.key === 'Z') {
-        e.preventDefault();
-        if (e.shiftKey) {
-          if (canRedo) redo();
-        } else {
-          if (canUndo) undo();
-        }
-      } else if (e.key === 'y' || e.key === 'Y') {
-        e.preventDefault();
-        if (canRedo) redo();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [
+  useEditorShortcuts({
     isSaving,
     showDiscardConfirm,
-    editor.leaveGuard.leaveRequest,
-    editor.leaveGuard.leaving,
+    isLeaving: editor.leaveGuard.leaving,
+    hasLeaveRequest: editor.leaveGuard.leaveRequest !== null,
     canUndo,
     canRedo,
     undo,
     redo,
-  ]);
+  });
 
   // Ausgewählte Kachel ermitteln
   const selectedTile = useMemo(
@@ -214,83 +187,71 @@ export function DashboardEditorShellV2({
     [config.tiles, dispatch, setSelectedTileId],
   );
 
-  // Titel der selektierten Kachel ändern
-  const handleTileTitleChange = useCallback(
-    (tileId: string, newTitle: string) => {
-      const tile = config.tiles.find((t) => t.id === tileId);
-      if (!tile || tile.title === newTitle) return;
-
-      const cmd = new UpdateTileConfigCommand(tileId, { title: tile.title }, { title: newTitle });
-      dispatch(cmd);
+  // Raster-Layout Bewegungen / Reflow committen
+  const handleCommitLayout = useCallback(
+    (moves: Array<{ tileId: string; from: GridPosition; to: GridPosition }>) => {
+      if (moves.length === 0) return;
+      if (moves.length === 1) {
+        const m = moves[0]!;
+        if (m.from.w !== m.to.w || m.from.h !== m.to.h) {
+          dispatch(new ResizeTileCommand(m.tileId, activeBreakpoint, m.from, m.to));
+        } else {
+          dispatch(new MoveTileCommand(m.tileId, activeBreakpoint, m.from, m.to));
+        }
+      } else {
+        dispatch(new BatchMoveTilesCommand(activeBreakpoint, moves));
+      }
     },
-    [config.tiles, dispatch],
+    [activeBreakpoint, dispatch],
   );
 
-  // Darstellungsart der selektierten Kachel ändern
-  const handleTileViewChange = useCallback(
-    (tileId: string, newView: DashboardView) => {
-      const tile = config.tiles.find((t) => t.id === tileId);
-      if (!tile || tile.presentation === newView) return;
-
-      const cmd = new UpdateTileConfigCommand(
-        tileId,
-        { presentation: tile.presentation },
-        { presentation: newView },
+  // Kachel an gezielter Rasterposition hinzufügen (Drop von WidgetLibrary)
+  const handleAddTileAtPosition = useCallback(
+    (catalogId: string, position: GridPosition) => {
+      if (config.tiles.length >= 24) return;
+      const { newTile, reflowMoves } = createTileAtGridPosition(
+        catalogId,
+        position,
+        config.tiles,
+        activeBreakpoint,
+        config.globalTimeframe,
+        config.globalPipeline,
       );
-      dispatch(cmd);
+      if (reflowMoves.length > 0) {
+        dispatch(new BatchMoveTilesCommand(activeBreakpoint, reflowMoves));
+      }
+      dispatch(new AddTileCommand(newTile));
+      setSelectedTileId(newTile.id);
+    },
+    [
+      activeBreakpoint,
+      config.globalPipeline,
+      config.globalTimeframe,
+      config.tiles,
+      dispatch,
+      setSelectedTileId,
+    ],
+  );
+
+  // Kacheln auf Mobile vertikal sortieren
+  const handleMoveMobile = useCallback(
+    (tileId: string, direction: 'up' | 'down') => {
+      const moves = reorderMobileTiles(config.tiles, tileId, direction);
+      if (moves && moves.length > 0) {
+        dispatch(new BatchMoveTilesCommand('mobile', moves));
+      }
     },
     [config.tiles, dispatch],
   );
 
-  // Kachel-Overrides (Pipeline, Zeitraum, Optionen) ändern
-  const handleTileOverrideChange = useCallback(
-    (tileId: string, patch: Partial<DashboardTileConfigV2>) => {
-      const tile = config.tiles.find((t) => t.id === tileId);
-      if (!tile) return;
-
-      const fromPatch = (Object.keys(patch) as Array<keyof DashboardTileConfigV2>).reduce<
-        Partial<DashboardTileConfigV2>
-      >((acc, key) => {
-        return Object.assign(acc, { [key]: tile[key] });
-      }, {});
-
-      const cmd = new UpdateTileConfigCommand(tileId, fromPatch, patch);
-      dispatch(cmd);
-    },
-    [config.tiles, dispatch],
-  );
-
-  // Kachel-Schwellenwerte ändern
-  const handleTileThresholdChange = useCallback(
-    (tileId: string, rule: TileThresholdRule | undefined) => {
-      const tile = config.tiles.find((t) => t.id === tileId);
-      if (!tile) return;
-
-      const cmd = new UpdateTileConfigCommand(
-        tileId,
-        { threshold: tile.threshold },
-        { threshold: rule },
-      );
-      dispatch(cmd);
-    },
-    [config.tiles, dispatch],
-  );
-
-  // Kachel-Drilldown ändern
-  const handleTileDrilldownChange = useCallback(
-    (tileId: string, url: string | undefined) => {
-      const tile = config.tiles.find((t) => t.id === tileId);
-      if (!tile) return;
-
-      const cmd = new UpdateTileConfigCommand(
-        tileId,
-        { drilldownUrl: tile.drilldownUrl },
-        { drilldownUrl: url },
-      );
-      dispatch(cmd);
-    },
-    [config.tiles, dispatch],
-  );
+  // Kachel-Konfigurationsänderungen aus dem Inspector anbinden
+  const {
+    handleTileTitleChange,
+    handleTileViewChange,
+    handleTileOverrideChange,
+    handleTileThresholdChange,
+    handleTileDrilldownChange,
+  } = useTileInspectorActions({ tiles: config.tiles, dispatch });
 
   // Dashboard-Titel ändern
   const handleDashboardTitleChange = useCallback(
@@ -399,6 +360,9 @@ export function DashboardEditorShellV2({
           onDeselect={() => setSelectedTileId(null)}
           onRemoveTile={handleRemoveTile}
           onDuplicateTile={handleDuplicateTile}
+          onCommitLayout={handleCommitLayout}
+          onAddTileAtPosition={handleAddTileAtPosition}
+          onMoveMobile={handleMoveMobile}
           onShowDetails={onShowDetails}
           onAddTileClick={() => setIsLibraryOpen(true)}
           isPreviewMode={isPreviewMode}

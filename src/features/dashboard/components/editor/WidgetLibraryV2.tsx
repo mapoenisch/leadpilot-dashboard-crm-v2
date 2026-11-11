@@ -236,9 +236,20 @@ export function WidgetLibraryV2({
               <div
                 key={entry.id}
                 data-testid={`library-card-${entry.id}`}
+                role="article"
+                aria-label={`Widget: ${entry.name}`}
+                draggable={!isFull}
+                onDragStart={(e) => {
+                  if (isFull) return;
+                  e.dataTransfer.setData('text/leadpilot-kpi', entry.id);
+                  e.dataTransfer.setData('text/plain', entry.id);
+                  e.dataTransfer.effectAllowed = 'copy';
+                }}
                 className={cn(
                   'group rounded-lg border border-[var(--color-border,#1b3d39)] bg-black/20 p-2.5 transition-all',
-                  isFull ? 'opacity-50' : 'hover:border-primary/50 hover:bg-black/40',
+                  isFull
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:border-primary/50 hover:bg-black/40 cursor-grab active:cursor-grabbing',
                 )}
               >
                 <div className="flex items-start justify-between gap-1.5">

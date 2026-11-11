@@ -20697,4 +20697,53 @@ git diff origin/main -- src/simulation src/types src/context src/services/data s
   - Flake-Absicherung im bestehenden Test `DashboardWorkspace.codex.ui.vitest.tsx` mit Timeout für CI-Runner.
   - UI-Test in `DashboardEditorShellV2.ui.vitest.tsx` um Verifikation der Tastenkürzel und des Eingabefeld-Schutzes erweitert.
 
+---
+
+## 2026-11-11 — Auftrag 149: Dashboard-Editor: Rasterengine (Paket P06)
+
+**Ziel & Kontext:** Vollständige Umsetzung von Paket P06 aus dem [Dashboard-Editor-Masterplan](../dashboard/DASHBOARD_EDITOR_MASTERPLAN.md) (§3.1, §4.A, §5.2, §6). Implementierung der maßgeschneiderten nativen 12-Spalten-CSS-Grid-Engine (Kandidat C aus Auftrag 146 / P03) mit freier zweidimensionaler Kachelplatzierung (`x, y`) und Größenanpassung (`w, h`), 2D-Kollisionserkennung und kaskadierendem Push-Down-Reflow, vertikaler Kompaktierung (`compactLayout`), Pointer-basiertem Drag & Drop und Resizing mit visueller Geistervorschau (`activeGhost`), Auto-Scroll bei Annäherung an Ränder, HTML5-Drop von der Widget-Bibliothek auf das Raster, WAI-ARIA `grid`-Tastatursteuerung (`Alt+Pfeiltasten` zum Verschieben, `Alt+Shift+Pfeiltasten` zum Skalieren) mit Screenreader-Ansagen via `aria-live="polite"`, vertikaler Ein-Spalten-Sortierung auf Mobile und strikter Breakpoint-Isolation bei 0 Bytes zusätzlichen Third-Party-Kosten und 0 Bytes Quality-Debt-Regression (Quality-Budget 49/49 eingehalten).
+
+Auftragsdatei: `docs/auftraege/ANTIGRAVITY_AUFTRAG_149_DASHBOARD_EDITOR_RASTERENGINE.md`.  
+Spezifikation: `docs/dashboard/RASTERENGINE_P06.md`.
+
+### Geänderte & neue Dateien
+
+- `docs/auftraege/ANTIGRAVITY_AUFTRAG_149_DASHBOARD_EDITOR_RASTERENGINE.md`: Auftragsdokumentation Paket P06.
+- `docs/dashboard/RASTERENGINE_P06.md`: Technische Spezifikation und Baugrundlage der nativen CSS-Grid-Rasterengine.
+- `src/features/dashboard/components/editor/grid/gridEngine.ts`: 2D-Kollisionsprüfung, kaskadierender Push-Down-Reflow, vertikale Kompaktierung, Pixel-in-Raster-Koordinatenrechner und deterministische Kachelsortierung.
+- `src/features/dashboard/components/editor/grid/gridTailwindClasses.ts`: Statische Tailwind-Klassen-Mappings für diskrete Grid-Koordinaten (`col-start-*`, `col-span-*`, `row-start-*`, `row-span-*`) zur vollständigen Vermeidung von Inline-Styles.
+- `src/features/dashboard/components/editor/grid/GridResizeHandle.tsx`: Interaktive Resize-Handles (Ecke `se` sowie Kanten `e` und `s`) für Pointer-basiertes Skalieren.
+- `src/features/dashboard/components/editor/grid/useGridDragAndDrop.ts`: Hook für Pointer-Drag, Resizing, Auto-Scroll und Ghost-Vorschau.
+- `src/features/dashboard/components/editor/grid/useGridKeyboard.ts`: Hook für WAI-ARIA `grid`-Tastaturnavigation, Kachel-Verschiebung (`Alt+Pfeil`) und Größenänderung (`Alt+Shift+Pfeil`) mit Screenreader-Ansagen.
+- `src/features/dashboard/components/editor/canvas/CanvasTileCard.tsx`: Modulare Kachelkarte mit `role="gridcell"`, `aria-colindex`, `aria-rowindex`, Drag-Handle, Schnellaktionen und Renderer-Einbindung.
+- `src/features/dashboard/components/editor/useEditorShortcuts.ts`: Tastenkürzel-Hook für Undo/Redo (`Cmd+Z`, `Cmd+Shift+Z`, `Ctrl+Y`) mit Eingabefeld-Schutz.
+- `src/features/dashboard/components/editor/useTileInspectorActions.ts`: Modularer Hook für Inspector-Aktionen (Titel, Darstellung, Filter, Schwellenwerte, Drilldown).
+- `src/features/dashboard/components/editor/editorPlacement.ts`: Hilfsfunktionen für Auto-Placement mit Reflow (`createTileAtGridPosition`) und mobile Vertikalsortierung (`reorderMobileTiles`).
+- `src/features/dashboard/components/editor/EditorCanvasV2.tsx`: Integration der nativen CSS-Grid-Engine, Drag-Ghost, WAI-ARIA `grid`-Semantik und Drop-Zonen.
+- `src/features/dashboard/components/editor/WidgetLibraryV2.tsx`: HTML5-Drag-Attribute (`role="article"`, `draggable`, `onDragStart`) für flüssiges Ziehen von Kennzahlen auf den Canvas.
+- `src/features/dashboard/components/editor/DashboardEditorShellV2.tsx`: Koordination von Layout-Moves (`handleCommitLayout`), Drop-Placement (`handleAddTileAtPosition`) und mobiler Sortierung (`handleMoveMobile`).
+- `src/features/dashboard/__tests__/gridEngine.vitest.ts`: 9 Unittests für Kollisionserkennung, Reflow, Kompaktierung und deterministische Sortierung.
+- `src/features/dashboard/__tests__/gridInteraction.ui.vitest.tsx`: 6 UI- und Integrationstests für WAI-ARIA grid, Tastatursteuerung (Alt+Pfeil), Resize-Handles, Drop und Mobile-Pfeile.
+- `BUILD_PLAN.md`: Phasenfortschritt aktualisiert.
+- `docs/BUILD_LOG.md`: Protokollierung dieses Gates.
+
+### Schutzbereichs-Prüfung
+
+```bash
+git diff main -- src/simulation src/types src/context src/services/data src/features/resources
+# Ergebnis: 0 Bytes Diff (vollständig unberührt)
+```
+
+### Automatisierte Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler.
+- `npm run lint`: 0 Warnungen, 0 Fehler (`eslint . --max-warnings 0`).
+- `npm run format:check`: 100 % pass (Prettier).
+- `node scripts/verifyQualityBudget.ts`: 49/49 suppressions:react/forbid-dom-props, 0 Regressionen.
+- `npx size-limit`: Initial JS bundle 178.05 kB (Budget 180 kB), Largest chunk 79.41 kB (Budget 250 kB).
+- `npm test`: 364 Test-Dateien, 2706 Tests bestanden (0 Fehler).
+- `npm run verify`: Alle Integritäts-Suiten (001 bis 025) bestanden.
+- `npm run build`: Erfolgreicher Produktions-Build in 3.22s.
+
+
 
