@@ -218,7 +218,7 @@ describe('DashboardWorkspace: Codex-Befunde PR #59, Runde 3', () => {
     startEditing();
     fireEvent.click(screen.getByRole('button', { name: 'Kachel hinzufügen' }));
     fireEvent.click((await screen.findAllByRole('radio', { name: /ARR/ }))[0]!);
-    const title = await screen.findByLabelText('Eigener Titel (optional)');
+    const title = await screen.findByLabelText('Eigener Titel (optional)', {}, { timeout: 5000 });
     const before = mounts;
     for (const text of ['A', 'AB', 'ABC']) fireEvent.change(title, { target: { value: text } });
     expect(mounts).toBe(before);

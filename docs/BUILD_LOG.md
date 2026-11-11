@@ -20667,7 +20667,7 @@ Umsetzung von Paket P05: Implementierung der vollständigen Benutzeroberfläche 
    - `dashboardMigrationV1V2.vitest.ts`: 3 Unittests für Konvertierung, Pack-Layout und Budget.
    - `WidgetLibraryV2.ui.vitest.tsx`: 4 UI-Tests für Suche, Filter und Budget-Sperre.
    - `EditorInspectorV2.ui.vitest.tsx`: 5 UI-Tests für Leerzustand, Tab-Wechsel und Eingaben.
-   - `DashboardEditorShellV2.ui.vitest.tsx`: 6 UI-Tests für Zonen, Hinzufügen, Entfernen, Undo/Redo, Breakpoints, Preview-Modus und Speichern.
+   - `DashboardEditorShellV2.ui.vitest.tsx`: 7 UI-Tests für Zonen, Hinzufügen, Entfernen, Tastatur-Undo/Redo, Breakpoints, Preview-Modus und Speichern.
 
 ### Schutzbereichs-Prüfung
 
@@ -20681,7 +20681,20 @@ git diff origin/main -- src/simulation src/types src/context src/services/data s
 - `npx tsc --noEmit`: 0 Fehler.
 - `npm run lint`: 0 Warnungen, 0 Fehler (`eslint . --max-warnings 0`).
 - `npm run format:check`: 100 % konform mit Prettier.
-- `npm test`: 362 Test-Dateien, 2690 Tests bestanden (0 Fehler).
+- `npm test`: 362 Test-Dateien, 2691 Tests bestanden (0 Fehler).
 - `npm run verify`: Alle Integritäts-Suiten (001 bis 025) bestanden.
-- `npm run build`: Erfolgreicher Produktions-Build in 3.28s.
+- `npm run build`: Erfolgreicher Produktions-Build in 3.40s.
+
+### Nachtrag Codex-Review (PR #173) & Befundbehebung (P2)
+
+- **Prüfer:** Codex (chatgpt-codex-connector auf GitHub, Review zu PR #173).
+- **Geprüfter Commit:** `b7771750fe909eb37dcf241d71150dc673b844a9`.
+- **Befund (P2):**
+  - _Binde Undo und Redo an die angekündigten Tastenkürzel:_ Nach dem Hinzufügen oder Entfernen einer Kachel bewirkten `Strg/Cmd+Z`, `Strg+Y` und `Cmd+Shift+Z` außerhalb von Eingabefeldern noch keine Änderung am V2-Verlauf.
+- **Behebung:**
+  - `keydown`-Listener in `DashboardEditorShellV2.tsx` integriert: Löst bei `Cmd/Ctrl+Z`, `Cmd+Shift+Z` und `Ctrl+Y` `undo()` bzw. `redo()` aus. Eingabefelder (`INPUT`, `TEXTAREA`, `SELECT`, `contentEditable`) sowie offene Dialoge und der gesperrte Speicherzustand (`isSaving`) bleiben unbeeinflusst.
+  - Auslagerung von `computeNextAvailablePosition` in `editorPlacement.ts`, sodass `DashboardEditorShellV2.tsx` mit 392 Zeilen strikt unter der 400-Zeilen-Grenze (`max-lines`) bleibt.
+  - Flake-Absicherung im bestehenden Test `DashboardWorkspace.codex.ui.vitest.tsx` mit Timeout für CI-Runner.
+  - UI-Test in `DashboardEditorShellV2.ui.vitest.tsx` um Verifikation der Tastenkürzel und des Eingabefeld-Schutzes erweitert.
+
 

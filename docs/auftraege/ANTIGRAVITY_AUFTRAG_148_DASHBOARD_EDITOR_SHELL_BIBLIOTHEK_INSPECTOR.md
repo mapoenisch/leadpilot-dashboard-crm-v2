@@ -102,6 +102,7 @@ Am Ende liegen vor:
 | `src/features/dashboard/__tests__/dashboardMigrationV1V2.vitest.ts` | Neu: Tests für V1→V2-Kopiermigration |
 | `src/features/dashboard/__tests__/DashboardEditorShellV2.ui.vitest.tsx` | Neu: UI-Tests für Shell, TopBar, Library, Canvas, Inspector |
 | `src/features/dashboard/__tests__/WidgetLibraryV2.ui.vitest.tsx` | Neu: UI-Tests für Bibliothek, Suche, Kategorien |
+| `src/features/dashboard/components/editor/editorPlacement.ts` | Neu: Modulare Rasterplatzierungs-Logik für freie Koordinaten |
 | `src/features/dashboard/__tests__/EditorInspectorV2.ui.vitest.tsx` | Neu: UI-Tests für Inspector Tabs & Eingaben |
 | `docs/BUILD_LOG.md` | Builder-Eintrag & Prüfnachweis |
 | `BUILD_PLAN.md` | Statusaktualisierung |
@@ -116,8 +117,19 @@ Am Ende liegen vor:
   - `src/features/dashboard/__tests__/dashboardMigrationV1V2.vitest.ts`: 3/3 Tests bestanden.
   - `src/features/dashboard/__tests__/WidgetLibraryV2.ui.vitest.tsx`: 4/4 Tests bestanden.
   - `src/features/dashboard/__tests__/EditorInspectorV2.ui.vitest.tsx`: 5/5 Tests bestanden.
-  - `src/features/dashboard/__tests__/DashboardEditorShellV2.ui.vitest.tsx`: 6/6 Tests bestanden.
-  - Gesamttests: `npm test` mit 362 Testdateien und 2690 Tests bestanden.
+  - `src/features/dashboard/__tests__/DashboardEditorShellV2.ui.vitest.tsx`: 7/7 Tests bestanden (inkl. Tastatur-Undo/Redo & Eingabefeld-Schutz).
+  - Gesamttests: `npm test` mit 362 Testdateien und 2691 Tests bestanden.
 - **Integritätsprüfung:** `npm run verify` erfolgreich (Suites 001–025 alle grün).
 - **Produktions-Build:** `npm run build` erfolgreich (`dist/` sauber erzeugt).
 - **Schutzbereichs-Integrität:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` exakt 0 Bytes.
+
+---
+
+## 5. Codex-Review PR #173 (Befundbehebung)
+
+- **Befund (P2):** Tastaturkürzel für Undo (`Cmd+Z`, `Ctrl+Z`) und Redo (`Cmd+Shift+Z`, `Ctrl+Y`) wurden in der V2-Shell angekündigt, waren jedoch noch nicht als `keydown`-Listener angebunden.
+- **Behebung:**
+  - Tastatur-Listener in `DashboardEditorShellV2.tsx` implementiert: Führt `undo()` / `redo()` aus, sperrt sich jedoch bei aktiven Eingabefeldern (`INPUT`, `TEXTAREA`, `SELECT`, `contentEditable`) sowie während des Speicherns (`isSaving`) oder offenen Verwerfen-/Navigationsdialogen.
+  - `computeNextAvailablePosition` nach `editorPlacement.ts` ausgelagert, um die 400-Zeilen-Grenze (`max-lines`) strikt einzuhalten (392 Zeilen).
+  - CI-Stabilität: `DashboardWorkspace.codex.ui.vitest.tsx` mit Timeout für CI-Runner abgesichert.
+  - Testsuite um dedizierten Testfall für Tastenkürzel und Eingabefeld-Schutz erweitert.

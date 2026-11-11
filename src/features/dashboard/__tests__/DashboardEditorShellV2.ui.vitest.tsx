@@ -177,4 +177,43 @@ describe('DashboardEditorShellV2', () => {
       expect(onSave.mock.calls[0]![0].title).toBe('Geänderter Dashboard Titel');
     });
   });
+
+  it('führt Undo und Redo über Tastaturkürzel (Cmd+Z, Cmd+Shift+Z, Ctrl+Y) aus, ignoriert sie jedoch in Eingabefeldern', async () => {
+    render(
+      <DashboardEditorShellV2
+        initialConfig={MOCK_INITIAL_CONFIG}
+        useData={useEditorPreviewData}
+        onSave={vi.fn()}
+      />,
+    );
+
+    // Initial 1 Kachel
+    expect(screen.getAllByTestId(/^canvas-tile-/)).toHaveLength(1);
+
+    // Kachel hinzufügen
+    const addButtons = screen.getAllByTestId(/^add-tile-btn-/);
+    fireEvent.click(addButtons[0]!);
+    expect(screen.getAllByTestId(/^canvas-tile-/)).toHaveLength(2);
+
+    // Tastenkürzel in einem Input-Feld darf den Dashboard-Verlauf nicht manipulieren
+    const searchInput = screen.getByTestId('library-search-input');
+    fireEvent.keyDown(searchInput, { key: 'z', metaKey: true });
+    expect(screen.getAllByTestId(/^canvas-tile-/)).toHaveLength(2);
+
+    // Cmd+Z im Fenster: Undo
+    fireEvent.keyDown(window, { key: 'z', metaKey: true });
+    expect(screen.getAllByTestId(/^canvas-tile-/)).toHaveLength(1);
+
+    // Cmd+Shift+Z im Fenster: Redo
+    fireEvent.keyDown(window, { key: 'z', metaKey: true, shiftKey: true });
+    expect(screen.getAllByTestId(/^canvas-tile-/)).toHaveLength(2);
+
+    // Ctrl+Z im Fenster: Undo
+    fireEvent.keyDown(window, { key: 'z', ctrlKey: true });
+    expect(screen.getAllByTestId(/^canvas-tile-/)).toHaveLength(1);
+
+    // Ctrl+Y im Fenster: Redo
+    fireEvent.keyDown(window, { key: 'y', ctrlKey: true });
+    expect(screen.getAllByTestId(/^canvas-tile-/)).toHaveLength(2);
+  });
 });

@@ -3,7 +3,7 @@
 // Koordiniert Top-Bar, Widget-Bibliothek, Canvas, Inspector und Statusleiste,
 // steuert Undo/Redo über den Editor-Kern und sichert Entwürfe vor Datenverlust.
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 import {
   AddTileCommand,
@@ -30,6 +30,7 @@ import { EditorInspectorV2 } from './EditorInspectorV2';
 import { EditorStatusBarV2 } from './EditorStatusBarV2';
 import { EditorTopBarV2 } from './EditorTopBarV2';
 import { WidgetLibraryV2 } from './WidgetLibraryV2';
+import { computeNextAvailablePosition } from './editorPlacement';
 
 export interface DashboardEditorShellV2Props {
   initialConfig: DashboardConfigV2;
@@ -41,47 +42,6 @@ export interface DashboardEditorShellV2Props {
   connectionStatus?: 'connected' | 'paused' | 'offline';
   dataTimestamp?: string;
   className?: string;
-}
-
-/** Berechnet die nächste freie Rasterposition für eine neue Kachel */
-function computeNextAvailablePosition(
-  tiles: readonly DashboardTileConfigV2[],
-  width = 6,
-  height = 4,
-): {
-  desktop: { x: number; y: number; w: number; h: number };
-  tablet: { x: number; y: number; w: number; h: number };
-  mobile: { x: number; y: number; w: number; h: number };
-} {
-  let maxY = 0;
-  for (const t of tiles) {
-    const bottom = t.layouts.desktop.y + t.layouts.desktop.h;
-    if (bottom > maxY) maxY = bottom;
-  }
-
-  // Suche in der letzten Zeile nach freier x-Position
-  let currentX = 0;
-  const lastRowTiles = tiles.filter((t) => t.layouts.desktop.y + t.layouts.desktop.h > maxY - 1);
-  for (const t of lastRowTiles) {
-    const right = t.layouts.desktop.x + t.layouts.desktop.w;
-    if (right > currentX && right <= 12) {
-      currentX = right;
-    }
-  }
-
-  let finalX = currentX;
-  let finalY = maxY > 0 && currentX + width <= 12 ? Math.max(0, maxY - height) : maxY;
-
-  if (finalX + width > 12) {
-    finalX = 0;
-    finalY = maxY;
-  }
-
-  return {
-    desktop: { x: finalX, y: finalY, w: width, h: height },
-    tablet: { x: 0, y: finalY, w: Math.min(6, width), h: height },
-    mobile: { x: 0, y: finalY, w: 1, h: height },
-  };
 }
 
 export function DashboardEditorShellV2({
@@ -122,6 +82,54 @@ export function DashboardEditorShellV2({
   } = editor;
 
   const { config, isDirty, activeBreakpoint, selectedTileId } = state;
+
+  // Tastaturkürzel für Undo / Redo: Cmd+Z, Cmd+Shift+Z, Strg+Y
+  useEffect(() => {
+    if (
+      isSaving ||
+      showDiscardConfirm ||
+      editor.leaveGuard.leaveRequest !== null ||
+      editor.leaveGuard.leaving
+    ) {
+      return;
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const targetEl = e.target as HTMLElement | null;
+      const tag = targetEl?.tagName;
+      if (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA' ||
+        tag === 'SELECT' ||
+        targetEl?.isContentEditable
+      ) {
+        return;
+      }
+      const isMod = e.metaKey || e.ctrlKey;
+      if (!isMod) return;
+      if (e.key === 'z' || e.key === 'Z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          if (canRedo) redo();
+        } else {
+          if (canUndo) undo();
+        }
+      } else if (e.key === 'y' || e.key === 'Y') {
+        e.preventDefault();
+        if (canRedo) redo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [
+    isSaving,
+    showDiscardConfirm,
+    editor.leaveGuard.leaveRequest,
+    editor.leaveGuard.leaving,
+    canUndo,
+    canRedo,
+    undo,
+    redo,
+  ]);
 
   // Ausgewählte Kachel ermitteln
   const selectedTile = useMemo(
