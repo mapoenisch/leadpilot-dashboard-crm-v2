@@ -5,6 +5,7 @@
 **Masterplan:** [Dashboard-Editor-Masterplan, Revision 2](../dashboard/DASHBOARD_EDITOR_MASTERPLAN.md), insbesondere P04 sowie Abschnitte 3.1, 4.A, 7 und 8.
 
 **Vorgelagert:**
+
 - [Auftrag 144 (Bestandsprüfung, PR #168)](./ANTIGRAVITY_AUFTRAG_144_DASHBOARD_EDITOR_BESTANDSPRUEFUNG.md)
 - [Auftrag 145 (UX-Konzept & Fachverträge, PR #169)](./ANTIGRAVITY_AUFTRAG_145_DASHBOARD_EDITOR_UX_FACHVERTRAEGE.md) mit [EDITOR_UX_FACHVERTRAEGE_145.md](../dashboard/EDITOR_UX_FACHVERTRAEGE_145.md)
 - [Auftrag 146 (Grid-Vergleich & Ziel-Speichermodell, PR #170)](./ANTIGRAVITY_AUFTRAG_146_DASHBOARD_EDITOR_GRID_ZIEL_SPEICHERMODELL.md) mit [GRID_VERGLEICH_ZIELMODELL_146.md](../dashboard/GRID_VERGLEICH_ZIELMODELL_146.md)
@@ -13,7 +14,7 @@
 
 **Builder:** Antigravity. **Prüfer:** Codex (chatgpt-codex-connector auf GitHub) gemäß `CLAUDE.md` §4.1. **Merge und Release:** Marc.
 
-**Status:** IN BEARBEITUNG (Branch: `auftrag-147-dashboard-editor-kern-entkoppeln`).
+**Status:** ABGESCHLOSSEN (PR #171 gemergt; Nacharbeit Codex P2 umgesetzt).
 
 ---
 
@@ -61,42 +62,46 @@ Am Ende liegen vor:
 
 ## 3. Ziel-Dateien
 
-| Pfad | Erlaubte Änderung / Zweck |
-| --- | --- |
-| `docs/auftraege/ANTIGRAVITY_AUFTRAG_147_DASHBOARD_EDITOR_KERN_ENTKOPPELN.md` | Dieser Auftrag |
-| `docs/dashboard/EDITOR_KERN_P04.md` | Neu: Architektur- und Funktionsspezifikation des entkoppelten Editor-Kerns (P04) |
-| `src/features/dashboard/model/dashboardConfigV2.ts` | Neu: V2-Datenmodell, Validierung und Draft-State |
-| `src/features/dashboard/model/dashboardRollout.ts` | Erweitern: Feature-Flag `VITE_DASHBOARD_EDITOR_V2` & Runtime-Toggle |
-| `src/features/dashboard/core/editorCommands.ts` | Neu: Reversible-Command-Pattern mit Delta-Patches |
-| `src/features/dashboard/core/dashboardEditorCore.ts` | Neu: Entkoppelter Editor-Kern (History, Checkpoints, Bündelung) |
-| `src/features/dashboard/hooks/useDashboardEditorV2.ts` | Neu: React-Hook mit Navigationsschutz |
-| `src/features/dashboard/__tests__/dashboardConfigV2.vitest.ts` | Neu: Tests für V2-Typmodell und Validierung |
-| `src/features/dashboard/__tests__/editorCommands.vitest.ts` | Neu: Tests für Command-Invertierbarkeit & Patches |
-| `src/features/dashboard/__tests__/dashboardEditorCore.vitest.ts` | Neu: Tests für Undo/Redo, Checkpoints, Debounce, 100+ Aktionen |
-| `src/features/dashboard/__tests__/dashboardRollout.vitest.ts` | Erweitern: Tests für V2-Rollout-Schalter |
-| `src/features/dashboard/__tests__/useDashboardEditorV2.ui.vitest.tsx` | Neu: Tests für React-Hook und Navigationsschutz |
-| `docs/BUILD_LOG.md` | Builder-Eintrag & Prüfnachweis |
-| `BUILD_PLAN.md` | Statusaktualisierung |
+| Pfad                                                                         | Erlaubte Änderung / Zweck                                                        |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `docs/auftraege/ANTIGRAVITY_AUFTRAG_147_DASHBOARD_EDITOR_KERN_ENTKOPPELN.md` | Dieser Auftrag                                                                   |
+| `docs/dashboard/EDITOR_KERN_P04.md`                                          | Neu: Architektur- und Funktionsspezifikation des entkoppelten Editor-Kerns (P04) |
+| `src/features/dashboard/model/dashboardConfigV2.ts`                          | Neu: V2-Datenmodell, Validierung und Draft-State                                 |
+| `src/features/dashboard/model/dashboardRollout.ts`                           | Erweitern: Feature-Flag `VITE_DASHBOARD_EDITOR_V2` & Runtime-Toggle              |
+| `src/features/dashboard/core/editorCommands.ts`                              | Neu: Reversible-Command-Pattern mit Delta-Patches                                |
+| `src/features/dashboard/core/dashboardEditorCore.ts`                         | Neu: Entkoppelter Editor-Kern (History, Checkpoints, Bündelung)                  |
+| `src/features/dashboard/hooks/useDashboardEditorV2.ts`                       | Neu: React-Hook mit Navigationsschutz                                            |
+| `src/features/dashboard/__tests__/dashboardConfigV2.vitest.ts`               | Neu: Tests für V2-Typmodell und Validierung                                      |
+| `src/features/dashboard/__tests__/editorCommands.vitest.ts`                  | Neu: Tests für Command-Invertierbarkeit & Patches                                |
+| `src/features/dashboard/__tests__/dashboardEditorCore.vitest.ts`             | Neu: Tests für Undo/Redo, Checkpoints, Debounce, 100+ Aktionen                   |
+| `src/features/dashboard/__tests__/dashboardRollout.vitest.ts`                | Erweitern: Tests für V2-Rollout-Schalter                                         |
+| `src/features/dashboard/__tests__/useDashboardEditorV2.ui.vitest.tsx`        | Neu: Tests für React-Hook und Navigationsschutz                                  |
+| `docs/BUILD_LOG.md`                                                          | Builder-Eintrag & Prüfnachweis                                                   |
+| `BUILD_PLAN.md`                                                              | Statusaktualisierung                                                             |
 
 ---
 
 ## 4. Aufgaben in Reihenfolge
 
 ### T1 – Detailauftrag und Architekturdokumentation (P04)
+
 - [x] Detailauftrag `ANTIGRAVITY_AUFTRAG_147_DASHBOARD_EDITOR_KERN_ENTKOPPELN.md` erstellen.
 - [x] Dokument `docs/dashboard/EDITOR_KERN_P04.md` anlegen und Schnittstellen, Command-Katalog sowie Speicherverwaltung beschreiben.
 
 ### T2 – V2-Typmodell & Schema-Validierung umsetzen
+
 - [x] `src/features/dashboard/model/dashboardConfigV2.ts` implementieren.
 - [x] Schema-Validator `validateDashboardConfigV2()` mit 64 KiB Begrenzung, max. 24 Kacheln und Rastergrenzen ausstatten.
 - [x] Vitest-Suite `src/features/dashboard/__tests__/dashboardConfigV2.vitest.ts` erstellen.
 
 ### T3 – Reversible-Command-Pattern implementieren
+
 - [x] `src/features/dashboard/core/editorCommands.ts` anlegen.
 - [x] Sämtliche atomaren Delta-Befehle (`Move`, `Resize`, `BatchMove`, `Add`, `Remove`, `UpdateConfig`, `Meta`, `Compound`) implementieren.
 - [x] Vitest-Suite `src/features/dashboard/__tests__/editorCommands.vitest.ts` für vollständige Invertierbarkeit schreiben.
 
 ### T4 – Editor-Kern mit unbegrenztem Undo/Redo & Eingabebündelung
+
 - [x] `src/features/dashboard/core/dashboardEditorCore.ts` implementieren.
 - [x] Unbegrenzter Stack ohne 50er-Abbruch, Checkpoint-Verwaltung, 15 MiB Soft-Limit mit Warnung.
 - [x] Transaktionsbündelung für Drag/Resize und Reflow.
@@ -105,16 +110,19 @@ Am Ende liegen vor:
 - [x] Vitest-Suite `src/features/dashboard/__tests__/dashboardEditorCore.vitest.ts` erstellen.
 
 ### T5 – Feature-Rollout-Schalter integrieren
+
 - [x] `src/features/dashboard/model/dashboardRollout.ts` um `isDashboardEditorV2Enabled` und Pilot-Toggle erweitern.
 - [x] Vitest-Tests in `src/features/dashboard/__tests__/dashboardRollout.vitest.ts` ergänzen.
 
 ### T6 – React Hook `useDashboardEditorV2` & Navigationsschutz
+
 - [x] `src/features/dashboard/hooks/useDashboardEditorV2.ts` implementieren.
 - [x] Anbindung von `useInAppLinkGuard` und `beforeunload`.
 - [x] Vitest-Komponententests in `src/features/dashboard/__tests__/useDashboardEditorV2.ui.vitest.tsx` erstellen.
 
 ### T7 – Verifikation, Doku & PR öffnen
+
 - [x] `npx tsc --noEmit`, `npm run lint`, `npm run format:check`, `npm test`, `npm run verify`, `npm run build` durchführen.
 - [x] Schutzbereichs-Diff prüfen (strikt 0 Bytes gegen `679e70e`).
-- [ ] `docs/BUILD_LOG.md` und `BUILD_PLAN.md` aktualisieren.
-- [ ] Commit, Push, PR auf GitHub öffnen und Codex-Review anfordern.
+- [x] `docs/BUILD_LOG.md` und `BUILD_PLAN.md` aktualisieren.
+- [x] Commit, Push, PR auf GitHub öffnen und Codex-Review anfordern (PR #171 gemergt, Codex P2 nachgearbeitet).

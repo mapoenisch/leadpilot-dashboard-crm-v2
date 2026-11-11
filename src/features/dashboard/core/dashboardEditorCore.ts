@@ -10,7 +10,7 @@ import {
   type DashboardConfigV2,
   type DashboardDraftState,
 } from '../model/dashboardConfigV2';
-import type { EditorCommand } from './editorCommands';
+import { estimatePayloadByteSize, type EditorCommand } from './editorCommands';
 import {
   CHECKPOINT_INTERVAL,
   MAX_HISTORY_BYTES,
@@ -96,8 +96,10 @@ export class DashboardEditorCore {
     for (const cmd of this.redoStack) {
       estimatedBytes += cmd.estimateByteSize();
     }
-    // Checkpoints schätzen (~5 KiB pro Snapshot)
-    estimatedBytes += this.checkpoints.length * 5120;
+    // Checkpoints schätzen anhand des tatsächlichen Inhalts der gespeicherten Snapshots
+    for (const cp of this.checkpoints) {
+      estimatedBytes += 150 + estimatePayloadByteSize(cp.config);
+    }
 
     return {
       undoCount: this.undoStack.length,
@@ -326,9 +328,14 @@ export class DashboardEditorCore {
         const oldestKeptCheckpoint = this.checkpoints[1];
         this.checkpoints = this.checkpoints.slice(1);
         if (oldestKeptCheckpoint) {
-          this.historyWarning = `Verlauf wird ab Checkpoint ${oldestKeptCheckpoint.stepIndex} konsolidiert (Speicherbudget erreicht)`;
+          this.historyWarning = `Verlauf wird ab Checkpoint ${oldestKeptCheckpoint.stepIndex} konsolidiert (Speicherbudget erreicht: ${Math.round(stats.estimatedBytes / (1024 * 1024))} MiB)`;
         }
         // Ältere Schritte vor dem ältesten Checkpoint entfernen
+        if (this.undoStack.length > 100) {
+          this.undoStack = this.undoStack.slice(-100);
+        }
+      } else {
+        this.historyWarning = `Speicherbudget von 15 MiB erreicht (${Math.round(stats.estimatedBytes / (1024 * 1024))} MiB)`;
         if (this.undoStack.length > 100) {
           this.undoStack = this.undoStack.slice(-100);
         }

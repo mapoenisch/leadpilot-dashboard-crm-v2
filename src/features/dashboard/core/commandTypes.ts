@@ -40,3 +40,29 @@ export function applyDraftMeta(state: DashboardDraftState): DashboardDraftState 
     },
   };
 }
+
+/**
+ * Schätzt den Speicherbedarf eines beliebigen Nutzdaten-Objekts (Patches, Kacheln, Configs)
+ * unter Berücksichtigung von Zeichenketten (UTF-16 Heap-Bedarf in V8) und Objekt-Overhead.
+ */
+export function estimatePayloadByteSize(payload: unknown): number {
+  if (payload === null || payload === undefined) {
+    return 0;
+  }
+  if (typeof payload === 'string') {
+    return payload.length * 2 + 16;
+  }
+  if (typeof payload === 'number') {
+    return 8;
+  }
+  if (typeof payload === 'boolean') {
+    return 4;
+  }
+  try {
+    const json = JSON.stringify(payload);
+    // V8 speichert Strings typischerweise mit 1-2 Bytes pro Char, plus Objekt-Deskriptor & Referenz-Overhead
+    return json.length * 2 + 64;
+  } catch {
+    return 256;
+  }
+}

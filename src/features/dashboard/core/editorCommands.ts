@@ -7,7 +7,12 @@ import type {
   DashboardMetadataV2,
   DashboardTileConfigV2,
 } from '../model/dashboardConfigV2';
-import { applyDraftMeta, generateCommandId, type EditorCommand } from './commandTypes';
+import {
+  applyDraftMeta,
+  estimatePayloadByteSize,
+  generateCommandId,
+  type EditorCommand,
+} from './commandTypes';
 
 // Re-Export von Basistypen und Layout-Befehlen für einheitlichen Zugriff
 export * from './commandTypes';
@@ -19,6 +24,7 @@ export class AddTileCommand implements EditorCommand {
   readonly type = 'ADD_TILE';
   readonly description: string;
   readonly timestamp: number;
+  private readonly cachedByteSize: number;
 
   constructor(
     public readonly tile: DashboardTileConfigV2,
@@ -28,6 +34,7 @@ export class AddTileCommand implements EditorCommand {
     this.id = generateCommandId('cmd_add');
     this.timestamp = Date.now();
     this.description = customDesc ?? `Kachel '${tile.title || tile.catalogId}' hinzugefügt`;
+    this.cachedByteSize = 150 + estimatePayloadByteSize(tile);
   }
 
   execute(state: DashboardDraftState): DashboardDraftState {
@@ -61,7 +68,7 @@ export class AddTileCommand implements EditorCommand {
   }
 
   estimateByteSize(): number {
-    return 550;
+    return this.cachedByteSize;
   }
 }
 
@@ -71,6 +78,7 @@ export class RemoveTileCommand implements EditorCommand {
   readonly type = 'REMOVE_TILE';
   readonly description: string;
   readonly timestamp: number;
+  private readonly cachedByteSize: number;
 
   constructor(
     public readonly tile: DashboardTileConfigV2,
@@ -80,6 +88,7 @@ export class RemoveTileCommand implements EditorCommand {
     this.id = generateCommandId('cmd_remove');
     this.timestamp = Date.now();
     this.description = customDesc ?? `Kachel '${tile.title || tile.catalogId}' entfernt`;
+    this.cachedByteSize = 150 + estimatePayloadByteSize(tile);
   }
 
   execute(state: DashboardDraftState): DashboardDraftState {
@@ -104,7 +113,7 @@ export class RemoveTileCommand implements EditorCommand {
   }
 
   estimateByteSize(): number {
-    return 550;
+    return this.cachedByteSize;
   }
 }
 
@@ -114,6 +123,7 @@ export class UpdateTileConfigCommand implements EditorCommand {
   readonly type = 'UPDATE_TILE_CONFIG';
   readonly description: string;
   readonly timestamp: number;
+  private readonly cachedByteSize: number;
 
   constructor(
     public readonly tileId: string,
@@ -124,6 +134,8 @@ export class UpdateTileConfigCommand implements EditorCommand {
     this.id = generateCommandId('cmd_update_tile');
     this.timestamp = Date.now();
     this.description = customDesc ?? `Kacheleinstellungen für '${tileId}' aktualisiert`;
+    this.cachedByteSize =
+      120 + estimatePayloadByteSize(fromPatch) + estimatePayloadByteSize(toPatch);
   }
 
   execute(state: DashboardDraftState): DashboardDraftState {
@@ -159,7 +171,7 @@ export class UpdateTileConfigCommand implements EditorCommand {
   }
 
   estimateByteSize(): number {
-    return 250;
+    return this.cachedByteSize;
   }
 }
 
@@ -169,6 +181,7 @@ export class UpdateDashboardMetaCommand implements EditorCommand {
   readonly type = 'UPDATE_DASHBOARD_META';
   readonly description: string;
   readonly timestamp: number;
+  private readonly cachedByteSize: number;
 
   constructor(
     public readonly from: { title?: string; metadata?: DashboardMetadataV2 },
@@ -178,6 +191,7 @@ export class UpdateDashboardMetaCommand implements EditorCommand {
     this.id = generateCommandId('cmd_update_meta');
     this.timestamp = Date.now();
     this.description = customDesc ?? 'Dashboard-Eigenschaften aktualisiert';
+    this.cachedByteSize = 100 + estimatePayloadByteSize(from) + estimatePayloadByteSize(to);
   }
 
   execute(state: DashboardDraftState): DashboardDraftState {
@@ -209,7 +223,7 @@ export class UpdateDashboardMetaCommand implements EditorCommand {
   }
 
   estimateByteSize(): number {
-    return 200;
+    return this.cachedByteSize;
   }
 }
 
@@ -219,6 +233,7 @@ export class SetGlobalFilterCommand implements EditorCommand {
   readonly type = 'SET_GLOBAL_FILTER';
   readonly description: string;
   readonly timestamp: number;
+  private readonly cachedByteSize: number;
 
   constructor(
     public readonly filterType: 'timeframe' | 'pipeline',
@@ -233,6 +248,7 @@ export class SetGlobalFilterCommand implements EditorCommand {
       (filterType === 'timeframe'
         ? `Globaler Zeitraum auf '${to}' geändert`
         : `Globale Pipeline auf '${to ?? 'alle'}' geändert`);
+    this.cachedByteSize = 80 + estimatePayloadByteSize(from) + estimatePayloadByteSize(to);
   }
 
   execute(state: DashboardDraftState): DashboardDraftState {
@@ -260,7 +276,7 @@ export class SetGlobalFilterCommand implements EditorCommand {
   }
 
   estimateByteSize(): number {
-    return 150;
+    return this.cachedByteSize;
   }
 }
 
