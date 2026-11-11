@@ -23,10 +23,12 @@ export const RETURN_MISSING_ANNOUNCEMENT =
 
 function PersonalExecutiveDashboardV2Container({
   onShowDetails,
+  preferredDashboardId,
 }: {
-  onShowDetails: (tileId: string) => void;
+  onShowDetails: (tileId: string, dashboardId?: string) => void;
+  preferredDashboardId?: string;
 }) {
-  const v2Storage = useDashboardV2Storage();
+  const v2Storage = useDashboardV2Storage({ preferredDashboardId });
   const [showConflictDialog, setShowConflictDialog] = useState(false);
   const [conflictDraft, setConflictDraft] = useState<DashboardConfigV2 | null>(null);
 
@@ -79,7 +81,7 @@ function PersonalExecutiveDashboardV2Container({
           setDashboardEditorV2Override(false);
           window.location.reload();
         }}
-        onShowDetails={onShowDetails}
+        onShowDetails={(tileId) => onShowDetails(tileId, v2Storage.dashboard.id)}
       />
       <DashboardConflictDialogV2
         open={showConflictDialog}
@@ -106,7 +108,8 @@ export function PersonalExecutiveDashboard() {
   if (isDashboardEditorV2Enabled()) {
     return (
       <PersonalExecutiveDashboardV2Container
-        onShowDetails={(tileId) => nav.openDetails(tileId, null)}
+        preferredDashboardId={arrival?.dashboardId ?? undefined}
+        onShowDetails={(tileId, dashboardId) => nav.openDetails(tileId, null, dashboardId)}
       />
     );
   }

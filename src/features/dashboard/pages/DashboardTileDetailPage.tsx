@@ -79,8 +79,11 @@ function DashboardTileDetailPageV2Content(props: {
   tileId: string;
   session: SessionFilters;
   onBack: (tileId: string, session: SessionFilters) => void;
+  preferredDashboardId?: string;
 }) {
-  const v2Storage = useDashboardV2Storage();
+  const v2Storage = useDashboardV2Storage({
+    preferredDashboardId: props.preferredDashboardId,
+  });
   const v2Dashboard = v2Storage.dashboard;
 
   if (v2Storage.status === 'laden') {
@@ -174,6 +177,7 @@ export function DashboardTileDetailPage() {
           tileId={tileId}
           session={session}
           onBack={nav.backToDashboard}
+          preferredDashboardId={arrival.current?.dashboardId ?? undefined}
         />
       ) : (
         <DashboardTileDetailPageV1Content

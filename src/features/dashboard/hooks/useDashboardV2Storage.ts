@@ -32,7 +32,9 @@ export interface UseDashboardV2StorageResult {
   saveAsNewPersonalCopy: (config: DashboardConfigV2, title?: string) => Promise<SaveV2Result>;
 }
 
-export function useDashboardV2Storage(): UseDashboardV2StorageResult {
+export function useDashboardV2Storage(options?: {
+  preferredDashboardId?: string;
+}): UseDashboardV2StorageResult {
   const { session } = useOrganization();
   const v1Preferences = useDashboardPreferences();
   const [status, setStatus] = useState<'laden' | 'bereit' | 'fehler'>('laden');
@@ -61,8 +63,11 @@ export function useDashboardV2Storage(): UseDashboardV2StorageResult {
       });
 
       // Beim expliziten Neuladen die im Tab gebundene Dashboard-ID nutzen.
-      // Die LocalStorage-Präferenz gilt nur für die initiale Auswahl bei Mount.
-      const targetDashboardId = explicitDashboardId ?? getActiveDashboardV2Id(orgId, userId);
+      // Andernfalls optional den übergebenen Navigationskontext oder die tablokale Auswahl nutzen.
+      const targetDashboardId =
+        explicitDashboardId ??
+        options?.preferredDashboardId ??
+        getActiveDashboardV2Id(orgId, userId);
       const res = await getOrCreatePersonalDashboardV2({
         initialConfig: initialV2,
         title: initialV2.title,
@@ -79,7 +84,7 @@ export function useDashboardV2Storage(): UseDashboardV2StorageResult {
       setDashboard(res.value);
       setStatus('bereit');
     },
-    [orgId, userId, v1Preferences.state?.config],
+    [options?.preferredDashboardId, orgId, userId, v1Preferences.state?.config],
   );
 
   useEffect(() => {

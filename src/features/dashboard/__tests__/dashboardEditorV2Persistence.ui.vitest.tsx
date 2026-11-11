@@ -48,6 +48,12 @@ function renderDashboard() {
 describe('DashboardEditorV2 Persistence & Kopiermigration (P07)', () => {
   beforeEach(() => {
     resetInMemoryDashboardV2Storage();
+    try {
+      window.localStorage?.clear();
+      window.sessionStorage?.clear();
+    } catch {
+      // ignore
+    }
     setDashboardEditorV2Override(true);
     mockedOrg.mockReturnValue({
       session: { organizationId: 'org-test-1', userId: 'user-test-1' },
@@ -315,6 +321,66 @@ describe('DashboardEditorV2 Persistence & Kopiermigration (P07)', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('tile-detail-missing')).toBeInTheDocument();
+    });
+  });
+
+  it('bewahrt die gebundene Dashboard-ID beim Öffnen der Detailroute über Navigationskontext und tablokal auf', async () => {
+    const makeCfg = (id: string, title: string, tileTitle: string) => ({
+      version: 2 as const,
+      id,
+      title,
+      scope: 'personal' as const,
+      ownerUserId: 'user-test-1',
+      organizationId: 'org-test-1',
+      globalTimeframe: 'letzte_30_tage' as const,
+      tiles: [
+        {
+          id: 'tile_arr_shared',
+          catalogId: 'baseline.arr',
+          title: tileTitle,
+          presentation: 'zahl' as const,
+          layouts: { desktop: { x: 0, y: 0, w: 4, h: 3 } },
+        },
+      ],
+    });
+
+    await createDashboardV2({
+      title: 'Original Dashboard Tab A',
+      config: makeCfg('dash_tab_a_orig', 'Original Tab A', 'ARR Original aus Tab A'),
+    });
+    await createDashboardV2({
+      title: 'Kopie aus Tab B',
+      config: makeCfg('dash_tab_b_copy', 'Kopie Tab B', 'ARR Fremdkopie aus Tab B'),
+    });
+
+    // Tab B schreibt seine ID in den gemeinsamen LocalStorage
+    window.localStorage.setItem(
+      'leadpilot:active_dashboard_v2_id:org-test-1:user-test-1',
+      'dash_tab_b_copy',
+    );
+    // Tab A hat tablokal seine gebundene ID
+    window.sessionStorage.setItem(
+      'leadpilot:active_dashboard_v2_id:org-test-1:user-test-1',
+      'dash_tab_a_orig',
+    );
+
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={['/dashboard/tiles/tile_arr_shared']}>
+          <Routes>
+            <Route path="/dashboard/tiles/:tileId" element={<DashboardTileDetailPage />} />
+            <Route path="/dashboard" element={<div>Dashboard Home</div>} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    // Tab A muss seinen eigenen Kacheltitel 'ARR Original aus Tab A' anzeigen,
+    // NICHT die fremde Arbeitskopie aus Tab B!
+    await waitFor(() => {
+      expect(screen.getByTestId('tile-detail-page')).toBeInTheDocument();
+      expect(screen.getByTestId('tile-detail-heading')).toHaveTextContent('ARR Original aus Tab A');
     });
   });
 });

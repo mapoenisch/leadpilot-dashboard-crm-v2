@@ -77,18 +77,22 @@ export function classifyDashboardV2Error(
   return { kind: 'technisch' };
 }
 
-/** Liest die im Browser gespeicherte aktive V2-Dashboard-ID fuer Nutzer und Mandant. */
+/** Liest die im Browser tablokal (oder browserweit als Fallback) gespeicherte aktive V2-Dashboard-ID. */
 export function getActiveDashboardV2Id(orgId: string, userId: string): string | null {
   try {
-    return typeof window !== 'undefined'
-      ? window.localStorage.getItem(`leadpilot:active_dashboard_v2_id:${orgId}:${userId}`)
-      : null;
+    if (typeof window === 'undefined') return null;
+    const key = `leadpilot:active_dashboard_v2_id:${orgId}:${userId}`;
+    // 1. Tab-lokale Auswahl (sessionStorage) hat Vorrang, damit parallele Tabs isoliert bleiben
+    const sessionVal = window.sessionStorage?.getItem(key);
+    if (sessionVal) return sessionVal;
+    // 2. Browserweite Voreinstellung (localStorage) als Fallback für neue Tabs
+    return window.localStorage?.getItem(key) ?? null;
   } catch {
     return null;
   }
 }
 
-/** Setzt oder entfernt die aktive V2-Dashboard-ID im Browser. */
+/** Setzt oder entfernt die aktive V2-Dashboard-ID tablokal und browserweit. */
 export function setActiveDashboardV2Id(
   orgId: string,
   userId: string,
@@ -98,9 +102,11 @@ export function setActiveDashboardV2Id(
     if (typeof window === 'undefined') return;
     const key = `leadpilot:active_dashboard_v2_id:${orgId}:${userId}`;
     if (dashboardId) {
-      window.localStorage.setItem(key, dashboardId);
+      window.sessionStorage?.setItem(key, dashboardId);
+      window.localStorage?.setItem(key, dashboardId);
     } else {
-      window.localStorage.removeItem(key);
+      window.sessionStorage?.removeItem(key);
+      window.localStorage?.removeItem(key);
     }
   } catch {
     // Fehler bei Quota/Sicherheit im Browser tolerieren
