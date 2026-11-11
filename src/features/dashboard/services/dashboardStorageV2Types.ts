@@ -76,3 +76,33 @@ export function classifyDashboardV2Error(
   }
   return { kind: 'technisch' };
 }
+
+/** Liest die im Browser gespeicherte aktive V2-Dashboard-ID fuer Nutzer und Mandant. */
+export function getActiveDashboardV2Id(orgId: string, userId: string): string | null {
+  try {
+    return typeof window !== 'undefined'
+      ? window.localStorage.getItem(`leadpilot:active_dashboard_v2_id:${orgId}:${userId}`)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Setzt oder entfernt die aktive V2-Dashboard-ID im Browser. */
+export function setActiveDashboardV2Id(
+  orgId: string,
+  userId: string,
+  dashboardId: string | null,
+): void {
+  try {
+    if (typeof window === 'undefined') return;
+    const key = `leadpilot:active_dashboard_v2_id:${orgId}:${userId}`;
+    if (dashboardId) {
+      window.localStorage.setItem(key, dashboardId);
+    } else {
+      window.localStorage.removeItem(key);
+    }
+  } catch {
+    // Fehler bei Quota/Sicherheit im Browser tolerieren
+  }
+}

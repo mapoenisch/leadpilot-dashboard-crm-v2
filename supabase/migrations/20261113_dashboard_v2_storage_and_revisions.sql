@@ -592,7 +592,9 @@ END;
 $$;
 
 -- RPC: load_personal_dashboard_v2
-CREATE OR REPLACE FUNCTION public.load_personal_dashboard_v2()
+-- Erlaubt das gezielte Laden einer spezifischen Dashboard-ID (z. B. gespeicherte Konfliktkopie)
+-- oder liefert das zuletzt bearbeitete persoenliche Dashboard.
+CREATE OR REPLACE FUNCTION public.load_personal_dashboard_v2(p_dashboard_id UUID DEFAULT NULL)
 RETURNS TABLE (
   id UUID,
   title TEXT,
@@ -614,22 +616,37 @@ BEGIN
     RAISE EXCEPTION 'LP_AUTH_REQUIRED' USING ERRCODE = '42501';
   END IF;
 
+  IF p_dashboard_id IS NOT NULL THEN
+    RETURN QUERY
+    SELECT d.id, d.title, d.scope, d.revision, d.config, d.updated_at
+    FROM public.dashboards AS d
+    WHERE d.id = p_dashboard_id
+      AND d.organization_id = v_org
+      AND d.user_id = v_user
+      AND d.scope = 'personal';
+    IF FOUND THEN
+      RETURN;
+    END IF;
+  END IF;
+
   RETURN QUERY
   SELECT d.id, d.title, d.scope, d.revision, d.config, d.updated_at
   FROM public.dashboards AS d
   WHERE d.organization_id = v_org
     AND d.user_id = v_user
     AND d.scope = 'personal'
-  ORDER BY d.created_at ASC
+  ORDER BY d.updated_at DESC
   LIMIT 1;
 END;
 $$;
 
 -- RPC: get_or_create_personal_dashboard_v2
--- Sichert die initiale Kopiermigration atomar gegen parallele Browser-Tabs/Rennen ab.
+-- Sichert die initiale Kopiermigration atomar gegen parallele Browser-Tabs/Rennen ab
+-- und erlaubt das gezielte Laden einer aktiven Konfliktkopie (p_preferred_id).
 CREATE OR REPLACE FUNCTION public.get_or_create_personal_dashboard_v2(
   p_initial_config JSONB,
-  p_title TEXT DEFAULT 'Executive Dashboard'
+  p_title TEXT DEFAULT 'Executive Dashboard',
+  p_preferred_id UUID DEFAULT NULL
 )
 RETURNS TABLE (
   id UUID,
@@ -654,16 +671,34 @@ BEGIN
     RAISE EXCEPTION 'LP_AUTH_REQUIRED' USING ERRCODE = '42501';
   END IF;
 
-  -- Transaktions-Advisory-Lock sichert atomaren Check-and-Create pro Nutzer & Mandant ab
+  -- 1. Falls eine bevorzugte Dashboard-ID uebergeben wurde (z.B. gespeicherte Konfliktkopie):
+  IF p_preferred_id IS NOT NULL THEN
+    SELECT d.id INTO v_existing_id
+    FROM public.dashboards AS d
+    WHERE d.id = p_preferred_id
+      AND d.organization_id = v_org
+      AND d.user_id = v_user
+      AND d.scope = 'personal';
+
+    IF v_existing_id IS NOT NULL THEN
+      RETURN QUERY
+      SELECT d.id, d.title, d.scope, d.revision, d.config, d.updated_at
+      FROM public.dashboards AS d
+      WHERE d.id = v_existing_id;
+      RETURN;
+    END IF;
+  END IF;
+
+  -- 2. Transaktions-Advisory-Lock sichert atomaren Check-and-Create pro Nutzer & Mandant ab
   PERFORM pg_advisory_xact_lock(hashtext('personal_dashboard:' || v_org::text || ':' || v_user::text));
 
-  -- Prüfen ob bereits ein persönliches Dashboard existiert
+  -- Pruefen ob bereits ein persoenliches Dashboard existiert (neuestes zuerst)
   SELECT d.id INTO v_existing_id
   FROM public.dashboards AS d
   WHERE d.organization_id = v_org
     AND d.user_id = v_user
     AND d.scope = 'personal'
-  ORDER BY d.created_at ASC
+  ORDER BY d.updated_at DESC
   LIMIT 1;
 
   IF v_existing_id IS NOT NULL THEN
@@ -726,7 +761,7 @@ BEGIN
 END;
 $$;
 
--- Berechtigungen für RPCs erteilen
+-- Berechtigungen fuer RPCs erteilen
 REVOKE ALL ON FUNCTION public.create_dashboard_v2(TEXT, JSONB, TEXT, UUID, TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.create_dashboard_v2(TEXT, JSONB, TEXT, UUID, TEXT) TO authenticated;
 
@@ -736,11 +771,11 @@ GRANT EXECUTE ON FUNCTION public.save_dashboard_v2(UUID, INTEGER, TEXT, JSONB, T
 REVOKE ALL ON FUNCTION public.restore_dashboard_revision_v2(UUID, INTEGER, INTEGER) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.restore_dashboard_revision_v2(UUID, INTEGER, INTEGER) TO authenticated;
 
-REVOKE ALL ON FUNCTION public.load_personal_dashboard_v2() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.load_personal_dashboard_v2() TO authenticated;
+REVOKE ALL ON FUNCTION public.load_personal_dashboard_v2(UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.load_personal_dashboard_v2(UUID) TO authenticated;
 
-REVOKE ALL ON FUNCTION public.get_or_create_personal_dashboard_v2(JSONB, TEXT) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.get_or_create_personal_dashboard_v2(JSONB, TEXT) TO authenticated;
+REVOKE ALL ON FUNCTION public.get_or_create_personal_dashboard_v2(JSONB, TEXT, UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_or_create_personal_dashboard_v2(JSONB, TEXT, UUID) TO authenticated;
 
 REVOKE ALL ON FUNCTION public.get_dashboard_v2_revisions(UUID) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.get_dashboard_v2_revisions(UUID) TO authenticated;

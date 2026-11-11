@@ -12,6 +12,8 @@ import {
   type StorageResult,
   type StoredDashboardV2Row,
   classifyDashboardV2Error,
+  getActiveDashboardV2Id,
+  setActiveDashboardV2Id,
 } from './dashboardStorageV2Types';
 
 export type {
@@ -21,27 +23,33 @@ export type {
   StorageResult,
   StoredDashboardV2Row,
 };
-export { classifyDashboardV2Error };
+export { classifyDashboardV2Error, getActiveDashboardV2Id, setActiveDashboardV2Id };
 
 function failTechnically<T>(cause: unknown): StorageResult<T> {
   logger.warn('[dashboardStorageV2] Operation fehlgeschlagen.', cause);
   return { ok: false, error: { kind: 'technisch' } };
 }
 
-import { inMemoryStore, resetInMemoryDashboardV2Storage } from './dashboardInMemoryStoreV2';
+import {
+  getInMemoryDashboard,
+  inMemoryStore,
+  resetInMemoryDashboardV2Storage,
+} from './dashboardInMemoryStoreV2';
 export { resetInMemoryDashboardV2Storage };
 
-/** Lädt das persönliche Dashboard des Nutzers. Liefert null wenn keines existiert. */
-export async function loadPersonalDashboardV2(): Promise<
-  StorageResult<StoredDashboardV2Row | null>
-> {
+/** Lädt das persönliche Dashboard des Nutzers (optional gezielt nach dashboardId). */
+export async function loadPersonalDashboardV2(
+  dashboardId?: string,
+): Promise<StorageResult<StoredDashboardV2Row | null>> {
   if (!isSupabaseConfigured || !supabase) {
-    const first = Array.from(inMemoryStore.values())[0]?.row ?? null;
+    const first = getInMemoryDashboard(dashboardId);
     return { ok: true, value: first };
   }
 
   try {
-    const { data, error, status } = await supabase.rpc('load_personal_dashboard_v2');
+    const { data, error, status } = await supabase.rpc('load_personal_dashboard_v2', {
+      p_dashboard_id: dashboardId ?? null,
+    });
     if (error) {
       const classified = classifyDashboardV2Error(error, status);
       return classified.kind === 'technisch'
@@ -86,14 +94,16 @@ export async function loadPersonalDashboardV2(): Promise<
 
 /**
  * Atomarer Get-or-Create-Pfad für das persönliche Dashboard (Codex P2).
- * Verhindert Duplikate und Rennzustände bei initialer Kopiermigration über mehrere Tabs.
+ * Verhindert Duplikate und Rennzustände bei initialer Kopiermigration über mehrere Tabs
+ * und bindet bei Vorhandensein gezielt an die bevorzugte Dashboard-ID (z. B. gespeicherte Konfliktkopie).
  */
 export async function getOrCreatePersonalDashboardV2(params: {
   initialConfig: DashboardConfigV2;
   title?: string;
+  preferredId?: string;
 }): Promise<StorageResult<StoredDashboardV2Row>> {
   if (!isSupabaseConfigured || !supabase) {
-    const existing = Array.from(inMemoryStore.values())[0]?.row ?? null;
+    const existing = getInMemoryDashboard(params.preferredId);
     if (existing) {
       return { ok: true, value: existing };
     }
@@ -103,7 +113,7 @@ export async function getOrCreatePersonalDashboardV2(params: {
       scope: 'personal',
     });
     if (!createRes.ok) return createRes;
-    const loaded = await loadPersonalDashboardV2();
+    const loaded = await loadPersonalDashboardV2(createRes.value.dashboardId);
     if (!loaded.ok || !loaded.value) {
       return {
         ok: false,
@@ -122,6 +132,7 @@ export async function getOrCreatePersonalDashboardV2(params: {
     const { data, error, status } = await supabase.rpc('get_or_create_personal_dashboard_v2', {
       p_initial_config: params.initialConfig,
       p_title: params.title ?? params.initialConfig.title ?? 'Executive Dashboard',
+      p_preferred_id: params.preferredId ?? null,
     });
 
     if (error) {

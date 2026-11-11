@@ -7,8 +7,10 @@ import { useOrganization } from '@/auth/organizationContext';
 import { useDashboardPreferences } from './useDashboardPreferences';
 import {
   createDashboardV2,
+  getActiveDashboardV2Id,
   getOrCreatePersonalDashboardV2,
   saveDashboardV2,
+  setActiveDashboardV2Id,
   type DashboardV2StorageError,
   type SavedDashboardV2Result,
   type StoredDashboardV2Row,
@@ -55,9 +57,11 @@ export function useDashboardV2Storage(): UseDashboardV2StorageResult {
       organizationId: orgId,
     });
 
+    const activeId = getActiveDashboardV2Id(orgId, userId);
     const res = await getOrCreatePersonalDashboardV2({
       initialConfig: initialV2,
       title: initialV2.title,
+      preferredId: activeId ?? undefined,
     });
 
     if (!res.ok) {
@@ -66,6 +70,7 @@ export function useDashboardV2Storage(): UseDashboardV2StorageResult {
       return;
     }
 
+    setActiveDashboardV2Id(orgId, userId, res.value.id);
     setDashboard(res.value);
     setStatus('bereit');
   }, [orgId, userId, v1Preferences.state?.config]);
@@ -129,8 +134,10 @@ export function useDashboardV2Storage(): UseDashboardV2StorageResult {
       setError(null);
 
       const copyTitle = title ?? `${config.title} (Kopie)`;
+      const copyId = 'dash_v2_' + Math.random().toString(36).slice(2, 10);
       const newConfig: DashboardConfigV2 = {
         ...config,
+        id: copyId,
         title: copyTitle,
         metadata: {
           ...config.metadata,
@@ -159,10 +166,11 @@ export function useDashboardV2Storage(): UseDashboardV2StorageResult {
         config: { ...newConfig, id: res.value.dashboardId },
         updatedAt: res.value.updatedAt,
       };
+      setActiveDashboardV2Id(orgId, userId, res.value.dashboardId);
       setDashboard(newRow);
       return { ok: true, value: res.value };
     },
-    [],
+    [orgId, userId],
   );
 
   return {

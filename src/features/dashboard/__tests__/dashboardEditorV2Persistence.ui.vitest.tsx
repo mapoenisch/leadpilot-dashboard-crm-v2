@@ -9,6 +9,7 @@ import { DashboardTileDetailPage } from '../pages/DashboardTileDetailPage';
 import { setDashboardEditorV2Override } from '../model/dashboardRollout';
 import {
   createDashboardV2,
+  getActiveDashboardV2Id,
   loadPersonalDashboardV2,
   resetInMemoryDashboardV2Storage,
   saveDashboardV2,
@@ -163,8 +164,14 @@ describe('DashboardEditorV2 Persistence & Kopiermigration (P07)', () => {
     });
 
     // Konfliktdialog schließt sich und neue Kopie ist gespeichert
-    await waitFor(() => {
+    await waitFor(async () => {
       expect(screen.queryByText('Revisionskonflikt erkannt')).not.toBeInTheDocument();
+      const activeId = getActiveDashboardV2Id('org-test-1', 'user-test-1');
+      expect(activeId).not.toBeNull();
+      expect(activeId).not.toBe(current.value?.id);
+
+      const activeRow = await loadPersonalDashboardV2(activeId ?? undefined);
+      expect(activeRow.ok && activeRow.value?.title).toContain('Kopie');
     });
   });
 
