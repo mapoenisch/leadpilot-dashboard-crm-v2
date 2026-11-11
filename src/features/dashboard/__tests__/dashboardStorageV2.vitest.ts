@@ -191,6 +191,54 @@ describe('dashboardStorageV2', () => {
     expect(res.error.kind).toBe('ungueltig');
   });
 
+  it('weist Konfigurationen mit fehlenden Pflichtfeldern oder zu langem Titel ab', async () => {
+    // 1. Titel > 120 Zeichen
+    const longTitleConfig = {
+      ...makeConfig(),
+      title: 'A'.repeat(121),
+    };
+    const res1 = await createDashboardV2({ title: 'A'.repeat(121), config: longTitleConfig });
+    expect(res1.ok).toBe(false);
+    if (!res1.ok) expect(res1.error.kind).toBe('ungueltig');
+
+    // 2. Fehlendes ownerUserId
+    const noOwnerConfig = {
+      ...makeConfig(),
+      ownerUserId: '',
+    };
+    const res2 = await createDashboardV2({ title: 'Titel', config: noOwnerConfig });
+    expect(res2.ok).toBe(false);
+    if (!res2.ok) expect(res2.error.kind).toBe('ungueltig');
+
+    // 3. Fehlendes organizationId
+    const noOrgConfig = {
+      ...makeConfig(),
+      organizationId: '',
+    };
+    const res3 = await createDashboardV2({ title: 'Titel', config: noOrgConfig });
+    expect(res3.ok).toBe(false);
+    if (!res3.ok) expect(res3.error.kind).toBe('ungueltig');
+
+    // 4. Fehlendes globalTimeframe
+    const noTimeframeConfig = {
+      ...makeConfig(),
+      globalTimeframe: '',
+    };
+    const res4 = await createDashboardV2({ title: 'Titel', config: noTimeframeConfig });
+    expect(res4.ok).toBe(false);
+    if (!res4.ok) expect(res4.error.kind).toBe('ungueltig');
+
+    // 5. Scope team ohne teamId
+    const teamNoTeamIdConfig = {
+      ...makeConfig(),
+      scope: 'team' as const,
+      teamId: '',
+    };
+    const res5 = await createDashboardV2({ title: 'Titel', config: teamNoTeamIdConfig });
+    expect(res5.ok).toBe(false);
+    if (!res5.ok) expect(res5.error.kind).toBe('ungueltig');
+  });
+
   it('klassifiziert Datenbank- und PostgREST-Fehler präzise', () => {
     expect(classifyDashboardV2Error({ message: 'LP_DASHBOARD_CONFLICT: mismatch' }).kind).toBe(
       'konflikt',

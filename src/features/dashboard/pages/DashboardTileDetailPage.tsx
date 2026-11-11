@@ -11,8 +11,10 @@ import { useDashboardNavigation, type SessionFilters } from '../hooks/useDashboa
 import { useDashboardPreferences } from '../hooks/useDashboardPreferences';
 import type { DashboardConfig, DashboardTileConfig } from '../model/dashboardConfig';
 import { TileDetailContent } from '../components/detail/TileDetailContent';
-import { DASHBOARD_PATH } from '../model/dashboardRollout';
+import { DASHBOARD_PATH, isDashboardEditorV2Enabled } from '../model/dashboardRollout';
 import { DetailMissingTile, DetailStatus } from '../components/detail/DetailNotices';
+import { useDashboardV2Storage } from '../hooks/useDashboardV2Storage';
+import { convertV2TileToV1, parseTimeframeToPeriod } from '../components/editor/EditorCanvasV2';
 
 export const NO_DETAIL_PAGE_TEXT =
   'Für diese Kachel gibt es keine eigene Fachseite. Alle verfügbaren Angaben stehen auf dieser Seite.';
@@ -73,15 +75,62 @@ function ResolvedDetail(props: {
   );
 }
 
-export function DashboardTileDetailPage() {
-  const { tileId = '' } = useParams();
+function DashboardTileDetailPageV2Content(props: {
+  tileId: string;
+  session: SessionFilters;
+  onBack: (tileId: string, session: SessionFilters) => void;
+}) {
+  const v2Storage = useDashboardV2Storage();
+  const v2Dashboard = v2Storage.dashboard;
+
+  if (v2Storage.status === 'laden') {
+    return <DetailStatus kind="laden" />;
+  }
+
+  if (v2Storage.status === 'fehler' && !v2Dashboard) {
+    return <DetailStatus kind="fehler" onReload={() => void v2Storage.reload()} />;
+  }
+
+  const v2Tile = v2Dashboard?.config.tiles.find((candidate) => candidate.id === props.tileId);
+  if (!v2Tile || !v2Dashboard) {
+    return <DetailMissingTile onBack={() => props.onBack(props.tileId, props.session)} />;
+  }
+
+  const convertedTile = convertV2TileToV1(
+    v2Tile,
+    v2Dashboard.config.globalTimeframe,
+    v2Dashboard.config.globalPipeline,
+  );
+
+  const convertedConfig: DashboardConfig = {
+    version: 1,
+    filters: {
+      period: parseTimeframeToPeriod(v2Dashboard.config.globalTimeframe),
+      pipeline: v2Dashboard.config.globalPipeline,
+    },
+    tiles: v2Dashboard.config.tiles.map((t) =>
+      convertV2TileToV1(t, v2Dashboard.config.globalTimeframe, v2Dashboard.config.globalPipeline),
+    ),
+  };
+
+  return (
+    <ResolvedDetail
+      tile={convertedTile}
+      config={convertedConfig}
+      session={props.session}
+      onBack={() => props.onBack(convertedTile.tileId, props.session)}
+    />
+  );
+}
+
+function DashboardTileDetailPageV1Content(props: {
+  tileId: string;
+  session: SessionFilters;
+  onBack: (tileId: string, session: SessionFilters) => void;
+}) {
   const preferences = useDashboardPreferences();
-  const nav = useDashboardNavigation();
-  // Wie die Ansicht: der mitgereiste Kontext gilt für diesen Besuch der Seite.
-  const arrival = useRef(nav.incoming);
-  const session = arrival.current?.session ?? null;
   const config = preferences.state?.config ?? null;
-  const tile = config?.tiles.find((candidate) => candidate.tileId === tileId);
+  const tile = config?.tiles.find((candidate) => candidate.tileId === props.tileId);
 
   let body;
   if (preferences.status === 'keine_sitzung') {
@@ -93,24 +142,46 @@ export function DashboardTileDetailPage() {
   } else if (!tile) {
     // Die gesuchte ID reist als Fokusziel mit: die Ansicht findet sie nicht und fokussiert ihre
     // Überschrift samt Ansage (Lehre 2 im Auftrag).
-    body = <DetailMissingTile onBack={() => nav.backToDashboard(tileId, session)} />;
+    body = <DetailMissingTile onBack={() => props.onBack(props.tileId, props.session)} />;
   } else {
     body = (
       <ResolvedDetail
         tile={tile}
         config={config}
-        session={session}
-        onBack={() => nav.backToDashboard(tile.tileId, session)}
+        session={props.session}
+        onBack={() => props.onBack(tile.tileId, props.session)}
       />
     );
   }
+
+  return body;
+}
+
+export function DashboardTileDetailPage() {
+  const { tileId = '' } = useParams();
+  const nav = useDashboardNavigation();
+  // Wie die Ansicht: der mitgereiste Kontext gilt für diesen Besuch der Seite.
+  const arrival = useRef(nav.incoming);
+  const session = arrival.current?.session ?? null;
 
   return (
     <div
       className="flex w-full min-w-0 flex-col gap-[var(--space-6,24px)]"
       data-testid="tile-detail-page"
     >
-      {body}
+      {isDashboardEditorV2Enabled() ? (
+        <DashboardTileDetailPageV2Content
+          tileId={tileId}
+          session={session}
+          onBack={nav.backToDashboard}
+        />
+      ) : (
+        <DashboardTileDetailPageV1Content
+          tileId={tileId}
+          session={session}
+          onBack={nav.backToDashboard}
+        />
+      )}
     </div>
   );
 }

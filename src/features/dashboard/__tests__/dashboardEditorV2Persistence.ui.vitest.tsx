@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useOrganization } from '@/auth/organizationContext';
 import { useDashboardPreferences } from '../hooks/useDashboardPreferences';
 import { PersonalExecutiveDashboard } from '../pages/PersonalExecutiveDashboard';
+import { DashboardTileDetailPage } from '../pages/DashboardTileDetailPage';
 import { setDashboardEditorV2Override } from '../model/dashboardRollout';
 import {
+  createDashboardV2,
   loadPersonalDashboardV2,
   resetInMemoryDashboardV2Storage,
   saveDashboardV2,
@@ -163,6 +165,86 @@ describe('DashboardEditorV2 Persistence & Kopiermigration (P07)', () => {
     // Konfliktdialog schließt sich und neue Kopie ist gespeichert
     await waitFor(() => {
       expect(screen.queryByText('Revisionskonflikt erkannt')).not.toBeInTheDocument();
+    });
+  });
+
+  it('löst Kacheln auf der Detailroute /dashboard/tiles/:tileId aus dem aktiven V2-Speicher auf', async () => {
+    // 1. Initial V2-Dashboard mit einer spezifischen Kachel speichern
+    await createDashboardV2({
+      title: 'V2 Detail Test',
+      config: {
+        version: 2,
+        id: 'dash_v2_detail',
+        title: 'V2 Detail Test',
+        scope: 'personal',
+        ownerUserId: 'user-test-1',
+        organizationId: 'org-test-1',
+        globalTimeframe: 'letzte_30_tage',
+        tiles: [
+          {
+            id: 'tile_v2_arr',
+            catalogId: 'baseline.arr',
+            title: 'Mein V2 ARR Detail',
+            presentation: 'zahl',
+            layouts: {
+              desktop: { x: 0, y: 0, w: 4, h: 3 },
+            },
+          },
+        ],
+      },
+    });
+
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={['/dashboard/tiles/tile_v2_arr']}>
+          <Routes>
+            <Route path="/dashboard/tiles/:tileId" element={<DashboardTileDetailPage />} />
+            <Route path="/dashboard" element={<div>Dashboard Home</div>} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    // Kacheltitel & Detailinhalte aus V2 müssen gerendert werden
+    await waitFor(() => {
+      expect(screen.getByTestId('tile-detail-page')).toBeInTheDocument();
+      expect(screen.getByTestId('tile-detail-heading')).toHaveTextContent('Mein V2 ARR Detail');
+    });
+
+    // Zurück-Button vorhanden
+    expect(screen.getByRole('button', { name: 'Zurück zum Dashboard' })).toBeInTheDocument();
+  });
+
+  it('zeigt DetailMissingTile wenn die Kachel-ID in V2 nicht existiert', async () => {
+    await createDashboardV2({
+      title: 'V2 Missing Tile Test',
+      config: {
+        version: 2,
+        id: 'dash_v2_missing',
+        title: 'V2 Missing Tile Test',
+        scope: 'personal',
+        ownerUserId: 'user-test-1',
+        organizationId: 'org-test-1',
+        globalTimeframe: 'letzte_30_tage',
+        tiles: [],
+      },
+    });
+
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={['/dashboard/tiles/unbekannte_kachel']}>
+          <Routes>
+            <Route path="/dashboard/tiles/:tileId" element={<DashboardTileDetailPage />} />
+            <Route path="/dashboard" element={<div>Dashboard Home</div>} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('tile-detail-missing')).toBeInTheDocument();
     });
   });
 });

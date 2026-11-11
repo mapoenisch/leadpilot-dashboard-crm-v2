@@ -171,6 +171,47 @@ BEGIN
     RETURN 'unbekanntes Top-Level-Feld im JSON';
   END IF;
 
+  -- Top-Level-Pflichtfelder
+  IF jsonb_typeof(p_config->'title') IS DISTINCT FROM 'string'
+     OR char_length(trim(p_config->>'title')) < 1
+     OR char_length(p_config->>'title') > 120 THEN
+    RETURN 'title muss ein nicht-leerer String (max. 120 Zeichen) sein';
+  END IF;
+
+  IF jsonb_typeof(p_config->'scope') IS DISTINCT FROM 'string'
+     OR (p_config->>'scope') NOT IN ('personal', 'team') THEN
+    RETURN 'scope muss ''personal'' oder ''team'' sein';
+  END IF;
+
+  IF (p_config->>'scope') = 'team' AND (
+    jsonb_typeof(p_config->'teamId') IS DISTINCT FROM 'string'
+    OR char_length(trim(p_config->>'teamId')) < 1
+  ) THEN
+    RETURN 'teamId ist Pflichtfeld bei scope = ''team''';
+  END IF;
+
+  IF jsonb_typeof(p_config->'ownerUserId') IS DISTINCT FROM 'string'
+     OR char_length(trim(p_config->>'ownerUserId')) < 1 THEN
+    RETURN 'ownerUserId muss ein String sein';
+  END IF;
+
+  IF jsonb_typeof(p_config->'organizationId') IS DISTINCT FROM 'string'
+     OR char_length(trim(p_config->>'organizationId')) < 1 THEN
+    RETURN 'organizationId muss ein String sein';
+  END IF;
+
+  IF jsonb_typeof(p_config->'globalTimeframe') IS DISTINCT FROM 'string'
+     OR char_length(trim(p_config->>'globalTimeframe')) < 1 THEN
+    RETURN 'globalTimeframe muss ein String sein';
+  END IF;
+
+  IF p_config ? 'id' AND (
+    jsonb_typeof(p_config->'id') IS DISTINCT FROM 'string'
+    OR char_length(trim(p_config->>'id')) < 1
+  ) THEN
+    RETURN 'id muss ein nicht-leerer String sein';
+  END IF;
+
   v_tiles := p_config->'tiles';
   IF v_tiles IS NULL OR jsonb_typeof(v_tiles) IS DISTINCT FROM 'array' THEN
     RETURN 'tiles muss ein Array sein';
