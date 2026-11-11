@@ -81,7 +81,7 @@ function PersonalExecutiveDashboardV2Container({
           setDashboardEditorV2Override(false);
           window.location.reload();
         }}
-        onShowDetails={(tileId) => onShowDetails(tileId, v2Storage.dashboard.id)}
+        onShowDetails={(tileId) => onShowDetails(tileId, v2Storage.dashboard?.id)}
       />
       <DashboardConflictDialogV2
         open={showConflictDialog}
