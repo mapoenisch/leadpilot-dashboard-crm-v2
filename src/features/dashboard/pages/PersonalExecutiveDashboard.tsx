@@ -1,19 +1,17 @@
-// Executive Dashboard, Teilauftrag 7 (Auftrag 077): persönliche Ansicht unter `/dashboard` (nur mit
-// eingeschaltetem Rollout-Schalter). Verbindet Speicherung, Datenauflösung und Arbeitsbereich mit
-// dem Router: „Details“ öffnet die Detailseite, die Rückkehr bringt Sitzungsfilter und Fokus mit.
+// Executive Dashboard, Teilauftrag 7 (Auftrag 077) & Auftrag 150 (P07): persönliche Ansicht unter `/dashboard`.
+// V2 nutzt den persistenten Speicheradapter useDashboardV2Storage mit Revisionshistorie,
+// optimistischer Konflikterkennung und deterministischer V1->V2-Kopiermigration.
 import { useRef, useState } from 'react';
 import { useOrganization } from '@/auth/organizationContext';
 import { DashboardWorkspace } from '../components/DashboardWorkspace';
 import { DashboardEditorShellV2 } from '../components/editor/DashboardEditorShellV2';
-import { convertV2TileToV1 } from '../components/editor/EditorCanvasV2';
+import { DashboardConflictDialogV2 } from '../components/editor/DashboardConflictDialogV2';
 import { useBrowserBackGuard } from '../hooks/useBrowserBackGuard';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useDashboardNavigation } from '../hooks/useDashboardNavigation';
 import { useDashboardPreferences } from '../hooks/useDashboardPreferences';
-import type { DashboardConfig } from '../model/dashboardConfig';
+import { useDashboardV2Storage } from '../hooks/useDashboardV2Storage';
 import type { DashboardConfigV2 } from '../model/dashboardConfigV2';
-import { DEFAULT_DASHBOARD_CONFIG } from '../model/defaultDashboard';
-import { migrateV1ToV2 } from '../model/dashboardMigrationV1V2';
 import {
   isDashboardEditorV2Enabled,
   setDashboardEditorV2Override,
@@ -23,19 +21,75 @@ export const RETURN_ANNOUNCEMENT = 'Zurück im Dashboard. Die Filter deiner Sitz
 export const RETURN_MISSING_ANNOUNCEMENT =
   'Zurück im Dashboard. Die zuvor geöffnete Kachel gibt es nicht mehr.';
 
-function v2ConfigToV1(v2: DashboardConfigV2): DashboardConfig {
-  const period = v2.globalTimeframe.includes('/')
-    ? { from: v2.globalTimeframe.split('/')[0]!, to: v2.globalTimeframe.split('/')[1]! }
-    : undefined;
+function PersonalExecutiveDashboardV2Container({
+  onShowDetails,
+}: {
+  onShowDetails: (tileId: string) => void;
+}) {
+  const v2Storage = useDashboardV2Storage();
+  const [showConflictDialog, setShowConflictDialog] = useState(false);
+  const [conflictDraft, setConflictDraft] = useState<DashboardConfigV2 | null>(null);
 
-  return {
-    version: 1,
-    filters: {
-      pipeline: v2.globalPipeline,
-      period,
-    },
-    tiles: v2.tiles.map((t) => convertV2TileToV1(t, v2.globalTimeframe, v2.globalPipeline)),
+  if (v2Storage.status === 'laden' || !v2Storage.dashboard) {
+    return (
+      <div
+        data-testid="dashboard-v2-loading"
+        className="flex h-screen w-full items-center justify-center bg-[var(--color-bg-deep,#030c0b)] text-[var(--color-text-soft,#e6f3f1)]"
+      >
+        <p className="text-sm text-muted-foreground animate-pulse">Lade Dashboard...</p>
+      </div>
+    );
+  }
+
+  const handleSave = async (cfg: DashboardConfigV2): Promise<boolean> => {
+    const res = await v2Storage.save(cfg);
+    if (!res.ok) {
+      if (res.error.kind === 'konflikt') {
+        setConflictDraft(cfg);
+        setShowConflictDialog(true);
+      }
+      return false;
+    }
+    return true;
   };
+
+  const handleReloadConflict = async () => {
+    setShowConflictDialog(false);
+    setConflictDraft(null);
+    await v2Storage.reload();
+  };
+
+  const handleSaveAsCopyConflict = async () => {
+    if (!conflictDraft) return;
+    const res = await v2Storage.saveAsNewPersonalCopy(conflictDraft);
+    if (res.ok) {
+      setShowConflictDialog(false);
+      setConflictDraft(null);
+    }
+  };
+
+  return (
+    <>
+      <DashboardEditorShellV2
+        key={`${v2Storage.dashboard.id}_${v2Storage.dashboard.revision}`}
+        initialConfig={v2Storage.dashboard.config}
+        useData={useDashboardData}
+        onSave={handleSave}
+        onCancel={() => {
+          setDashboardEditorV2Override(false);
+          window.location.reload();
+        }}
+        onShowDetails={onShowDetails}
+      />
+      <DashboardConflictDialogV2
+        open={showConflictDialog}
+        isSaving={v2Storage.isSaving}
+        onReload={handleReloadConflict}
+        onSaveAsCopy={handleSaveAsCopyConflict}
+        onStay={() => setShowConflictDialog(false)}
+      />
+    </>
+  );
 }
 
 export function PersonalExecutiveDashboard() {
@@ -48,31 +102,10 @@ export function PersonalExecutiveDashboard() {
   const [arrival] = useState(nav.incoming);
   const [announcement, setAnnouncement] = useState('');
 
-  // Auftrag 148 / P05: Neuer V2-Editor hinter Rollout-Schalter
+  // Auftrag 150 / P07: Neuer persistenter V2-Editor hinter Rollout-Schalter
   if (isDashboardEditorV2Enabled()) {
-    const rawV1 = preferences.state?.config ?? DEFAULT_DASHBOARD_CONFIG;
-    const initialConfigV2 = migrateV1ToV2(rawV1, {
-      id: 'personal_dashboard',
-      title: 'Executive Dashboard',
-      ownerUserId: session?.organizationId ? `usr-${session.organizationId}` : 'personal-user',
-      organizationId: session?.organizationId ? `org-${session.organizationId}` : 'personal-org',
-    });
-
-    const handleSaveV2 = async (cfg: DashboardConfigV2): Promise<boolean> => {
-      const v1 = v2ConfigToV1(cfg);
-      const res = await preferences.save(v1);
-      return res.ok;
-    };
-
     return (
-      <DashboardEditorShellV2
-        initialConfig={initialConfigV2}
-        useData={useDashboardData}
-        onSave={handleSaveV2}
-        onCancel={() => {
-          setDashboardEditorV2Override(false);
-          window.location.reload();
-        }}
+      <PersonalExecutiveDashboardV2Container
         onShowDetails={(tileId) => nav.openDetails(tileId, null)}
       />
     );

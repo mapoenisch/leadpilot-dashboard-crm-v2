@@ -20745,5 +20745,47 @@ git diff main -- src/simulation src/types src/context src/services/data src/feat
 - `npm run verify`: Alle Integritäts-Suiten (001 bis 025) bestanden.
 - `npm run build`: Erfolgreicher Produktions-Build in 3.22s.
 
+---
+
+## 2026-11-11 — Auftrag 150: Dashboard-Editor: Ziel-Speicherstruktur, RLS, dauerhafte Revisionen und V1→V2-Kopiermigration (Paket P07)
+
+**Ziel & Kontext:** Vollständige Umsetzung von Paket P07 aus dem [Dashboard-Editor-Masterplan](../dashboard/DASHBOARD_EDITOR_MASTERPLAN.md) (§4.A, §5.1, §5.3, §6). Bereitstellung der relationalen Ziel-Speicherstruktur in Supabase/PostgreSQL für Dashboards, unveränderliche Revisionshistorie und Freigabegruppen (Teams) mit strikter Row-Level-Security (RLS), serverseitigen Schema- und Größenvalidatoren (`dashboard_config_v2_invalid_reason`), atomarer Speicherung mit optimistischem Locking (`save_dashboard_v2`, `create_dashboard_v2`, `restore_dashboard_revision_v2`), serverseitiger Sperrung des Team-Scopes bis P11 (`LP_TEAM_DASHBOARDS_LOCKED_UNTIL_P11`), sowie einer deterministischen, idempotenten V1→V2-Kopiermigration (`migrateV1ToV2`), die bestehende persönliche V1-Konfigurationen verlustfrei als V2-Pilotkopie bereitstellt, ohne die produktive V1-Speicherzeile (`executive_dashboard_preferences`) zu verändern.
+
+Auftragsdatei: `docs/auftraege/ANTIGRAVITY_AUFTRAG_150_DASHBOARD_EDITOR_SPEICHERSTRUKTUR_REVISIONEN.md`.  
+Spezifikation: `docs/dashboard/SPEICHERSTRUKTUR_REVISIONEN_P07.md`.
+
+### Geänderte & neue Dateien
+
+- `docs/auftraege/ANTIGRAVITY_AUFTRAG_150_DASHBOARD_EDITOR_SPEICHERSTRUKTUR_REVISIONEN.md`: Auftragsdokumentation Paket P07.
+- `docs/dashboard/SPEICHERSTRUKTUR_REVISIONEN_P07.md`: Technische Spezifikation des Ziel-Speichermodells und der Revisionshistorie.
+- `supabase/migrations/20261113_dashboard_v2_storage_and_revisions.sql`: DDL für `dashboards`, `dashboard_revisions`, `dashboard_teams`, `dashboard_team_members`, RLS-Policies und atomare RPCs.
+- `src/features/dashboard/services/dashboardStorageV2.ts`: Client-Speicheradapter für V2-Dashboards mit RPC-Aufrufen, Fehlerklassifikation und Offline-/In-Memory-Store.
+- `src/features/dashboard/hooks/useDashboardV2Storage.ts`: React-Hook für Laden, Speichern, On-Demand-Kopiermigration aus V1, Revisionsführung und Duplizierung.
+- `src/features/dashboard/components/editor/DashboardConflictDialogV2.tsx`: Modaler Revisionskonflikt-Dialog mit Neuladen oder Kopie-Speichern.
+- `src/features/dashboard/pages/PersonalExecutiveDashboard.tsx`: Anbindung des persistenten V2-Speicheradapters hinter `isDashboardEditorV2Enabled()`.
+- `src/features/dashboard/__tests__/dashboardStorageV2.vitest.ts`: 6 Unittests für Speicherung, Revisionsfortschreibung, optimistisches Locking und Rollback.
+- `src/features/dashboard/__tests__/dashboardEditorV2Persistence.ui.vitest.tsx`: 3 UI- und Integrationstests für Kopiermigration, atomares Speichern und Konfliktdialog.
+- `BUILD_PLAN.md`: Phasenfortschritt auf Auftrag 150 aktualisiert.
+- `docs/BUILD_LOG.md`: Protokollierung dieses Gates.
+
+### Schutzbereichs-Prüfung
+
+```bash
+git diff main -- src/simulation src/types src/context src/services/data src/features/resources
+# Ergebnis: 0 Bytes Diff (vollständig unberührt)
+```
+
+### Automatisierte Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler.
+- `npm run lint`: 0 Warnungen, 0 Fehler (`eslint . --max-warnings 0`).
+- `npm run format:check`: 100 % pass (Prettier).
+- `node scripts/verifyQualityBudget.ts`: 49/49 suppressions:react/forbid-dom-props, 0 Regressionen.
+- `npx size-limit`: Initial JS bundle 178.05 kB (Budget 180 kB), Largest chunk 79.41 kB (Budget 250 kB).
+- `npm test`: 366 Test-Dateien, 2715 Tests bestanden (0 Fehler).
+- `npm run verify`: Alle Integritäts-Suiten (001 bis 025) bestanden.
+- `npm run build`: Erfolgreicher Produktions-Build.
+
+
 
 
