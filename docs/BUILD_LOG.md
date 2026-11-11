@@ -20420,3 +20420,131 @@ Ergebnis: **Exakt 0 Bytes Diff (leer).** Es wurde kein Produktcode modifiziert.
 **Schutzbereichs-Prüfung:** `git diff 779052bddd64f21ecf00b8711b1fcb7061a0fda7 -- src/simulation src/types src/context src/services/data src/features/resources` ergibt exakt 0 Bytes Diff.
 
 **Status:** Gate-Freigabe-Voraussetzungen vollständig erfüllt. PR #169 bereit für Merge durch Marc.
+
+---
+
+## 2026-11-11 — Auftrag 146: Dashboard-Editor Grid-Vergleich und Ziel-Speichermodell (P03)
+
+**Rolle:** Antigravity (Builder) · **Branch:** `auftrag-146-dashboard-editor-grid-ziel-speichermodell`  
+**Prüfer:** Unabhängiges Review durch Codex (chatgpt-codex-connector auf GitHub)  
+**Baseline:** `main`, Commit `e19d8397b988a087fca3a5257184d65a01025653` (Merge von PR #169)
+
+### 1. Kontext & Ziel
+
+Umsetzung von Paket P03 aus dem Dashboard-Editor-Masterplan (`docs/dashboard/DASHBOARD_EDITOR_MASTERPLAN.md`). Aufbauend auf der Bestandsprüfung (Auftrag 144 / P01) und den UX- und Fachverträgen (Auftrag 145 / P02) liefert dieser Auftrag die verbindliche technische Baugrundlage für die Folgeaufträge P04–P07.
+
+### 2. Wesentliche Ergebnisse und Spezifikationen
+
+- **Detailauftrag angelegt:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_146_DASHBOARD_EDITOR_GRID_ZIEL_SPEICHERMODELL.md` mit Aufgaben T1–T6.
+- **Spezifikationsdokument erstellt:** `docs/dashboard/GRID_VERGLEICH_ZIELMODELL_146.md` umfasst:
+  1. **Rasterengine-Evaluation & Micro-Benchmark (24 heterogene Kacheln):**
+     - Bewertung von `react-grid-layout` vs. `@dnd-kit` vs. maßgeschneiderter nativer LeadPilot CSS-Grid-Engine.
+     - Messung: 10.000 vollständige Berechnungszyklen für 24 Kacheln über Desktop (12), Tablet (6) und Mobile (1) in 209,90 ms (0,0210 ms je Layout, < 0,15 % eines 60-FPS-Frames).
+     - Verbindliche Entscheidung für die maßgeschneiderte LeadPilot CSS-Grid-Engine: **0 KiB Zusatz-Bundle** (wahrt das strikte 180-KiB-Initial-Limit aus `.size-limit.json`), 100 % WAI-ARIA `grid`-Konformität (`Alt+Pfeiltasten`), 0 Third-Party-Risiken, keine neuen NPM-Pakete in `package.json`.
+  2. **Vollständiges relationales Ziel-Speichermodell (V2 für Supabase):**
+     - Exakte DDL-Definitionen für `dashboards`, `dashboard_revisions`, `dashboard_teams` und `dashboard_team_members`.
+     - Constraints (`scope IN ('personal', 'team')`), Fremdschlüssel und Lookup-Indizes.
+     - RLS-Sicherheitsmatrix mit strikter Mandantentrennung (`organization_id`) und phasenweiser Freischaltung (in P07 nur `personal`, `team` serverseitig bis P11 gesperrt; Direktzugriffe `INSERT`/`UPDATE`/`DELETE` für alle gesperrt).
+  3. **Atomare Server-RPC-Verträge & Validierung:**
+     - `save_dashboard_v2` mit optimistischem Locking (`expected_revision`), Fehlercode `P0001` (`LP_DASHBOARD_CONFLICT`) und automatischer Ablage in `dashboard_revisions`.
+     - `restore_dashboard_revision_v2` erzeugt deterministisch eine neue Revision an der Spitze der Revisionshistorie.
+     - Serverseitiger JSON-Validator `dashboard_config_v2_invalid_reason` (max. 64 KiB, max. 24 Kacheln, Typsicherheit).
+  4. **Deterministische V1→V2-Kopiermigration:**
+     - 1:1 Erhalt der bestehenden V1-Kachel-IDs ohne UUID-Zwang.
+     - Größen- und Koordinaten-Mapping (`'klein'` → 3x2, `'mittel'` → 6x2/6x3, `'gross'` → 9x3, `'voll'` → 12x3) getrennt je Breakpoint.
+     - Idempotenzgarantie: Bearbeitete V2-Dashboards (`revision > 1`) werden niemals überschrieben; V1-Quelle bleibt unverändert schreibgeschützt.
+- **Projekt-Bauplan aktualisiert:** `BUILD_PLAN.md` auf Auftrag 146 nachgezogen.
+
+### 3. Schutzbereichs-Prüfung
+
+Befehl: `git diff e19d8397b988a087fca3a5257184d65a01025653 -- src/simulation src/types src/context src/services/data src/features/resources`  
+Ergebnis: **Exakt 0 Bytes Diff (leer).** Es wurde kein geschützter Produktcode modifiziert.
+
+### 4. Verifikations-Ergebnisse
+
+- `npx tsc --noEmit`: 0 Fehler (Exit 0)
+- `npm run lint`: 0 Fehler, 0 Warnungen (Exit 0)
+- `npm run format:check`: 0 Abweichungen (Exit 0)
+
+### Nacharbeit nach 1. Codex-Review PR #170 — Auftrag 146 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `70eb357f7a`  
+**Ergebnis:** 1 P2-Befund (Atomaren Pfad zur Dashboard-Neuanlage definieren).
+
+**Behobener Befund:**
+
+1. **Atomare Dashboard-Neuanlage & Forking-Pfad (`GRID_VERGLEICH_ZIELMODELL_146.md`):**
+   - Eigenständige atomare Funktion `create_dashboard_v2(p_title, p_config, p_scope, p_team_id, p_description)` spezifiziert, die Dashboard und initiale Revision 1 in einer einzigen Transaktion anlegt.
+   - `save_dashboard_v2` um einen Neuanlagezweig erweitert: Wird `p_expected_revision = 0` oder `p_dashboard_id IS NULL` übergeben (z. B. beim Retten eines Konfliktentwurfs als neues persönliches Dashboard gemäß P02 §7.2), delegiert die Funktion atomar an `create_dashboard_v2`.
+
+### Nacharbeit nach 2. Codex-Review PR #170 — Auftrag 146 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `928c36f`  
+**Ergebnis:** 1 P1-Befund + 4 P2-Befunde.
+
+**Behobene Befunde (1 P1, 4 P2):**
+
+1. **P1: Eigentümerprüfung für persönliche Dashboards in RPCs (`GRID_VERGLEICH_ZIELMODELL_146.md`):**
+   - In `save_dashboard_v2` und `restore_dashboard_revision_v2` wird vor jeder Aktualisierung oder Wiederherstellung geprüft: Ist `scope = 'personal'`, muss `d.user_id = auth.uid()` gelten, andernfalls Abbruch mit `LP_FORBIDDEN` (Fehlercode `42501`).
+   - In `save_dashboard_v2` wurde zusätzlich in die `UPDATE`-WHERE-Bedingung das Kriterium `AND (d.scope = 'team' OR d.user_id = v_user)` aufgenommen, um Manipulationen mandantenweit auszuschließen.
+2. **P2: Behebung von PL/pgSQL-Namensraumkonflikten mit `RETURNS TABLE` (`GRID_VERGLEICH_ZIELMODELL_146.md`):**
+   - Alle drei RPC-Funktionen (`save_dashboard_v2`, `create_dashboard_v2`, `restore_dashboard_revision_v2`) deklarieren `#variable_conflict use_variable`, um Kollisionen zwischen den Ausgabeparametern (`dashboard_id`, `revision`, `updated_at`) und Tabellenspalten zu eliminieren.
+   - Alle Datenbankspalten in `SELECT`-, `UPDATE`- und `RETURNING`-Klauseln wurden explizit mit Aliasen qualifiziert (`d.*`, `r.*`, `s.*`).
+3. **P2: 1:1-Harmonisierung des Speichervertrags mit `DashboardConfigV2` (P02 §9.1 & §9.2):**
+   - Kachel-Struktur verwendet `catalogId` (Referenz auf `DASHBOARD_CATALOG`, z. B. `baseline.arr`) anstelle des veralteten Arbeitsbegriffs `kpiId`.
+   - Layout-Persistenz erfolgt pro Kachel unter `tile.layouts` (`desktop`, `tablet`, `mobile`) gemäß `BreakpointGridPositions`.
+   - Abschnitt 5.1 und die Migrationsfunktion `migrateV1TilesToV2` in 5.2 wurden vollständig auf `DashboardTileConfigV2` und die Kopiermigrationsregeln aus P02 §9.2 (`'klein'` 3x3, `'mittel'` 6x4, `'gross'` 9x5, `'voll'` 12x6) aktualisiert.
+4. **P2: Umfassende Validierung von Rasterkoordinaten in `dashboard_config_v2_invalid_reason`:**
+   - Eindeutigkeit aller Kachel-IDs im Array wird per Kardinalitätsabgleich validiert.
+   - Alle Koordinaten (`x`, `y`, `w`, `h`) werden auf Ganzzahligkeit und Rastergrenzen validiert: Desktop 12 Spalten (`x+w <= 12`, `w <= 12`, `h <= 24`), Tablet 6 Spalten (`x+w <= 6`, `w <= 6`), Mobile strikt 1 Spalte (`x = 0`, `w = 1`).
+5. **P2: Konsistente Fremdschlüssel-Löschkaskade für `team_id`:**
+   - In `public.dashboards` wurde der Fremdschlüssel für `team_id` von `ON DELETE SET NULL` auf `ON DELETE CASCADE` umgestellt, da der Tabellen-Constraint `chk_dashboard_scope_owner` für `scope = 'team'` zwingend eine nichtleere `team_id` voraussetzt und `SET NULL` zu Constraint-Verletzungen führen würde.
+
+**Status:** Alle 5 Befunde (1 P1, 4 P2) vollständig behoben.
+
+### Nacharbeit nach 3. Codex-Review PR #170 — Auftrag 146 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `528a124`  
+**Ergebnis:** 1 P2-Befund (Kachelspezifische Filter bei der Kopiermigration übernehmen).
+
+**Behobener Befund:**
+
+1. **P2: Verlustfreie Übernahme kachelspezifischer Filter bei der Kopiermigration (`GRID_VERGLEICH_ZIELMODELL_146.md`):**
+   - In Abschnitt 5.1 und 5.2 wurde die Quellstruktur `V1DashboardConfig` und `V1TileConfig` an das tatsächliche V1-Modell (`DashboardTileConfig` mit `filterMode`, `period`, `pipeline`) angepasst.
+   - Die Migrationsfunktion `migrateV1ToV2` überführt kachelspezifische Ausnahmen explizit nach `pipelineOverride` und `timeframeOverride` (bei `filterMode === 'eigener_zeitraum'`) sowie in die persistierte Abfragestruktur `query` (`pipelineId`, `timeframe`).
+   - Verhindert Datenumfangsänderungen nach der Migration für CRM-Kacheln mit dedizierten Pipeline-Filtern.
+
+**Status:** Befund vollständig behoben.
+
+### Nacharbeit nach 4. Codex-Review PR #170 — Auftrag 146 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `f4a419d`  
+**Ergebnis:** 3 P2-Befunde (Dashboard-ID-Synchronisation, Herkunftsmarker, Kacheltitel-Fallback).
+
+**Behobene Befunde (3 P2):**
+
+1. **P2: Synchronisation der Dashboard-ID mit der Konfiguration (`GRID_VERGLEICH_ZIELMODELL_146.md`):**
+   - In `create_dashboard_v2` wird die Dashboard-UUID vor den INSERTs serverseitig via `v_dashboard_id := gen_random_uuid()` erzeugt und mit `p_config := jsonb_set(p_config, '{id}', to_jsonb(v_dashboard_id::text), true)` in die Konfiguration eingebettet. Dadurch tragen Primärdatensatz, Konfiguration und initiale Revision garantiert dieselbe konsistente ID (wichtig beim Forken von Konfliktentwürfen).
+   - In `save_dashboard_v2` wird `p_config.id` vor dem UPDATE ebenfalls verbindlich mit `p_dashboard_id` synchronisiert.
+2. **P2: Verbindlicher Herkunftsmarker bei der V2-Kopiermigration (`GRID_VERGLEICH_ZIELMODELL_146.md`):**
+   - Die Migrationsfunktion `migrateV1ToV2` setzt nun verbindlich `metadata: { migrated_from_v1: true, migrated_at: now }`.
+   - Abschnitt 5.3 dokumentiert, dass dieser Marker von `create_dashboard_v2` persistiert und bei Folgeausführungen zur Duplikats- und Überschreibungsverhinderung geprüft wird.
+3. **P2: Titelauflösung über Katalognamen als Fallback (`GRID_VERGLEICH_ZIELMODELL_146.md`):**
+   - In `migrateV1ToV2` wird für Kacheln ohne benutzerdefinierten Titel der lesbare Katalogname (`getCatalogEntry(t.catalogId)?.name`) als primärer Fallback aufgelöst (analog zum bestehenden Renderer `DashboardTile.tsx:102`).
+   - Die technische `catalogId` dient nur noch als sekundärer Not-Fallback bei unbekannten Metriken.
+
+**Status:** Alle 3 P2-Befunde vollständig behoben.
+
+### Nacharbeit nach 5. Codex-Review PR #170 — Auftrag 146 (11.11.2026)
+
+**Geprüft von:** Codex (chatgpt-codex-connector auf GitHub) auf Commit `876104e`  
+**Ergebnis:** 1 P2-Befund (Unterscheidung von Migrationsupdates und persönlichen Nutzeränderungen).
+
+**Behobener Befund:**
+
+1. **P2: Trennung von automatischen Migrationsupdates und manuellen Nutzeränderungen (`GRID_VERGLEICH_ZIELMODELL_146.md`):**
+   - Die Idempotenzprüfung in Abschnitt 5.3 wurde präzisiert: Statt pauschal `revision > 1` ODER `updated_at > created_at` abzufragen (was wiederholte Migrationsläufe bei V1-Änderungen fälschlicherweise als Nutzeränderung deuten und blockieren würde), werden nun `last_migrated_revision` und `user_edited` im Metadatenobjekt geführt.
+   - Kriterium für manuelle Nutzerbearbeitung: `metadata.user_edited = true` ODER `revision > metadata.last_migrated_revision`.
+   - Rein automatisierte Re-Synchronisationen aus V1 führen `last_migrated_revision` nach und belassen `user_edited = false`. Dadurch bleiben unberührte V2-Kopien vor der ersten manuellen Bearbeitung weiterhin synchronisierbar, während tatsächlich vom Nutzer bearbeitete Dashboards strikt geschützt werden.
+
+**Status:** Befund vollständig behoben; Re-Review durch Codex angefordert.
