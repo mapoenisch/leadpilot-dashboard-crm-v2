@@ -33,8 +33,14 @@ export function readViewFilter(search: string): DashboardView | undefined {
   return VIEWS.find((view) => view === value);
 }
 
+import { DashboardEditorPreviewV2 } from './DashboardEditorPreviewV2';
+
 export function readEditorOnly(search: string): boolean {
   return new URLSearchParams(search).get('bereich') === 'editor';
+}
+
+export function readEditorV2Only(search: string): boolean {
+  return new URLSearchParams(search).get('bereich') === 'editor_v2';
 }
 
 export function readPatternsOnly(search: string): boolean {
@@ -57,6 +63,12 @@ export function DashboardPreviewPage({
 }) {
   const onlyView = readViewFilter(search);
   const editorOnly = readEditorOnly(search);
+  const editorV2Only = readEditorV2Only(search);
+
+  if (editorV2Only) {
+    return <DashboardEditorPreviewV2 />;
+  }
+
   if (readPatternsOnly(search)) {
     return (
       <main className="min-h-screen bg-[var(--color-bg)] px-4 py-8 text-[var(--color-text)] sm:px-8">
@@ -98,11 +110,14 @@ export function DashboardPreviewPage({
               >
                 Zur Testkachel (Designprobe) ↓
               </a>
+              <a href="?bereich=editor" className="text-[12px] text-primary hover:underline">
+                V1-Editor →
+              </a>
               <a
-                href="?bereich=editor"
-                className="ml-auto text-[12px] text-primary hover:underline"
+                href="?bereich=editor_v2"
+                className="ml-auto rounded-md border border-primary bg-primary/20 px-2.5 py-1 text-[12px] font-semibold text-primary hover:bg-primary/30"
               >
-                Nur Editor anzeigen (Vollansicht) →
+                Neuer V2-Editor (P05) →
               </a>
             </nav>
             <header id="testkachel-probe" className="flex flex-col gap-2">

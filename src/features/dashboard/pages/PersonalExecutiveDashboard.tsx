@@ -4,14 +4,39 @@
 import { useRef, useState } from 'react';
 import { useOrganization } from '@/auth/organizationContext';
 import { DashboardWorkspace } from '../components/DashboardWorkspace';
+import { DashboardEditorShellV2 } from '../components/editor/DashboardEditorShellV2';
+import { convertV2TileToV1 } from '../components/editor/EditorCanvasV2';
 import { useBrowserBackGuard } from '../hooks/useBrowserBackGuard';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useDashboardNavigation } from '../hooks/useDashboardNavigation';
 import { useDashboardPreferences } from '../hooks/useDashboardPreferences';
+import type { DashboardConfig } from '../model/dashboardConfig';
+import type { DashboardConfigV2 } from '../model/dashboardConfigV2';
+import { DEFAULT_DASHBOARD_CONFIG } from '../model/defaultDashboard';
+import { migrateV1ToV2 } from '../model/dashboardMigrationV1V2';
+import {
+  isDashboardEditorV2Enabled,
+  setDashboardEditorV2Override,
+} from '../model/dashboardRollout';
 
 export const RETURN_ANNOUNCEMENT = 'Zurück im Dashboard. Die Filter deiner Sitzung gelten weiter.';
 export const RETURN_MISSING_ANNOUNCEMENT =
   'Zurück im Dashboard. Die zuvor geöffnete Kachel gibt es nicht mehr.';
+
+function v2ConfigToV1(v2: DashboardConfigV2): DashboardConfig {
+  const period = v2.globalTimeframe.includes('/')
+    ? { from: v2.globalTimeframe.split('/')[0]!, to: v2.globalTimeframe.split('/')[1]! }
+    : undefined;
+
+  return {
+    version: 1,
+    filters: {
+      pipeline: v2.globalPipeline,
+      period,
+    },
+    tiles: v2.tiles.map((t) => convertV2TileToV1(t, v2.globalTimeframe, v2.globalPipeline)),
+  };
+}
 
 export function PersonalExecutiveDashboard() {
   const preferences = useDashboardPreferences();
@@ -22,6 +47,36 @@ export function PersonalExecutiveDashboard() {
   // (beim Öffnen der Details) dürfen den Arbeitsbereich nicht erneut steuern.
   const [arrival] = useState(nav.incoming);
   const [announcement, setAnnouncement] = useState('');
+
+  // Auftrag 148 / P05: Neuer V2-Editor hinter Rollout-Schalter
+  if (isDashboardEditorV2Enabled()) {
+    const rawV1 = preferences.state?.config ?? DEFAULT_DASHBOARD_CONFIG;
+    const initialConfigV2 = migrateV1ToV2(rawV1, {
+      id: 'personal_dashboard',
+      title: 'Executive Dashboard',
+      ownerUserId: session?.organizationId ? `usr-${session.organizationId}` : 'personal-user',
+      organizationId: session?.organizationId ? `org-${session.organizationId}` : 'personal-org',
+    });
+
+    const handleSaveV2 = async (cfg: DashboardConfigV2): Promise<boolean> => {
+      const v1 = v2ConfigToV1(cfg);
+      const res = await preferences.save(v1);
+      return res.ok;
+    };
+
+    return (
+      <DashboardEditorShellV2
+        initialConfig={initialConfigV2}
+        useData={useDashboardData}
+        onSave={handleSaveV2}
+        onCancel={() => {
+          setDashboardEditorV2Override(false);
+          window.location.reload();
+        }}
+        onShowDetails={(tileId) => nav.openDetails(tileId, null)}
+      />
+    );
+  }
 
   return (
     <div className="flex w-full flex-col gap-[var(--space-4,16px)]">
