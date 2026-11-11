@@ -20548,3 +20548,59 @@ Ergebnis: **Exakt 0 Bytes Diff (leer).** Es wurde kein geschützter Produktcode 
    - Rein automatisierte Re-Synchronisationen aus V1 führen `last_migrated_revision` nach und belassen `user_edited = false`. Dadurch bleiben unberührte V2-Kopien vor der ersten manuellen Bearbeitung weiterhin synchronisierbar, während tatsächlich vom Nutzer bearbeitete Dashboards strikt geschützt werden.
 
 **Status:** Befund vollständig behoben; Re-Review durch Codex angefordert.
+
+---
+
+## 2026-11-11 — Auftrag 147: Dashboard-Editor: Entkopplung des Editor-Kerns (P04)
+
+**Rolle:** Antigravity (Builder) · **Branch:** `auftrag-147-dashboard-editor-kern-entkoppeln` · **Baseline:** `679e70e5b9dd1d735071192e21245789fcf270be` (PR #170)
+
+### Ziel & Kontext
+
+Umsetzung von Paket P04 aus dem [Dashboard-Editor-Masterplan](../dashboard/DASHBOARD_EDITOR_MASTERPLAN.md) (§3.1, §4.A, §7, §8). Entkopplung des Editor-Kerns durch:
+1. Einführung des Reversible-Command-Patterns mit speichereffizienten Delta-Patches (< 1 KiB pro Schritt).
+2. Unbegrenztem Undo/Redo-Verlauf ohne den bisherigen 50er-Abbruch, ergänzt um Meilenstein-Checkpoints und Speichermonitoring (15 MiB Soft-Limit mit Warnung).
+3. Transaktionsbündelung für flüssiges Drag/Resize: Zwischenschritte aktualisieren den Entwurf live, erst beim Loslassen entsteht genau ein atomarer Undo-Schritt.
+4. Eingabebündelung (Debouncing): Schnelle Texteingaben in Inspector-Feldern werden über 600 ms Pause oder Fokuswechsel (`onBlur`) zu einem einzigen Undo-Schritt gebündelt.
+5. Ausschluss von Daten-Updates: Hintergrund-Ticks und Live-KPI-Aktualisierungen erzeugen keine Undo-Schritte und berühren `isDirty` nicht.
+6. Neuer Feature-Rollout-Schalter `VITE_DASHBOARD_EDITOR_V2` (Standard: `false` = alter V1-Editor aktiv) mit Pilot-Override-Unterstützung.
+7. Reaktiver Hook `useDashboardEditorV2` mit In-App-Navigationsschutz (`useInAppLinkGuard`) und Browser-Warnung (`beforeunload`).
+
+### Geänderte / Neue Dateien
+
+- `docs/auftraege/ANTIGRAVITY_AUFTRAG_147_DASHBOARD_EDITOR_KERN_ENTKOPPELN.md`: Detailauftrag.
+- `docs/dashboard/EDITOR_KERN_P04.md`: Architektur- und Funktionsspezifikation des entkoppelten Editor-Kerns.
+- `src/features/dashboard/model/dashboardConfigV2.ts`: V2-Typmodell (`DashboardConfigV2`, `DashboardTileConfigV2`, etc.) und Schema-Validierung (`validateDashboardConfigV2`, `isSameConfigV2`).
+- `src/features/dashboard/model/dashboardRollout.ts`: Feature-Flag `isDashboardEditorV2Enabled`, `setDashboardEditorV2Override`, `getDashboardEditorVersion`.
+- `src/features/dashboard/core/commandTypes.ts`: `EditorCommand`-Schnittstelle und Helfer.
+- `src/features/dashboard/core/layoutCommands.ts`: `MoveTileCommand`, `ResizeTileCommand`, `BatchMoveTilesCommand`.
+- `src/features/dashboard/core/editorCommands.ts`: `AddTileCommand`, `RemoveTileCommand`, `UpdateTileConfigCommand`, `UpdateDashboardMetaCommand`, `SetGlobalFilterCommand`, `CompoundCommand`.
+- `src/features/dashboard/core/editorCoreTypes.ts`: Konstanten und Typen für Checkpoints & Memory Budget.
+- `src/features/dashboard/core/textInputDebouncer.ts`: Isolierter Debouncer für Texteingaben (600 ms / onBlur).
+- `src/features/dashboard/core/dashboardEditorCore.ts`: Vollständig entkoppelter Editor-Kern mit unbegrenzter History, Checkpoints und Transaktionsbündelung.
+- `src/features/dashboard/hooks/useDashboardEditorV2.ts`: React-Hook mit Navigationsschutz.
+- `src/features/dashboard/__tests__/dashboardConfigV2.vitest.ts`: Tests für Typen und Schema-Validierung.
+- `src/features/dashboard/__tests__/editorCommands.vitest.ts`: Tests für Invertierbarkeit aller Commands.
+- `src/features/dashboard/__tests__/dashboardEditorCore.vitest.ts`: Tests für lange Sitzungen (120 Aktionen), Transaktionen, Debounce, Datenupdate-Ausschluss.
+- `src/features/dashboard/__tests__/dashboardRollout.vitest.ts`: Tests für V2-Rollout-Schalter.
+- `src/features/dashboard/__tests__/useDashboardEditorV2.ui.vitest.tsx`: Tests für React-Hook und Navigationsschutz.
+
+### Schutzbereichs-Prüfung
+
+```bash
+git diff 679e70e -- src/simulation src/types src/context src/services/data src/features/resources
+# Ergebnis: 0 Bytes Diff (vollständig unberührt)
+```
+
+### Automatisierte Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler.
+- `npm run lint`: 0 Warnungen, 0 Fehler (`eslint . --max-warnings 0`).
+- `npm run format:check`: 100 % konform mit Prettier.
+- `npm test`: 358 Test-Dateien, 2671 Tests bestanden (0 Fehler).
+- `npm run verify`: Alle Integritäts-Suiten (001 bis 025) bestanden.
+- `npm run build`: Erfolgreicher Produktions-Build in 2.90s.
+
+### Ergebnis & Status
+
+Auftrag 147 (P04) vollständig gebaut und lokal verifiziert. Bereit für PR und unabhängiges Codex-Review.
