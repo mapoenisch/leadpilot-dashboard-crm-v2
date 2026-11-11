@@ -16,6 +16,7 @@ import {
   type StoredDashboardV2Row,
 } from '../services/dashboardStorageV2';
 import type { DashboardConfigV2 } from '../model/dashboardConfigV2';
+import { normalizeDashboardLayouts } from '../services/dashboardLayoutIntegrity';
 import { migrateV1ToV2 } from '../model/dashboardMigrationV1V2';
 import { DEFAULT_DASHBOARD_CONFIG } from '../model/defaultDashboard';
 
@@ -111,14 +112,15 @@ export function useDashboardV2Storage(options?: {
       setIsSaving(true);
       setError(null);
 
-      // Bei manueller Nutzerbearbeitung user_edited markieren (P03 §5.3)
-      const configToSave: DashboardConfigV2 = {
+      // Bei manueller Nutzerbearbeitung user_edited markieren (P03 §5.3); Layouts so
+      // normalisieren, wie der Speicheradapter sie ablegt (Auftrag 151 / P06b)
+      const configToSave: DashboardConfigV2 = normalizeDashboardLayouts({
         ...config,
         metadata: {
           ...config.metadata,
           user_edited: true,
         },
-      };
+      });
 
       const res = await saveDashboardV2({
         dashboardId: dashboard.id,
@@ -156,7 +158,7 @@ export function useDashboardV2Storage(options?: {
 
       const copyTitle = title ?? `${config.title} (Kopie)`;
       const copyId = 'dash_v2_' + Math.random().toString(36).slice(2, 10);
-      const newConfig: DashboardConfigV2 = {
+      const newConfig: DashboardConfigV2 = normalizeDashboardLayouts({
         ...config,
         id: copyId,
         title: copyTitle,
@@ -164,7 +166,7 @@ export function useDashboardV2Storage(options?: {
           ...config.metadata,
           user_edited: true,
         },
-      };
+      });
 
       const res = await createDashboardV2({
         title: copyTitle,

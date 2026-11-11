@@ -17,16 +17,7 @@ import {
   ResizeTileCommand,
 } from '../../core/layoutCommands';
 import { useDashboardEditorV2 } from '../../hooks/useDashboardEditorV2';
-import {
-  getCatalogEntry,
-  type ActiveCatalogEntry,
-  type DashboardView,
-} from '../../model/dashboardCatalog';
-import type {
-  DashboardConfigV2,
-  DashboardTileConfigV2,
-  GridPosition,
-} from '../../model/dashboardConfigV2';
+import type { DashboardConfigV2, GridPosition } from '../../model/dashboardConfigV2';
 import type { TileDataHook } from '../LazyDashboardTile';
 import { UnsavedChangesDialog } from '../UnsavedChangesDialog';
 import { EditorCanvasV2 } from './EditorCanvasV2';
@@ -35,7 +26,8 @@ import { EditorStatusBarV2 } from './EditorStatusBarV2';
 import { EditorTopBarV2 } from './EditorTopBarV2';
 import { WidgetLibraryV2 } from './WidgetLibraryV2';
 import {
-  computeNextAvailablePosition,
+  buildDuplicateTile,
+  buildNewTile,
   createTileAtGridPosition,
   reorderMobileTiles,
 } from './editorPlacement';
@@ -114,31 +106,16 @@ export function DashboardEditorShellV2({
   const handleAddTile = useCallback(
     (catalogId: string) => {
       if (config.tiles.length >= 24) return;
-
-      const entry = getCatalogEntry(catalogId) as ActiveCatalogEntry | undefined;
-      const initialView: DashboardView = (entry?.views?.[0] as DashboardView) ?? 'zahl';
-      const initialW = initialView === 'zahl' ? 3 : 6;
-      const initialH = initialView === 'zahl' ? 3 : 4;
-
-      const layouts = computeNextAvailablePosition(config.tiles, initialW, initialH);
-      const newId = `tile_${catalogId.replace(/[^a-zA-Z0-9_]/g, '_')}_${Date.now().toString(36)}`;
-
-      const newTile: DashboardTileConfigV2 = {
-        id: newId,
-        catalogId,
-        title: entry?.name ?? catalogId,
-        presentation: initialView,
-        layouts,
-        query: {
-          metricId: catalogId,
-          pipelineId: config.globalPipeline,
-          timeframe: config.globalTimeframe,
-        },
-      };
+      // Gemeinsamer, kollisionssicherer Platzierungspfad (Auftrag 151 / P06b)
+      const newTile = buildNewTile(catalogId, config.tiles, {
+        timeframe: config.globalTimeframe,
+        pipeline: config.globalPipeline,
+      });
+      if (!newTile) return;
 
       const cmd = new AddTileCommand(newTile);
       dispatch(cmd);
-      setSelectedTileId(newId);
+      setSelectedTileId(newTile.id);
     },
     [config.tiles, config.globalPipeline, config.globalTimeframe, dispatch, setSelectedTileId],
   );
@@ -166,23 +143,11 @@ export function DashboardEditorShellV2({
       const tile = config.tiles.find((t) => t.id === tileId);
       if (!tile) return;
 
-      const cloneLayouts = computeNextAvailablePosition(
-        config.tiles,
-        tile.layouts.desktop.w,
-        tile.layouts.desktop.h,
-      );
-      const newId = `tile_clone_${Date.now().toString(36)}`;
-
-      const clonedTile: DashboardTileConfigV2 = {
-        ...tile,
-        id: newId,
-        title: `${tile.title} (Kopie)`,
-        layouts: cloneLayouts,
-      };
+      const clonedTile = buildDuplicateTile(tile, config.tiles);
 
       const cmd = new AddTileCommand(clonedTile);
       dispatch(cmd);
-      setSelectedTileId(newId);
+      setSelectedTileId(clonedTile.id);
     },
     [config.tiles, dispatch, setSelectedTileId],
   );
@@ -209,7 +174,7 @@ export function DashboardEditorShellV2({
   const handleAddTileAtPosition = useCallback(
     (catalogId: string, position: GridPosition) => {
       if (config.tiles.length >= 24) return;
-      const { newTile, reflowMoves } = createTileAtGridPosition(
+      const placement = createTileAtGridPosition(
         catalogId,
         position,
         config.tiles,
@@ -217,6 +182,8 @@ export function DashboardEditorShellV2({
         config.globalTimeframe,
         config.globalPipeline,
       );
+      if (!placement) return;
+      const { newTile, reflowMoves } = placement;
       if (reflowMoves.length > 0) {
         dispatch(new BatchMoveTilesCommand(activeBreakpoint, reflowMoves));
       }

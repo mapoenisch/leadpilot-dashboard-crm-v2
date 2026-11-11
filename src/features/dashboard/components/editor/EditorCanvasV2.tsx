@@ -2,7 +2,7 @@
 // 12-Spalten-Canvas (Zone Mitte) mit nativer CSS-Grid-Rasterengine,
 // Kollisionserkennung, Reflow, Pointer-Drag & Drop, Resizing und WAI-ARIA grid.
 
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import type { DragEvent } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -10,7 +10,8 @@ import { cn } from '@/lib/utils';
 import type { BreakpointKey, DashboardConfigV2, GridPosition } from '../../model/dashboardConfigV2';
 import type { TileDataHook } from '../LazyDashboardTile';
 import { CanvasTileCard, convertV2TileToV1, parseTimeframeToPeriod } from './canvas/CanvasTileCard';
-import { calculateGridCoordsFromPixel, getTileGridPosition, GRID_CONFIGS } from './grid/gridEngine';
+import { calculateGridCoordsFromPixel, getBreakpointLayout, GRID_CONFIGS } from './grid/gridEngine';
+import { isAddableCatalogId } from './editorPlacement';
 import { useGridDragAndDrop } from './grid/useGridDragAndDrop';
 import { useGridKeyboard } from './grid/useGridKeyboard';
 import { getGridPlacementClasses } from './grid/gridTailwindClasses';
@@ -85,13 +86,21 @@ export function EditorCanvasV2({
   const { cols } = GRID_CONFIGS[activeBreakpoint];
   const isMobile = activeBreakpoint === 'mobile';
 
+  // Überlappungsfreies, abgeleitetes Layout des aktiven Breakpoints (Auftrag 151 / P06b)
+  const layout = useMemo(
+    () => getBreakpointLayout(config.tiles, activeBreakpoint),
+    [config.tiles, activeBreakpoint],
+  );
+
   // HTML5 Drop von Widget-Bibliothek
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
     if (isPreviewMode) return;
-    const catalogId =
-      e.dataTransfer.getData('text/leadpilot-kpi') || e.dataTransfer.getData('text/plain');
-    if (!catalogId || !onAddTileAtPosition || !containerRef.current) return;
+    // Nur Katalog-IDs: eigener MIME-Typ bevorzugt, `text/plain` nur nach Katalogprüfung (N-5)
+    const catalogId = (
+      e.dataTransfer.getData('text/leadpilot-kpi') || e.dataTransfer.getData('text/plain')
+    ).trim();
+    if (!isAddableCatalogId(catalogId) || !onAddTileAtPosition || !containerRef.current) return;
 
     const containerRect = containerRef.current.getBoundingClientRect();
     const coords = calculateGridCoordsFromPixel(
@@ -194,7 +203,7 @@ export function EditorCanvasV2({
           {config.tiles.map((tile) => {
             const isSelected = selectedTileId === tile.id;
             const pos =
-              previewPositions?.get(tile.id) ?? getTileGridPosition(tile, activeBreakpoint);
+              previewPositions?.get(tile.id) ?? layout.get(tile.id) ?? tile.layouts.desktop;
 
             return (
               <CanvasTileCard

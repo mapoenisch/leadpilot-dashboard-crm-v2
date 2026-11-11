@@ -20789,3 +20789,65 @@ git diff main -- src/simulation src/types src/context src/services/data src/feat
 
 
 
+
+---
+
+## 2026-11-11 — Auftrag 151: Dashboard-Editor: Nacharbeit Raster-Invarianten (Paket P06b)
+
+**Ziel & Kontext:** Das externe Audit vom 11.11.2026 (Triage `docs/reviews/2026-11-11-externes-audit-triage.md`) hat gezeigt, dass P06 seine Abnahme „Kein Überlappen“ nicht erfüllt (N-1 bis N-5) und P07 solche Layouts dauerhaft als Revision speichert. Auftrag 151 stellt die Invariante „keine Überlappung in desktop/tablet/mobile nach jeder Operation“ her und sichert den Speicherpfad ab. P08 bleibt bis zur Gate-Freigabe von 151–153 pausiert.
+
+Auftragsdatei: `docs/auftraege/ANTIGRAVITY_AUFTRAG_151_DASHBOARD_EDITOR_RASTER_INVARIANTEN.md`. Spezifikation: `docs/dashboard/RASTERENGINE_P06.md` §6. Builder: Claude Code. Baseline: `main` `ad812c4`.
+
+### Geänderte & neue Dateien
+
+- `src/features/dashboard/components/editor/grid/gridEngine.ts`: `getBreakpointLayout` (überlappungsfreier Tablet-/Mobil-Fallback, N-2), `findFirstFreePosition`, `findOverlap`; `resolveCollisions` reiht verdrängte Kacheln wieder ein und packt im Ausnahmefall deterministisch nach (N-3).
+- `src/features/dashboard/components/editor/editorPlacement.ts`: gemeinsamer Pfad `buildNewTile`/`buildDuplicateTile` für Hinzufügen, Duplizieren und Drop (N-1), `planLayoutChange`/`collectLayoutMoves` mit Materialisierung, Katalogprüfung (N-5), lückenloser Mobil-Tausch, kollisionsfreie Kachel-IDs.
+- `src/features/dashboard/components/editor/grid/useGridDragAndDrop.ts`: Scroll-Delta in Drag und Resize, Vorschau-Aktualisierung bei Auto-Scroll (N-4), Commit über geplante Moves.
+- `src/features/dashboard/components/editor/grid/useGridKeyboard.ts`: abgeleitetes Layout, `planLayoutChange`.
+- `src/features/dashboard/components/editor/EditorCanvasV2.tsx`: Render aus abgeleitetem Layout; Drop nur mit aktiver Katalog-ID.
+- `src/features/dashboard/components/editor/DashboardEditorShellV2.tsx`: Hinzufügen/Duplizieren/Drop über gemeinsamen Pfad.
+- `src/features/dashboard/services/dashboardLayoutIntegrity.ts` (neu): `normalizeDashboardLayouts`, `findLayoutIntegrityError`, `prepareConfigForStorage`.
+- `src/features/dashboard/services/dashboardStorageV2.ts`: Integritätsprüfung vor `create_dashboard_v2`/`save_dashboard_v2` (unbekannte Katalog-ID → `ungueltig`).
+- `src/features/dashboard/hooks/useDashboardV2Storage.ts`: speichert und übernimmt die normalisierte Konfiguration.
+- Tests: `gridInvariants.vitest.ts` (neu, 8), `gridDragScroll.ui.vitest.tsx` (neu, 1), `dashboardLayoutIntegrity.vitest.ts` (neu, 4), `gridInteraction.ui.vitest.tsx` (Drop-Test auf echte Katalog-ID umgestellt, der alte Test schrieb N-5 fest; Negativfall ergänzt).
+- Doku: Auftragsdatei, `docs/dashboard/RASTERENGINE_P06.md` §6, `BUILD_PLAN.md`, dieser Eintrag.
+
+### Tests zuerst (Rot-Nachweis)
+
+- `gridInvariants.vitest.ts` gegen die Baseline-Logik: N-1 Duplizieren (`desktop gespeichert: c ↔ tile_…`), N-3 (`Lauf 57: t5 ↔ t6`), N-5 (Drop mit unbekannter ID lieferte eine Kachel), Mobil-Tausch (`mobile gespeichert: a ↔ b`) rot; die übrigen Fälle scheiterten an der fehlenden API.
+- `gridDragScroll.ui.vitest.tsx` gegen den Baseline-Hook: rot (`onCommitLayout` 0-mal aufgerufen, Scroll ignoriert); mit Fix grün.
+
+### Funktionale Prüfungen
+
+- Audit-Regressionsfall `(1,9,2×3)`, `(6,4,3×2)`, `(3,9,4×2)` + neue Kachel: Hinzufügen, Duplizieren und Drop (Tablet) überlappungsfrei.
+- Eigenschaftsbasiert: 150 Läufe × 30 zufällige Operationen (Add/Duplicate/Drop/Move/Resize/Mobil-Tausch/Entfernen, Desktop und Tablet) — nach jeder Operation keine Überlappung in desktop/tablet/mobile, abgeleitet und gespeichert, alle Positionen im Raster.
+- Reflow: 400 Läufe auf dichten Layouts ohne Restüberlappung.
+- Speicherpfad: überlappende Layouts werden deterministisch und idempotent normalisiert; unbekannte Katalog-ID wird mit `ungueltig` abgelehnt, keine Revision entsteht.
+- Keine Gestaltungsänderung, daher keine Screenshot-Matrix; Verhalten über Tests belegt.
+
+### Schutzbereichs-Prüfung
+
+```bash
+git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources
+# Ergebnis: leer
+```
+
+### Automatisierte Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler.
+- `npm run lint`: 0 Fehler, 0 Warnungen.
+- `npm run format:check`: bestanden.
+- `npm test`: 369 Test-Dateien, 2735 Tests bestanden.
+- `npm run verify`: alle Integritäts-Suiten (001 bis 025) bestanden.
+- `npm run build`: erfolgreich.
+- `npm run verify:quality-budget`: alle Budgets eingehalten (forbid-dom-props 49/49, exhaustive-deps 1/1).
+- `npx size-limit`: Initial 178.05 kB (Budget 180 kB), größter Chunk 79.41 kB (Budget 250 kB).
+
+### Offene Punkte
+
+- Serverparität: `dashboard_config_v2_invalid_reason` prüft Überlappung und Katalog-IDs weiterhin nicht (keine Migration in diesem Auftrag). Eine Umgehung des Clients betrifft nur das eigene persönliche Dashboard; Nachzug in einem eigenen Auftrag empfohlen.
+- `gridTailwindClasses` kennt Zeilenstarts nur bis Zeile 32 (vorbestehend, nicht Teil der Befunde).
+
+### Ergebnis & Freigabestatus
+
+Gebaut und lokal verifiziert. Gate-Freigabe steht aus: unabhängiges Review (Codex auf GitHub) gemäß `CLAUDE.md` §4.1.

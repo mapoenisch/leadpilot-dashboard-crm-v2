@@ -5,6 +5,7 @@
 import { supabase, isSupabaseConfigured } from '@/services/db/supabaseClient';
 import { logger } from '@/services/logger';
 import { type DashboardConfigV2, validateDashboardConfigV2 } from '../model/dashboardConfigV2';
+import { prepareConfigForStorage } from './dashboardLayoutIntegrity';
 import {
   type DashboardV2RevisionRow,
   type DashboardV2StorageError,
@@ -185,20 +186,26 @@ export async function createDashboardV2(params: {
   teamId?: string;
   description?: string;
 }): Promise<StorageResult<SavedDashboardV2Result>> {
-  const valid = validateDashboardConfigV2(params.config);
+  // Raster-Invarianten und Katalog-IDs vor jeder Revision sichern (Auftrag 151 / P06b)
+  const prepared = prepareConfigForStorage(params.config);
+  if (!prepared.ok) {
+    return { ok: false, error: { kind: 'ungueltig', detail: prepared.error } };
+  }
+  const config = prepared.config;
+  const valid = validateDashboardConfigV2(config);
   if (!valid.ok) {
     return { ok: false, error: { kind: 'ungueltig', detail: valid.error } };
   }
 
   if (!isSupabaseConfigured || !supabase) {
-    const id = params.config.id || 'dash_mock_' + Date.now();
+    const id = config.id || 'dash_mock_' + Date.now();
     const now = new Date().toISOString();
     const stored: StoredDashboardV2Row = {
       id,
       title: params.title,
       scope: params.scope ?? 'personal',
       revision: 1,
-      config: { ...params.config, id },
+      config: { ...config, id },
       updatedAt: now,
     };
     inMemoryStore.set(id, {
@@ -207,7 +214,7 @@ export async function createDashboardV2(params: {
         {
           revision: 1,
           title: params.title,
-          createdByUserId: params.config.ownerUserId || 'mock_user',
+          createdByUserId: config.ownerUserId || 'mock_user',
           createdAt: now,
           changeSummary: 'Dashboard initial erstellt',
         },
@@ -219,7 +226,7 @@ export async function createDashboardV2(params: {
   try {
     const { data, error, status } = await supabase.rpc('create_dashboard_v2', {
       p_title: params.title,
-      p_config: params.config,
+      p_config: config,
       p_scope: params.scope ?? 'personal',
       p_team_id: params.teamId ?? null,
       p_description: params.description ?? null,
@@ -259,7 +266,13 @@ export async function saveDashboardV2(params: {
   config: DashboardConfigV2;
   changeSummary?: string;
 }): Promise<StorageResult<SavedDashboardV2Result>> {
-  const valid = validateDashboardConfigV2(params.config);
+  // Raster-Invarianten und Katalog-IDs vor jeder Revision sichern (Auftrag 151 / P06b)
+  const prepared = prepareConfigForStorage(params.config);
+  if (!prepared.ok) {
+    return { ok: false, error: { kind: 'ungueltig', detail: prepared.error } };
+  }
+  const config = prepared.config;
+  const valid = validateDashboardConfigV2(config);
   if (!valid.ok) {
     return { ok: false, error: { kind: 'ungueltig', detail: valid.error } };
   }
@@ -270,9 +283,9 @@ export async function saveDashboardV2(params: {
       if (params.expectedRevision === 0) {
         return createDashboardV2({
           title: params.title,
-          config: params.config,
-          scope: params.config.scope,
-          teamId: params.config.teamId,
+          config: config,
+          scope: config.scope,
+          teamId: config.teamId,
         });
       }
       return { ok: false, error: { kind: 'nicht_gefunden' } };
@@ -294,13 +307,13 @@ export async function saveDashboardV2(params: {
       ...existing.row,
       title: params.title,
       revision: nextRev,
-      config: { ...params.config, id: params.dashboardId },
+      config: { ...config, id: params.dashboardId },
       updatedAt: now,
     };
     existing.revisions.unshift({
       revision: nextRev,
       title: params.title,
-      createdByUserId: params.config.ownerUserId || 'mock_user',
+      createdByUserId: config.ownerUserId || 'mock_user',
       createdAt: now,
       changeSummary: params.changeSummary ?? null,
     });
@@ -316,7 +329,7 @@ export async function saveDashboardV2(params: {
       p_dashboard_id: params.dashboardId,
       p_expected_revision: params.expectedRevision,
       p_title: params.title,
-      p_config: params.config,
+      p_config: config,
       p_change_summary: params.changeSummary ?? null,
     });
 
