@@ -89,6 +89,36 @@ describe('editorCommands (Reversible-Command-Pattern)', () => {
     expect(cmd.estimateByteSize()).toBeLessThan(500);
   });
 
+  it('MoveTileCommand: stellt bei wasDerived=true die ursprüngliche Abwesenheit der Breakpoint-Position wieder her', () => {
+    const state = createInitialState();
+    // tile_1 hat zunächst kein eigenes tablet-Layout
+    const stateWithoutTablet: DashboardDraftState = {
+      ...state,
+      config: {
+        ...state.config,
+        tiles: state.config.tiles.map((t) =>
+          t.id === 'tile_1' ? { ...t, layouts: { desktop: t.layouts.desktop } } : t,
+        ),
+      },
+    };
+    expect(stateWithoutTablet.config.tiles[0]!.layouts.tablet).toBeUndefined();
+
+    const cmd = new MoveTileCommand(
+      'tile_1',
+      'tablet',
+      { x: 0, y: 0, w: 3, h: 3 },
+      { x: 3, y: 0, w: 3, h: 3 },
+      undefined,
+      true, // wasDerived = true
+    );
+
+    const executed = cmd.execute(stateWithoutTablet);
+    expect(executed.config.tiles[0]!.layouts.tablet).toEqual({ x: 3, y: 0, w: 3, h: 3 });
+
+    const undone = cmd.undo(executed);
+    expect(undone.config.tiles[0]!.layouts.tablet).toBeUndefined();
+  });
+
   it('ResizeTileCommand: skaliert eine Kachel und stellt Ursprungsdimensionen wieder her', () => {
     const state = createInitialState();
     const cmd = new ResizeTileCommand(
@@ -121,6 +151,60 @@ describe('editorCommands (Reversible-Command-Pattern)', () => {
     const batchUndone = cmd.undo(batchExecuted);
     expect(batchUndone.config.tiles.find((t) => t.id === 'tile_1')?.layouts.desktop.y).toBe(0);
     expect(batchUndone.config.tiles.find((t) => t.id === 'tile_2')?.layouts.desktop.y).toBe(0);
+  });
+
+  it('BatchMoveTilesCommand: stellt bei wasDerived=true die ursprüngliche Abwesenheit wieder her (Codex P2)', () => {
+    const state = createInitialState();
+    // tile_2 hat kein eigenes tablet-Layout (nur abgeleitet aus Desktop)
+    const stateWithDerived: DashboardDraftState = {
+      ...state,
+      config: {
+        ...state.config,
+        tiles: [
+          state.config.tiles[0]!, // tile_1 hat explizites tablet
+          {
+            ...state.config.tiles[1]!,
+            layouts: { desktop: state.config.tiles[1]!.layouts.desktop },
+          },
+        ],
+      },
+    };
+    expect(stateWithDerived.config.tiles[1]!.layouts.tablet).toBeUndefined();
+
+    // Verschieben materialisiert tablet für tile_2 mit wasDerived=true
+    const cmd = new BatchMoveTilesCommand('tablet', [
+      {
+        tileId: 'tile_1',
+        from: { x: 0, y: 0, w: 3, h: 3 },
+        to: { x: 0, y: 4, w: 3, h: 3 },
+        wasDerived: false,
+      },
+      {
+        tileId: 'tile_2',
+        from: { x: 3, y: 0, w: 3, h: 3 },
+        to: { x: 3, y: 4, w: 3, h: 3 },
+        wasDerived: true, // zuvor abgeleitet!
+      },
+    ]);
+
+    const executed = cmd.execute(stateWithDerived);
+    expect(executed.config.tiles.find((t) => t.id === 'tile_2')?.layouts.tablet).toEqual({
+      x: 3,
+      y: 4,
+      w: 3,
+      h: 3,
+    });
+
+    const undone = cmd.undo(executed);
+    // tile_1 erhält seine explizite Ausgangsposition zurück
+    expect(undone.config.tiles.find((t) => t.id === 'tile_1')?.layouts.tablet).toEqual({
+      x: 0,
+      y: 0,
+      w: 3,
+      h: 3,
+    });
+    // tile_2 ist wieder undefined – spätere Desktop-Änderungen greifen weiter durch!
+    expect(undone.config.tiles.find((t) => t.id === 'tile_2')?.layouts.tablet).toBeUndefined();
   });
 
   it('AddTileCommand & RemoveTileCommand: hinzufügen, entfernen und indexgetreu wiederherstellen', () => {

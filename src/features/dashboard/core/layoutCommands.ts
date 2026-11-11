@@ -17,6 +17,7 @@ export class MoveTileCommand implements EditorCommand {
     public readonly from: GridPosition,
     public readonly to: GridPosition,
     customDesc?: string,
+    public readonly wasDerived?: boolean,
   ) {
     this.id = generateCommandId('cmd_move');
     this.timestamp = Date.now();
@@ -45,6 +46,14 @@ export class MoveTileCommand implements EditorCommand {
   undo(state: DashboardDraftState): DashboardDraftState {
     const tiles = state.config.tiles.map((t) => {
       if (t.id !== this.tileId) return t;
+      if (this.wasDerived) {
+        const nextLayouts = { ...t.layouts };
+        delete nextLayouts[this.breakpoint];
+        return {
+          ...t,
+          layouts: nextLayouts,
+        };
+      }
       return {
         ...t,
         layouts: {
@@ -79,6 +88,7 @@ export class ResizeTileCommand implements EditorCommand {
     public readonly from: GridPosition,
     public readonly to: GridPosition,
     customDesc?: string,
+    public readonly wasDerived?: boolean,
   ) {
     this.id = generateCommandId('cmd_resize');
     this.timestamp = Date.now();
@@ -107,6 +117,14 @@ export class ResizeTileCommand implements EditorCommand {
   undo(state: DashboardDraftState): DashboardDraftState {
     const tiles = state.config.tiles.map((t) => {
       if (t.id !== this.tileId) return t;
+      if (this.wasDerived) {
+        const nextLayouts = { ...t.layouts };
+        delete nextLayouts[this.breakpoint];
+        return {
+          ...t,
+          layouts: nextLayouts,
+        };
+      }
       return {
         ...t,
         layouts: {
@@ -133,6 +151,8 @@ export interface TileMovement {
   tileId: string;
   from: GridPosition;
   to: GridPosition;
+  /** True, wenn die Ursprungsposition abgeleitet war und kein explizites Layout im Breakpoint besaß */
+  wasDerived?: boolean;
 }
 
 export class BatchMoveTilesCommand implements EditorCommand {
@@ -176,19 +196,27 @@ export class BatchMoveTilesCommand implements EditorCommand {
   }
 
   undo(state: DashboardDraftState): DashboardDraftState {
-    const fromMap = new Map<string, GridPosition>();
+    const fromMap = new Map<string, TileMovement>();
     for (const m of this.moves) {
-      fromMap.set(m.tileId, m.from);
+      fromMap.set(m.tileId, m);
     }
 
     const tiles = state.config.tiles.map((t) => {
-      const origPos = fromMap.get(t.id);
-      if (!origPos) return t;
+      const orig = fromMap.get(t.id);
+      if (!orig) return t;
+      if (orig.wasDerived) {
+        const nextLayouts = { ...t.layouts };
+        delete nextLayouts[this.breakpoint];
+        return {
+          ...t,
+          layouts: nextLayouts,
+        };
+      }
       return {
         ...t,
         layouts: {
           ...t.layouts,
-          [this.breakpoint]: { ...origPos },
+          [this.breakpoint]: { ...orig.from },
         },
       };
     });

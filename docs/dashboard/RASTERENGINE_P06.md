@@ -116,3 +116,17 @@ tile.layouts = {
 - Das Desktop-Layout bleibt bei mobilen Anpassungen garantiert unberührt.
 - Auf Mobile (1 Spalte) ist horizontales Verschieben deaktiviert.
 - Überlauf-Gate: 0 px horizontaler Scrollbalken auf 1440 px, 768 px und 375 px.
+
+## 6. Nachtrag P06b – Raster-Invarianten (Auftrag 151, 11.11.2026)
+
+Anlass: externes Audit, Befunde N-1 bis N-5 (Triage `docs/reviews/2026-11-11-externes-audit-triage.md`). Verbindliche Invariante seit P06b: **Nach jeder Operation überlappt in keinem Breakpoint eine Kachel eine andere**, weder im angezeigten noch im gespeicherten Layout.
+
+- **Abgeleitetes Layout (`getBreakpointLayout`):** Explizit gespeicherte Positionen werden zuerst gesetzt, danach die aus Desktop abgeleiteten Tablet-/Mobil-Fallbacks; jede kollidierende Kachel rückt deterministisch nach unten. Canvas, Drag, Resize und Tastatur arbeiten ausschließlich auf diesem Layout.
+- **Ein Platzierungspfad:** `buildNewTile` (Hinzufügen und Drop) und `buildDuplicateTile` setzen neue Kacheln je Breakpoint an die erste freie Position (`findFirstFreePosition`, zeilenweise von oben). Drop setzt die Kachel im aktiven Breakpoint an die Zielposition und verdrängt die übrigen.
+- **Reflow (`resolveCollisions`):** Jede verdrängte Kachel wird erneut eingereiht, auch wenn sie bereits verarbeitet war; eine Absicherung packt bei Restüberlappung deterministisch nach.
+- **Materialisierung:** Committende Layoutänderungen (`planLayoutChange`, `collectLayoutMoves`) übernehmen alle Kacheln des Breakpoints ohne eigene Position mit ihrer abgeleiteten Position, damit nichts springt.
+- **Mobil-Tausch:** Zwei benachbarte Kacheln werden lückenlos neu gestapelt statt nur ihre `y`-Werte zu tauschen.
+- **Pointer-Drag:** Die Scroll-Änderung des Containers seit Interaktionsbeginn fließt in Drag und Resize ein; Auto-Scroll aktualisiert die Vorschau auch ohne Zeigerbewegung.
+- **Drop:** nur aktive Katalog-IDs (`text/leadpilot-kpi` bevorzugt, `text/plain` nur nach Katalogprüfung).
+- **Speichern:** `prepareConfigForStorage` normalisiert Layouts deterministisch und lehnt unbekannte Katalog-IDs ab (`ungueltig`), bevor `create_dashboard_v2`/`save_dashboard_v2` eine Revision anlegen. Serverparität (SQL) ist ein offener Punkt; eine Umgehung betrifft nur das eigene persönliche Dashboard.
+- **Nachweis:** `gridInvariants.vitest.ts` (Audit-Regressionsfälle, 400 Reflow-Läufe auf dichten Layouts, 150 × 30 zufällige Operationen über alle Breakpoints), `gridDragScroll.ui.vitest.tsx`, `dashboardLayoutIntegrity.vitest.ts`.

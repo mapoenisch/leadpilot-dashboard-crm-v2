@@ -8,15 +8,15 @@ import type {
   DashboardTileConfigV2,
   GridPosition,
 } from '../../../model/dashboardConfigV2';
+import type { TileMovement } from '../../../core/layoutCommands';
+import { planLayoutChange } from '../editorPlacement';
 import {
   clamp,
-  compactLayout,
-  getTileGridPosition,
+  getBreakpointLayout,
   GRID_CONFIGS,
   MAX_TILE_HEIGHT,
   MIN_TILE_HEIGHT,
   MIN_TILE_WIDTH,
-  resolveCollisions,
 } from './gridEngine';
 
 export interface UseGridKeyboardOptions {
@@ -25,7 +25,7 @@ export interface UseGridKeyboardOptions {
   selectedTileId: string | null;
   onSelectTile: (tileId: string) => void;
   onDeselect: () => void;
-  onCommitLayout: (moves: Array<{ tileId: string; from: GridPosition; to: GridPosition }>) => void;
+  onCommitLayout: (moves: TileMovement[]) => void;
   disabled?: boolean;
 }
 
@@ -74,7 +74,9 @@ export function useGridKeyboard({
       const tile = tiles.find((t) => t.id === selectedTileId);
       if (!tile) return;
 
-      const currentPos = getTileGridPosition(tile, breakpoint);
+      // Abgeleitetes, überlappungsfreies Layout (Auftrag 151 / P06b)
+      const layout = getBreakpointLayout(tiles, breakpoint);
+      const currentPos = layout.get(tile.id)!;
       const cols = GRID_CONFIGS[breakpoint].cols;
 
       // 1. Skalieren per Tastatur: Alt + Shift + Pfeiltasten
@@ -106,20 +108,7 @@ export function useGridKeyboard({
           h: targetH,
         };
 
-        const resolved = resolveCollisions(tiles, selectedTileId, targetPos, breakpoint);
-        const compacted = compactLayout(resolved, selectedTileId);
-
-        const moves: Array<{ tileId: string; from: GridPosition; to: GridPosition }> = [];
-        for (const t of tiles) {
-          const init = getTileGridPosition(t, breakpoint);
-          const tgt = compacted.get(t.id);
-          if (
-            tgt &&
-            (tgt.x !== init.x || tgt.y !== init.y || tgt.w !== init.w || tgt.h !== init.h)
-          ) {
-            moves.push({ tileId: t.id, from: init, to: tgt });
-          }
-        }
+        const { moves } = planLayoutChange(tiles, breakpoint, selectedTileId, targetPos);
 
         if (moves.length > 0) {
           onCommitLayout(moves);
@@ -153,20 +142,7 @@ export function useGridKeyboard({
           h: currentPos.h,
         };
 
-        const resolved = resolveCollisions(tiles, selectedTileId, targetPos, breakpoint);
-        const compacted = compactLayout(resolved, selectedTileId);
-
-        const moves: Array<{ tileId: string; from: GridPosition; to: GridPosition }> = [];
-        for (const t of tiles) {
-          const init = getTileGridPosition(t, breakpoint);
-          const tgt = compacted.get(t.id);
-          if (
-            tgt &&
-            (tgt.x !== init.x || tgt.y !== init.y || tgt.w !== init.w || tgt.h !== init.h)
-          ) {
-            moves.push({ tileId: t.id, from: init, to: tgt });
-          }
-        }
+        const { moves } = planLayoutChange(tiles, breakpoint, selectedTileId, targetPos);
 
         if (moves.length > 0) {
           onCommitLayout(moves);
@@ -187,7 +163,7 @@ export function useGridKeyboard({
         let minDistance = Infinity;
 
         for (const candidate of otherTiles) {
-          const candPos = getTileGridPosition(candidate, breakpoint);
+          const candPos = layout.get(candidate.id)!;
           let isValidDirection = false;
 
           if (e.key === 'ArrowRight' && candPos.x >= currentPos.x + currentPos.w)

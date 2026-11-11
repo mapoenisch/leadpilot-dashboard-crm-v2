@@ -178,7 +178,7 @@ describe('EditorCanvasV2 Rasterengine & WAI-ARIA Grid (P06)', () => {
     const canvas = screen.getByTestId('editor-canvas');
 
     const dataTransfer = {
-      getData: (format: string) => (format === 'text/leadpilot-kpi' ? 'win_rate' : ''),
+      getData: (format: string) => (format === 'text/leadpilot-kpi' ? 'baseline.arr' : ''),
     };
 
     fireEvent.drop(canvas, {
@@ -188,12 +188,38 @@ describe('EditorCanvasV2 Rasterengine & WAI-ARIA Grid (P06)', () => {
     });
 
     expect(onAddTileAtPosition).toHaveBeenCalledWith(
-      'win_rate',
+      'baseline.arr',
       expect.objectContaining({
         w: 6,
         h: 4,
       }),
     );
+  });
+
+  it('ignoriert Drops ohne bekannte Katalog-ID (Auftrag 151 / N-5)', () => {
+    const onAddTileAtPosition = vi.fn();
+    render(
+      <EditorCanvasV2
+        config={createTestConfig()}
+        activeBreakpoint="desktop"
+        selectedTileId={null}
+        onSelectTile={vi.fn()}
+        onDeselect={vi.fn()}
+        onRemoveTile={vi.fn()}
+        onDuplicateTile={vi.fn()}
+        onAddTileAtPosition={onAddTileAtPosition}
+        useData={useEditorPreviewData}
+      />,
+    );
+    const canvas = screen.getByTestId('editor-canvas');
+    for (const text of ['beliebiger Text', 'https://example.org', 'win_rate']) {
+      fireEvent.drop(canvas, {
+        dataTransfer: { getData: (f: string) => (f === 'text/plain' ? text : '') },
+        clientX: 50,
+        clientY: 50,
+      });
+    }
+    expect(onAddTileAtPosition).not.toHaveBeenCalled();
   });
 
   it('bietet auf Mobile Pfeil-Schaltflächen für vertikales Verschieben', () => {

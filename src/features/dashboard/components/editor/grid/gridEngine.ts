@@ -58,6 +58,96 @@ export function getTileGridPosition(
   };
 }
 
+/** Liefert das erste überlappende Kachelpaar oder null (Auftrag 151 / P06b) */
+export function findOverlap(
+  positions: ReadonlyMap<string, GridPosition>,
+): readonly [string, string] | null {
+  const entries = Array.from(positions.entries());
+  for (let i = 0; i < entries.length; i++) {
+    for (let j = i + 1; j < entries.length; j++) {
+      if (rectsIntersect(entries[i]![1], entries[j]![1])) {
+        return [entries[i]![0], entries[j]![0]];
+      }
+    }
+  }
+  return null;
+}
+
+/** Begrenzt eine Position auf das Raster eines Breakpoints */
+function boundToGrid(pos: GridPosition, breakpoint: BreakpointKey): GridPosition {
+  const cols = GRID_CONFIGS[breakpoint].cols;
+  if (breakpoint === 'mobile') {
+    return { x: 0, y: Math.max(0, pos.y), w: 1, h: Math.max(1, pos.h) };
+  }
+  const w = clamp(pos.w, 1, cols);
+  return { x: clamp(pos.x, 0, cols - w), y: Math.max(0, pos.y), w, h: Math.max(1, pos.h) };
+}
+
+/**
+ * Erste freie Position (zeilenweise von oben, dann von links) für eine Kachel der Größe w × h.
+ * Deterministisch; findet immer eine Lösung, spätestens unterhalb aller Kacheln.
+ */
+export function findFirstFreePosition(
+  occupied: Iterable<GridPosition>,
+  w: number,
+  h: number,
+  breakpoint: BreakpointKey,
+): GridPosition {
+  const size = boundToGrid({ x: 0, y: 0, w, h }, breakpoint);
+  const cols = GRID_CONFIGS[breakpoint].cols;
+  const blockers = Array.from(occupied);
+  const maxY = blockers.reduce((m, p) => Math.max(m, p.y + p.h), 0);
+  for (let y = 0; y <= maxY; y++) {
+    for (let x = 0; x + size.w <= cols; x++) {
+      const candidate: GridPosition = { x, y, w: size.w, h: size.h };
+      if (!blockers.some((b) => rectsIntersect(b, candidate))) return candidate;
+    }
+  }
+  return { x: 0, y: maxY, w: size.w, h: size.h };
+}
+
+/**
+ * Abgeleitetes, überlappungsfreies Layout eines Breakpoints (Auftrag 151 / P06b, Befund N-2).
+ * Explizit gespeicherte Positionen werden zuerst gesetzt, danach die aus Desktop abgeleiteten
+ * Fallback-Positionen; jede Kachel rückt bei Kollision deterministisch nach unten.
+ */
+export function getBreakpointLayout(
+  tiles: readonly DashboardTileConfigV2[],
+  breakpoint: BreakpointKey,
+): Map<string, GridPosition> {
+  const candidates = tiles.map((tile, index) => ({
+    id: tile.id,
+    index,
+    fallback: tile.layouts[breakpoint] === undefined,
+    pos: boundToGrid(getTileGridPosition(tile, breakpoint), breakpoint),
+  }));
+  candidates.sort(
+    (a, b) =>
+      Number(a.fallback) - Number(b.fallback) ||
+      a.pos.y - b.pos.y ||
+      a.pos.x - b.pos.x ||
+      a.index - b.index,
+  );
+
+  const placed: GridPosition[] = [];
+  const unordered = new Map<string, GridPosition>();
+  for (const c of candidates) {
+    let pos = c.pos;
+    let blocker = placed.find((p) => rectsIntersect(p, pos));
+    while (blocker) {
+      pos = { ...pos, y: blocker.y + blocker.h };
+      blocker = placed.find((p) => rectsIntersect(p, pos));
+    }
+    placed.push(pos);
+    unordered.set(c.id, pos);
+  }
+
+  // Ausgabe in Kachelreihenfolge (stabile Iteration für Aufrufer)
+  const result = new Map<string, GridPosition>();
+  for (const tile of tiles) result.set(tile.id, unordered.get(tile.id)!);
+  return result;
+}
+
 /**
  * Löst Kollisionen deterministisch durch Verdrängung nach unten (Push-Down) auf.
  * Liefert eine Map von tileId -> neuer GridPosition.
@@ -69,12 +159,9 @@ export function resolveCollisions(
   breakpoint: BreakpointKey,
 ): Map<string, GridPosition> {
   const cols = GRID_CONFIGS[breakpoint].cols;
-  const positions = new Map<string, GridPosition>();
 
-  // 1. Initiale Positionen laden
-  for (const t of tiles) {
-    positions.set(t.id, getTileGridPosition(t, breakpoint));
-  }
+  // 1. Initiale Positionen aus dem abgeleiteten, überlappungsfreien Layout laden
+  const positions = getBreakpointLayout(tiles, breakpoint);
 
   // 2. Zielposition der aktiven Kachel klemmen
   const boundedW = clamp(proposedPos.w, breakpoint === 'mobile' ? 1 : MIN_TILE_WIDTH, cols);
@@ -90,31 +177,48 @@ export function resolveCollisions(
   };
   positions.set(activeTileId, activePos);
 
-  // 3. Kaskadierender Push-Down für alle kollidierenden Kacheln
+  // 3. Kaskadierender Push-Down. Jede verschobene Kachel wird wieder eingereiht, auch wenn sie
+  //    bereits verarbeitet war (Auftrag 151 / P06b, Befund N-3). Verdrängte Kacheln landen stets
+  //    unterhalb ihres Verursachers; die y-Werte steigen nur, die Schleife endet daher.
   const queue: string[] = [activeTileId];
-  const processed = new Set<string>();
+  const queued = new Set<string>(queue);
+  const ids = Array.from(positions.keys());
+  let guard = 0;
 
-  while (queue.length > 0) {
+  while (queue.length > 0 && guard++ < 10_000) {
     const currentId = queue.shift()!;
+    queued.delete(currentId);
     const currentPos = positions.get(currentId)!;
 
-    for (const other of tiles) {
-      if (other.id === currentId || other.id === activeTileId) continue;
-      const otherPos = positions.get(other.id)!;
+    for (const otherId of ids) {
+      if (otherId === currentId || otherId === activeTileId) continue;
+      const otherPos = positions.get(otherId)!;
 
       if (rectsIntersect(currentPos, otherPos)) {
-        // Kollidierende Kachel nach unten verdrängen
-        const newY = currentPos.y + currentPos.h;
-        positions.set(other.id, {
-          ...otherPos,
-          y: newY,
-        });
-
-        if (!processed.has(other.id)) {
-          processed.add(other.id);
-          queue.push(other.id);
+        positions.set(otherId, { ...otherPos, y: currentPos.y + currentPos.h });
+        if (!queued.has(otherId)) {
+          queued.add(otherId);
+          queue.push(otherId);
         }
       }
+    }
+  }
+
+  // 4. Absicherung: verbleibt wider Erwarten eine Überlappung, deterministisch nachpacken
+  if (findOverlap(positions)) {
+    const packed: GridPosition[] = [positions.get(activeTileId)!];
+    const order = ids
+      .filter((id) => id !== activeTileId)
+      .sort((a, b) => positions.get(a)!.y - positions.get(b)!.y || a.localeCompare(b));
+    for (const id of order) {
+      let pos = positions.get(id)!;
+      let blocker = packed.find((p) => rectsIntersect(p, pos));
+      while (blocker) {
+        pos = { ...pos, y: blocker.y + blocker.h };
+        blocker = packed.find((p) => rectsIntersect(p, pos));
+      }
+      packed.push(pos);
+      positions.set(id, pos);
     }
   }
 
