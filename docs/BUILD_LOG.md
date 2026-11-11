@@ -20619,3 +20619,69 @@ Auftrag 147 (P04) vollständig gebaut und verifiziert. PR #171 nach unabhängige
   - Speichermonitoring-Test in `dashboardEditorCore.vitest.ts` ergänzt, der reproduzierbar nachweist, dass große Nutzdaten zuverlässig das 15-MiB-Budget und die Konsolidierungswarnung auslösen.
   - `npm test`: 358 Test-Dateien, 2672 Tests grün.
   - Schutzbereichs-Diff: 0 Bytes gegen `3fbe8a1`.
+
+---
+
+## 2026-11-11 — Auftrag 148 (P05): Dashboard-Editor Vier-Zonen-Shell, Bibliothek und Inspector
+
+**Rolle:** Antigravity (Builder) · **Prüfer:** Codex (chatgpt-codex-connector auf GitHub)
+**Branch:** `auftrag-148-dashboard-editor-shell-bibliothek-inspector` · **Baseline:** `815ce21` (`main`)
+**Masterplan:** `docs/dashboard/DASHBOARD_EDITOR_MASTERPLAN.md` (Paket P05)
+**Architektur-Spezifikation:** `docs/dashboard/EDITOR_SHELL_P05.md`
+
+### Ziel & Kontext
+
+Umsetzung von Paket P05: Implementierung der vollständigen Benutzeroberfläche für den neuen Dashboard-Editor V2 auf Basis des in P04 entkoppelten Editor-Kerns. Anbindung der bestehenden Kachel- und Diagramm-Renderer ohne Codeduplizierung, Einführung der Vier-Zonen-Shell mit umschaltbarem WYSIWYG-Vorschau-Modus, widget-basierter Kennzahlen-Bibliothek mit 24-Kachel-Budget, 4-Zonen-Inspector sowie deterministischer V1→V2-Kopiermigration und isoliertem Pilotzugang.
+
+### Durchgeführte Arbeiten
+
+1. **Deterministische V1→V2-Kopiermigration (`dashboardMigrationV1V2.ts`):**
+   - Umsetzung des in P03 (§5) spezifizierten Kopiermigrations-Algorithmus zur verlustfreien Konvertierung existierender V1-Konfigurationen in das V2-Speichermodell.
+   - Deterministisches Pack-Layout (Desktop 12 Spalten, Tablet 6 Spalten, Smartphone 1 Spalte) mit Kachel-Budget-Kappung auf maximal 24 Kacheln.
+2. **Top-Bar (`EditorTopBarV2.tsx`):**
+   - Inline-Titeledit mit Dirty-Stern (`*`), Scope-Badge, Breakpoint-Wahlschalter (Desktop, Tablet, Mobile).
+   - Globale Filter (Zeitraum & Pipeline), Live/Pause-Schalter für Datenströme, Vorschau-Umschalter, Undo/Redo-Aktionen mit Tooltips und Shortcuts sowie Speichern/Abbrechen.
+3. **Widget-Bibliothek (`WidgetLibraryV2.tsx`):**
+   - Live-Suche (Name, Kategorie, ID), 5 Kategorienfilter, Kachel-Karten mit Darstellungs-Icons, Standardgrößen und Herkunfts-Badges.
+   - Auto-Placement via `AddTileCommand` an der nächsten freien Rasterposition. Deaktivierung bei Erreichen des 24-Kachel-Budgets.
+4. **12-Spalten-Canvas (`EditorCanvasV2.tsx`):**
+   - Reaktives Kachel-Raster mit 12 (Desktop), 6 (Tablet) und 1 (Mobile) Spalten.
+   - Vollständige Anbindung der bestehenden Renderer (`LazyDashboardTile`, `DashboardTile`, `DashboardChart`) über eine verlustfreie Adapterbrücke (`convertV2TileToV1`).
+   - Kachelauswahl per Klick mit Akzentrahmen (`ring-2 ring-primary`), Deselektion per Klick außerhalb oder `Escape`.
+   - Schnellaktionsleiste im Bearbeitungsmodus (Löschen via `RemoveTileCommand`, Duplizieren via `AddTileCommand`, Bearbeiten im Inspector) sowie ansprechender Leerzustand mit Schnellstart-Aktion.
+5. **Inspector (`EditorInspectorV2.tsx` & `InspectorTabs.tsx`):**
+   - Modulare Struktur unter strikter Einhaltung der 400-Zeilen-Grenze (`InspectorTabs.tsx`).
+   - Leerzustand mit allgemeinen Dashboard-Metadaten und 4 Kachel-Tabs:
+     - *Daten & Filter:* Zeitraum- & Pipeline-Override, Aggregation.
+     - *Darstellung:* Präsentationsform, Debounce-Titeledit via `recordTextInput`, Visualisierungsoptionen.
+     - *Schwellenwerte:* Warn- und Alarmgrenzen mit Operatoren.
+     - *Interaktion:* Drilldown-Ziele (CRM-Pipeline, Detaildialog).
+6. **Statusleiste (`EditorStatusBarV2.tsx`):**
+   - Verbindungsstatus, Datenstand-Zeitstempel, Kachel-Budget (`X / 24 Kacheln`) mit optischer Warnung ab 20 Kacheln sowie Undo/Redo- und Speicherbedarfs-Statistiken.
+7. **Vier-Zonen-Shell (`DashboardEditorShellV2.tsx`):**
+   - Koordiniert alle Zonen und den `useDashboardEditorV2`-Hook, bietet echten WYSIWYG-Vorschau-Modus (Seitenpaneele ausgeblendet) und `UnsavedChangesDialog`.
+8. **Vorschau & Pilot-Integration:**
+   - Standalone-Vorschau ohne Authentifizierung auf `dashboard-vorschau.html?bereich=editor_v2` (`DashboardEditorPreviewV2.tsx`).
+   - Pilot-Weiche in `PersonalExecutiveDashboard.tsx` hinter `isDashboardEditorV2Enabled()`, sodass reguläre Nutzer zu 100 % auf dem bestehenden V1-Editor bleiben.
+9. **Tests:**
+   - `dashboardMigrationV1V2.vitest.ts`: 3 Unittests für Konvertierung, Pack-Layout und Budget.
+   - `WidgetLibraryV2.ui.vitest.tsx`: 4 UI-Tests für Suche, Filter und Budget-Sperre.
+   - `EditorInspectorV2.ui.vitest.tsx`: 5 UI-Tests für Leerzustand, Tab-Wechsel und Eingaben.
+   - `DashboardEditorShellV2.ui.vitest.tsx`: 6 UI-Tests für Zonen, Hinzufügen, Entfernen, Undo/Redo, Breakpoints, Preview-Modus und Speichern.
+
+### Schutzbereichs-Prüfung
+
+```bash
+git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources
+# Ergebnis: 0 Bytes Diff (vollständig unberührt)
+```
+
+### Automatisierte Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler.
+- `npm run lint`: 0 Warnungen, 0 Fehler (`eslint . --max-warnings 0`).
+- `npm run format:check`: 100 % konform mit Prettier.
+- `npm test`: 362 Test-Dateien, 2690 Tests bestanden (0 Fehler).
+- `npm run verify`: Alle Integritäts-Suiten (001 bis 025) bestanden.
+- `npm run build`: Erfolgreicher Produktions-Build in 3.28s.
+
