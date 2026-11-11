@@ -20558,6 +20558,7 @@ Ergebnis: **Exakt 0 Bytes Diff (leer).** Es wurde kein geschützter Produktcode 
 ### Ziel & Kontext
 
 Umsetzung von Paket P04 aus dem [Dashboard-Editor-Masterplan](../dashboard/DASHBOARD_EDITOR_MASTERPLAN.md) (§3.1, §4.A, §7, §8). Entkopplung des Editor-Kerns durch:
+
 1. Einführung des Reversible-Command-Patterns mit speichereffizienten Delta-Patches (< 1 KiB pro Schritt).
 2. Unbegrenztem Undo/Redo-Verlauf ohne den bisherigen 50er-Abbruch, ergänzt um Meilenstein-Checkpoints und Speichermonitoring (15 MiB Soft-Limit mit Warnung).
 3. Transaktionsbündelung für flüssiges Drag/Resize: Zwischenschritte aktualisieren den Entwurf live, erst beim Loslassen entsteht genau ein atomarer Undo-Schritt.
@@ -20603,4 +20604,18 @@ git diff 679e70e -- src/simulation src/types src/context src/services/data src/f
 
 ### Ergebnis & Status
 
-Auftrag 147 (P04) vollständig gebaut und lokal verifiziert. Bereit für PR und unabhängiges Codex-Review.
+Auftrag 147 (P04) vollständig gebaut und verifiziert. PR #171 nach unabhängigem Review durch Codex (chatgpt-codex-connector) auf `main` integriert (`3fbe8a1`).
+
+### Nachtrag Prüfnachweis & Befundbehebung (Codex P2)
+
+- **Prüfer:** Codex (chatgpt-codex-connector auf GitHub, Review zu PR #171).
+- **Geprüfter Commit:** `740c6014f8f1817b01f1d8301adb71e36d954729`.
+- **Befund (P2):**
+  - _Berücksichtige die Patch-Größe bei der Speicherabschätzung:_ Wenn größere Titel, Abfragefilter oder Anzeigeoptionen bearbeitet werden, meldete `estimateByteSize()` bisher statische Werte (z. B. 250 Bytes), wodurch bei vielen großen Nutzdaten das 15-MiB-Speichermonitoring nicht griff.
+- **Behebung:**
+  - `estimatePayloadByteSize()` in `commandTypes.ts` eingeführt: Ermittelt exakte String-Größen (UTF-16 Heap) und JSON-Payloads für beliebige Objekte.
+  - Dynamische Größenberechnung in `AddTileCommand`, `RemoveTileCommand`, `UpdateTileConfigCommand`, `UpdateDashboardMetaCommand` und `SetGlobalFilterCommand`.
+  - Checkpoint-Größenschätzung in `DashboardEditorCore.getStats()` bemisst nun ebenfalls die tatsächlichen Snapshot-Konfigurationsinhalte.
+  - Speichermonitoring-Test in `dashboardEditorCore.vitest.ts` ergänzt, der reproduzierbar nachweist, dass große Nutzdaten zuverlässig das 15-MiB-Budget und die Konsolidierungswarnung auslösen.
+  - `npm test`: 358 Test-Dateien, 2672 Tests grün.
+  - Schutzbereichs-Diff: 0 Bytes gegen `3fbe8a1`.

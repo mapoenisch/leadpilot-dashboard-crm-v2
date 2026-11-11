@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DashboardEditorCore, TEXT_DEBOUNCE_MS } from '../core/dashboardEditorCore';
-import { MoveTileCommand, ResizeTileCommand } from '../core/editorCommands';
+import {
+  MoveTileCommand,
+  ResizeTileCommand,
+  UpdateTileConfigCommand,
+} from '../core/editorCommands';
 import {
   createEmptyDashboardConfigV2,
   type DashboardTileConfigV2,
@@ -219,5 +223,33 @@ describe('DashboardEditorCore', () => {
     expect(core.getState().isDirty).toBe(false);
     expect(core.getState().config.tiles[0]!.layouts.desktop.w).toBe(3);
     expect(core.getStats().undoCount).toBe(0);
+  });
+
+  it('Speichermonitoring: berücksichtigt variable Patchgrößen und löst bei 15 MiB Warnung aus (Codex P2)', () => {
+    const core = createCore();
+
+    // Großer Patch (~25 KiB)
+    const largeTitle = 'A'.repeat(25 * 1024);
+    const cmd = new UpdateTileConfigCommand('tile_1', { title: 'Alt' }, { title: largeTitle });
+    // Erwartet: estimateByteSize bemisst den echten Stringinhalt (> 50.000 Bytes UTF-16)
+    expect(cmd.estimateByteSize()).toBeGreaterThan(50000);
+
+    core.execute(cmd);
+    expect(core.getStats().estimatedBytes).toBeGreaterThan(50000);
+
+    // Bei wiederholten großen Aktionen greift das 15-MiB-Budget verlässlich
+    for (let i = 0; i < 350; i++) {
+      core.execute(
+        new UpdateTileConfigCommand(
+          'tile_1',
+          { title: `Titel_${i}_${largeTitle.slice(0, 20000)}` },
+          { title: `Titel_${i + 1}_${largeTitle.slice(0, 20000)}` },
+        ),
+      );
+    }
+
+    const stats = core.getStats();
+    expect(stats.warning).not.toBeNull();
+    expect(stats.warning).toContain('Speicherbudget');
   });
 });

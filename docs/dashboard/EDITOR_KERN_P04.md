@@ -81,20 +81,26 @@ export interface EditorCommand {
 ## 3. Transaktionsbündelung & Eingabebündelung
 
 ### 3.1 Drag- & Resize-Transaktionen
-Beim Ziehen oder Vergrößern/Verkleinern im visuellen Raster (P06) entstehen pro Frame kontinuierliche Pointer-Events (z. B. 60 Updates pro Sekunde). 
+
+Beim Ziehen oder Vergrößern/Verkleinern im visuellen Raster (P06) entstehen pro Frame kontinuierliche Pointer-Events (z. B. 60 Updates pro Sekunde).
+
 - Während der Bewegung (`beginTransaction('drag' | 'resize')`) wird der Entwurf über `updateDraftInterim()` direkt aktualisiert, ohne dass Undo-Schritte erzeugt werden.
 - Erst beim Loslassen des Pointers (`commitTransaction()`) wird die Gesamtdifferenz zwischen Start- und Endzustand ermittelt und als genau **ein** atomarer Befehl (`MoveTileCommand`, `ResizeTileCommand` oder `CompoundCommand`) in den Undo-Stack gepusht.
 - Bei Abbruch (`Escape` oder `cancelTransaction()`) wird der Entwurf auf den Zustand vor Transaktionsbeginn zurückgesetzt.
 
 ### 3.2 Eingabebündelung für Textfelder (Debouncing)
+
 Reine Texteingaben (z. B. Kacheltitel im Inspector oder Dashboard-Titel) erzeugen nicht pro Tastendruck einen Historienschritt.
+
 - Der Editor-Kern bündelt kontinuierliche Tastatureingaben.
 - Ein Undo-Schritt wird erst abgeschlossen, wenn:
   1. Eine Tipp-Pause von mindestens **600 ms** eintritt, ODER
   2. Der Fokus das Textfeld verlässt (`onBlur` / `flushTextInput()`).
 
 ### 3.3 Strikt isolierte Daten-Updates
+
 Hintergrund-Refetches von CRM-Daten, WebSocket-Events oder Live-KPI-Stream-Ticks aktualisieren ausschließlich Render- und Kennzahlen-Caches:
+
 - Sie erzeugen **niemals** Undo- oder Redo-Schritte.
 - Sie setzen den Entwurf **niemals** auf ungespeichert (`isDirty = false`).
 - Das Layout und die Konfiguration bleiben während Datenaktualisierungen absolut stabil.
@@ -104,7 +110,9 @@ Hintergrund-Refetches von CRM-Daten, WebSocket-Events oder Live-KPI-Stream-Ticks
 ## 4. Speichermonitoring & Checkpoints (Kein 50er-Abbruch)
 
 Gemäß Masterplan §4.A darf es keinen starren 50er-Abbruch geben:
-- Der Verlauf speichert unbegrenzt viele Schritte. Da ein Command typischerweise 200–800 Bytes belegt, können hunderte Aktionen mit weniger als 500 KiB RAM gehalten werden.
+
+- Der Verlauf speichert unbegrenzt viele Schritte. Da ein Command mit kompakten Delta-Patches typischerweise 150–800 Bytes belegt, können hunderte Aktionen mit wenigen KiB RAM gehalten werden.
+- **Dynamische Bemessung variabler Nutzdaten:** Befehle mit variablen Nutzdaten (`UpdateTileConfigCommand`, `UpdateDashboardMetaCommand`, `SetGlobalFilterCommand`, `AddTileCommand`, `RemoveTileCommand`) bemessen ihren Speicherbedarf dynamisch anhand der tatsächlich gehaltenen Patches (`estimatePayloadByteSize()`). Auch bei großen Texten oder Filtern greift das Monitoring präzise.
 - **Meilenstein-Checkpoints:** Alle 50 Aktionen wird ein Meilenstein-Checkpoint angelegt.
 - **15 MiB Soft-Limit:** Sollte der Verlauf 15 MiB (`MAX_HISTORY_BYTES`) überschreiten, wird in der Statusleiste eine Benachrichtigung aktiv (`Verlauf wird ab Checkpoint X konsolidiert`). Ältere Schritte vor dem letzten stabilen Checkpoint werden kontrolliert freigegeben, anstatt die Anwendung abstürzen zu lassen oder Daten stillschweigend zu verwerfen.
 
@@ -113,6 +121,7 @@ Gemäß Masterplan §4.A darf es keinen starren 50er-Abbruch geben:
 ## 5. Rollout-Schalter & Paralleler Betrieb
 
 In `src/features/dashboard/model/dashboardRollout.ts`:
+
 - Feature-Schalter: `isDashboardEditorV2Enabled()` prüft `import.meta.env.VITE_DASHBOARD_EDITOR_V2 === 'true'`.
 - Standardwert ist **strikt `false`**: Der bestehende V1-Editor bleibt für reguläre Nutzer unverändert aktiv.
 - Der Pilotmodus kann in Tests oder Entwickler-Sitzungen gezielt aktiviert werden (z. B. via Session-Storage oder URL-Parameter `?editor=v2`).
@@ -122,5 +131,6 @@ In `src/features/dashboard/model/dashboardRollout.ts`:
 ## 6. Navigationsschutz
 
 Solange `isDirty === true` ist:
+
 1. `useInAppLinkGuard` fängt interne Klicks auf Seitenleiste, Kopfzeile und andere CRM-Module ab und fordert den Anwender auf, zu speichern, zu verwerfen oder auf der Seite zu bleiben.
 2. Der `beforeunload`-Listener schützt vor versehentlichem Tab-Schließen oder Browser-Neuladen.
