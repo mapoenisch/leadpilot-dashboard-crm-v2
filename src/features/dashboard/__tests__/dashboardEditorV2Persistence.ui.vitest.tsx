@@ -13,6 +13,7 @@ import {
   loadPersonalDashboardV2,
   resetInMemoryDashboardV2Storage,
   saveDashboardV2,
+  setActiveDashboardV2Id,
 } from '../services/dashboardStorageV2';
 import { DEFAULT_DASHBOARD_CONFIG } from '../model/defaultDashboard';
 
@@ -172,6 +173,68 @@ describe('DashboardEditorV2 Persistence & Kopiermigration (P07)', () => {
 
       const activeRow = await loadPersonalDashboardV2(activeId ?? undefined);
       expect(activeRow.ok && activeRow.value?.title).toContain('Kopie');
+    });
+  });
+
+  it('lädt bei Serverstand laden & verwerfen das im Tab gebundene Dashboard neu, selbst wenn ein anderer Tab eine Kopie in LocalStorage abgelegt hat', async () => {
+    renderDashboard();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('dashboard-editor-shell-v2')).toBeInTheDocument();
+    });
+
+    const current = await loadPersonalDashboardV2();
+    if (!current.ok || !current.value) throw new Error('V2 fehlt');
+    const originalDashboardId = current.value.id;
+
+    // Ein anderer Tab (Tab B) speichert auf dem Server Revision 2
+    await saveDashboardV2({
+      dashboardId: originalDashboardId,
+      expectedRevision: 1,
+      title: 'Vom Server aktualisiert',
+      config: { ...current.value.config, title: 'Vom Server aktualisiert' },
+    });
+
+    // Tab B speichert zusätzlich eine Konfliktkopie und schreibt deren ID in LocalStorage
+    const fakeCopyRes = await createDashboardV2({
+      title: 'Fremde Arbeitskopie aus Tab B',
+      config: {
+        ...current.value.config,
+        id: 'dash_copy_tab_b',
+        title: 'Fremde Arbeitskopie aus Tab B',
+      },
+    });
+    if (!fakeCopyRes.ok) throw new Error('Kopie fehlgeschlagen');
+    setActiveDashboardV2Id('org-test-1', 'user-test-1', 'dash_copy_tab_b');
+
+    // Jetzt versucht Tab A (hat noch Revision 1) zu speichern -> Revisionskonflikt
+    const titleBtn = screen.getByTestId('title-button');
+    fireEvent.click(titleBtn);
+    const titleInput = screen.getByTestId('title-input');
+    fireEvent.change(titleInput, { target: { value: 'Änderung in Tab A' } });
+    fireEvent.keyDown(titleInput, { key: 'Enter' });
+
+    const saveBtn = screen.getByRole('button', { name: /Speichern/ });
+    await act(async () => {
+      fireEvent.click(saveBtn);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Revisionskonflikt erkannt')).toBeInTheDocument();
+    });
+
+    // Tab A klickt "Serverstand laden & verwerfen"
+    const reloadBtn = screen.getByRole('button', { name: 'Serverstand laden & verwerfen' });
+    await act(async () => {
+      fireEvent.click(reloadBtn);
+    });
+
+    // Tab A muss wieder an originalDashboardId gebunden sein mit Stand "Vom Server aktualisiert",
+    // NICHT an die fremde Arbeitskopie aus Tab B!
+    await waitFor(() => {
+      expect(screen.queryByText('Revisionskonflikt erkannt')).not.toBeInTheDocument();
+      expect(screen.getByTestId('title-button')).toHaveTextContent('Vom Server aktualisiert');
+      expect(getActiveDashboardV2Id('org-test-1', 'user-test-1')).toBe(originalDashboardId);
     });
   });
 

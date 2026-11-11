@@ -28,7 +28,7 @@ export interface UseDashboardV2StorageResult {
   error: DashboardV2StorageError | null;
   isSaving: boolean;
   save: (config: DashboardConfigV2, changeSummary?: string) => Promise<SaveV2Result>;
-  reload: () => Promise<void>;
+  reload: (explicitDashboardId?: string) => Promise<void>;
   saveAsNewPersonalCopy: (config: DashboardConfigV2, title?: string) => Promise<SaveV2Result>;
 }
 
@@ -43,43 +43,59 @@ export function useDashboardV2Storage(): UseDashboardV2StorageResult {
   const orgId = session?.organizationId ?? 'default-org';
   const userId = session?.userId ?? 'default-user';
   const isInitializingRef = useRef(false);
+  const dashboardRef = useRef<StoredDashboardV2Row | null>(null);
+  dashboardRef.current = dashboard;
 
   // Lädt oder migriert das V2-Dashboard über den atomaren Get-or-Create-Pfad
-  const loadOrMigrate = useCallback(async () => {
-    setStatus('laden');
-    setError(null);
+  const loadOrMigrate = useCallback(
+    async (explicitDashboardId?: string) => {
+      setStatus('laden');
+      setError(null);
 
-    const v1Config = v1Preferences.state?.config ?? DEFAULT_DASHBOARD_CONFIG;
-    const initialV2 = migrateV1ToV2(v1Config, {
-      id: 'personal_dashboard_v2',
-      title: 'Executive Dashboard',
-      ownerUserId: userId,
-      organizationId: orgId,
-    });
+      const v1Config = v1Preferences.state?.config ?? DEFAULT_DASHBOARD_CONFIG;
+      const initialV2 = migrateV1ToV2(v1Config, {
+        id: 'personal_dashboard_v2',
+        title: 'Executive Dashboard',
+        ownerUserId: userId,
+        organizationId: orgId,
+      });
 
-    const activeId = getActiveDashboardV2Id(orgId, userId);
-    const res = await getOrCreatePersonalDashboardV2({
-      initialConfig: initialV2,
-      title: initialV2.title,
-      preferredId: activeId ?? undefined,
-    });
+      // Beim expliziten Neuladen die im Tab gebundene Dashboard-ID nutzen.
+      // Die LocalStorage-Präferenz gilt nur für die initiale Auswahl bei Mount.
+      const targetDashboardId = explicitDashboardId ?? getActiveDashboardV2Id(orgId, userId);
+      const res = await getOrCreatePersonalDashboardV2({
+        initialConfig: initialV2,
+        title: initialV2.title,
+        preferredId: targetDashboardId ?? undefined,
+      });
 
-    if (!res.ok) {
-      setError(res.error);
-      setStatus('fehler');
-      return;
-    }
+      if (!res.ok) {
+        setError(res.error);
+        setStatus('fehler');
+        return;
+      }
 
-    setActiveDashboardV2Id(orgId, userId, res.value.id);
-    setDashboard(res.value);
-    setStatus('bereit');
-  }, [orgId, userId, v1Preferences.state?.config]);
+      setActiveDashboardV2Id(orgId, userId, res.value.id);
+      setDashboard(res.value);
+      setStatus('bereit');
+    },
+    [orgId, userId, v1Preferences.state?.config],
+  );
 
   useEffect(() => {
     if (isInitializingRef.current) return;
     isInitializingRef.current = true;
     loadOrMigrate();
   }, [loadOrMigrate]);
+
+  // Explizites Neuladen: Nutzt standardmäßig die im Tab gebundene Dashboard-ID
+  const reload = useCallback(
+    async (explicitDashboardId?: string) => {
+      const boundId = explicitDashboardId ?? dashboardRef.current?.id;
+      await loadOrMigrate(boundId);
+    },
+    [loadOrMigrate],
+  );
 
   // Speichern mit Revisionsprüfung
   const save = useCallback(
@@ -179,7 +195,7 @@ export function useDashboardV2Storage(): UseDashboardV2StorageResult {
     error,
     isSaving,
     save,
-    reload: loadOrMigrate,
+    reload,
     saveAsNewPersonalCopy,
   };
 }
