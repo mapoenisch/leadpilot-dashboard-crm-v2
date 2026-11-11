@@ -8,6 +8,7 @@ import type {
   DashboardTileConfigV2,
   GridPosition,
 } from '../../../model/dashboardConfigV2';
+import type { TileMovement } from '../../../core/layoutCommands';
 import { planLayoutChange } from '../editorPlacement';
 import {
   clamp,
@@ -24,7 +25,7 @@ export interface UseGridKeyboardOptions {
   selectedTileId: string | null;
   onSelectTile: (tileId: string) => void;
   onDeselect: () => void;
-  onCommitLayout: (moves: Array<{ tileId: string; from: GridPosition; to: GridPosition }>) => void;
+  onCommitLayout: (moves: TileMovement[]) => void;
   disabled?: boolean;
 }
 

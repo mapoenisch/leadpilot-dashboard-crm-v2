@@ -20851,3 +20851,14 @@ git diff origin/main -- src/simulation src/types src/context src/services/data s
 ### Ergebnis & Freigabestatus
 
 Gebaut und lokal verifiziert. Gate-Freigabe steht aus: unabhängiges Review (Codex auf GitHub) gemäß `CLAUDE.md` §4.1.
+
+### Nacharbeit Codex-Review (PR #177, P2-Befund)
+
+**Prüfer:** Codex (GitHub App) · **Geprüfter Stand:** `cdc3b21` · **Datum:** 2026-11-11
+- **Befund (P2):** Fehlende Breakpoint-Positionen beim Undo wiederherstellen: Bei Kacheln ohne eigene Tablet-/Mobil-Position materialisierte die Reflow-Planung abgeleitete Koordinaten, wodurch beim Undo feste Koordinaten statt des ursprünglichen Fallbacks zurückgeschrieben wurden. Spätere Desktop-Änderungen griffen nicht mehr durch.
+- **Behebung:**
+  - `TileMovement` um `wasDerived?: boolean` erweitert; `collectLayoutMoves` markiert zuvor unmaterialisierte Layouts mit `wasDerived: true`.
+  - `BatchMoveTilesCommand.undo()`, `MoveTileCommand.undo()` und `ResizeTileCommand.undo()` entfernen das Layout im betroffenen Breakpoint (`delete layouts[breakpoint]`), wenn `wasDerived: true` war, anstatt feste Koordinaten zu schreiben.
+  - Typisierung und Weiterreichung in `useGridKeyboard.ts`, `EditorCanvasV2.tsx` und `DashboardEditorShellV2.tsx` harmonisiert.
+  - Tests in `editorCommands.vitest.ts` ergänzt: `MoveTileCommand` und `BatchMoveTilesCommand` stellen die Abwesenheit abgeleiteter Positionen bei `undo()` deterministisch wieder her (10/10 Tests grün).
+- **Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0/0; `npm run format:check` grün; `npm run verify` alle 25 Suiten grün; `npm run build` erfolgreich; `npx size-limit` 178.05 kB / 180 kB; Schutzbereichs-Diff gegen `origin/main` leer.

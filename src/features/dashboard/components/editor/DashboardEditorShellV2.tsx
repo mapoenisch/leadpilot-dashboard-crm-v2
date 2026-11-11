@@ -15,6 +15,7 @@ import {
   BatchMoveTilesCommand,
   MoveTileCommand,
   ResizeTileCommand,
+  type TileMovement,
 } from '../../core/layoutCommands';
 import { useDashboardEditorV2 } from '../../hooks/useDashboardEditorV2';
 import type { DashboardConfigV2, GridPosition } from '../../model/dashboardConfigV2';
@@ -154,14 +155,25 @@ export function DashboardEditorShellV2({
 
   // Raster-Layout Bewegungen / Reflow committen
   const handleCommitLayout = useCallback(
-    (moves: Array<{ tileId: string; from: GridPosition; to: GridPosition }>) => {
+    (moves: TileMovement[]) => {
       if (moves.length === 0) return;
       if (moves.length === 1) {
         const m = moves[0]!;
         if (m.from.w !== m.to.w || m.from.h !== m.to.h) {
-          dispatch(new ResizeTileCommand(m.tileId, activeBreakpoint, m.from, m.to));
+          dispatch(
+            new ResizeTileCommand(
+              m.tileId,
+              activeBreakpoint,
+              m.from,
+              m.to,
+              undefined,
+              m.wasDerived,
+            ),
+          );
         } else {
-          dispatch(new MoveTileCommand(m.tileId, activeBreakpoint, m.from, m.to));
+          dispatch(
+            new MoveTileCommand(m.tileId, activeBreakpoint, m.from, m.to, undefined, m.wasDerived),
+          );
         }
       } else {
         dispatch(new BatchMoveTilesCommand(activeBreakpoint, moves));

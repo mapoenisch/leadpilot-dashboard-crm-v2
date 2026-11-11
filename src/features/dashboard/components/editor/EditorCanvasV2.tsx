@@ -8,6 +8,7 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import type { BreakpointKey, DashboardConfigV2, GridPosition } from '../../model/dashboardConfigV2';
+import type { TileMovement } from '../../core/layoutCommands';
 import type { TileDataHook } from '../LazyDashboardTile';
 import { CanvasTileCard, convertV2TileToV1, parseTimeframeToPeriod } from './canvas/CanvasTileCard';
 import { calculateGridCoordsFromPixel, getBreakpointLayout, GRID_CONFIGS } from './grid/gridEngine';
@@ -26,7 +27,7 @@ export interface EditorCanvasV2Props {
   onDeselect: () => void;
   onRemoveTile: (tileId: string) => void;
   onDuplicateTile: (tileId: string) => void;
-  onCommitLayout?: (moves: Array<{ tileId: string; from: GridPosition; to: GridPosition }>) => void;
+  onCommitLayout?: (moves: TileMovement[]) => void;
   onAddTileAtPosition?: (catalogId: string, position: GridPosition) => void;
   onMoveMobile?: (tileId: string, direction: 'up' | 'down') => void;
   onShowDetails?: (tileId: string) => void;
