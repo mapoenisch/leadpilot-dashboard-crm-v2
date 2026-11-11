@@ -9,13 +9,13 @@ import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import type { BreakpointKey, DashboardConfigV2, GridPosition } from '../../model/dashboardConfigV2';
 import type { TileDataHook } from '../LazyDashboardTile';
-import { CanvasTileCard, convertV2TileToV1 } from './canvas/CanvasTileCard';
+import { CanvasTileCard, convertV2TileToV1, parseTimeframeToPeriod } from './canvas/CanvasTileCard';
 import { calculateGridCoordsFromPixel, getTileGridPosition, GRID_CONFIGS } from './grid/gridEngine';
 import { useGridDragAndDrop } from './grid/useGridDragAndDrop';
 import { useGridKeyboard } from './grid/useGridKeyboard';
 import { getGridPlacementClasses } from './grid/gridTailwindClasses';
 
-export { convertV2TileToV1 };
+export { convertV2TileToV1, parseTimeframeToPeriod };
 
 export interface EditorCanvasV2Props {
   config: DashboardConfigV2;

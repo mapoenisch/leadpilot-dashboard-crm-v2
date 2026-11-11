@@ -24,6 +24,8 @@ interface StoredNavState {
     returnFocus?: string;
     /** Detaileintrag direkt über dem vorbereiteten Dashboard-Eintrag (aus der Ansicht geöffnet). */
     fromDashboard?: true;
+    /** Im V2-Editor gebundene Dashboard-ID (Auftrag 150 / P07). */
+    dashboardId?: string;
   };
 }
 
@@ -31,6 +33,7 @@ export interface DashboardNavContext {
   session: SessionFilters;
   returnFocus: string | null;
   fromDashboard: boolean;
+  dashboardId?: string;
 }
 
 /** Liest den mitgereisten Kontext; alles Unbekannte, Veraltete oder Fremde ergibt `null`. */
@@ -48,6 +51,7 @@ export function readDashboardNavState(
     session,
     returnFocus: typeof nav.returnFocus === 'string' ? nav.returnFocus : null,
     fromDashboard: nav.fromDashboard === true,
+    ...(typeof nav.dashboardId === 'string' ? { dashboardId: nav.dashboardId } : {}),
   };
 }
 
@@ -57,6 +61,7 @@ export function buildDashboardNavState(
   returnFocus?: string,
   load: string = PAGE_LOAD,
   fromDashboard = false,
+  dashboardId?: string,
 ): StoredNavState {
   return {
     dashboardNav: {
@@ -65,6 +70,7 @@ export function buildDashboardNavState(
       session,
       ...(returnFocus ? { returnFocus } : {}),
       ...(fromDashboard ? { fromDashboard: true as const } : {}),
+      ...(dashboardId ? { dashboardId } : {}),
     },
   };
 }
@@ -84,14 +90,14 @@ export function useDashboardNavigation() {
    * auch die Zurück-Taste des Browsers beides wiederherstellt.
    */
   const openDetails = useCallback(
-    (tileId: string, filters: SessionFilters) => {
+    (tileId: string, filters: SessionFilters, dashboardId?: string) => {
       if (!identity) return;
       navigate(location.pathname, {
         replace: true,
-        state: buildDashboardNavState(identity, filters, tileId),
+        state: buildDashboardNavState(identity, filters, tileId, PAGE_LOAD, false, dashboardId),
       });
       navigate(tileDetailPath(tileId), {
-        state: buildDashboardNavState(identity, filters, undefined, PAGE_LOAD, true),
+        state: buildDashboardNavState(identity, filters, undefined, PAGE_LOAD, true, dashboardId),
       });
     },
     [identity, location.pathname, navigate],
@@ -110,10 +116,19 @@ export function useDashboardNavigation() {
         return;
       }
       navigate(DASHBOARD_PATH, {
-        state: identity ? buildDashboardNavState(identity, filters, tileId ?? undefined) : null,
+        state: identity
+          ? buildDashboardNavState(
+              identity,
+              filters,
+              tileId ?? undefined,
+              PAGE_LOAD,
+              false,
+              incoming?.dashboardId,
+            )
+          : null,
       });
     },
-    [fromDashboard, identity, navigate],
+    [fromDashboard, identity, incoming?.dashboardId, navigate],
   );
 
   const goTo = useCallback((to: string) => navigate(to), [navigate]);

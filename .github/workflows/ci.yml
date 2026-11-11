@@ -206,7 +206,9 @@ jobs:
           key: playwright-chromium-${{ runner.os }}-1243
           restore-keys: |
             playwright-chromium-${{ runner.os }}-
-      - run: npx playwright install --with-deps chromium
+      - name: DNS-Fallback für Paketspiegel bereitstellen
+        run: sudo sed -i '1s/^/nameserver 8.8.8.8\nnameserver 1.1.1.1\n/' /etc/resolv.conf || true
+      - run: npx playwright install --with-deps chromium || (sleep 5 && npx playwright install --with-deps chromium)
       - name: Build für E2E und Lighthouse
         run: npx vite build
       - name: Playwright E2E & Axe Accessibility Tests

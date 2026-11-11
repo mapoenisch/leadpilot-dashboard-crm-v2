@@ -166,8 +166,8 @@ export function validateDashboardConfigV2(
   if (typeof record.id !== 'string' || record.id.trim() === '') {
     return { ok: false, error: 'id muss ein nicht-leerer String sein' };
   }
-  if (typeof record.title !== 'string' || record.title.trim() === '') {
-    return { ok: false, error: 'title muss ein nicht-leerer String sein' };
+  if (typeof record.title !== 'string' || record.title.trim() === '' || record.title.length > 120) {
+    return { ok: false, error: 'title muss ein nicht-leerer String (max. 120 Zeichen) sein' };
   }
   if (record.scope !== 'personal' && record.scope !== 'team') {
     return { ok: false, error: "scope muss 'personal' oder 'team' sein" };

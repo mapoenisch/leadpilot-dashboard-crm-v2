@@ -39,7 +39,7 @@ export interface CanvasTileCardProps {
   className?: string;
 }
 
-function parseTimeframeToPeriod(timeframe: string): DashboardPeriod | undefined {
+export function parseTimeframeToPeriod(timeframe: string): DashboardPeriod | undefined {
   if (!timeframe.includes('/')) return undefined;
   const [from, to] = timeframe.split('/');
   if (from && to) return { from, to };
