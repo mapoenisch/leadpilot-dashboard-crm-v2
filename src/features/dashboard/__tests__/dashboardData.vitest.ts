@@ -313,7 +313,7 @@ describe('dashboardData', () => {
       expect(resLive.state).toBe('bereit');
       expect(resLive.value).toBe(500000);
       expect(resLive.asOf).toBe('2025-01-01T12:00:00.000Z');
-      expect(resLive.scope).toBe('organisationsuebergreifend');
+      expect(resLive.scope).toBe('organisation');
 
       // 4. Degradiert (mit neuerem Timestamp)
       const degSnap = makeSnapshot('arr', '2025-01-01T12:05:00.000Z', 500000);

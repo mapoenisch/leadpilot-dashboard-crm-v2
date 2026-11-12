@@ -1,11 +1,13 @@
-// G46-Nacharbeit (Review): Produktiver Ingress-Handler mit injizierbaren
+// G46-Nacharbeit (Review) / Auftrag 153: Produktiver Ingress-Handler mit injizierbaren
 // Abhängigkeiten (testbar ohne DB/Netzwerk).
+// - Absenderregister / Schlüsselbund: sender aus X-LeadPilot-Sender Header,
+//   Secret je Absender aus LEADPILOT_INGEST_SENDERS Keyring.
 // - Body-Limit ressourcenschonend: Content-Length wird vor dem Lesen geprüft;
 //   ohne Längenangabe wird gestreamt und bei Überschreitung abgebrochen — der
 //   komplette Body landet nie unbegrenzt im Speicher.
-// - Rate-Limit atomar: genau ein Server-Roundtrip (claim_ingress_slot gibt
-//   ok/replay/rate_limited aus einer Transaktion zurück) statt getrennter
-//   Count- und Claim-Aufrufe (keine TOCTOU-Lücke).
+// - Rate-Limit atomar je Absender: genau ein Server-Roundtrip (claim_ingress_slot
+//   zählt je sender_id) statt getrennter Count- und Claim-Aufrufe.
+// - Organisation nur serverseitig: Organisation darf niemals im Body übergeben werden.
 import { MAX_BODY_BYTES, verifySignedRequest } from './verifyLeadPilotSignature.ts';
 
 export const RATE_LIMIT_PER_MINUTE = 120;
@@ -13,7 +15,7 @@ export const RATE_LIMIT_PER_MINUTE = 120;
 export interface IngressSecrets {
   supabaseUrl: string;
   serviceKey: string;
-  ingestSecret: string;
+  ingestSenders: Record<string, string>;
 }
 
 export interface IngressDb {
@@ -87,29 +89,45 @@ export async function handleIngest(
   if (!secrets || !db) {
     return jsonResponse(500, { error: 'INGEST_NOT_CONFIGURED' });
   }
+
+  const sender = (req.headers.get('X-LeadPilot-Sender') ?? '').trim();
+  if (!sender) {
+    return jsonResponse(401, { error: 'INGEST_SENDER_MISSING' });
+  }
+
+  const secret = secrets.ingestSenders[sender];
+  if (!secret) {
+    return jsonResponse(401, { error: 'INGEST_SENDER_UNKNOWN' });
+  }
+
   const body = await readBoundedBody(req);
   if (!body.ok) {
     return jsonResponse(413, { error: 'INGEST_BODY_TOO_LARGE' });
   }
+
   const verification = await verifySignedRequest(
     body.text,
     {
+      sender,
       timestamp: req.headers.get('X-LeadPilot-Timestamp') ?? '',
       nonce: req.headers.get('X-LeadPilot-Nonce') ?? '',
       signature: req.headers.get('X-LeadPilot-Signature') ?? '',
     },
-    secrets.ingestSecret,
+    secret,
     Date.now(),
   );
   if (!verification.ok) {
     switch (verification.code) {
       case 'INGEST_BODY_TOO_LARGE':
         return jsonResponse(413, { error: verification.code });
+      case 'INGEST_ORGANIZATION_IN_BODY':
       case 'INGEST_KPI_UNKNOWN':
       case 'INGEST_KPI_UNIT_MISMATCH':
       case 'INGEST_KPI_SOURCE_INVALID':
       case 'INGEST_KPI_VALUE_INVALID':
         return jsonResponse(422, { error: verification.code });
+      case 'INGEST_SENDER_MISSING':
+      case 'INGEST_SENDER_UNKNOWN':
       default:
         return jsonResponse(401, { error: verification.code });
     }
@@ -119,7 +137,7 @@ export async function handleIngest(
   const slot = await db.rpc('claim_ingress_slot', {
     p_nonce: nonce,
     p_organization_id: null,
-    p_source_system: 'edge',
+    p_source_system: sender,
     p_max_per_minute: options.rateLimitPerMinute ?? RATE_LIMIT_PER_MINUTE,
   });
   if (slot.error) {
@@ -134,6 +152,7 @@ export async function handleIngest(
   }
 
   const { data: ingested, error: ingestError } = await db.rpc('ingest_live_kpi_event', {
+    p_sender_id: sender,
     p_event: JSON.parse(body.text) as Record<string, unknown>,
   });
   if (ingestError) {

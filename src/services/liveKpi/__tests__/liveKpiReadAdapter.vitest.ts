@@ -9,6 +9,10 @@ import {
   isLiveKpiReadConfigured,
   subscribeToLiveKpiFeed,
 } from '../liveKpiReadAdapter';
+import {
+  setLiveKpiOrganization,
+  resetLiveKpiTenantScopeForTesting,
+} from '../liveKpiTenantScope';
 
 interface QueryResult {
   data: unknown;
@@ -25,6 +29,7 @@ const sb = vi.hoisted(() => {
     removeChannelThrows: false,
     limitArgs: [] as unknown[],
     fromArgs: [] as unknown[],
+    eqCalls: [] as Array<[string, unknown]>,
     channelIds: [] as unknown[],
     onCalls: [] as Array<{ event: string; filter: unknown }>,
   };
@@ -36,7 +41,10 @@ const sb = vi.hoisted(() => {
   };
   const chain = {
     select: () => chain,
-    eq: () => chain,
+    eq: (...args: unknown[]) => {
+      state.eqCalls.push([args[0] as string, args[1]]);
+      return chain;
+    },
     gte: () => chain,
     order: () => chain,
     limit: (...args: unknown[]) => {
@@ -94,6 +102,7 @@ function row(overrides: Record<string, unknown> = {}) {
 }
 
 beforeEach(() => {
+  setLiveKpiOrganization('00000000-0000-0000-0000-000000000001');
   sb.state.clientExists = true;
   sb.state.queryResult = { data: null, error: null };
   sb.state.payloadHandler = null;
@@ -102,6 +111,7 @@ beforeEach(() => {
   sb.state.removeChannelThrows = false;
   sb.state.limitArgs = [];
   sb.state.fromArgs = [];
+  sb.state.eqCalls = [];
   sb.state.channelIds = [];
   sb.state.onCalls = [];
 });
@@ -112,25 +122,39 @@ afterEach(() => {
 });
 
 describe('isLiveKpiReadConfigured', () => {
-  it('true mit Client, false ohne', () => {
+  it('true mit Client und Org, false ohne Client oder ohne Org', () => {
     expect(isLiveKpiReadConfigured()).toBe(true);
     sb.state.clientExists = false;
+    expect(isLiveKpiReadConfigured()).toBe(false);
+    sb.state.clientExists = true;
+    resetLiveKpiTenantScopeForTesting();
     expect(isLiveKpiReadConfigured()).toBe(false);
   });
 });
 
 describe('fetchLatestLiveKpi', () => {
+  it('null ohne Organisation und ruft kein from() auf', async () => {
+    resetLiveKpiTenantScopeForTesting();
+    await expect(fetchLatestLiveKpi('arr')).resolves.toBeNull();
+    expect(sb.state.fromArgs).toHaveLength(0);
+  });
+
   it('null ohne Client', async () => {
     sb.state.clientExists = false;
     await expect(fetchLatestLiveKpi('arr')).resolves.toBeNull();
   });
 
-  it('mappt eine Datenzeile auf Snapshot', async () => {
+  it('mappt eine Datenzeile auf Snapshot und setzt Organisationsfilter', async () => {
     sb.state.queryResult = { data: row(), error: null };
     const snap = await fetchLatestLiveKpi('arr');
     expect(snap?.value).toBe(411840);
     expect(snap?.kpiId).toBe('arr');
     expect(sb.state.fromArgs).toEqual(['live_kpi_public_feed']);
+    expect(sb.state.eqCalls).toContainEqual([
+      'organization_id',
+      '00000000-0000-0000-0000-000000000001',
+    ]);
+    expect(sb.state.eqCalls).toContainEqual(['kpi_id', 'arr']);
   });
 
   it('null bei leerem Ergebnis', async () => {
@@ -150,6 +174,12 @@ describe('fetchLatestLiveKpi', () => {
 });
 
 describe('fetchLiveKpiHistory', () => {
+  it('leeres Array ohne Organisation und ruft kein from() auf', async () => {
+    resetLiveKpiTenantScopeForTesting();
+    await expect(fetchLiveKpiHistory('arr', '2026-01-01T00:00:00.000Z', 30)).resolves.toEqual([]);
+    expect(sb.state.fromArgs).toHaveLength(0);
+  });
+
   it('wirft bei ungültigem Limit (NaN)', async () => {
     await expect(fetchLiveKpiHistory('arr', '2026-01-01T00:00:00.000Z', NaN)).rejects.toThrow(
       'Invalid limit',
@@ -253,7 +283,21 @@ describe('subscribeToLiveKpiFeed (G34: ein Kanal)', () => {
     expect(sb.state.channelIds).toEqual([]);
   });
 
-  it('ein Kanal live-kpi-feed ohne kpi-Filter', () => {
+  it('ohne Organisation: offline + Noop-Unsubscribe und kein channel()', () => {
+    resetLiveKpiTenantScopeForTesting();
+    const seen: string[] = [];
+    const sub = subscribeToLiveKpiFeed(
+      () => {},
+      (s) => {
+        seen.push(s);
+      },
+    );
+    expect(seen).toEqual(['offline']);
+    expect(() => sub.unsubscribe()).not.toThrow();
+    expect(sb.state.channelIds).toEqual([]);
+  });
+
+  it('ein Kanal live-kpi-feed:<org> mit organization_id-Filter', () => {
     const seen: string[] = [];
     subscribeToLiveKpiFeed(
       () => {},
@@ -262,12 +306,12 @@ describe('subscribeToLiveKpiFeed (G34: ein Kanal)', () => {
       },
     );
     expect(seen).toEqual(['connecting']);
-    expect(sb.state.channelIds).toEqual(['live-kpi-feed']);
+    expect(sb.state.channelIds).toEqual(['live-kpi-feed:00000000-0000-0000-0000-000000000001']);
     expect(sb.state.onCalls).toHaveLength(1);
     expect(sb.state.onCalls[0]?.event).toBe('postgres_changes');
     const filter = sb.state.onCalls[0]?.filter as Record<string, unknown>;
     expect(filter.table).toBe('live_kpi_public_feed');
-    expect(filter).not.toHaveProperty('filter');
+    expect(filter.filter).toBe('organization_id=eq.00000000-0000-0000-0000-000000000001');
   });
 
   it('INSERT-Payload wird als Event gemappt und zugestellt', () => {

@@ -8,6 +8,7 @@
  */
 
 import { supabase } from '@/services/db/supabaseClient';
+import { getLiveKpiOrganization } from './liveKpiTenantScope';
 
 export type LiveKpiReadStatus = 'unconfigured' | 'loading' | 'live' | 'offline' | 'error';
 
@@ -74,22 +75,25 @@ function mapRowToSnapshot(row: unknown): LiveKpiSnapshot | null {
 }
 
 export function isLiveKpiReadConfigured(): boolean {
-  return Boolean(supabase);
+  return Boolean(supabase && getLiveKpiOrganization());
 }
 
 /**
  * Liest den neuesten Live-KPI-Wert für eine gegebene kpiId aus public.live_kpi_public_feed.
- * Gibt nur bei unkonfiguriertem Supabase oder ohne vorhandene Zeile null zurück.
+ * Gibt nur bei unkonfiguriertem Supabase, fehlender Organisationssitzung oder ohne
+ * vorhandene Zeile null zurück.
  * Wirft bei Datenbank- oder Netzwerkfehlern einen Error weiter.
  */
 export async function fetchLatestLiveKpi(kpiId: string): Promise<LiveKpiSnapshot | null> {
-  if (!supabase) {
+  const org = getLiveKpiOrganization();
+  if (!supabase || !org) {
     return null;
   }
 
   const { data, error } = await supabase
     .from('live_kpi_public_feed')
     .select('id, kpi_id, value, unit, occurred_at, quality_status, source_system, ingested_at')
+    .eq('organization_id', org)
     .eq('kpi_id', kpiId)
     .order('occurred_at', { ascending: false })
     .order('ingested_at', { ascending: false })
@@ -124,8 +128,9 @@ export async function fetchLiveKpiHistory(
   }
 
   const effectiveLimit = Math.min(30, Math.max(1, Math.floor(limit)));
+  const org = getLiveKpiOrganization();
 
-  if (!supabase) {
+  if (!supabase || !org) {
     return [];
   }
 
@@ -133,6 +138,7 @@ export async function fetchLiveKpiHistory(
   const { data, error } = await supabase
     .from('live_kpi_public_feed')
     .select('id, kpi_id, value, unit, occurred_at, quality_status, source_system, ingested_at')
+    .eq('organization_id', org)
     .eq('kpi_id', kpiId)
     .gte('occurred_at', sinceIso)
     .order('occurred_at', { ascending: false })
@@ -182,17 +188,18 @@ export function subscribeToLiveKpiFeed(
   onEvent: (snapshot: LiveKpiSnapshot) => void,
   onConnectionStatus: (status: LiveKpiFeedConnectionState) => void,
 ): LiveKpiSubscription {
-  if (!supabase) {
+  const org = getLiveKpiOrganization();
+  if (!supabase || !org) {
     onConnectionStatus('offline');
     return {
       unsubscribe() {
-        // no-op wenn kein Supabase vorhanden
+        // no-op wenn kein Supabase oder keine Organisation vorhanden
       },
     };
   }
 
   const client = supabase;
-  const channelId = 'live-kpi-feed';
+  const channelId = `live-kpi-feed:${org}`;
   let attempt = 0;
   let disposed = false;
   let retryTimer: ReturnType<typeof setTimeout> | null = null;
@@ -234,6 +241,7 @@ export function subscribeToLiveKpiFeed(
           event: 'INSERT',
           schema: 'public',
           table: 'live_kpi_public_feed',
+          filter: `organization_id=eq.${org}`,
         },
         (payload) => {
           if (payload && payload.new) {

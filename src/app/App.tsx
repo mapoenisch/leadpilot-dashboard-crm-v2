@@ -13,6 +13,7 @@ import { OrganizationProvider, useOrganization } from '@/auth/organizationContex
 import { ProtectedRoute } from '@/auth/ProtectedRoute';
 import { useSimulationStore } from '@/store/simulationStore';
 import { logger } from '@/services/logger';
+import { setLiveKpiOrganization } from '@/services/liveKpi/liveKpiTenantScope';
 import '@/services/data';
 
 const LoginPage = React.lazy(() =>
@@ -68,6 +69,7 @@ function RouteFallback() {
 // verlieren ihr altes Ergebnis und laden mit der neuen Sitzung neu, inaktive Daten werden verworfen.
 function resetUserQueries() {
   void queryClient.resetQueries();
+  setLiveKpiOrganization(null);
 }
 
 export function App() {

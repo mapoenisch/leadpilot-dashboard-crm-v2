@@ -279,3 +279,15 @@ VALUES
 ON CONFLICT (id) DO UPDATE SET
   deal_name = EXCLUDED.deal_name,
   organization_id = EXCLUDED.organization_id;
+
+-- ----------------------------------------------------------------------------
+-- 8. Live-KPI Ingest Senders (public.live_kpi_ingest_senders)
+-- Test-Absender für Organisation A und Organisation B (keine echten Secrets)
+-- ----------------------------------------------------------------------------
+INSERT INTO public.live_kpi_ingest_senders (sender_id, organization_id, active)
+VALUES
+  ('e2e-sender-a', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', true),
+  ('e2e-sender-b', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', true)
+ON CONFLICT (sender_id) DO UPDATE SET
+  organization_id = EXCLUDED.organization_id,
+  active = EXCLUDED.active;

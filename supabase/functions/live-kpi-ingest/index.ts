@@ -1,7 +1,7 @@
-// G46 (Auftrag 067C, Step 3): Supabase-seitiger Live-KPI-Ingress (Design §10.1).
-// Dünne Verdrahtung: Secrets aus Function-Secrets, Handler aus _shared mit
-// atomarem Rate-Claim (ein RPC-Roundtrip), Ingest-RPC für Events.
-// Antwortcodes: 201 angenommen, 200 Duplikat, 401 Signatur/Replay,
+// G46 (Auftrag 067C, Step 3) / Auftrag 153: Supabase-seitiger Live-KPI-Ingress (Design §10.1).
+// Dünne Verdrahtung: Secrets aus Function-Secrets (LEADPILOT_INGEST_SENDERS JSON-Keyring),
+// Handler aus _shared mit atomarem Rate-Claim (ein RPC-Roundtrip), Ingest-RPC für Events.
+// Antwortcodes: 201 angenommen, 200 Duplikat, 401 Signatur/Replay/Sender,
 // 422 Rejection, 413 Body-Limit, 429 Rate-Limit, 500 ohne Konfiguration.
 // Typprüfung beim Deploy (`supabase functions deploy`); lokale Vertragstests
 // in ../__tests__/ingressHandler.test.ts.
@@ -19,10 +19,12 @@ function readSecret(name: string): string {
 Deno.serve(async (req: Request): Promise<Response> => {
   let secrets;
   try {
+    const sendersRaw = readSecret('LEADPILOT_INGEST_SENDERS');
+    const ingestSenders = JSON.parse(sendersRaw) as Record<string, string>;
     secrets = {
       supabaseUrl: readSecret('SUPABASE_URL'),
       serviceKey: readSecret('SUPABASE_SERVICE_ROLE_KEY'),
-      ingestSecret: readSecret('LEADPILOT_INGEST_SECRET'),
+      ingestSenders,
     };
   } catch {
     return new Response(JSON.stringify({ error: 'INGEST_NOT_CONFIGURED' }), {

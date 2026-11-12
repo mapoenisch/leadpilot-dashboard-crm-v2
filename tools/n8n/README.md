@@ -117,22 +117,25 @@ Die Live-KPI-Pipeline verarbeitet Live-Ist-Ereignisse nach dem standardisierten 
 - **Passwort:** Der Operator setzt das Passwort außerhalb des Repositories über die Supabase-/PostgreSQL-Administration und speichert es anschließend ausschließlich als n8n-Credential.
 - **SSL:** `require` (oder `disable` für rein lokale Docker-Umgebungen).
 
-### B2. Signaturprüfung G46 (Design §10.1) — manuelle Schritte
+### B2. Signaturprüfung und Mandantenbindung (Design §10.1, Auftrag 153) — manuelle Schritte
 
-Der Workflow prüft vor dem Postgres-Zugriff `X-LeadPilot-Timestamp` (5-Minuten-Fenster),
-`X-LeadPilot-Nonce` (Format; Einmaligkeit per `claim_ingress_nonce`) und
-`X-LeadPilot-Signature` (HMAC-SHA-256 über `timestamp.nonce.rawBody`):
+Der Workflow prüft vor dem Postgres-Zugriff:
+- `X-LeadPilot-Sender` (Pflicht; Absenderkennung)
+- `X-LeadPilot-Timestamp` (5-Minuten-Fenster)
+- `X-LeadPilot-Nonce` (Format; Einmaligkeit und Rate-Limit je Absender per `claim_ingress_slot`)
+- `X-LeadPilot-Signature` (HMAC-SHA-256 über `sender.timestamp.nonce.rawBody`)
+- Ausschluss von Organisationsfeldern im Body (`organizationId`, `organization_id`)
 
-1. In n8n ein **Crypto-Credential** `LeadPilot Ingest HMAC (in n8n anlegen)` vom Typ _HMAC Secret_ erstellen; Secret aus dem Passwortmanager (identisch zu Function-Secret `LEADPILOT_INGEST_SECRET`, niemals ins Repo).
+1. In n8n **je Absender ein eigenes Crypto-Credential** `LeadPilot Ingest HMAC (in n8n anlegen)` vom Typ _HMAC Secret_ erstellen; Secret aus dem Passwortmanager (entspricht dem Eintrag im Function-Secret Keyring `LEADPILOT_INGEST_SENDERS`, niemals ins Repo).
 2. Dem Node `HMAC Sign Base` dieses Credential zuweisen (im Workflow-JSON als Platzhalter `id: null` markiert).
-3. Der Node `Claim Nonce (Postgres)` nutzt das bestehende PostgreSQL-Credential; die Rolle `n8n_ingest` benötigt zusätzlich `GRANT EXECUTE ON FUNCTION public.claim_ingress_nonce` (Operator-SQL, außerhalb des Repos).
-4. Ungültige Signatur → 401, Replay → 401, danach bestehender Ingest-Pfad (201/200/422).
+3. Der Node `Claim Nonce (Postgres)` ruft `public.claim_ingress_slot($1::text, NULL, $2::text, 120)` mit der Nonce und dem Absender auf; das Rate-Limit greift je Absender.
+4. Ungültige Signatur / fehlender oder ungültiger Absender → 401, Replay → 401, Rate-Limit → 429, Body-Organisation oder fehlerhaftes Payload → 422, danach bestehender Ingest-Pfad (201/200/422).
 
 ### C. Import & Ausführung des Ingest-Workflows
 
 1. Workflow `tools/n8n/live-kpi-ingest.workflow.json` in n8n importieren.
 2. Dem PostgreSQL-Node das Credential `LeadPilot PostgreSQL (n8n_ingest role)` zuweisen.
-3. Der Workflow nimmt Events via Webhook (`POST /webhook/live-kpi-ingest`) oder Manual Trigger entgegen, leitet das Rohpayload ohne Defaults oder Typ-Coercion weiter, ruft parametrisiert `SELECT public.ingest_live_kpi_event($1::jsonb)` auf und verzweigt strikt nach:
+3. Der Workflow nimmt Events via Webhook (`POST /webhook/live-kpi-ingest`) oder Manual Trigger entgegen, leitet das Rohpayload ohne Defaults oder Typ-Coercion weiter, ruft parametrisiert `SELECT public.ingest_live_kpi_event($1::text, $2::jsonb)` auf und verzweigt strikt nach:
    - **Accepted (201):** Event neu angelegt.
    - **Duplicate (200):** Idempotent erkannt, kein zweiter Eintrag erzeugt.
    - **Rejected (422):** Validierungsfehler, sicher in `public.live_kpi_rejections` protokolliert (Kontextdaten werden deterministisch auf `'{}'::jsonb` gesetzt und nicht gespeichert).

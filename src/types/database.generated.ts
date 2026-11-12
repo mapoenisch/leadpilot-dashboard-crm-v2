@@ -150,6 +150,7 @@ export type Database = {
           ingested_at: string;
           kpi_id: string;
           occurred_at: string;
+          organization_id: string;
           provenance: string;
           quality_status: string;
           source_reference: string | null;
@@ -167,6 +168,7 @@ export type Database = {
           ingested_at?: string;
           kpi_id: string;
           occurred_at: string;
+          organization_id: string;
           provenance?: string;
           quality_status: string;
           source_reference?: string | null;
@@ -184,6 +186,7 @@ export type Database = {
           ingested_at?: string;
           kpi_id?: string;
           occurred_at?: string;
+          organization_id?: string;
           provenance?: string;
           quality_status?: string;
           source_reference?: string | null;
@@ -191,7 +194,44 @@ export type Database = {
           unit?: string;
           value?: number;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'live_kpi_events_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      live_kpi_ingest_senders: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          organization_id: string;
+          sender_id: string;
+        };
+        Insert: {
+          active?: boolean;
+          created_at?: string;
+          organization_id: string;
+          sender_id: string;
+        };
+        Update: {
+          active?: boolean;
+          created_at?: string;
+          organization_id?: string;
+          sender_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'live_kpi_ingest_senders_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       live_kpi_public_feed: {
         Row: {
@@ -199,6 +239,7 @@ export type Database = {
           ingested_at: string;
           kpi_id: string;
           occurred_at: string;
+          organization_id: string;
           quality_status: string;
           source_system: string;
           unit: string;
@@ -209,6 +250,7 @@ export type Database = {
           ingested_at: string;
           kpi_id: string;
           occurred_at: string;
+          organization_id: string;
           quality_status: string;
           source_system: string;
           unit: string;
@@ -219,12 +261,21 @@ export type Database = {
           ingested_at?: string;
           kpi_id?: string;
           occurred_at?: string;
+          organization_id?: string;
           quality_status?: string;
           source_system?: string;
           unit?: string;
           value?: number;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'live_kpi_public_feed_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       live_kpi_rejections: {
         Row: {
@@ -233,6 +284,7 @@ export type Database = {
           error_message: string;
           event_id: string | null;
           id: string;
+          organization_id: string | null;
           rejected_at: string;
           sanitized_context: Json | null;
           source_system: string | null;
@@ -243,6 +295,7 @@ export type Database = {
           error_message: string;
           event_id?: string | null;
           id?: string;
+          organization_id?: string | null;
           rejected_at?: string;
           sanitized_context?: Json | null;
           source_system?: string | null;
@@ -253,11 +306,20 @@ export type Database = {
           error_message?: string;
           event_id?: string | null;
           id?: string;
+          organization_id?: string | null;
           rejected_at?: string;
           sanitized_context?: Json | null;
           source_system?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'live_kpi_rejections_organization_id_fkey';
+            columns: ['organization_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       organization_members: {
         Row: {
@@ -431,7 +493,7 @@ export type Database = {
       has_org_role: { Args: { required_roles: string[] }; Returns: boolean };
       has_unique: { Args: { '': string }; Returns: string };
       in_todo: { Args: never; Returns: boolean };
-      ingest_live_kpi_event: { Args: { p_event: Json }; Returns: Json };
+      ingest_live_kpi_event: { Args: { p_sender_id: string; p_event: Json }; Returns: Json };
       is_empty: { Args: { '': string }; Returns: string };
       isnt_empty: { Args: { '': string }; Returns: string };
       lives_ok: { Args: { '': string }; Returns: string };

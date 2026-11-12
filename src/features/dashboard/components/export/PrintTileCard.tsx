@@ -121,15 +121,6 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
     ? `Filter: ${filterModeLabel} · ${pipelineDisplay}`
     : `Filter: ${filterModeLabel}`;
 
-  const scope =
-    (data && 'scope' in data ? data.scope : undefined) ??
-    (layer === 'live'
-      ? 'organisationsuebergreifend'
-      : layer === 'crm'
-        ? 'organisation'
-        : 'stammdaten');
-  const isOrganisationsuebergreifend = scope === 'organisationsuebergreifend';
-
   return (
     <div
       data-testid={`print-tile-${tile.tileId}`}
@@ -157,26 +148,12 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
                 Eingeschränkt
               </span>
             )}
-            {isOrganisationsuebergreifend && (
-              <span
-                data-testid={`print-tile-scope-${tile.tileId}`}
-                className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"
-                title="Live-Feed für alle Organisationen"
-              >
-                Organisationsweit
-              </span>
-            )}
             <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
               {tile.view} · {layer}
             </span>
           </div>
         </div>
         <h3 className="text-sm font-bold text-slate-900 mb-1">{name}</h3>
-        {isOrganisationsuebergreifend && (
-          <p className="text-[10px] text-indigo-700 mb-2 leading-tight">
-            Live-Feed: Gilt für alle Organisationen (nicht nach Mandant getrennt).
-          </p>
-        )}
       </div>
 
       {data && data.state !== 'nicht_verfuegbar' && data.overview ? (

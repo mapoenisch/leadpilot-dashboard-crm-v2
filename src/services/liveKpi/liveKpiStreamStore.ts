@@ -9,7 +9,13 @@
  */
 
 import { isSupportedLiveKpiId } from './liveKpiDefinitions';
-import { compareSnapshots, mergeIntoHistory, normalizeHistory } from './liveKpiStreamHistory';
+import {
+  compareSnapshots,
+  mergeIntoHistory,
+  normalizeHistory,
+  mergeFetchedLatest,
+  commitFetchError,
+} from './liveKpiStreamHistory';
 import { logger } from '@/services/logger';
 import {
   isLiveKpiReadConfigured,
@@ -52,6 +58,7 @@ export interface LiveKpiStreamStore {
   getFeedConnectionState(): LiveKpiFeedConnectionState;
   subscribe(kpiId: string, listener: () => void): () => void;
   refresh(kpiId: string): Promise<void>;
+  reset(): void;
 }
 
 export interface LiveKpiStreamAdapter {
@@ -93,47 +100,6 @@ const DEFAULT_SNAPSHOT_STATE: LiveKpiStreamState = Object.freeze({
   status: 'unconfigured',
   error: null,
 }) as LiveKpiStreamState;
-
-/**
- * G34: fetchLatest-Nachzug teilen sich propagateStatus (Feed live) und refresh.
- * Guards bleiben an den Aufrufstellen (unterschiedlich); nur der Merge ist gemeinsam.
- */
-function mergeFetchedLatest(
-  entry: StreamEntry,
-  latest: LiveKpiSnapshot | null,
-  commitEntry: (target: StreamEntry, next: LiveKpiStreamState) => void,
-): void {
-  if (latest) {
-    const currentSnap = entry.state.snapshot;
-    const isNewer = currentSnap === null || compareSnapshots(latest, currentSnap) > 0;
-    const updatedHistory = mergeIntoHistory(entry.state.history, latest);
-    commitEntry(entry, {
-      ...entry.state,
-      snapshot: isNewer ? latest : currentSnap,
-      history: Object.freeze(updatedHistory),
-      status: 'live',
-      error: null,
-    });
-  } else {
-    commitEntry(entry, {
-      ...entry.state,
-      status: 'live',
-      error: null,
-    });
-  }
-}
-
-function commitFetchError(
-  entry: StreamEntry,
-  err: unknown,
-  commitEntry: (target: StreamEntry, next: LiveKpiStreamState) => void,
-): void {
-  commitEntry(entry, {
-    ...entry.state,
-    status: 'error',
-    error: err instanceof Error ? err : new Error(String(err)),
-  });
-}
 
 export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): LiveKpiStreamStore {
   const adapter: LiveKpiStreamAdapter = customAdapter || {
@@ -320,6 +286,41 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
     };
   }
 
+  function loadInitialHistory(entry: StreamEntry): void {
+    const sinceIso = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    adapter
+      .fetchLiveKpiHistory(entry.kpiId, sinceIso, 30)
+      .then((items) => {
+        if (entries.get(entry.kpiId) !== entry) return;
+        const merged = normalizeHistory([...items, ...entry.state.history]);
+        let newSnapshot = entry.state.snapshot;
+        if (merged.length > 0) {
+          const latestInMerged = merged[merged.length - 1];
+          if (
+            latestInMerged !== undefined &&
+            (newSnapshot === null || compareSnapshots(latestInMerged, newSnapshot) > 0)
+          ) {
+            newSnapshot = latestInMerged;
+          }
+        }
+        const nextStatus = merged.length > 0 ? 'live' : entry.state.status;
+        commit(entry, {
+          ...entry.state,
+          history: Object.freeze(merged),
+          snapshot: newSnapshot,
+          status: nextStatus,
+        });
+      })
+      .catch((err) => {
+        if (entries.get(entry.kpiId) !== entry) return;
+        commit(entry, {
+          ...entry.state,
+          status: 'error',
+          error: err instanceof Error ? err : new Error(String(err)),
+        });
+      });
+  }
+
   return {
     acquire(kpiId: string): () => void {
       if (!isSupportedLiveKpiId(kpiId)) {
@@ -362,42 +363,7 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
           });
 
           // 1. Initialer Historienabruf der letzten 30 Minuten
-          const sinceIso = new Date(Date.now() - 30 * 60 * 1000).toISOString();
-          adapter
-            .fetchLiveKpiHistory(kpiId, sinceIso, 30)
-            .then((items) => {
-              if (entries.get(kpiId) !== entry) return;
-              // Event-Race Schutz: Vor Eintreffen des History-Reads bereits empfangene
-              // Realtime-Events in entry.state.history bleiben vollständig erhalten
-              const merged = normalizeHistory([...items, ...entry.state.history]);
-              let newSnapshot = entry.state.snapshot;
-              if (merged.length > 0) {
-                const latestInMerged = merged[merged.length - 1];
-                if (
-                  latestInMerged !== undefined &&
-                  (newSnapshot === null || compareSnapshots(latestInMerged, newSnapshot) > 0)
-                ) {
-                  newSnapshot = latestInMerged;
-                }
-              }
-              // G33 Fix A: Status live — aber nur bei nichtleerer History.
-              // Leere History → Status bleibt (loading bis Kanal).
-              const nextStatus = merged.length > 0 ? 'live' : entry.state.status;
-              commit(entry, {
-                ...entry.state,
-                history: Object.freeze(merged),
-                snapshot: newSnapshot,
-                status: nextStatus,
-              });
-            })
-            .catch((err) => {
-              if (entries.get(kpiId) !== entry) return;
-              commit(entry, {
-                ...entry.state,
-                status: 'error',
-                error: err instanceof Error ? err : new Error(String(err)),
-              });
-            });
+          loadInitialHistory(entry);
 
           // 2. Realtime läuft über den zentralen Feed (ensureFeed oben);
           // Events/Status kommen via routeEvent/propagateStatus.
@@ -492,6 +458,35 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
       } catch (err) {
         if (entries.get(kpiId) !== entry) return;
         commitFetchError(entry, err, commit);
+      }
+    },
+
+    reset(): void {
+      if (feedSubscription) {
+        feedSubscription.unsubscribe();
+        feedSubscription = null;
+      }
+      feedRefCount = 0;
+      feedConnectionState = 'offline';
+
+      for (const [kpiId, entry] of Array.from(entries.entries())) {
+        if (entry.retentionTimer !== null) {
+          clearTimeout(entry.retentionTimer);
+          entry.retentionTimer = null;
+        }
+        if (entry.refCount <= 0) {
+          entry.listeners.clear();
+          entries.delete(kpiId);
+        } else {
+          entry.feedActive = false;
+          commit(entry, makeFreshState(adapter.isLiveKpiReadConfigured()));
+          if (adapter.isLiveKpiReadConfigured()) {
+            entry.feedActive = true;
+            feedRefCount++;
+            ensureFeedSubscription();
+            loadInitialHistory(entry);
+          }
+        }
       }
     },
   };

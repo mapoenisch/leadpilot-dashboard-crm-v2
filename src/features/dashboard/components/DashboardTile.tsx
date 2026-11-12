@@ -64,8 +64,6 @@ const SCROLLING_VIEWS: readonly DashboardView[] = ['tabelle', 'uebersicht'];
 /** Live-Kacheln: feste Höhe für bis zu drei Hinweiszeilen; mehr scrollt. */
 const NOTICE_SLOT_CLASS = 'h-[56px] overflow-y-auto';
 export const DETAILS_BLOCKED_HINT = 'Erst speichern, dann Details öffnen.';
-const SCOPE_NOTICE =
-  'Live-Feed, nicht nach Organisation getrennt: Die Werte gelten für alle Organisationen.';
 
 /** Vorsilbe der Ansage, wenn der Text allein den Zustand nicht nennt. */
 const STATE_PREFIX: Partial<Record<TileData['state'], string>> = {
@@ -212,11 +210,6 @@ export function DashboardTile({
           <TileStateBadge data={data} />
         </header>
 
-        {resolved?.scope === 'organisationsuebergreifend' ? (
-          <p data-testid="tile-scope-notice" className="m-0 text-[12px] text-accent">
-            {SCOPE_NOTICE}
-          </p>
-        ) : null}
         {/* Live-Hinweise (veraltet, eingeschränkt) erscheinen nach dem Laden: zwei Zeilen reservieren. */}
         <div
           data-testid="tile-notice-slot"

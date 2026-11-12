@@ -1,8 +1,10 @@
-// G46-Nacharbeit (Review): Struktur-Gegenfälle für den n8n-Ingress.
+// G46-Nacharbeit (Review) / Auftrag 153: Struktur-Gegenfälle für den n8n-Ingress.
 // Beweist auf Workflow-Ebene: Original-Request-Bytes bleiben erhalten
 // (Webhook Raw Body), der Pass-Through reserialisiert Strings nicht, die
 // Verify-Logik akzeptiert Whitespace-/Key-Order-Varianten mit jeweils
-// passender Signatur, und die Guard-Kette zum DB-Node ist geschlossen.
+// passender Signatur über sender.timestamp.nonce.rawBody, der Verify-Node
+// prüft den X-LeadPilot-Sender Header und weist Body-Organisationsfelder ab,
+// und die Guard-Kette zum DB-Node ist geschlossen.
 // Lesen des Workflow-JSON braucht --allow-read.
 import { assert, assertEquals } from '@std/assert';
 import { verifySignedRequest } from '../_shared/verifyLeadPilotSignature.ts';
@@ -127,12 +129,17 @@ Deno.test('Verify-Node weist fachlich ungültige Payloads vor DB-Zugriff ab (Har
   const now = Date.now();
   const timestamp = new Date(now).toISOString();
 
-  async function runVerify(rawBody: string, nonce: string): Promise<Record<string, unknown>> {
+  async function runVerify(
+    rawBody: string,
+    nonce: string,
+    sender: string | null = 'n8n-sender',
+  ): Promise<Record<string, unknown>> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Harness-Signatur spiegelt n8n-Globale ($-Funktion mit Node-Namen); der Name ist Doku.
     const $ = (_name: string) => ({
       first: () => ({
         json: {
           headers: {
+            ...(sender !== null ? { 'x-leadpilot-sender': sender } : {}),
             'x-leadpilot-timestamp': timestamp,
             'x-leadpilot-nonce': nonce,
             'x-leadpilot-signature': 'harness-dummy (Crypto-Node prüft später)',
@@ -157,6 +164,32 @@ Deno.test('Verify-Node weist fachlich ungültige Payloads vor DB-Zugriff ab (Har
   );
   assertEquals(good['valid'], true);
   assertEquals(good['kpiId'], 'arr');
+  assertEquals(good['sender'], 'n8n-sender');
+  assert(
+    String(good['signatureBase'] ?? '').startsWith('n8n-sender.'),
+    'Signaturbasis beginnt mit Absender',
+  );
+
+  const missingSender = await runVerify(
+    JSON.stringify({ kpiId: 'arr', unit: 'EUR', sourceSystem: 'n8n-harness', value: 10 }),
+    'vh-1b',
+    null,
+  );
+  assertEquals(missingSender['valid'], false);
+  assertEquals(missingSender['code'], 'INGEST_SENDER_MISSING');
+
+  const orgInBody = await runVerify(
+    JSON.stringify({
+      kpiId: 'arr',
+      unit: 'EUR',
+      sourceSystem: 'n8n-harness',
+      value: 10,
+      organizationId: 'org-1',
+    }),
+    'vh-1c',
+  );
+  assertEquals(orgInBody['valid'], false);
+  assertEquals(orgInBody['code'], 'INGEST_ORGANIZATION_IN_BODY');
 
   const badUnit = await runVerify(
     JSON.stringify({ kpiId: 'arr', unit: 'count', sourceSystem: 'n8n-harness', value: 10 }),
@@ -184,6 +217,7 @@ Deno.test('Whitespace-/Key-Order-Varianten verifizieren je mit eigener Signatur'
   const secret = 'struktur-test-secret';
   const now = Date.parse('2026-09-17T12:00:00.000Z');
   const timestamp = new Date(now).toISOString();
+  const sender = 'n8n-sender';
   const variants = [
     '{"kpiId":"arr","unit":"EUR","sourceSystem":"n8n-harness","value":411840}',
     '{ "kpiId" : "arr" , "unit" : "EUR" , "sourceSystem" : "n8n-harness" , "value" : 411840 }',
@@ -192,10 +226,10 @@ Deno.test('Whitespace-/Key-Order-Varianten verifizieren je mit eigener Signatur'
   let n = 0;
   for (const rawBody of variants) {
     const nonce = `struktur-${n++}`;
-    const signature = await hmacSha256Hex(secret, `${timestamp}.${nonce}.${rawBody}`);
+    const signature = await hmacSha256Hex(secret, `${sender}.${timestamp}.${nonce}.${rawBody}`);
     const result = await verifySignedRequest(
       rawBody,
-      { timestamp, nonce, signature },
+      { sender, timestamp, nonce, signature },
       secret,
       now,
     );
@@ -260,7 +294,7 @@ Deno.test('keine verwaisten Connections im Workflow', async () => {
   }
 });
 
-Deno.test('Guard-Kette Webhook bis DB-Node ist geschlossen', async () => {
+Deno.test('Guard-Kette Webhook bis DB-Node ist geschlossen und übergibt sender', async () => {
   const workflow = await readWorkflow();
   const names = new Set((workflow.nodes ?? []).map((node) => node.name ?? ''));
   for (
@@ -293,6 +327,22 @@ Deno.test('Guard-Kette Webhook bis DB-Node ist geschlossen', async () => {
     claimQuery.includes('claim_ingress_slot'),
     'Claim-Node nutzt atomaren Slot-RPC (Rate-Limit im n8n-Pfad)',
   );
+  const claimParams = String(
+    ((claim?.parameters ?? {}) as Record<string, unknown>)['additionalFields'] ?
+      JSON.stringify(((claim?.parameters ?? {}) as Record<string, unknown>)['additionalFields']) : ''
+  );
+  assert(
+    claimParams.includes('sender'),
+    'Claim-Node übergibt Absender an Slot-RPC',
+  );
+
+  const rpc = (workflow.nodes ?? []).find((node) => node.name === 'Execute Ingest RPC (Postgres)');
+  const rpcQuery = String(((rpc?.parameters ?? {}) as Record<string, unknown>)['query'] ?? '');
+  assert(
+    rpcQuery.includes('ingest_live_kpi_event($1::text, $2::jsonb)'),
+    'Execute Ingest RPC nutzt Signatur (text, jsonb) mit Absender',
+  );
+
   const slotSwitch = (workflow.nodes ?? []).find((node) => node.name === 'Slot Status');
   const switchText = JSON.stringify(slotSwitch?.parameters ?? {});
   for (const branch of ['ok', 'replay', 'rate_limited']) {

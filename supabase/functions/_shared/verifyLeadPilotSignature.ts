@@ -1,11 +1,13 @@
-// G46 (Auftrag 067C, Step 3): Timing-sichere HMAC-SHA-256-Prüfung für den
+// G46 (Auftrag 067C, Step 3) / Auftrag 153: Timing-sichere HMAC-SHA-256-Prüfung für den
 // Live-KPI-Ingress (Design §10.1). Signatur über
-// timestamp + "." + nonce + "." + rawBody, Fünf-Minuten-Fenster, Nonce-Einmaligkeit
-// (über injizierbaren Store — produktiv DB-gestützt), Body-Limit und
+// sender + "." + timestamp + "." + nonce + "." + rawBody, Fünf-Minuten-Fenster,
+// Nonce-Einmaligkeit (über injizierbaren Store — produktiv DB-gestützt), Body-Limit,
+// Ausschluss von Organisationsfeldern im Body (INGEST_ORGANIZATION_IN_BODY) und
 // KPI-Allowlist aus dem Live-KPI-Katalog (12 IDs). Vor jedem privilegierten
 // DB-Zugriff auszuführen.
 
 export interface IngressHeaders {
+  sender: string;
   timestamp: string;
   nonce: string;
   signature: string;
@@ -17,6 +19,8 @@ export interface NonceStore {
 }
 
 export type IngressRejectCode =
+  | 'INGEST_SENDER_MISSING'
+  | 'INGEST_SENDER_UNKNOWN'
   | 'INGEST_SIGNATURE_MISSING'
   | 'INGEST_SIGNATURE_INVALID'
   | 'INGEST_TIMESTAMP_INVALID'
@@ -26,7 +30,8 @@ export type IngressRejectCode =
   | 'INGEST_KPI_UNKNOWN'
   | 'INGEST_KPI_UNIT_MISMATCH'
   | 'INGEST_KPI_SOURCE_INVALID'
-  | 'INGEST_KPI_VALUE_INVALID';
+  | 'INGEST_KPI_VALUE_INVALID'
+  | 'INGEST_ORGANIZATION_IN_BODY';
 
 export type VerificationResult = { ok: true } | { ok: false; code: IngressRejectCode };
 
@@ -73,14 +78,16 @@ export type KpiRejectCode =
   | 'INGEST_KPI_UNKNOWN'
   | 'INGEST_KPI_UNIT_MISMATCH'
   | 'INGEST_KPI_SOURCE_INVALID'
-  | 'INGEST_KPI_VALUE_INVALID';
+  | 'INGEST_KPI_VALUE_INVALID'
+  | 'INGEST_ORGANIZATION_IN_BODY';
 
 export interface KpiValidation {
   ok: boolean;
   code?: KpiRejectCode;
 }
 
-// Fachvalidierung VOR jedem privilegierten DB-Zugriff (Design §10.1):
+// Fachvalidierung VOR jedem privilegierten DB-Zugriff (Design §10.1, Auftrag 153):
+// Organisation darf NIEMALS im Body stehen;
 // KPI-ID aus Allowlist, Einheit passend, Quelle im Identifier-Format,
 // Wert endlich und im plausiblen Bereich.
 export function validateKpiPayload(payload: unknown): KpiValidation {
@@ -88,6 +95,12 @@ export function validateKpiPayload(payload: unknown): KpiValidation {
     return { ok: false, code: 'INGEST_KPI_UNKNOWN' };
   }
   const record = payload as Record<string, unknown>;
+
+  // Auftrag 153 §2.3: Organisation darf niemals im Body übergeben werden
+  if (record['organizationId'] !== undefined || record['organization_id'] !== undefined) {
+    return { ok: false, code: 'INGEST_ORGANIZATION_IN_BODY' };
+  }
+
   const kpiId = record['kpiId'];
   if (typeof kpiId !== 'string' || !ALLOWED_KPI_IDS.includes(kpiId)) {
     return { ok: false, code: 'INGEST_KPI_UNKNOWN' };
@@ -143,6 +156,14 @@ export async function verifySignedRequest(
   nowMs: number,
   nonceStore?: NonceStore,
 ): Promise<VerificationResult> {
+  const sender = (headers.sender ?? '').trim();
+  if (!sender) {
+    return fail('INGEST_SENDER_MISSING');
+  }
+  if (!IDENTIFIER_PATTERN.test(sender)) {
+    return fail('INGEST_SENDER_UNKNOWN');
+  }
+
   const timestamp = (headers.timestamp ?? '').trim();
   const nonce = (headers.nonce ?? '').trim();
   const signature = (headers.signature ?? '').trim().toLowerCase();
@@ -163,7 +184,7 @@ export async function verifySignedRequest(
     return fail('INGEST_TIMESTAMP_EXPIRED');
   }
 
-  const expected = await hmacSha256Hex(secret, `${timestamp}.${nonce}.${rawBody}`);
+  const expected = await hmacSha256Hex(secret, `${sender}.${timestamp}.${nonce}.${rawBody}`);
   if (!timingSafeEqualHex(signature, expected)) {
     return fail('INGEST_SIGNATURE_INVALID');
   }

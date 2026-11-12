@@ -32,9 +32,10 @@ SELECT ok(
         'imported_funnel_deals',
         'audit_log',
         'dashboards',
-        'dashboard_revisions'
+        'dashboard_revisions',
+        'live_kpi_ingest_senders'
       )
-  ) >= 9,
+  ) >= 10,
   'Kern-Tabellen existieren im Schema public'
 );
 

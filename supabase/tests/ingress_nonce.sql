@@ -6,7 +6,7 @@
 
 BEGIN;
 
-SELECT plan(9);
+SELECT plan(11);
 
 -- ------------------------------------------------- 1..3: Claim-Semantik
 SELECT is(
@@ -27,7 +27,7 @@ SELECT is(
   'Leere Nonce wird abgewiesen'
 );
 
--- ------------------------------------------------- 4..6: Atomarer Slot
+-- ------------------------------------------------- 4..8: Atomarer Slot und Rate-Limit je Absender
 SELECT is(
   public.claim_ingress_slot('g46-test-slot-1', NULL, 'pgtest', 120),
   'ok',
@@ -44,6 +44,18 @@ SELECT is(
   public.claim_ingress_slot('g46-test-slot-2', NULL, 'pgtest', 0),
   'rate_limited',
   'Slot mit erschöpftem Bucket ist rate_limited'
+);
+
+SELECT is(
+  public.claim_ingress_slot('g46-test-sender-a-1', NULL, 'sender-a', 1),
+  'ok',
+  'Sender A erster Slot ist ok'
+);
+
+SELECT is(
+  public.claim_ingress_slot('g46-test-sender-b-1', NULL, 'sender-b', 1),
+  'ok',
+  'Sender B Slot ist ok unabhängig von Sender A'
 );
 
 -- ------------------------------------------------- 7..9: Grant-Deny
