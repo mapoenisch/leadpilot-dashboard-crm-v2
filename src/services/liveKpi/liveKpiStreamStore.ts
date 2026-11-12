@@ -27,6 +27,7 @@ import {
   type LiveKpiReadStatus,
   type LiveKpiSubscription,
 } from './liveKpiReadAdapter';
+import { registerLiveKpiStoreReset } from './liveKpiTenantScope';
 
 export interface LiveKpiStreamState {
   snapshot: LiveKpiSnapshot | null;
@@ -493,3 +494,6 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
 }
 
 export const liveKpiStreamStore: LiveKpiStreamStore = createLiveKpiStreamStore();
+registerLiveKpiStoreReset(() => {
+  liveKpiStreamStore.reset();
+});

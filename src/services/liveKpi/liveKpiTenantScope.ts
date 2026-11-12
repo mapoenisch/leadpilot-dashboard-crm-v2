@@ -3,16 +3,26 @@
  *
  * Verwaltet die organisationsgebundene Bindung des Live-KPI-Streams im Browser.
  * Hält die aktuell aktive Mandanten-ID. Bei Wechsel oder Abmeldung (null)
- * wird der liveKpiStreamStore synchron zurückgesetzt, sodass keine Daten der
- * vorherigen Organisation sichtbar bleiben.
+ * wird der registrierte Store synchron zurückgesetzt.
+ *
+ * Entkoppelt von liveKpiStreamStore via Callback-Registrierung, damit dieser
+ * Scope schlank bleibt und keine Store-Dependencies in den Initial-Bundle zieht.
  */
 
-import { liveKpiStreamStore } from './liveKpiStreamStore';
-
 let activeOrganizationId: string | null = null;
+let resetStoreCallback: (() => void) | null = null;
 
 export function getLiveKpiOrganization(): string | null {
   return activeOrganizationId;
+}
+
+export function registerLiveKpiStoreReset(callback: () => void): () => void {
+  resetStoreCallback = callback;
+  return () => {
+    if (resetStoreCallback === callback) {
+      resetStoreCallback = null;
+    }
+  };
 }
 
 export function setLiveKpiOrganization(organizationId: string | null): void {
@@ -21,7 +31,7 @@ export function setLiveKpiOrganization(organizationId: string | null): void {
     return;
   }
   activeOrganizationId = normalized;
-  liveKpiStreamStore.reset();
+  resetStoreCallback?.();
 }
 
 /**

@@ -1,6 +1,5 @@
 import React from 'react';
 import type { DashboardTileConfig, DashboardFilters } from '../../model/dashboardConfig';
-import { getCatalogEntry } from '../../model/dashboardCatalog';
 import type { ReportExportConfig } from './DashboardReportModal';
 import type { TileDataHook } from '../LazyDashboardTile';
 import type { TileData } from '../../data/dashboardData';

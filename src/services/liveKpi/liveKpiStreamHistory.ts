@@ -1,4 +1,4 @@
-import type { LiveKpiSnapshot } from './liveKpiReadAdapter';
+import type { LiveKpiSnapshot, LiveKpiReadStatus } from './liveKpiReadAdapter';
 
 /**
  * Vergleicht zwei Snapshots lexikografisch nach (occurredAt, ingestedAt).
@@ -48,7 +48,7 @@ export function normalizeHistory(rawItems: LiveKpiSnapshot[]): LiveKpiSnapshot[]
 export interface StreamStateLike {
   snapshot: LiveKpiSnapshot | null;
   history: readonly LiveKpiSnapshot[];
-  status: any;
+  status: LiveKpiReadStatus;
   error: Error | null;
 }
 
