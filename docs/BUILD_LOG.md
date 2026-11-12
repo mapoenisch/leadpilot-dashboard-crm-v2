@@ -20928,3 +20928,12 @@ git diff 4c97041 -- src/simulation src/types src/context src/services/data src/f
 
 Gebaut und vollständig lokal und gegen die lokale Supabase-Instanz verifiziert. Bereit für unabhängiges Review (Codex auf GitHub) gemäß `CLAUDE.md` §4.1.
 
+### Nacharbeit Codex-Review (PR #178, P2-Befund)
+
+**Prüfer:** Codex (GitHub App) · **Geprüfter Stand:** `7137d47` · **Datum:** 2026-11-12
+- **Befund (P2):** `crm-query-export`: Seitenende gegen Zeilengrenze prüfen. Bei Seitengrößen, die 10.000 nicht glatt teilen (z. B. `page: 102, pageSize: 99`), passierte die vorherige Prüfung `(page - 1) * pageSize >= MAX_NON_EXPORT_ROWS` mit Startoffset 9.999, forderte aber 9.999–10.097 an.
+- **Behebung:**
+  - `supabase/functions/crm-query-export/index.ts`: Prüfung auf `page * pageSize > MAX_NON_EXPORT_ROWS` umgestellt. Dadurch werden alle Nicht-Export-Anfragen, deren Seitenende über 10.000 liegt, mit 400 `ROW_LIMIT_EXCEEDED` abgewiesen. Dateilänge bleibt mit 398 Zeilen unter 400 Zeilen.
+  - `supabase/functions/__tests__/crmStageFilter.test.ts`: Testfall für `page: 102, pageSize: 99` ergänzt (erfolgreich abgewiesen).
+- **Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0/0; `deno check` & `deno test` 76/76 Tests grün; `npm run format:check` grün; Schutzbereichs-Diff leer.
+

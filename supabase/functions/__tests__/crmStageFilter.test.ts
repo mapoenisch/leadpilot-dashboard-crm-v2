@@ -408,4 +408,22 @@ Deno.test('crm-query-export: Nicht-Export weist Anfragen ab Zeilengrenze 10.000 
   assertEquals(res.status, 400);
   const json = await res.json();
   assertEquals(json.code, 'ROW_LIMIT_EXCEEDED');
+
+  // Codex P2: Seite, deren Startoffset noch < 10.000 ist, aber deren Ende > 10.000 liegt (z. B. 102 * 99 = 10.098)
+  const reqOverEnd = new Request('http://localhost/crm-query-export', {
+    method: 'POST',
+    headers: {
+      Authorization: 'Bearer admin-1',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      resource: 'deals',
+      page: 102,
+      pageSize: 99,
+    }),
+  });
+  const resOverEnd = await handleCrmQueryExport(reqOverEnd, db);
+  assertEquals(resOverEnd.status, 400);
+  const jsonOverEnd = await resOverEnd.json();
+  assertEquals(jsonOverEnd.code, 'ROW_LIMIT_EXCEEDED');
 });

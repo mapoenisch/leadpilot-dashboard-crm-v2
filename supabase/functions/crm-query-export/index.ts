@@ -164,7 +164,7 @@ export async function handleCrmQueryExport(req: Request, db: CrmQueryDb): Promis
   if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
     return bad('Ungültiger pageSize-Parameter.');
   }
-  if (action !== 'export' && (page - 1) * pageSize >= MAX_NON_EXPORT_ROWS) {
+  if (action !== 'export' && page * pageSize > MAX_NON_EXPORT_ROWS) {
     return bad(
       `Zeilengrenze von ${MAX_NON_EXPORT_ROWS} für Nicht-Exporte überschritten.`,
       'ROW_LIMIT_EXCEEDED',
