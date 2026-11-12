@@ -75,14 +75,17 @@ export async function readRevision(s: Session = session()): Promise<number> {
   return (await readRow(s))?.revision ?? 0;
 }
 
+const DEFAULT_E2E_ORG_ID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+
 /**
- * Auftrag 079 (Realtime): ein Live-Wert im öffentlichen Feed, nur gegen ein lokales Supabase und
+ * Auftrag 079 / 153 (Realtime): ein Live-Wert im Feed der Testorganisation, nur gegen ein lokales Supabase und
  * nur mit dem Aufräumschlüssel. Liefert das Entfernen genau dieser Zeile.
  */
 export async function insertLiveFeedRow(
   kpiId: string,
   value: number,
   unit: string,
+  organizationId: string = DEFAULT_E2E_ORG_ID,
 ): Promise<() => Promise<void>> {
   const url = requireEnv('E2E_SUPABASE_URL');
   const key = requireEnv('E2E_CLEANUP_KEY');
@@ -97,6 +100,7 @@ export async function insertLiveFeedRow(
     method: 'POST',
     headers: { ...headers, Prefer: 'return=representation' },
     body: JSON.stringify({
+      organization_id: organizationId,
       kpi_id: kpiId,
       value,
       unit,
