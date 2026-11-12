@@ -7,7 +7,7 @@
 **Vorgelagert:** Auftrag 149 (P06, PR #174), Auftrag 150 (P07, PR #175).
 **Baseline:** `main`, Commit `ad812c4` (nach Merge PR #176).
 **Builder:** Claude Code. **Prüfer:** Codex (GitHub) gemäß `CLAUDE.md` §4.1. **Merge:** Marc.
-**Status:** GEBAUT, wartet auf unabhängiges Review.
+**Status:** GEMERGT (PR #177, Codex P2 nachgearbeitet).
 
 ---
 
