@@ -200,6 +200,18 @@ async function run() {
 
   log(`Abonnements aktiv: Client A=${subA}, Client B=${subB}, Client Anon=${subAnon}`);
 
+  if (!subA) {
+    throw new Error('Verbindungsaufbau für Client A fehlgeschlagen (Kanal nicht beigetreten). Test abgebrochen.');
+  }
+  if (!subB) {
+    throw new Error(
+      'Verbindungsaufbau für Client B fehlgeschlagen (Kanal nicht beigetreten). Mandantenisolationsnachweis kann bei getrenntem Client nicht erbracht werden.',
+    );
+  }
+  if (!subAnon) {
+    log('Hinweis: Client Anon konnte Kanal nicht beitreten (Abonnement ohne Auth durch Server abgewiesen).');
+  }
+
   // 4. Test-Event für Organisation A einfügen
   const testKpiValue = Math.floor(Math.random() * 1000000) + 100000;
   const now = new Date().toISOString();
@@ -263,7 +275,11 @@ async function run() {
   }
 
   if (receivedAnon.length === 0) {
-    console.log('✅ Client Anon hat KEIN Event empfangen (Anon-RLS-Schutz bestätigt).');
+    if (subAnon) {
+      console.log('✅ Client Anon war verbunden, hat aber KEIN Event empfangen (RLS-Filterung bestätigt).');
+    } else {
+      console.log('✅ Client Anon wurde bereits am Kanal abgewiesen (Abonnement ohne Berechtigung unterbunden).');
+    }
   } else {
     console.error(`❌ SICHERHEITSFEHLER: Client Anon hat ${receivedAnon.length} Ereignisse empfangen!`);
     failed = true;
