@@ -59,3 +59,11 @@ Zusätzlicher Fund bei der Gegenprüfung: Die V2-Speichervalidierung (`dashboard
 
 - **F-01:** Echte Werte sollen möglich sein → Auftrag 153, Betriebsregel bis dahin siehe §2.4.
 - **Reihenfolge:** wie empfohlen, 152 direkt nach 151 und vor P08; danach 153.
+
+## 4. Nachtrag zur Umsetzung (12.11.2026)
+
+- **F-01 behoben in Auftrag 153 (Branch `auftrag-153-livekpi-mandantenbindung`):**
+  - **Datenbank & RLS:** Migration `20261115_live_kpi_tenant_binding.sql` führt `organization_id` verpflichtend (`NOT NULL`) in `live_kpi_events`, `live_kpi_public_feed` und `live_kpi_rejections`. Tabellen- und Realtime-Zugriff für `anon` vollständig entzogen. Authentifizierte Mitglieder lesen ausschließlich Daten ihrer aktiven Organisation über RLS-Policy `current_organization_id()`. Bestandsdaten wurden der Demo-Organisation zugeordnet.
+  - **Server-seitige Mandantenableitung:** Neues Absenderregister `live_kpi_ingest_senders` mappt signierte Absender (`X-LeadPilot-Sender` + HMAC mit Absender-Secret) direkt auf `organization_id`. Payloads mit Organisationsfeldern (`organizationId`, `organization_id`) werden im Ingress mit 422 abgelehnt.
+  - **Read-Adapter & UI:** `scope` für Live-Kennzahlen auf `'organisation'` umgestellt; organisationsweiter Hinweis entfernt; Read-Adapter bindet Snapshot, Historie und Realtime-Kanal strikt an die aktive Organisation (kein Abo und keine Abfrage ohne authentifizierte Sitzung).
+  - **Betriebsregel:** Die Betriebsregel („keine echten Kennzahlen einspeisen“) bleibt bis zum Merge von PR #153 und Abschluss der 6 Hosted-Umstellungsschritte bestehen.

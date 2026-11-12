@@ -76,7 +76,7 @@ describe('DashboardTile', () => {
     renderTile(
       resolved({
         origin: { layer: 'live', module: 'm', exportName: 'e', liveKpiId: 'arr' },
-        scope: 'organisationsuebergreifend',
+        scope: 'organisation',
         timeBasis: 'Live',
         asOf: '2026-10-04T12:05:00Z',
       }),
@@ -111,11 +111,15 @@ describe('DashboardTile', () => {
     expect(reference).toHaveTextContent('Die Quelle hat kein belegtes Datumsfeld.');
   });
 
-  it('weist nur bei organisationsübergreifenden Live-Werten auf den Geltungsbereich hin', () => {
-    renderTile(resolved({ scope: 'organisationsuebergreifend' }));
-    expect(screen.getByTestId('tile-scope-notice')).toHaveTextContent(
-      'Live-Feed, nicht nach Organisation getrennt',
+  it('zeigt für organisationsgebundene Kennzahlen (inkl. Live-Feed) keinen Sonderhinweis auf den Geltungsbereich', () => {
+    renderTile(
+      resolved({
+        origin: { layer: 'live', module: 'm', exportName: 'e', liveKpiId: 'arr' },
+        scope: 'organisation',
+        timeBasis: 'Live',
+      }),
     );
+    expect(screen.queryByTestId('tile-scope-notice')).toBeNull();
   });
 
   it.each(['stammdaten', 'organisation'] as const)(

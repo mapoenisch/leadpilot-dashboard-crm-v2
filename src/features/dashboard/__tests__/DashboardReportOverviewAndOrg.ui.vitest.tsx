@@ -146,7 +146,7 @@ describe('DashboardReport: Übersichtskacheln & Mandantenbindung (Auftrag 132 Ru
     expect(getByText('Organisation org-mandant-99')).toBeInTheDocument();
     expect(
       screen.getByText(
-        /unterliegen den Datenzugriffsrechten des Mandanten Organisation org-mandant-99;/i,
+        /unterliegen den Datenzugriffsrechten des Mandanten Organisation org-mandant-99\./i,
       ),
     ).toBeInTheDocument();
   });

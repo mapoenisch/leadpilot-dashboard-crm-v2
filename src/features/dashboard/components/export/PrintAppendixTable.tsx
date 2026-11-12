@@ -46,15 +46,6 @@ export const PrintAppendixRows: React.FC<PrintAppendixRowsProps> = ({
       ? 'Unwirksam (nur CRM)'
       : 'Alle';
 
-  const scope =
-    (data && 'scope' in data ? data.scope : undefined) ??
-    (layer === 'live'
-      ? 'organisationsuebergreifend'
-      : layer === 'crm'
-        ? 'organisation'
-        : 'stammdaten');
-  const isOrganisationsuebergreifend = scope === 'organisationsuebergreifend';
-
   const rowClass =
     isVeraltet || isDegradiert
       ? 'border-amber-100 bg-amber-50/20'
@@ -77,14 +68,7 @@ export const PrintAppendixRows: React.FC<PrintAppendixRowsProps> = ({
       )}
     </>
   );
-  const layerCell = (
-    <>
-      {layer}
-      {isOrganisationsuebergreifend && (
-        <span className="block text-[10px] text-indigo-700 font-medium">Organisationsweit</span>
-      )}
-    </>
-  );
+  const layerCell = <>{layer}</>;
 
   if (data && data.state === 'fehler') {
     return (

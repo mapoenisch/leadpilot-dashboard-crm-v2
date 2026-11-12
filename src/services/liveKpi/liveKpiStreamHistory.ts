@@ -1,4 +1,4 @@
-import type { LiveKpiSnapshot } from './liveKpiReadAdapter';
+import type { LiveKpiSnapshot, LiveKpiReadStatus } from './liveKpiReadAdapter';
 
 /**
  * Vergleicht zwei Snapshots lexikografisch nach (occurredAt, ingestedAt).
@@ -43,4 +43,48 @@ export function normalizeHistory(rawItems: LiveKpiSnapshot[]): LiveKpiSnapshot[]
     return deduped.slice(deduped.length - 30);
   }
   return deduped;
+}
+
+export interface StreamStateLike {
+  snapshot: LiveKpiSnapshot | null;
+  history: readonly LiveKpiSnapshot[];
+  status: LiveKpiReadStatus;
+  error: Error | null;
+}
+
+export function mergeFetchedLatest<E extends { state: S }, S extends StreamStateLike>(
+  entry: E,
+  latest: LiveKpiSnapshot | null,
+  commitEntry: (target: E, next: S) => void,
+): void {
+  if (latest) {
+    const currentSnap = entry.state.snapshot;
+    const isNewer = currentSnap === null || compareSnapshots(latest, currentSnap) > 0;
+    const updatedHistory = mergeIntoHistory(entry.state.history, latest);
+    commitEntry(entry, {
+      ...entry.state,
+      snapshot: isNewer ? latest : currentSnap,
+      history: Object.freeze(updatedHistory),
+      status: 'live',
+      error: null,
+    });
+  } else {
+    commitEntry(entry, {
+      ...entry.state,
+      status: 'live',
+      error: null,
+    });
+  }
+}
+
+export function commitFetchError<E extends { state: S }, S extends StreamStateLike>(
+  entry: E,
+  err: unknown,
+  commitEntry: (target: E, next: S) => void,
+): void {
+  commitEntry(entry, {
+    ...entry.state,
+    status: 'error',
+    error: err instanceof Error ? err : new Error(String(err)),
+  });
 }

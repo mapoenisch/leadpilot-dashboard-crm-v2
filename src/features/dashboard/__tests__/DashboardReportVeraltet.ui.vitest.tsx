@@ -185,7 +185,7 @@ describe('DashboardReport Veraltete Live-Werte & Auswahl-Sync (Auftrag 132 Runde
       timeBasis: 'Live-Stream',
       asOf: '2026-10-04T12:05:00Z',
       origin: { layer: 'live', module: 'src/hooks/useLiveKpis.ts', exportName: 'useLiveKpis' },
-      scope: 'organisationsuebergreifend',
+      scope: 'organisation',
       quality: 'degradiert',
       effectiveFilter: { mode: 'dashboard', period: null, pipeline: null },
     });
@@ -208,7 +208,7 @@ describe('DashboardReport Veraltete Live-Werte & Auswahl-Sync (Auftrag 132 Runde
     expect(screen.getByText('Eingeschränkte Qualität')).toBeInTheDocument();
   });
 
-  it('kennzeichnet organisationsübergreifende Live-Kacheln auf Deckblatt, Kachel und im Anhang', () => {
+  it('zeigt für organisationsgebundene Live-Kacheln keinen organisationsweiten Sonderhinweis auf Deckblatt, Kachel und im Anhang', () => {
     const mockLiveHook: TileDataHook = (tile) => ({
       catalogId: tile.catalogId,
       state: 'bereit',
@@ -219,7 +219,7 @@ describe('DashboardReport Veraltete Live-Werte & Auswahl-Sync (Auftrag 132 Runde
       timeBasis: 'Live-Stream',
       asOf: null,
       origin: { layer: 'live', module: 'src/hooks/useLiveKpis.ts', exportName: 'useLiveKpis' },
-      scope: 'organisationsuebergreifend',
+      scope: 'organisation',
       effectiveFilter: { mode: 'dashboard', period: null, pipeline: null },
     });
 
@@ -233,20 +233,16 @@ describe('DashboardReport Veraltete Live-Werte & Auswahl-Sync (Auftrag 132 Runde
       />,
     );
 
-    // Deckblatt: Mandant mit Hinweis auf organisationsweite Feeds
-    expect(screen.getByTestId('print-cover-scope-note')).toHaveTextContent(
-      '(inkl. organisationsweiter Live-Feeds)',
-    );
-    // Kachel: Scope-Badge und erklärender Text
-    expect(screen.getByTestId('print-tile-scope-tile-live-mrr')).toHaveTextContent(
-      'Organisationsweit',
-    );
+    // Deckblatt: Mandant ohne Hinweis auf organisationsweite Feeds
+    expect(screen.queryByTestId('print-cover-scope-note')).toBeNull();
+    // Kachel: kein Scope-Badge und kein erklärender Sondertext
+    expect(screen.queryByTestId('print-tile-scope-tile-live-mrr')).toBeNull();
     expect(
-      screen.getByText(
+      screen.queryByText(
         /Live-Feed: Gilt für alle Organisationen \(nicht nach Mandant getrennt\)\./i,
       ),
-    ).toBeInTheDocument();
-    // Anhang & Kachel: Vermerk in Kachel-Badge und in Spalte Datenquelle
-    expect(screen.getAllByText('Organisationsweit').length).toBe(2);
+    ).toBeNull();
+    // Anhang: kein Vermerk "Organisationsweit"
+    expect(screen.queryByText('Organisationsweit')).toBeNull();
   });
 });

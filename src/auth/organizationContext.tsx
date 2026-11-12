@@ -6,6 +6,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../services/db/supabaseClient';
 import { useAuth } from './AuthContext';
 import { isOrganizationRole, type OrganizationSession } from '../types/organization';
+import { setLiveKpiOrganization } from '@/services/liveKpi/liveKpiTenantScope';
 
 export interface OrganizationContextValue {
   session: OrganizationSession | null;
@@ -62,6 +63,10 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       cancelled = true;
     };
   }, [user]);
+
+  useEffect(() => {
+    setLiveKpiOrganization(session?.organizationId ?? null);
+  }, [session?.organizationId]);
 
   return (
     <OrganizationContext.Provider value={{ session, isLoading }}>

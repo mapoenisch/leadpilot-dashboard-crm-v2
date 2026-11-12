@@ -4,7 +4,7 @@
 import type { ActiveCatalogEntry } from '../dashboardCatalog';
 
 export const LIVE_ACCESS =
-  'Projektion live_kpi_public_feed: SELECT für anon und authenticated ohne Organisationsbezug (nicht mandantengetrennt, wie die bestehende Executive-Ansicht). Prüfung vor Übernahme in Teilauftrag 2 (Plan §6).';
+  'Projektion live_kpi_public_feed: SELECT nur für aktive Mitglieder der jeweiligen Organisation (mandantengebunden, Auftrag 153).';
 
 export const LIVE_SOURCE = {
   layer: 'live',

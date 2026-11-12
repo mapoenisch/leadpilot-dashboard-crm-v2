@@ -101,7 +101,7 @@ export function resolveLive(
       exportName: entry.source.exportName,
       liveKpiId: entry.source.liveKpiId,
     },
-    scope: 'organisationsuebergreifend',
+    scope: 'organisation',
     effectiveFilter,
   };
 

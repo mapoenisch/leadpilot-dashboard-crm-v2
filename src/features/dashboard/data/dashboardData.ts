@@ -86,8 +86,7 @@ export function getScopeForLayer(
     case 'kombination':
       return 'stammdaten';
     case 'crm':
-      return 'organisation';
     case 'live':
-      return 'organisationsuebergreifend';
+      return 'organisation';
   }
 }
