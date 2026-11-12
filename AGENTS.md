@@ -25,7 +25,7 @@ Diese Datei fasst nur das Wichtigste zusammen; bei Abweichungen gilt `CLAUDE.md`
   Hat Codex gebaut oder ist Codex nicht verfügbar, fordert Marc `/<agent> review` an (Antigravity,
   OpenCode, Devin, Proto oder Perplexity, über `MarcReview`, `agent-review.yml`). Reviews dürfen auch
   mit Marcs eigenem Konto abgegeben werden (Entscheidung Marc, 09.11.2026); entscheidend ist nur, dass der
-  Prüfer den Stand nicht gebaut hat. Der frühere Antigravity-Zyklus (`claude-review.yml`) ist abgeschaltet.
+  Prüfer den Stand nicht gebaut hat. Die früheren CI-Review-Workflows (u. a. `claude-review.yml`) wurden in Auftrag 152 gelöscht.
 - **Ledger**: Ergebnisse in `docs/BUILD_LOG.md`. Der Builder schreibt den Builder-Eintrag und trägt das
   Prüfergebnis samt Prüfer als Nachtrag ein (Protokoll, keine Freigabe).
 - **Maßgebliche Dokumente**: `ARCHITECTURE_DECISIONS.md`, `BUILD_PLAN.md`, `docs/BUILD_LOG.md`.

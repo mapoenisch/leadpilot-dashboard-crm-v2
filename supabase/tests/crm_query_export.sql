@@ -3,7 +3,7 @@
 -- ============================================================================
 BEGIN;
 
-SELECT plan(25);
+SELECT plan(28);
 
 -- 1..16: Index-Prüfungen für public.companies, contacts, imported_funnel_deals
 SELECT has_index('public', 'companies', 'idx_companies_org_name', 'Index idx_companies_org_name existiert');
@@ -125,6 +125,25 @@ SELECT is(
   (SELECT id FROM public.companies WHERE organization_id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' AND industry = 'IT' ORDER BY industry ASC, id ASC LIMIT 1 OFFSET 1),
   'c0000000-0000-0000-0000-000000000003'::text,
   'Tie-Breaker: Bei identischer Branche liefert LIMIT 1 OFFSET 1 stabil die nachfolgende ID'
+);
+
+-- 26..28: F-02 Kanonischer Phasen-Sortierschlüssel & Index
+SELECT has_column('public', 'imported_funnel_deals', 'stage_sort_key', 'Spalte stage_sort_key existiert auf imported_funnel_deals');
+SELECT has_index('public', 'imported_funnel_deals', 'imported_funnel_deals_stage_sort_idx', 'Index imported_funnel_deals_stage_sort_idx existiert');
+
+SELECT is(
+  (
+    SELECT array_agg(stage_sort_key ORDER BY stage_sort_key ASC)
+    FROM (
+      SELECT public.canonical_deal_stage_label('WON') AS stage_sort_key
+      UNION ALL
+      SELECT public.canonical_deal_stage_label('LEAD')
+      UNION ALL
+      SELECT public.canonical_deal_stage_label('PROPOSAL')
+    ) t
+  ),
+  ARRAY['Angebot erstellt', 'Deal gewonnen', 'Lead eingegangen']::text[],
+  'canonical_deal_stage_label sortiert Phasen alphabetisch nach deutschem Standard-Label'
 );
 
 SELECT * FROM finish();

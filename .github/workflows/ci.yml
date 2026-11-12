@@ -115,6 +115,10 @@ jobs:
           node-version: 22.18.0
           cache: npm
       - run: npm ci
+      # Auftrag 152 (F-03): checkProductionConfig bricht fail-closed ab, wenn Konfiguration fehlt
+      - name: Negativer Konfigurationscheck Produktion (F-03 Fail-Closed)
+        run: |
+          ! VITE_SUPABASE_URL="" VITE_SUPABASE_ANON_KEY="" node scripts/checkProductionConfig.mjs
       - run: npm run build
         # Designprobe Testkachel: eigene Seite dashboard-vorschau.html nur in diesem Artefakt-Build (vite.config.ts).
         env:

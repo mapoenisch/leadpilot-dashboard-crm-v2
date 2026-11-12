@@ -7,7 +7,7 @@
 
 BEGIN;
 
-SELECT plan(31);
+SELECT plan(34);
 SET CONSTRAINTS ALL IMMEDIATE;
 
 -- ---------------------------------------------------------------- Setup --
@@ -312,6 +312,50 @@ SELECT throws_matching(
   $$ SELECT public.accept_organization_invitation('c1111111-1111-1111-1111-111111111111', 'multi@member-test.local', 'e6666666-6666-6666-6666-666666666666') $$,
   'CANNOT_CHANGE_ORGANIZATION',
   'Annahme von Einladung B scheitert, da Nutzer bereits Mitglied in Org A ist'
+);
+
+-- --------------------------------- 30 (32): H-01 EXECUTE-Rechte für accept_organization_invitation nur service_role
+SET LOCAL role TO authenticated;
+SELECT throws_ok(
+  $$ SELECT public.accept_organization_invitation('c1111111-1111-1111-1111-111111111111', 'multi@member-test.local') $$,
+  '42501',
+  NULL,
+  'H-01: Direkter Aufruf von accept_organization_invitation durch authenticated wird verweigert (42501)'
+);
+RESET role;
+
+-- --------------------------------- 31 (33): E-3 Ablaufbereinigung ohne Rollback
+INSERT INTO public.organization_invitations (id, organization_id, email, role, invited_by, status, created_at, expires_at)
+VALUES (
+  'e7777777-7777-7777-7777-777777777777',
+  'a0000000-0000-0000-0000-00000000000a',
+  'expired-test@member-test.local',
+  'viewer',
+  'a1111111-1111-1111-1111-111111111111',
+  'pending',
+  now() - INTERVAL '10 days',
+  now() - INTERVAL '3 days'
+);
+
+-- Annahmeversuch einer abgelaufenen Einladung liefert INVITATION_NOT_PENDING und persistiert status = expired
+SELECT is(
+  (public.accept_organization_invitation('a8888888-8888-8888-8888-888888888888', 'expired-test@member-test.local', 'e7777777-7777-7777-7777-777777777777')->>'error'),
+  'INVITATION_NOT_PENDING',
+  'E-3: Annahmeversuch einer abgelaufenen Einladung liefert INVITATION_NOT_PENDING ohne Rollback'
+);
+
+-- Neueinladung derselben E-Mail gelingt, weil alte Einladung auf expired steht
+SELECT lives_ok(
+  $$ INSERT INTO public.organization_invitations (id, organization_id, email, role, invited_by, status)
+     VALUES (
+       'e8888888-8888-8888-8888-888888888888',
+       'a0000000-0000-0000-0000-00000000000a',
+       'expired-test@member-test.local',
+       'manager',
+       'a1111111-1111-1111-1111-111111111111',
+       'pending'
+     ) $$,
+  'E-3: Neue Einladung derselben E-Mail ist nicht durch abgelaufene Einladung blockiert'
 );
 
 SELECT * FROM finish();

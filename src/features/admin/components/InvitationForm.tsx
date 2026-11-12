@@ -29,8 +29,12 @@ export function InvitationForm({ onInvitationCreated }: InvitationFormProps) {
 
     setIsSubmitting(true);
     try {
-      await memberService.inviteMember(trimmed, role);
-      setSuccessMessage(`Einladung an ${trimmed} erfolgreich versendet.`);
+      const invitation = await memberService.inviteMember(trimmed, role);
+      if (invitation?.delivery === 'link_only') {
+        setSuccessMessage(`Einladung für ${trimmed} angelegt (Link erzeugt, nicht versendet).`);
+      } else {
+        setSuccessMessage(`Einladung an ${trimmed} erfolgreich versendet.`);
+      }
       setEmail('');
       setRole('viewer');
       onInvitationCreated();

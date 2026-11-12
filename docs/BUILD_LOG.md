@@ -20862,3 +20862,78 @@ Gebaut und lokal verifiziert. Gate-Freigabe steht aus: unabhängiges Review (Cod
   - Typisierung und Weiterreichung in `useGridKeyboard.ts`, `EditorCanvasV2.tsx` und `DashboardEditorShellV2.tsx` harmonisiert.
   - Tests in `editorCommands.vitest.ts` ergänzt: `MoveTileCommand` und `BatchMoveTilesCommand` stellen die Abwesenheit abgeleiteter Positionen bei `undo()` deterministisch wieder her (10/10 Tests grün).
 - **Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0/0; `npm run format:check` grün; `npm run verify` alle 25 Suiten grün; `npm run build` erfolgreich; `npx size-limit` 178.05 kB / 180 kB; Schutzbereichs-Diff gegen `origin/main` leer.
+
+---
+
+## 2026-11-12 — Auftrag 152: Sicherheits- und Robustheitsnacharbeit (Befunde F-02, F-03, E-1 bis E-4, H-01 bis H-03, N-6)
+
+**Ziel & Kontext:** Umsetzung der bestätigten Audit-Befunde F-02, F-03, E-1 bis E-4, H-01 bis H-03 und N-6 aus der Audit-Triage (`docs/reviews/2026-11-11-externes-audit-triage.md`). Die Phasensortierung im CRM ist serverseitig performant und begrenzt (kein Vollladen); `build:production` ist der einzige veröffentlichungsfähige Build mit fail-closed Konfigurationsprüfung; Einladungs- und Audit-Log-Pfade sind gehärtet (Akteur-Tracking, atomarer Widerruf, Ablauf ohne Rollback, differenzierter Zustellstatus); RLS-Abdeckung für alle `public`-Tabellen ist per Test abgesichert; abgeschaltete Workflows wurden gelöscht; Soll-Konfiguration für Hosted-Auth ist dokumentiert.
+
+Auftragsdatei: `docs/auftraege/ANTIGRAVITY_AUFTRAG_152_SICHERHEIT_ROBUSTHEIT.md`. Builder: Antigravity. Baseline: `main` `4c97041`. Branch: `auftrag-152-sicherheit-robustheit`.
+
+### Geänderte & neue Dateien
+
+- `supabase/migrations/20261114_security_robustness.sql`: Neue Idempotente Migration für `canonical_deal_stage_label`, gespeicherte Spalte `stage_sort_key` auf `imported_funnel_deals`, Index `imported_funnel_deals_stage_sort_idx`; Ablaufbereinigung ohne Rollback in `accept_organization_invitation`; RPCs `admin_change_member_role` und `admin_deactivate_member` mit transaktionslokaler Akteur-Übergabe (`app.current_actor_id`); Audit-Trigger liest Akteur; `EXECUTE` auf `accept_organization_invitation` auf `service_role` beschränkt.
+- `supabase/functions/crm-query-export/index.ts`: Phasensortierung auf `stage_sort_key` abgebildet; `fetchAllChunks` nur für Exporte; harte Nicht-Export-Zeilengrenze `MAX_NON_EXPORT_ROWS = 10000` mit Fehlercode `ROW_LIMIT_EXCEEDED` (400).
+- `supabase/functions/manage-members/index.ts`: Atomarer Widerruf (`status = 'pending'`), proaktive Ablaufbereinigung bei `createInvitation`, `delivery` Rückgabe (`link_only` vs `email`), Übergabe von `user.id` an Admin-RPCs.
+- `src/services/admin/memberService.ts`: `delivery?: 'email' | 'link_only'` in `OrganizationInvitation` und `inviteMember`.
+- `src/features/admin/components/InvitationForm.tsx`: Differenzierte Erfolgsmeldung bei `delivery === 'link_only'` vs `email`.
+- `src/features/admin/components/__tests__/InvitationForm.vitest.tsx`: Unit-Tests für Einladungszustellstatus und Validierung.
+- `scripts/checkProductionConfig.mjs` & `scripts/__tests__/checkProductionConfig.vitest.ts`: Negative Testfälle für fehlende Konfiguration, Platzhalter und privilegierte Schlüssel.
+- `.github/workflows/ci.yml`: Fail-closed Negativprüfung für Produktionskonfiguration im Build-Job.
+- `.github/workflows/{claude.yml, claude-review.yml, codex-review-request.yml, codex-rework.yml, codex-status.yml}`: Gelöscht (N-6).
+- `CLAUDE.md`, `AGENTS.md`, `README.md`, `BUILD_PLAN.md`, `docs/dashboard/REVIEW_WORKFLOW*.md`: Dokumentationsbereinigung und Verankerung von `build:production`.
+- `docs/security/HOSTED_AUTH_SOLL.md`: H-03 Soll-Konfiguration und Checkliste für Marc.
+- `supabase/tests/rls_coverage.sql`: Vollständige RLS-Prüfung aller `public`-Tabellen.
+- `supabase/tests/{audit_log.sql, crm_query_export.sql, member_management.sql}`: Zusätzliche SQL-Regressionstests für Akteur, Phasenschlüssel, Widerruf-Atomarität und Ablauf.
+
+### Funktionale Prüfungen
+
+- **F-02 Deal-Sortierung & Zeilenbegrenzung:** Getestet in `crmStageFilter.test.ts` und `crm_query_export.sql`. Sortierung nach Phase nutzt Datenbankindex; Paging lädt Einzelseiten ohne Vollladen; Nicht-Exporte über 10.000 Zeilen werden mit 400 `ROW_LIMIT_EXCEEDED` abgewiesen.
+- **E-2 Atomarer Widerruf:** Getestet in `manageMembers.test.ts` und `member_management.sql`. Parallelitätsszenario: Widerruf einer angenommenen Einladung liefert 409 `INVITATION_NOT_PENDING`.
+- **E-3 Ablauf ohne Rollback:** Getestet in `manageMembers.test.ts` und `member_management.sql`. Abgelaufene Einladungen blockieren Neueinladung nicht und werden dauerhaft als `expired` gespeichert.
+- **E-4 Zustellstatus:** Getestet in `manageMembers.test.ts` und `InvitationForm.vitest.tsx`. Bei Link-Generierung ohne Mail-Versand liefert die API `delivery: 'link_only'` und das UI zeigt den Hinweis auf Link-Erzeugung an.
+- **E-1 Audit-Akteur:** Getestet in `manageMembers.test.ts` und `audit_log.sql` (20/20 Tests). Admin-Aktionen setzen transaktionslokal `app.current_actor_id`, Trigger speichert Akteur-ID im Audit-Log.
+- **H-01 / H-02 RLS & Rechte:** Getestet in `rls_coverage.sql` (2/2) und `member_management.sql`. Alle 18 Tabellen in `public` haben RLS aktiviert (`relrowsecurity = true`); `EXECUTE` auf `accept_organization_invitation` ist auf `service_role` beschränkt.
+- **F-03 Release-Build:** Getestet in `checkProductionConfig.vitest.ts` und negativer CI-Schritt. Fehlende oder falsche Konfiguration bricht mit Exit-Code 1 ab.
+- **N-6 Workflows:** Die 5 abgeschalteten Dateien wurden per `git rm` entfernt; veraltete Workflow-Tests in `codexReviewCycle.vitest.ts` und `claudeReviewCycle.vitest.ts` bereinigt.
+
+### Schutzbereichs-Prüfung
+
+```bash
+git diff 4c97041 -- src/simulation src/types src/context src/services/data src/features/resources
+# Ergebnis: leer (0 Zeilen Diff)
+```
+
+### Automatisierte Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler.
+- `npm run lint`: 0 Fehler, 0 Warnungen.
+- `npm run format:check`: bestanden (All matched files use Prettier code style!).
+- `npm test`: 370 Test-Dateien, 2723 Tests bestanden (0 Fehler).
+- `npm run verify`: alle Integritäts-Suiten (001 bis 025) bestanden.
+- `npm run build`: erfolgreich.
+- `npm run build:production`: negativ mit Exit-Code 1 abgebrochen; positiv erfolgreich gebaut.
+- `npx size-limit`: Initial 178.06 kB (Budget 180 kB), größter Chunk 79.41 kB (Budget 250 kB).
+- `supabase test db`: 11 Test-Dateien, 272 Tests bestanden (PASS).
+- `deno check` & `deno test`: alle 76 Deno-Tests bestanden (0 Fehler).
+- `npm run verify:quality-budget`, `npm run verify:licenses`, `scripts/verifyLiveKpiCatalog.ts`: alle grün.
+
+### Offene Punkte für Marc
+
+- **H-03 Hosted Auth:** Abgleich der Checkliste in `docs/security/HOSTED_AUTH_SOLL.md` im gehosteten Supabase-Dashboard (insb. `Enable Signups = false` und Redirect-URLs ohne Wildcards prüfen).
+- **Netlify Deploy:** Für künftige manuelle Deploys ausschließlich das durch `npm run build:production` erzeugte `dist/`-Verzeichnis verwenden.
+
+### Ergebnis & Freigabestatus
+
+Gebaut und vollständig lokal und gegen die lokale Supabase-Instanz verifiziert. Bereit für unabhängiges Review (Codex auf GitHub) gemäß `CLAUDE.md` §4.1.
+
+### Nacharbeit Codex-Review (PR #178, P2-Befund)
+
+**Prüfer:** Codex (GitHub App) · **Geprüfter Stand:** `7137d47` · **Datum:** 2026-11-12
+- **Befund (P2):** `crm-query-export`: Seitenende gegen Zeilengrenze prüfen. Bei Seitengrößen, die 10.000 nicht glatt teilen (z. B. `page: 102, pageSize: 99`), passierte die vorherige Prüfung `(page - 1) * pageSize >= MAX_NON_EXPORT_ROWS` mit Startoffset 9.999, forderte aber 9.999–10.097 an.
+- **Behebung:**
+  - `supabase/functions/crm-query-export/index.ts`: Prüfung auf `page * pageSize > MAX_NON_EXPORT_ROWS` umgestellt. Dadurch werden alle Nicht-Export-Anfragen, deren Seitenende über 10.000 liegt, mit 400 `ROW_LIMIT_EXCEEDED` abgewiesen. Dateilänge bleibt mit 398 Zeilen unter 400 Zeilen.
+  - `supabase/functions/__tests__/crmStageFilter.test.ts`: Testfall für `page: 102, pageSize: 99` ergänzt (erfolgreich abgewiesen).
+- **Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0/0; `deno check` & `deno test` 76/76 Tests grün; `npm run format:check` grün; Schutzbereichs-Diff leer.
+

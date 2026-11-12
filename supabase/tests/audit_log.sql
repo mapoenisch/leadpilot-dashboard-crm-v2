@@ -10,7 +10,7 @@
 
 BEGIN;
 
-SELECT plan(18);
+SELECT plan(20);
 
 -- ---------------------------------------------------------------- Setup --
 -- G62: audit_log ist append-only (Immutabilitaets-Trigger) — alte Test-Zeilen
@@ -302,6 +302,47 @@ SELECT ok(
       AND (details ? 'email' OR details ? 'actor_email' OR details ? 'ip_address')
   ),
   'Trigger-Details enthalten keine PII-Schluessel (G62: keine PII)'
+);
+
+-- ---------------------------------------------------------------- Test 19-20: E-1 Akteur bei Admin-Aktionen vs. System-Aktionen --
+-- Admin-Änderung via RPC mit übergebener actor_id setzt actor_id im Audit-Log
+SELECT public.admin_change_member_role(
+  'cccccccc-cccc-cccc-cccc-cccccccccccc',
+  'aaaaaaaa-0000-0000-0000-000000000005',
+  'manager',
+  'aaaaaaaa-0000-0000-0000-000000000001'
+);
+
+SELECT is(
+  (
+    SELECT actor_id FROM public.audit_log
+    WHERE organization_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc'
+      AND target_id = 'aaaaaaaa-0000-0000-0000-000000000005'
+      AND action = 'member.role_changed'
+    ORDER BY created_at DESC LIMIT 1
+  ),
+  'aaaaaaaa-0000-0000-0000-000000000001'::uuid,
+  'E-1: Admin-Aktion schreibt die übergebene actor_id ins Audit-Log'
+);
+
+-- Systemaktion ohne Admin (app.current_actor_id leer, auth.uid NULL) behält actor_id = NULL
+SELECT set_config('app.current_actor_id', '', true);
+SELECT set_config('request.jwt.claim.sub', '', true);
+SELECT set_config('request.jwt.claims', '{}', true);
+UPDATE public.organization_members
+SET role = 'viewer'
+WHERE user_id = 'aaaaaaaa-0000-0000-0000-000000000005'
+  AND organization_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+
+SELECT ok(
+  (
+    SELECT actor_id IS NULL FROM public.audit_log
+    WHERE organization_id = 'cccccccc-cccc-cccc-cccc-cccccccccccc'
+      AND target_id = 'aaaaaaaa-0000-0000-0000-000000000005'
+      AND action = 'member.role_changed'
+      AND details->>'new_role' = 'viewer'
+  ),
+  'E-1: Systemaktion ohne Admin behält actor_id NULL im Audit-Log'
 );
 
 -- ---------------------------------------------------------------- Teardown --

@@ -1,7 +1,9 @@
-# Review-Zyklus 2: Antigravity baut, Claude prüft, Antigravity arbeitet nach
+# Review-Zyklus 2: Antigravity baut, Claude prüft, Antigravity arbeitet nach (Historisch)
+
+> **Hinweis (12.11.2026, Auftrag 152 / Befund N-6):** Der Workflow `.github/workflows/claude-review.yml` wurde aus dem Repository gelöscht. Reviews erfolgen gemäß `CLAUDE.md` §4.1 über unabhängige Agenten (Codex-App auf GitHub oder `agent-review.yml`). Dieses Dokument dient ausschliesslich als historische Dokumentation des ehemaligen Ausweichbetriebs.
 
 Ausweichbetrieb für `REVIEW_WORKFLOW.md` (Claude baut, Codex prüft), wenn das Nutzungslimit von
-Codex erreicht ist. Entscheidung Marc vom 03.10.2026. Workflow: `.github/workflows/claude-review.yml`, Logik:
+Codex erreicht ist. Entscheidung Marc vom 03.10.2026. Ehemals Workflow `.github/workflows/claude-review.yml`, Logik:
 `scripts/claudeReviewCycle.mjs`, Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CLAUDE_REVIEW_ANTIGRAVITY.md`.
 
 ## Wann umschalten
