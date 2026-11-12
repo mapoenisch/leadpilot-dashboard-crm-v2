@@ -77,4 +77,21 @@ describe('readProductionEnv (dieselben Dateien wie vite build)', () => {
       /privilegierten Schlüssel/,
     );
   });
+
+  it('bricht als CLI-Skript ohne Umgebungsvariablen mit Exit-Code 1 ab (F-03)', () => {
+    const { spawnSync } = require('node:child_process');
+    const res = spawnSync(process.execPath, [path.resolve(__dirname, '../checkProductionConfig.mjs')], {
+      env: {
+        PATH: process.env.PATH,
+        HOME: process.env.HOME,
+        VITE_SUPABASE_URL: '',
+        VITE_SUPABASE_ANON_KEY: '',
+      },
+      encoding: 'utf-8',
+    });
+    expect(res.status).toBe(1);
+    expect(res.stderr).toContain('PRODUKTIVKONFIGURATION ROT');
+    expect(res.stderr).toContain('VITE_SUPABASE_URL fehlt');
+    expect(res.stderr).toContain('VITE_SUPABASE_ANON_KEY fehlt');
+  });
 });

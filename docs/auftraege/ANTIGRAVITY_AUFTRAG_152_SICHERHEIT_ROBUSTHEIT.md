@@ -65,17 +65,17 @@
 
 Reihenfolge je Block: Tests zuerst, dann Umsetzung.
 
-- [ ] T0 Einstieg: `git fetch`, Branch `auftrag-152-sicherheit-robustheit` von `main` (`4c97041` oder neuer), Triage lesen, Baseline-Diff für Schutzbereiche notieren.
-- [ ] T1 **F-02** Tests zuerst: Phasensortierung über Seitenränder und mehr als 1.000 Deals (Reihenfolge stimmt, Paging stimmt, kein Vollladen); Grenzfall über der harten Zeilengrenze. Dann: Sortierschlüssel in der Datenbank (Migration, z. B. generierte Spalte oder Funktion mit kanonischer Phasenreihenfolge), Abfrage nutzt `ORDER BY` + `range`. Nicht-Exporte erhalten eine harte Obergrenze; Exporte bleiben vollständig.
-- [ ] T2 **E-2** Tests zuerst: Widerruf trifft parallel auf Annahme (Annahme gewinnt, Widerruf meldet `INVITATION_NOT_PENDING`, Annahme wird nicht überschrieben). Dann: `UPDATE … WHERE id = … AND organization_id = … AND status = 'pending' RETURNING id`.
-- [ ] T3 **E-3** Tests zuerst: Abgelaufene `pending`-Einladung blockiert die Neueinladung nicht; Status nach Annahmeversuch ist dauerhaft `expired`. Dann: Ablaufbereinigung ohne Rollback (Bereinigung vor der Annahme und vor dem Prüfen offener Einladungen).
-- [ ] T4 **E-4** Tests zuerst: Fallback über `generateLink` liefert `delivery: 'link_only'`, `inviteUserByEmail` liefert `delivery: 'email'`. Dann: Zustellstatus in Edge Function und, falls angezeigt, UI-Hinweis.
-- [ ] T5 **E-1** Tests zuerst (SQL und Edge): Rollen-/Einladungs-/Deaktivierungsänderung durch einen Admin schreibt dessen `actor_id` ins Audit-Log; Systemaktionen ohne Admin behalten `NULL` bewusst. Dann: Akteur-Übergabe in derselben Transaktion (RPC-Parameter oder transaktionslokale Einstellung, vom Trigger gelesen), ohne PII.
-- [ ] T6 **H-01/H-02** Tests zuerst: SQL-Test `EXECUTE` auf `accept_organization_invitation` nur für `service_role`; `supabase/tests/rls_coverage.sql` prüft jede `public`-Tabelle auf RLS (Ausnahmen nur mit Begründung). Dann: irreführende `current_user`-Prüfung entfernen oder ersetzen.
-- [ ] T7 **F-03** Tests zuerst: negative Fälle für `checkProductionConfig` (URL fehlt, Schlüssel fehlt, Platzhalter, `service_role`-Schlüssel im Frontend). Dann: CI-Schritt, README-Abschnitt „Release-Build“, Hinweis in `BUILD_PLAN.md` offene Punkte (Netlify manuell: nur `build:production`-Ausgabe droppen).
-- [ ] T8 **N-6** Die fünf abgeschalteten Workflow-Dateien löschen; `CLAUDE.md` §4.2, `AGENTS.md` und `docs/dashboard/REVIEW_WORKFLOW*.md` anpassen. Vorher per `gh api` bestätigen, dass sie weiterhin `disabled_manually` sind.
-- [ ] T9 **H-03** `docs/security/HOSTED_AUTH_SOLL.md` mit Soll-Werten und Abgleichsliste schreiben; offene Abweichungen als Punkte für Marc listen. Keine Änderung an der Hosted-Instanz.
-- [ ] T10 Pflicht-Verifikation (Abschnitt 6), Schutzbereichs-Diff, BUILD_LOG-Builder-Eintrag, PR öffnen, Review anfordern.
+- [x] T0 Einstieg: `git fetch`, Branch `auftrag-152-sicherheit-robustheit` von `main` (`4c97041` oder neuer), Triage lesen, Baseline-Diff für Schutzbereiche notieren.
+- [x] T1 **F-02** Tests zuerst: Phasensortierung über Seitenränder und mehr als 1.000 Deals (Reihenfolge stimmt, Paging stimmt, kein Vollladen); Grenzfall über der harten Zeilengrenze. Dann: Sortierschlüssel in der Datenbank (Migration, z. B. generierte Spalte oder Funktion mit kanonischer Phasenreihenfolge), Abfrage nutzt `ORDER BY` + `range`. Nicht-Exporte erhalten eine harte Obergrenze; Exporte bleiben vollständig.
+- [x] T2 **E-2** Tests zuerst: Widerruf trifft parallel auf Annahme (Annahme gewinnt, Widerruf meldet `INVITATION_NOT_PENDING`, Annahme wird nicht überschrieben). Dann: `UPDATE … WHERE id = … AND organization_id = … AND status = 'pending' RETURNING id`.
+- [x] T3 **E-3** Tests zuerst: Abgelaufene `pending`-Einladung blockiert die Neueinladung nicht; Status nach Annahmeversuch ist dauerhaft `expired`. Dann: Ablaufbereinigung ohne Rollback (Bereinigung vor der Annahme und vor dem Prüfen offener Einladungen).
+- [x] T4 **E-4** Tests zuerst: Fallback über `generateLink` liefert `delivery: 'link_only'`, `inviteUserByEmail` liefert `delivery: 'email'`. Dann: Zustellstatus in Edge Function und, falls angezeigt, UI-Hinweis.
+- [x] T5 **E-1** Tests zuerst (SQL und Edge): Rollen-/Einladungs-/Deaktivierungsänderung durch einen Admin schreibt dessen `actor_id` ins Audit-Log; Systemaktionen ohne Admin behalten `NULL` bewusst. Dann: Akteur-Übergabe in derselben Transaktion (RPC-Parameter oder transaktionslokale Einstellung, vom Trigger gelesen), ohne PII.
+- [x] T6 **H-01/H-02** Tests zuerst: SQL-Test `EXECUTE` auf `accept_organization_invitation` nur für `service_role`; `supabase/tests/rls_coverage.sql` prüft jede `public`-Tabelle auf RLS (Ausnahmen nur mit Begründung). Dann: irreführende `current_user`-Prüfung entfernen oder ersetzen.
+- [x] T7 **F-03** Tests zuerst: negative Fälle für `checkProductionConfig` (URL fehlt, Schlüssel fehlt, Platzhalter, `service_role`-Schlüssel im Frontend). Dann: CI-Schritt, README-Abschnitt „Release-Build“, Hinweis in `BUILD_PLAN.md` offene Punkte (Netlify manuell: nur `build:production`-Ausgabe droppen).
+- [x] T8 **N-6** Die fünf abgeschalteten Workflow-Dateien löschen; `CLAUDE.md` §4.2, `AGENTS.md` und `docs/dashboard/REVIEW_WORKFLOW*.md` anpassen. Vorher per `gh api` bestätigen, dass sie weiterhin `disabled_manually` sind.
+- [x] T9 **H-03** `docs/security/HOSTED_AUTH_SOLL.md` mit Soll-Werten und Abgleichsliste schreiben; offene Abweichungen als Punkte für Marc listen. Keine Änderung an der Hosted-Instanz.
+- [x] T10 Pflicht-Verifikation (Abschnitt 6), Schutzbereichs-Diff, BUILD_LOG-Builder-Eintrag, PR öffnen, Review anfordern.
 
 ## 5. Abnahme
 

@@ -314,3 +314,98 @@ Deno.test('crm-query-export: execCrmQuery lädt beim Export (> 1.000 Deals) alle
   assertEquals(rangeCalls[1], [1000, 1999]);
   assertEquals(res.items.length, 1250);
 });
+
+Deno.test('crm-query-export: buildCanonicalCrmQuery sortiert Deals nach stage_sort_key in der Datenbank', () => {
+  const orderCalls: { col: string; ascending: boolean }[] = [];
+  const fakeQuery: Record<string, unknown> = {
+    select: () => fakeQuery,
+    eq: () => fakeQuery,
+    order: (col: string, opts: { ascending: boolean }) => {
+      orderCalls.push({ col, ascending: opts.ascending });
+      return fakeQuery;
+    },
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fakeSupabase: any = { from: () => fakeQuery };
+
+  buildCanonicalCrmQuery(fakeSupabase, {
+    resource: 'deals',
+    organizationId: ORG_ID,
+    sortBy: 'stage',
+    sortOrder: 'asc',
+  });
+
+  assertEquals(orderCalls[0].col, 'stage_sort_key');
+  assertEquals(orderCalls[0].ascending, true);
+  assertEquals(orderCalls[1].col, 'id');
+  assertEquals(orderCalls[1].ascending, true);
+});
+
+Deno.test('crm-query-export: execCrmQuery lädt bei Phasensortierung für Nicht-Exporte nur die Einzelseite', async () => {
+  const rangeCalls: [number, number][] = [];
+  const fakeQuery: Record<string, unknown> = {
+    select: () => fakeQuery,
+    eq: () => fakeQuery,
+    order: () => fakeQuery,
+    range: (from: number, to: number) => {
+      rangeCalls.push([from, to]);
+      return fakeQuery;
+    },
+    then: (resolve: (val: unknown) => unknown) => {
+      const data = [
+        {
+          id: 'deal-21',
+          deal_name: 'Deal 21',
+          stage: 'WON',
+          amount: 5000,
+          close_date: '2026-12-01',
+          pipeline: 'default',
+          created_at: '2026-01-01',
+        },
+      ];
+      return Promise.resolve(resolve({ data, error: null, count: 5000 }));
+    },
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fakeSupabase: any = { from: () => fakeQuery };
+
+  const res = await execCrmQuery(
+    fakeSupabase,
+    {
+      resource: 'deals',
+      organizationId: ORG_ID,
+      sortBy: 'stage',
+      sortOrder: 'asc',
+      page: 2,
+      pageSize: 20,
+    },
+    false,
+  );
+
+  // Exakt 1 Aufruf für range(20, 39) statt Schleife über alle 5.000 Zeilen
+  assertEquals(rangeCalls.length, 1);
+  assertEquals(rangeCalls[0], [20, 39]);
+  assertEquals(res.items.length, 1);
+  assertEquals(res.total, 5000);
+});
+
+Deno.test('crm-query-export: Nicht-Export weist Anfragen ab Zeilengrenze 10.000 mit ROW_LIMIT_EXCEEDED ab', async () => {
+  const { db } = createDealsMockDb();
+  const req = new Request('http://localhost/crm-query-export', {
+    method: 'POST',
+    headers: {
+      Authorization: 'Bearer admin-1',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      resource: 'deals',
+      page: 501,
+      pageSize: 20, // 500 * 20 = 10.000 (Startoffset >= 10.000)
+    }),
+  });
+
+  const res = await handleCrmQueryExport(req, db);
+  assertEquals(res.status, 400);
+  const json = await res.json();
+  assertEquals(json.code, 'ROW_LIMIT_EXCEEDED');
+});

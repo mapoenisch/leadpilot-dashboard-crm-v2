@@ -4,7 +4,6 @@ import {
   getDealStageFilterVariants,
   getDealStageSearchVariants,
   normalizeCanonicalStage,
-  sortDealsByStageLabel,
 } from './stageHelper.ts';
 import { FIELD_MAPPINGS, RESOURCE_CONFIG } from './resourceConfig.ts';
 
@@ -40,6 +39,8 @@ export interface CrmQueryDb {
   ): Promise<{ items: Record<string, unknown>[]; total: number }>;
   exportResource(params: CrmExportResourceParams): Promise<Record<string, unknown>[]>;
 }
+
+export const MAX_NON_EXPORT_ROWS = 10000;
 
 export const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -98,9 +99,7 @@ export async function handleCrmQueryExport(req: Request, db: CrmQueryDb): Promis
 
   // 3. Request-Parameter
   let rawAction: string | undefined, rawResource: string | undefined, rawQ: string | undefined;
-  let rawFilters: Record<string, unknown> | undefined,
-    rawSortBy: string | undefined,
-    rawSortOrder: string | undefined;
+  let rawFilters: Record<string, unknown> | undefined, rawSortBy: string | undefined, rawSortOrder: string | undefined;
   let rawPage: unknown, rawPageSize: unknown;
 
   if (req.method === 'POST') {
@@ -164,6 +163,13 @@ export async function handleCrmQueryExport(req: Request, db: CrmQueryDb): Promis
   if (!Number.isInteger(page) || page < 1) return bad('Ungültiger page-Parameter.');
   if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
     return bad('Ungültiger pageSize-Parameter.');
+  }
+  if (action !== 'export' && (page - 1) * pageSize >= MAX_NON_EXPORT_ROWS) {
+    return bad(
+      `Zeilengrenze von ${MAX_NON_EXPORT_ROWS} für Nicht-Exporte überschritten.`,
+      'ROW_LIMIT_EXCEEDED',
+      400,
+    );
   }
 
   // 7. Sortierung
@@ -279,7 +285,10 @@ export function buildCanonicalCrmQuery(
     }
   }
 
-  const sortCol = params.sortBy || config.defaultSort;
+  let sortCol = params.sortBy || config.defaultSort;
+  if (params.resource === 'deals' && sortCol === 'stage') {
+    sortCol = 'stage_sort_key';
+  }
   query = query.order(sortCol, { ascending: (params.sortOrder || config.defaultOrder) === 'asc' });
   if (sortCol !== 'id') query = query.order('id', { ascending: true });
   return query;
@@ -314,10 +323,7 @@ export async function execCrmQuery(
   isExport = false,
 ) {
   const paged = !isExport && 'page' in params && 'pageSize' in params;
-  // Sortierung nach Phase oder vollständiger Export: Rohwerte sortieren anders bzw. Exporte
-  // müssen für Mandanten > 1.000 Zeilen alle Chunks laden, damit gefilterte Exporte keine Daten verlieren.
-  const sortByStage = params.resource === 'deals' && params.sortBy === 'stage';
-  const fetchAllChunks = isExport || sortByStage;
+  const fetchAllChunks = isExport;
   const rows: Record<string, unknown>[] = [];
   let total = 0;
   for (let from = 0;; from += STAGE_SORT_CHUNK) {
@@ -338,14 +344,7 @@ export async function execCrmQuery(
     total = count ?? total;
     if (!fetchAllChunks || chunk.length < STAGE_SORT_CHUNK) break;
   }
-  let items = rows.map((row) => mapRowToFrontend(params.resource, row));
-  if (sortByStage) {
-    items = sortDealsByStageLabel(items, params.sortOrder || 'asc');
-    if (paged) {
-      const start = (params.page - 1) * params.pageSize;
-      items = items.slice(start, start + params.pageSize);
-    }
-  }
+  const items = rows.map((row) => mapRowToFrontend(params.resource, row));
   return { items, total };
 }
 

@@ -577,3 +577,142 @@ Deno.test('ManageMembers: Annahme ignoriert manipulierte Rolle und Organisation 
   // Die Organisation MUSS aus der Einladung (ORG_B_ID) stammen, NICHT aus dem Payload (ORG_A_ID)
   assertEquals(data.organizationId, ORG_B_ID);
 });
+
+Deno.test('ManageMembers E-2: Widerruf einer bereits angenommenen Einladung liefert 409 INVITATION_NOT_PENDING', async () => {
+  const { db, state } = createMockDb();
+  // Einladung inv-a-1 auf accepted setzen
+  const inv = state.invitations.find((i) => i.id === 'inv-a-1');
+  if (inv) inv.status = 'accepted';
+
+  const req = new Request('http://localhost/manage-members', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer admin-token',
+    },
+    body: JSON.stringify({
+      action: 'revokeInvitation',
+      invitationId: 'inv-a-1',
+    }),
+  });
+
+  const res = await handleManageMembers(req, db);
+  assertEquals(res.status, 409);
+  const data = await res.json();
+  assertEquals(data.code, 'INVITATION_NOT_PENDING');
+  // Status bleibt accepted (wird nicht überschrieben)
+  assertEquals(inv?.status, 'accepted');
+});
+
+Deno.test('ManageMembers E-3: Abgelaufene Einladung blockiert die Neueinladung nicht', async () => {
+  const { db, state } = createMockDb();
+  // Abgelaufene pending-Einladung hinzufügen
+  state.invitations.push({
+    id: 'inv-expired',
+    organizationId: ORG_A_ID,
+    email: 'newperson@org-a.local',
+    role: 'viewer',
+    invitedBy: ADMIN_USER.id,
+    status: 'pending',
+    createdAt: '2026-08-01T10:00:00Z',
+    expiresAt: '2026-08-08T10:00:00Z', // längst abgelaufen
+  });
+
+  const req = new Request('http://localhost/manage-members', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer admin-token',
+    },
+    body: JSON.stringify({
+      action: 'invite',
+      email: 'newperson@org-a.local',
+      role: 'manager',
+    }),
+  });
+
+  const res = await handleManageMembers(req, db);
+  assertEquals(res.status, 201);
+  const data = await res.json();
+  assertEquals(data.invitation.email, 'newperson@org-a.local');
+  assertEquals(data.invitation.role, 'manager');
+});
+
+Deno.test('ManageMembers E-4: Rückgabe unterscheidet delivery link_only von email', async () => {
+  const { db } = createMockDb();
+  // Mock gibt Einladung mit delivery: 'link_only' zurück
+  db.createInvitation = async (orgId, email, role, invitedBy) => ({
+    id: 'inv-link-only',
+    organizationId: orgId,
+    email,
+    role,
+    invitedBy,
+    status: 'pending',
+    delivery: 'link_only',
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date().toISOString(),
+  });
+
+  const req = new Request('http://localhost/manage-members', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer admin-token',
+    },
+    body: JSON.stringify({
+      action: 'invite',
+      email: 'linkfallback@org-a.local',
+      role: 'viewer',
+    }),
+  });
+
+  const res = await handleManageMembers(req, db);
+  assertEquals(res.status, 201);
+  const data = await res.json();
+  assertEquals(data.delivery, 'link_only');
+  assertEquals(data.invitation.delivery, 'link_only');
+});
+
+Deno.test('ManageMembers E-1: Admin-Aktionen übergeben die actor_id des Admins', async () => {
+  const { db } = createMockDb();
+  let capturedRoleActor: string | undefined;
+  let capturedDeactActor: string | undefined;
+
+  db.changeMemberRole = async (orgId, memberId, role, actorId) => {
+    capturedRoleActor = actorId;
+    return { success: true };
+  };
+  db.deactivateMember = async (orgId, memberId, actorId) => {
+    capturedDeactActor = actorId;
+    return { success: true };
+  };
+
+  const req1 = new Request('http://localhost/manage-members', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer admin-token',
+    },
+    body: JSON.stringify({
+      action: 'changeRole',
+      memberUserId: '22222222-2222-2222-2222-222222222222',
+      newRole: 'viewer',
+    }),
+  });
+  await handleManageMembers(req1, db);
+  assertEquals(capturedRoleActor, ADMIN_USER.id);
+
+  const req2 = new Request('http://localhost/manage-members', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer admin-token',
+    },
+    body: JSON.stringify({
+      action: 'deactivateMember',
+      memberUserId: '22222222-2222-2222-2222-222222222222',
+    }),
+  });
+  await handleManageMembers(req2, db);
+  assertEquals(capturedDeactActor, ADMIN_USER.id);
+});

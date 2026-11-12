@@ -68,6 +68,12 @@ Verbindlich ist [CLAUDE.md](CLAUDE.md), Abschnitt 4. Mitwirken: siehe [CONTRIBUT
 
 Eine Bereitstellung ist nicht Bestandteil dieses Repositories: Es ist derzeit kein Deploy-Provider und kein Staging-Ziel konfiguriert.
 
+## Release-Build
+
+`npm run build:production` ist der **einzige veröffentlichungsfähige Build**. Er erzwingt über `scripts/checkProductionConfig.mjs` vorab eine vollständige Validierung aller Produktionsumgebungsvariablen (`VITE_SUPABASE_URL` mit `https`, gültiger `anon`-Schlüssel, keine Platzhalter, keine vertraulichen `service_role`-Schlüssel) und bricht bei Fehlern fail-closed mit Exit-Code 1 ab.
+
+Für manuelle Deployments (z. B. Netlify Drag-and-Drop) darf ausschließlich das durch `npm run build:production` erzeugte `dist/`-Verzeichnis verwendet werden. Der reguläre Befehl `npm run build` dient ausschließlich lokalen Tests und CI-Vorschauen.
+
 ## Betrieb
 
 Konfiguration, Free-Tier-Grenzen, Backup, Rollout und Smoke-Test stehen im

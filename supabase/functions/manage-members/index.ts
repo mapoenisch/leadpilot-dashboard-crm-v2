@@ -30,6 +30,7 @@ export interface OrganizationInvitation {
   role: MemberRole;
   invitedBy: string;
   status: InvitationStatus;
+  delivery?: 'email' | 'link_only';
   createdAt: string;
   expiresAt: string;
 }
@@ -59,10 +60,12 @@ export interface ManageMembersDb {
     organizationId: string,
     memberUserId: string,
     newRole: MemberRole,
+    actorId?: string,
   ): Promise<{ success?: boolean; error?: 'NOT_FOUND' | 'LAST_ACTIVE_ADMIN' }>;
   deactivateMember(
     organizationId: string,
     memberUserId: string,
+    actorId?: string,
   ): Promise<{ success?: boolean; error?: 'NOT_FOUND' | 'LAST_ACTIVE_ADMIN' }>;
   acceptInvitation(
     userId: string,
@@ -258,7 +261,7 @@ export async function handleManageMembers(
 
       try {
         const invitation = await db.createInvitation(organizationId, email, role, user.id);
-        return jsonResponse({ invitation }, 201);
+        return jsonResponse({ invitation, delivery: invitation.delivery ?? 'email' }, 201);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Fehler beim Erstellen der Einladung.';
         return jsonResponse({ code: 'AUTH_INVITE_FAILED', message }, 422);
@@ -284,7 +287,7 @@ export async function handleManageMembers(
             code: 'INVITATION_NOT_PENDING',
             message: 'Nur offene (pending) Einladungen können widerrufen werden.',
           },
-          422,
+          409,
         );
       }
 
@@ -313,6 +316,7 @@ export async function handleManageMembers(
         organizationId,
         memberUserId.trim(),
         rawNewRole as MemberRole,
+        user.id,
       );
 
       if (result.error === 'NOT_FOUND') {
@@ -343,7 +347,7 @@ export async function handleManageMembers(
         );
       }
 
-      const result = await db.deactivateMember(organizationId, memberUserId.trim());
+      const result = await db.deactivateMember(organizationId, memberUserId.trim(), user.id);
 
       if (result.error === 'NOT_FOUND') {
         return jsonResponse(
@@ -512,6 +516,15 @@ if (import.meta.main) {
     ) => {
       const normalizedEmail = email.toLowerCase().trim();
 
+      // E-3: Vorab alle abgelaufenen pending-Einladungen für diese E-Mail bereinigen
+      await supabase
+        .from('organization_invitations')
+        .update({ status: 'expired' })
+        .eq('organization_id', organizationId)
+        .eq('email', normalizedEmail)
+        .eq('status', 'pending')
+        .lte('expires_at', new Date().toISOString());
+
       // Prüfe, ob es bereits eine offene Einladung für diese Organisation und E-Mail gibt
       const { data: existingPending } = await supabase
         .from('organization_invitations')
@@ -534,6 +547,7 @@ if (import.meta.main) {
         organization_id: organizationId,
         role,
       };
+      let delivery: 'email' | 'link_only' = 'email';
       let authSucceeded = false;
 
       // 1. Versuch: inviteUserByEmail (funktioniert mit konfiguriertem SMTP)
@@ -544,6 +558,7 @@ if (import.meta.main) {
         });
         if (inviteRes.data?.user && !inviteRes.error) {
           authSucceeded = true;
+          delivery = 'email';
         }
       } catch {
         // Lokale Testumgebung ohne SMTP
@@ -562,6 +577,7 @@ if (import.meta.main) {
           });
           if (linkRes.data?.properties?.action_link) {
             authSucceeded = true;
+            delivery = 'link_only';
           }
         } catch {
           // ignore
@@ -581,6 +597,7 @@ if (import.meta.main) {
           });
           if (magicRes.data?.properties?.action_link) {
             authSucceeded = true;
+            delivery = 'link_only';
           }
         } catch {
           // ignore
@@ -617,29 +634,34 @@ if (import.meta.main) {
         role: data.role as MemberRole,
         invitedBy: data.invited_by,
         status: data.status as OrganizationInvitation['status'],
+        delivery,
         createdAt: data.created_at,
         expiresAt: data.expires_at,
       };
     },
 
     revokeInvitation: async (organizationId: string, invitationId: string) => {
-      const { data: inv } = await supabase
-        .from('organization_invitations')
-        .select('status')
-        .eq('id', invitationId)
-        .eq('organization_id', organizationId)
-        .maybeSingle();
-
-      if (!inv) return { error: 'NOT_FOUND' };
-      if (inv.status !== 'pending') return { error: 'INVITATION_NOT_PENDING' };
-
-      const { error } = await supabase
+      // E-2: Atomarer Übergang pending -> revoked mit Bedingung status = 'pending' und RETURNING
+      const { data, error } = await supabase
         .from('organization_invitations')
         .update({ status: 'revoked' })
         .eq('id', invitationId)
-        .eq('organization_id', organizationId);
+        .eq('organization_id', organizationId)
+        .eq('status', 'pending')
+        .select('id')
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        const { data: inv } = await supabase
+          .from('organization_invitations')
+          .select('id')
+          .eq('id', invitationId)
+          .eq('organization_id', organizationId)
+          .maybeSingle();
+        if (!inv) return { error: 'NOT_FOUND' };
+        return { error: 'INVITATION_NOT_PENDING' };
+      }
       return { success: true };
     },
 
@@ -647,21 +669,14 @@ if (import.meta.main) {
       organizationId: string,
       memberUserId: string,
       newRole: MemberRole,
+      actorId?: string,
     ) => {
-      const { data: existing } = await supabase
-        .from('organization_members')
-        .select('role')
-        .eq('user_id', memberUserId)
-        .eq('organization_id', organizationId)
-        .maybeSingle();
-
-      if (!existing) return { error: 'NOT_FOUND' };
-
-      const { error } = await supabase
-        .from('organization_members')
-        .update({ role: newRole })
-        .eq('user_id', memberUserId)
-        .eq('organization_id', organizationId);
+      const { data, error } = await supabase.rpc('admin_change_member_role', {
+        p_organization_id: organizationId,
+        p_member_user_id: memberUserId,
+        p_new_role: newRole,
+        p_actor_id: actorId ?? null,
+      });
 
       if (error) {
         if (error.message?.includes('LAST_ACTIVE_ADMIN') || error.details?.includes('LAST_ACTIVE_ADMIN')) {
@@ -669,24 +684,20 @@ if (import.meta.main) {
         }
         throw error;
       }
+      if (data?.error === 'NOT_FOUND') return { error: 'NOT_FOUND' };
       return { success: true };
     },
 
-    deactivateMember: async (organizationId: string, memberUserId: string) => {
-      const { data: existing } = await supabase
-        .from('organization_members')
-        .select('status')
-        .eq('user_id', memberUserId)
-        .eq('organization_id', organizationId)
-        .maybeSingle();
-
-      if (!existing) return { error: 'NOT_FOUND' };
-
-      const { error } = await supabase
-        .from('organization_members')
-        .update({ status: 'suspended' })
-        .eq('user_id', memberUserId)
-        .eq('organization_id', organizationId);
+    deactivateMember: async (
+      organizationId: string,
+      memberUserId: string,
+      actorId?: string,
+    ) => {
+      const { data, error } = await supabase.rpc('admin_deactivate_member', {
+        p_organization_id: organizationId,
+        p_member_user_id: memberUserId,
+        p_actor_id: actorId ?? null,
+      });
 
       if (error) {
         if (error.message?.includes('LAST_ACTIVE_ADMIN') || error.details?.includes('LAST_ACTIVE_ADMIN')) {
@@ -694,6 +705,7 @@ if (import.meta.main) {
         }
         throw error;
       }
+      if (data?.error === 'NOT_FOUND') return { error: 'NOT_FOUND' };
       return { success: true };
     },
 
@@ -728,6 +740,10 @@ if (import.meta.main) {
           return { error: 'FORBIDDEN' };
         }
         throw error;
+      }
+
+      if (data?.error) {
+        return { error: data.error };
       }
 
       return {

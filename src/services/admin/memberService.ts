@@ -24,6 +24,7 @@ export interface OrganizationInvitation {
   status: InvitationStatus;
   createdAt: string;
   expiresAt: string;
+  delivery?: 'email' | 'link_only';
 }
 
 export type MemberServiceErrorCode =
@@ -128,12 +129,18 @@ export const memberService = {
   },
 
   async inviteMember(email: string, role: OrganizationRole): Promise<OrganizationInvitation> {
-    const res = await callManageMembers<{ invitation: OrganizationInvitation }>({
+    const res = await callManageMembers<{
+      invitation: OrganizationInvitation;
+      delivery?: 'email' | 'link_only';
+    }>({
       action: 'invite',
       email,
       role,
     });
-    return res.invitation;
+    return {
+      ...res.invitation,
+      delivery: res.delivery ?? res.invitation?.delivery ?? 'email',
+    };
   },
 
   async revokeInvitation(invitationId: string): Promise<void> {

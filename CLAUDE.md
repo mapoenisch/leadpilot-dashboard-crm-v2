@@ -41,10 +41,10 @@ Dieser Abschnitt ersetzt alle früheren Rollen- und Prüfregeln einschließlich 
 
 **Grundsatz:** Ein Builder prüft nie seine eigene Arbeit. Lokale Vorprüfungen des Builders (z. B. Plugin `codex-review`) sind erlaubt und gehören in den Builder-Eintrag, ersetzen aber nicht das unabhängige Review auf GitHub.
 
-### 4.2 Workflows (Stand 09.11.2026)
+### 4.2 Workflows (Stand 12.11.2026, Auftrag 152)
 
 - Aktiv: `ci.yml` (Pflicht-Checks), `update-visual-baselines.yml` (Branches `visual-baselines/**`), `agent-review.yml` (Prüfweg neben Codex), CodeQL.
-- Abgeschaltet und nicht Teil des Ablaufs: `claude-review.yml`, `claude.yml`, `codex-review-request.yml`, `codex-rework.yml`, `codex-status.yml`. Der Antigravity-Zyklus (Branches `antigravity/*`, `handoff/inbox.md`) ruht.
+- Gelöscht (Auftrag 152, Befund N-6): Die ehemals abgeschalteten Workflows `claude-review.yml`, `claude.yml`, `codex-review-request.yml`, `codex-rework.yml`, `codex-status.yml` wurden aus dem Repository entfernt. Der Antigravity-Zyklus ruht.
 
 ### 4.3 Historie (nicht mehr maßgeblich, nur zur Nachvollziehbarkeit)
 

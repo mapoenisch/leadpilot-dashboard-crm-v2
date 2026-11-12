@@ -2,9 +2,9 @@
 
 Stand: 01.10.2026. Auftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_CI_CODEX_NACHARBEIT.md`.
 
-> **Zweite Automatisierung:** Für Branches `antigravity/*` gilt der umgekehrte Zyklus (Antigravity baut, Claude prüft), beschrieben in `docs/dashboard/REVIEW_WORKFLOW_ANTIGRAVITY.md`. Dort fordert dieser Codex-Zyklus kein Review an und startet keine Nacharbeit durch Claude.
+> **Zweite Automatisierung:** Für Branches `antigravity/*` galt der umgekehrte Zyklus (Antigravity baut, Claude prüft), ehemals beschrieben in `docs/dashboard/REVIEW_WORKFLOW_ANTIGRAVITY.md`.
 
-> **Neue Aufteilung ab 03.10.2026 (Entscheidung Marc):** Die automatische Nacharbeit auf GitHub ist pausiert; Schritte 3 und 4 unten entfallen, solange das gilt. Vorrangig gilt der Abschnitt „Aufteilung ab 03.10.2026“ am Ende.
+> **Hinweis zur Workflow-Bereinigung (12.11.2026, Auftrag 152 / Befund N-6):** Die ehemals pausierten Workflows `codex-rework.yml`, `codex-review-request.yml`, `codex-status.yml`, `claude.yml` und `claude-review.yml` wurden aus dem Repository gelöscht. Reviews und Nacharbeiten erfolgen gemäß `CLAUDE.md` §4.1 durch unabhängige Agenten (Codex-App auf GitHub oder `agent-review.yml`). Die nachfolgende Ablaufbeschreibung ist historisch.
 
 ## Ablauf
 
@@ -109,9 +109,9 @@ selbst behoben hatte. Marc hat zusätzlich das Claude-Code-Plugin `codex-review`
 |---|---|---|---|
 | CI (`ci.yml`) | GitHub | jeder Push | aktiv |
 | Codex-App (`chatgpt-codex-connector[bot]`) | GitHub | PR geöffnet und jeder Push (Einstellung in ChatGPT, kein Workflow) | aktiv |
-| Claude-Review (`claude-review.yml`) | GitHub | nur `antigravity/*`, Label `claude-review` oder manuell | aktiv, solange Antigravity baut |
+| `agent-review.yml` (Prüfweg neben Codex) | GitHub | manuell auf Aufruf (`/<agent> review`) | aktiv |
 | Plugin `/codex-review:code`, `/codex-review:plan` | lokal bei Marc in Claude Code | auf Aufruf, vor dem Push | nach Bedarf |
-| `codex-review-request.yml`, `codex-status.yml`, `codex-rework.yml`, `claude.yml` | GitHub | – | pausiert |
+| `codex-review-request.yml`, `codex-status.yml`, `codex-rework.yml`, `claude.yml`, `claude-review.yml` | GitHub | – | gelöscht (Auftrag 152, N-6) |
 
 Ablauf für Claude Code als Builder (Zyklus 1):
 
