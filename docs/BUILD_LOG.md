@@ -20937,3 +20937,93 @@ Gebaut und vollständig lokal und gegen die lokale Supabase-Instanz verifiziert.
   - `supabase/functions/__tests__/crmStageFilter.test.ts`: Testfall für `page: 102, pageSize: 99` ergänzt (erfolgreich abgewiesen).
 - **Verifikation:** `npx tsc --noEmit` 0 Fehler; `npm run lint` 0/0; `deno check` & `deno test` 76/76 Tests grün; `npm run format:check` grün; Schutzbereichs-Diff leer.
 
+---
+
+## 2026-11-12 — Auftrag 153: Live-KPI-Feed mandantengebunden (Befund F-01)
+
+**Ziel & Kontext:** Behebung des Sicherheitsbefunds F-01 aus dem externen Audit (`docs/reviews/2026-11-11-externes-audit-triage.md`). Der Live-KPI-Feed wird vollständig mandantengebunden (`scope: 'organisation'`). Ingest-Ereignisse werden über das Absenderregister `live_kpi_ingest_senders` kryptografisch verifiziert serverseitig einer Organisation zugeordnet; `anon` verliert jegliche Leserechte; authentifizierte Nutzer sehen nur Zeilen ihrer aktiven Organisation über RLS (`current_organization_id()`).
+
+Auftragsdatei: `docs/auftraege/ANTIGRAVITY_AUFTRAG_153_LIVE_KPI_MANDANTENBINDUNG.md`. Builder: Antigravity. Baseline: `main` `157be1e`. Branch: `auftrag-153-livekpi-mandantenbindung`.
+
+### Geänderte & neue Dateien
+
+- `supabase/migrations/20261115_live_kpi_tenant_binding.sql`: Migration für `live_kpi_ingest_senders`, `organization_id` (NOT NULL) auf `live_kpi_events`, `live_kpi_public_feed`, `live_kpi_rejections`, RLS-Policies für authentifizierte Mitglieder, RPC `ingest_live_kpi_event(p_sender_id, p_event)`.
+- `supabase/tests/live_kpi_tenant_isolation.sql`: pgTAP-Tests für Mandantenisolation (Anon-Zugriff verwehrt, Mitglied sieht nur eigene Org, deaktivierte Org/Mitgliedschaft sieht nichts, Null-Check, Idempotenz über Mandantengrenzen hinweg).
+- `supabase/tests/rls_coverage.sql` & `supabase/tests/ingress_nonce.sql`: Angepasst an `live_kpi_ingest_senders` und neue RPC-Signatur.
+- `supabase/functions/_shared/verifyLeadPilotSignature.ts`, `ingressHandler.ts`, `live-kpi-ingest/index.ts`: Neuer Absender-Header `X-LeadPilot-Sender`, HMAC-Basis `sender.timestamp.nonce.rawBody`, Verbot von `organizationId`/`organization_id` im Body (422), Keyring `LEADPILOT_INGEST_SENDERS`.
+- `supabase/functions/__tests__/ingressHandler.test.ts`, `liveKpiIngress.test.ts`, `workflowIngressStructure.test.ts`: Deno-Tests für Absendervalidierung, Signaturprüfungen, 422 bei Body-Organisation und Keyring.
+- `tools/n8n/live-kpi-ingest.workflow.json` & `tools/n8n/README.md`: n8n-Workflow mit Absender-Header, neuer HMAC-Basis und `ingest_live_kpi_event($1::text, $2::jsonb)`.
+- `src/services/liveKpi/liveKpiTenantScope.ts`: Modul zur Speicherung und Weitergabe der aktiven Organisation für den Read-Adapter.
+- `src/services/liveKpi/liveKpiReadAdapter.ts`: Adapter prüft Sitzung/Org (ohne Org kein Abruf/Abo), filtert Abfragen mit `.eq('organization_id', org)`, Realtime-Kanal `live-kpi-feed:${org}` mit Filter `organization_id=eq.${org}`.
+- `src/services/liveKpi/liveKpiStreamHistory.ts` & `src/services/liveKpi/liveKpiStreamStore.ts`: `reset()` zur Store-Leerung bei Org-Wechsel, Auslagerung von Hilfsfunktionen zur Einhaltung des 501-Zeilen-Limits (495 Zeilen).
+- `src/auth/organizationContext.tsx` & `src/app/App.tsx`: Synchronisation von `setLiveKpiOrganization` bei Login/Logout/Org-Wechsel.
+- `src/features/dashboard/data/resolveLive.ts`, `data/dashboardData.ts`, `model/catalog/liveEntries.ts`: `scope: 'organisation'`.
+- `src/features/dashboard/components/DashboardTile.tsx`, `PrintTileCard.tsx`, `PrintAppendixTable.tsx`, `DashboardPrintView.tsx`: Organisationsweiter Hinweis entfernt.
+- `src/types/database.generated.ts`: Typen für `live_kpi_ingest_senders`, `organization_id` und neue RPC-Signatur.
+- `docs/dashboard/DASHBOARD_EDITOR_MASTERPLAN.md` & `docs/reviews/2026-11-11-externes-audit-triage.md`: Doku-Revisionen für Auftrag 153.
+
+### TDD & Red/Green-Nachweise
+
+1. **SQL-Isolation (T1/T2):**
+   - *Rot:* `supabase/tests/live_kpi_tenant_isolation.sql` schlug auf unmigrierter Datenbank fehl (Tabelle `live_kpi_ingest_senders` fehlte, Spalten fehlten, RLS für anon noch offen).
+   - *Grün:* Nach Anwendung der Migration `20261115_live_kpi_tenant_binding.sql` bestanden alle 14/14 Tests in `live_kpi_tenant_isolation.sql`, sowie `rls_coverage.sql` und `ingress_nonce.sql`.
+2. **Edge Function Ingress (T3/T4):**
+   - *Rot:* Tests schlugen fehl, da `X-LeadPilot-Sender` noch nicht gefordert wurde und Body-Organisationsfelder noch passierten.
+   - *Grün:* Nach Implementierung der Keyring-Auflösung und Absenderprüfung bestehen alle 86/86 Deno-Tests in `supabase/functions/__tests__/`.
+3. **Read-Adapter & Store (T5):**
+   - *Rot:* `liveKpiTenantScope.vitest.ts` und Adapter-Tests meldeten fehlende Tenant-Checks.
+   - *Grün:* 102/102 Unit-Tests in `src/services/liveKpi/__tests__/` bestanden.
+4. **UI & Kennzeichnung (T6):**
+   - *Rot:* UI-Tests erwarteten zuvor den Text „organisationsübergreifende Live-Feeds“.
+   - *Grün:* Nach Anpassung auf mandantengebunden bestehen alle 678 Dashboard-Tests in 62 Test-Dateien.
+
+### Schutzbereichs-Diff (`src/types/database.generated.ts`)
+
+Der Schutzbereich `src/types/**` wurde als einzige Ausnahme im definierten Umfang angepasst:
+```diff
+--- a/src/types/database.generated.ts
++++ b/src/types/database.generated.ts
+@@ -150,6 +150,7 @@ export type Database = {
+           ingested_at: string;
+           kpi_id: string;
+           occurred_at: string;
++          organization_id: string;
+...
++      live_kpi_ingest_senders: {
++        Row: { active: boolean; created_at: string; organization_id: string; sender_id: string; };
+...
+-      ingest_live_kpi_event: { Args: { p_event: Json }; Returns: Json };
++      ingest_live_kpi_event: { Args: { p_sender_id: string; p_event: Json }; Returns: Json };
+```
+Alle anderen Schutzbereiche (`src/simulation/**`, `src/context/**`, `src/services/data/**`, `src/features/resources/**`) haben 0 Zeilen Diff.
+
+### 6-Schritte-Umstellungsplan für Marc (Hosted Supabase & n8n)
+
+Zur gefahrlosen Inbetriebnahme auf der gehosteten Instanz ohne offenes Lesefenster:
+1. **Secret erzeugen & Function-Secrets setzen:**
+   Neues Secret (z. B. 64 Hex-Zeichen) für den Sender `leadpilot-demo` generieren und in den Supabase Hosted Secrets als JSON-Keyring eintragen:
+   ```bash
+   supabase secrets set LEADPILOT_INGEST_SENDERS='{"leadpilot-demo":"<GENERATED_SECRET>"}'
+   ```
+2. **Migration anwenden:**
+   Migration `supabase/migrations/20261115_live_kpi_tenant_binding.sql` auf Hosted Supabase anwenden (z. B. via `supabase db push` oder Supabase Dashboard SQL Editor).
+3. **Edge Function deployen:**
+   Edge Function `live-kpi-ingest` neu deployen:
+   ```bash
+   supabase functions deploy live-kpi-ingest
+   ```
+4. **n8n konfigurieren:**
+   - In n8n das HMAC-Credential für den Node `HMAC Sign Base` mit dem in Schritt 1 erzeugten Secret aktualisieren.
+   - Workflow aktualisieren/reimportieren (`X-LeadPilot-Sender: leadpilot-demo`).
+5. **Altes Secret aufräumen:**
+   Das alte Secret `LEADPILOT_INGEST_SECRET` aus den Hosted Function Secrets entfernen:
+   ```bash
+   supabase secrets unset LEADPILOT_INGEST_SECRET
+   ```
+6. **Verifikation:**
+   Probe-Event mit Header `X-LeadPilot-Sender: leadpilot-demo` über n8n absenden. Prüfen:
+   - Als Mitglied der Demo-Organisation: Event erscheint im Dashboard.
+   - Als abgemeldeter Nutzer (`anon`): Kein Zugriff über REST oder Realtime möglich (401/Empty).
+   - Erst nach erfolgreichem Testbetrieb darf die Betriebsregel („keine echten Kennzahlen einspeisen“) aufgehoben werden.
+
+

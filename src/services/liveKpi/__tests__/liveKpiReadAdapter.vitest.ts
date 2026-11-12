@@ -9,10 +9,7 @@ import {
   isLiveKpiReadConfigured,
   subscribeToLiveKpiFeed,
 } from '../liveKpiReadAdapter';
-import {
-  setLiveKpiOrganization,
-  resetLiveKpiTenantScopeForTesting,
-} from '../liveKpiTenantScope';
+import { setLiveKpiOrganization, resetLiveKpiTenantScopeForTesting } from '../liveKpiTenantScope';
 
 interface QueryResult {
   data: unknown;
