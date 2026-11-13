@@ -205,8 +205,13 @@ async function run() {
         filter: `organization_id=eq.${ORG_A}`,
       },
       (payload) => {
-        log(`[WARNUNG] Client B hat unberechtigt Event empfangen: ${JSON.stringify(payload.new)}`);
-        receivedB.push(payload.new);
+        const row = payload?.new as Record<string, unknown> | undefined;
+        if (row && Object.keys(row).length > 0 && row.id) {
+          log(`[WARNUNG] Client B hat unberechtigt Event empfangen: ${JSON.stringify(row)}`);
+          receivedB.push(row);
+        } else {
+          log('Client B hat kein Fremdmandanten-Event empfangen (RLS-Filterung aktiv).');
+        }
       },
     );
 
@@ -225,8 +230,13 @@ async function run() {
         table: 'live_kpi_public_feed',
       },
       (payload) => {
-        log(`[WARNUNG] Client Anon hat Event empfangen: ${JSON.stringify(payload.new)}`);
-        receivedAnon.push(payload.new);
+        const row = payload?.new as Record<string, unknown> | undefined;
+        if (row && Object.keys(row).length > 0 && row.id) {
+          log(`[WARNUNG] Client Anon hat unberechtigt Daten empfangen: ${JSON.stringify(row)}`);
+          receivedAnon.push(row);
+        } else {
+          log('Client Anon hat leeres CDC-Signal ohne Zeilendaten empfangen (RLS-Schutz aktiv).');
+        }
       },
     );
 
