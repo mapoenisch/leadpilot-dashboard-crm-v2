@@ -55,15 +55,37 @@ async function isSupabaseReachable(url: string): Promise<boolean> {
   }
 }
 
-async function waitForSubscription(channel: RealtimeChannel, timeoutMs = 8000): Promise<boolean> {
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    if (channel.state === 'joined') {
-      return true;
-    }
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  return channel.state === 'joined';
+interface SubscribeResult {
+  status: 'SUBSCRIBED' | 'CHANNEL_ERROR' | 'TIMED_OUT' | 'CLOSED';
+  error?: Error;
+}
+
+function subscribeAndAwait(channel: RealtimeChannel, timeoutMs = 15000): Promise<SubscribeResult> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        resolve({ status: 'TIMED_OUT', error: new Error(`Subscription timed out after ${timeoutMs}ms`) });
+      }
+    }, timeoutMs);
+
+    channel.subscribe((status, err) => {
+      if (status === 'SUBSCRIBED') {
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          resolve({ status: 'SUBSCRIBED' });
+        }
+      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          resolve({ status, error: err });
+        }
+      }
+    });
+  });
 }
 
 async function run() {
@@ -89,49 +111,55 @@ async function run() {
     }
   }
 
-  log('Supabase ist erreichbar. Initialisiere Test-Clients...');
+  log('Supabase ist erreichbar. Authentifiziere Testbenutzer...');
 
-  // 1. Clients erstellen
+  // 1. Authentifizierung durchführen
+  const authClient = createClient(SUPABASE_URL, ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  log(`Melde Client A (${EMAIL_A}) an...`);
+  const { data: sessionA, error: errA } = await authClient.auth.signInWithPassword({
+    email: EMAIL_A,
+    password: PASSWORD_A,
+  });
+  if (errA || !sessionA.session?.access_token) {
+    throw new Error(`Login für Client A fehlgeschlagen: ${errA?.message}`);
+  }
+  const tokenA = sessionA.session.access_token;
+
+  log(`Melde Client B (${EMAIL_B}) an...`);
+  const { data: sessionB, error: errB } = await authClient.auth.signInWithPassword({
+    email: EMAIL_B,
+    password: PASSWORD_B,
+  });
+  if (errB || !sessionB.session?.access_token) {
+    throw new Error(`Login für Client B fehlgeschlagen: ${errB?.message}`);
+  }
+  const tokenB = sessionB.session.access_token;
+
+  // 2. Clients mit fest verdrahtetem JWT initialisieren
   const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
   const clientA = createClient(SUPABASE_URL, ANON_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: `Bearer ${tokenA}` } },
+    accessToken: async () => tokenA,
   });
+  await clientA.realtime.setAuth(tokenA);
 
   const clientB = createClient(SUPABASE_URL, ANON_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: `Bearer ${tokenB}` } },
+    accessToken: async () => tokenB,
   });
+  await clientB.realtime.setAuth(tokenB);
 
   const clientAnon = createClient(SUPABASE_URL, ANON_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-
-  // 2. Anmelden
-  log(`Melde Client A (${EMAIL_A}) an...`);
-  const { data: sessionA, error: errA } = await clientA.auth.signInWithPassword({
-    email: EMAIL_A,
-    password: PASSWORD_A,
-  });
-  if (errA || !sessionA.session) {
-    throw new Error(`Login für Client A fehlgeschlagen: ${errA?.message}`);
-  }
-  if (clientA.realtime && sessionA.session.access_token) {
-    clientA.realtime.setAuth(sessionA.session.access_token);
-  }
-
-  log(`Melde Client B (${EMAIL_B}) an...`);
-  const { data: sessionB, error: errB } = await clientB.auth.signInWithPassword({
-    email: EMAIL_B,
-    password: PASSWORD_B,
-  });
-  if (errB || !sessionB.session) {
-    throw new Error(`Login für Client B fehlgeschlagen: ${errB?.message}`);
-  }
-  if (clientB.realtime && sessionB.session.access_token) {
-    clientB.realtime.setAuth(sessionB.session.access_token);
-  }
 
   // 3. Kanäle abonnieren
   const receivedA: any[] = [];
@@ -142,7 +170,11 @@ async function run() {
 
   // Client A: reguläres Abo auf eigene Organisation
   const channelA = clientA
-    .channel(`live-kpi-feed:${ORG_A}`)
+    .channel(`live-kpi-feed:${ORG_A}`, {
+      config: {
+        postgres_changes_options: { wait: true },
+      },
+    })
     .on(
       'postgres_changes',
       {
@@ -155,12 +187,15 @@ async function run() {
         log(`Client A empfängt Event: ${JSON.stringify(payload.new)}`);
         receivedA.push(payload.new);
       },
-    )
-    .subscribe();
+    );
 
-  // Client B: versucht sowohl eigene Org B als auch unberechtigt Org A mitzuhören
+  // Client B: versucht unberechtigt Org A mitzuhören
   const channelB = clientB
-    .channel(`live-kpi-feed:cross-tenant-attempt`)
+    .channel(`live-kpi-feed:cross-tenant-attempt`, {
+      config: {
+        postgres_changes_options: { wait: true },
+      },
+    })
     .on(
       'postgres_changes',
       {
@@ -173,12 +208,15 @@ async function run() {
         log(`[WARNUNG] Client B hat unberechtigt Event empfangen: ${JSON.stringify(payload.new)}`);
         receivedB.push(payload.new);
       },
-    )
-    .subscribe();
+    );
 
   // Client Anon: versucht ohne Auth mitzuhören
   const channelAnon = clientAnon
-    .channel(`live-kpi-feed:anon-attempt`)
+    .channel(`live-kpi-feed:anon-attempt`, {
+      config: {
+        postgres_changes_options: { wait: true },
+      },
+    })
     .on(
       'postgres_changes',
       {
@@ -190,27 +228,29 @@ async function run() {
         log(`[WARNUNG] Client Anon hat Event empfangen: ${JSON.stringify(payload.new)}`);
         receivedAnon.push(payload.new);
       },
-    )
-    .subscribe();
-
-  log('Warte auf Verbindungsaufbau der Kanäle...');
-  const subA = await waitForSubscription(channelA);
-  const subB = await waitForSubscription(channelB);
-  const subAnon = await waitForSubscription(channelAnon);
-
-  log(`Abonnements aktiv: Client A=${subA}, Client B=${subB}, Client Anon=${subAnon}`);
-
-  if (!subA) {
-    throw new Error('Verbindungsaufbau für Client A fehlgeschlagen (Kanal nicht beigetreten). Test abgebrochen.');
-  }
-  if (!subB) {
-    throw new Error(
-      'Verbindungsaufbau für Client B fehlgeschlagen (Kanal nicht beigetreten). Mandantenisolationsnachweis kann bei getrenntem Client nicht erbracht werden.',
     );
+
+  log('Warte auf serverseitige Bestätigung der Abonnements (SUBSCRIBED)...');
+  const [resA, resB, resAnon] = await Promise.all([
+    subscribeAndAwait(channelA),
+    subscribeAndAwait(channelB),
+    subscribeAndAwait(channelAnon),
+  ]);
+
+  log(`Abonnement-Status: Client A=${resA.status}, Client B=${resB.status}, Client Anon=${resAnon.status}`);
+
+  if (resA.status !== 'SUBSCRIBED') {
+    throw new Error(`Client A konnte Kanal nicht abonnieren (${resA.status}): ${resA.error?.message}`);
   }
-  if (!subAnon) {
-    log('Hinweis: Client Anon konnte Kanal nicht beitreten (Abonnement ohne Auth durch Server abgewiesen).');
+  if (resB.status !== 'SUBSCRIBED') {
+    throw new Error(`Client B konnte Kanal nicht abonnieren (${resB.status}): ${resB.error?.message}`);
   }
+  if (resAnon.status !== 'SUBSCRIBED') {
+    log(`Hinweis: Client Anon wurde serverseitig abgewiesen (${resAnon.status}) — keine Berechtigung.`);
+  }
+
+  // Kurze Pause zur Sicherstellung der Replikations-Bereitschaft
+  await new Promise((r) => setTimeout(r, 500));
 
   // 4. Test-Event für Organisation A einfügen
   const testKpiValue = Math.floor(Math.random() * 1000000) + 100000;
@@ -239,8 +279,13 @@ async function run() {
   const insertedId = inserted.id;
   log(`Test-Event mit ID ${insertedId} angelegt. Warte auf Realtime-Zustellung...`);
 
-  // Wartefenster für Realtime-Delivery (3 Sekunden)
-  await new Promise((r) => setTimeout(r, 3000));
+  // Wartefenster für Realtime-Delivery (bis zu 6 Sekunden, Polling alle 200ms)
+  const waitStart = Date.now();
+  while (Date.now() - waitStart < 6000 && receivedA.length === 0) {
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  // Zusätzliche Karenzzeit (1,5 Sekunden), um auszuschließen, dass verzögerte Fremd-Events für B oder Anon eintreffen
+  await new Promise((r) => setTimeout(r, 1500));
 
   // 5. Aufräumen
   log('Lösche Test-Event und baue Kanäle ab...');
@@ -275,7 +320,7 @@ async function run() {
   }
 
   if (receivedAnon.length === 0) {
-    if (subAnon) {
+    if (resAnon.status === 'SUBSCRIBED') {
       console.log('✅ Client Anon war verbunden, hat aber KEIN Event empfangen (RLS-Filterung bestätigt).');
     } else {
       console.log('✅ Client Anon wurde bereits am Kanal abgewiesen (Abonnement ohne Berechtigung unterbunden).');
