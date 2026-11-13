@@ -260,8 +260,17 @@ export async function getPipelineOverview(source: FunnelDealSource): Promise<Pip
     sharePercent: totalVolume > 0 ? Math.round((stats.volume / totalVolume) * 100) : 0,
   }));
 
-  // Sortierung: Größtes Volumen zuerst
-  stages.sort((a, b) => b.volume - a.volume);
+  // Deterministische Stufenreihenfolge (Auftrag 154 §2.4 Nr. 14):
+  // 1. Volumen absteigend, 2. Anzahl absteigend, 3. Stufenname aufsteigend (Byte-Reihenfolge)
+  stages.sort((a, b) => {
+    if (b.volume !== a.volume) {
+      return b.volume - a.volume;
+    }
+    if (b.count !== a.count) {
+      return b.count - a.count;
+    }
+    return a.stage < b.stage ? -1 : a.stage > b.stage ? 1 : 0;
+  });
 
   return {
     totalDeals: deals.length,

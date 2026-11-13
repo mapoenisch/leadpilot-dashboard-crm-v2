@@ -127,18 +127,18 @@ Bei Bedarf außerhalb dieser Liste: stoppen und im PR begründen (`CLAUDE.md` §
 
 Reihenfolge je Block: Tests zuerst, dann Umsetzung.
 
-- [ ] **T0 Einstieg:** Branch `auftrag-154-abfragevertrag-vollbestand` auschecken, auf aktuellen `main` rebasen, falls nötig. Masterplan P08, `EDITOR_UX_FACHVERTRAEGE_145.md` §3 und §9, `KPI_FAEHIGKEITEN_144.md` und diesen Auftrag lesen. Baseline-Diff der Schutzbereiche notieren.
-- [ ] **T1 Rot-Nachweise:** (a) Vitest: 1.500 Deals über einen Supabase-Mock mit 1.000-Zeilen-Grenze ergeben heute `totalDeals = 1000`. (b) Vitest: Kachel mit `query.pipelineId = 'B'` und ohne Override zeigt im Canvas Pipeline-A-Werte bzw. die globale Pipeline. (c) SQL: `save_dashboard_v2` mit `query: {"x": "y"}` wird angenommen. Ergebnisse festhalten.
-- [ ] **T2 Fähigkeiten:** `queryCapabilities.ts` mit Tabellentest über alle 48 aktiven Einträge (2.2).
-- [ ] **T3 Abfragevertrag:** `tileQuery.ts` mit Normalisierung und Prüfung; Tests für jede Legacy-Form aus P07 (Override gesetzt/nicht gesetzt, `query.pipelineId` = global, `timeframe` als Zeitraum, als globaler Wert, fehlend) und jeden Fehlercode. Idempotenz: `normalize(normalize(x)) = normalize(x)`.
-- [ ] **T4 Speicher- und Lesepfad:** Integrität beim Speichern, Migration schreibt kanonisch, Canvas und Datenauflösung lesen normalisiert, Inspector schreibt `query` mit sichtbaren Sperrgründen. T1 (b) grün. Ein Undo nimmt eine Abfrageänderung vollständig zurück.
-- [ ] **T5 Server-Struktur:** Migration Teil 1 (Strukturprüfung); SQL-Tests inklusive Restore einer P07-Revision; Strukturparität über die gemeinsamen Fixtures. T1 (c) grün.
-- [ ] **T6 Aggregat-RPC:** Migration Teil 2 mit Rechten; SQL-Tests (Nichtmitglied, deaktiviert, fremde Organisation, `anon`, `LP_CRM_INVALID_DEAL`, 1.500 Deals vollständig).
-- [ ] **T7 Client-Datenpfad:** `crmAggregateSource.ts`, Query-Schlüssel, Hook, Tie-Break in `getPipelineOverview`. Tests: geteilte Abrufe (24 Kacheln, 3 Pipelines → 3 Aufrufe), Cache-Bereinigung, Fallback ohne Supabase, Fehlerabbildung. T1 (a) grün.
-- [ ] **T8 Fachparität und Last:** gemeinsame Fixtures in Browser und lokaler Supabase; `EXPLAIN (ANALYZE, BUFFERS)` mit 5.000 Deals.
-- [ ] **T9 Typen:** `database.generated.ts` um die RPC ergänzen bzw. neu generieren; Diff im BUILD_LOG.
-- [ ] **T10 Doku:** Spezifikation und Nachträge (2.5).
-- [ ] **T11 Abschluss:** Pflicht-Verifikation (§7), Screenshot-Matrix für den Inspector-Daten-Tab (gesperrte Optionen mit Grund; 1440/768/375, nur README committen), Schutzbereichs-Diff, BUILD_LOG-Builder-Eintrag mit Schrittliste für Marc, PR öffnen, Review anfordern.
+- [x] **T0 Einstieg:** Branch `auftrag-154-abfragevertrag-vollbestand` auschecken, auf aktuellen `main` rebasen, falls nötig. Masterplan P08, `EDITOR_UX_FACHVERTRAEGE_145.md` §3 und §9, `KPI_FAEHIGKEITEN_144.md` und diesen Auftrag lesen. Baseline-Diff der Schutzbereiche notieren.
+- [x] **T1 Rot-Nachweise:** (a) Vitest: 1.500 Deals über einen Supabase-Mock mit 1.000-Zeilen-Grenze ergeben heute `totalDeals = 1000`. (b) Vitest: Kachel mit `query.pipelineId = 'B'` und ohne Override zeigt im Canvas Pipeline-A-Werte bzw. die globale Pipeline. (c) SQL: `save_dashboard_v2` mit `query: {"x": "y"}` wird angenommen. Ergebnisse festhalten.
+- [x] **T2 Fähigkeiten:** `queryCapabilities.ts` mit Tabellentest über alle 48 aktiven Einträge (2.2).
+- [x] **T3 Abfragevertrag:** `tileQuery.ts` mit Normalisierung und Prüfung; Tests für jede Legacy-Form aus P07 (Override gesetzt/nicht gesetzt, `query.pipelineId` = global, `timeframe` als Zeitraum, als globaler Wert, fehlend) und jeden Fehlercode. Idempotenz: `normalize(normalize(x)) = normalize(x)`.
+- [x] **T4 Speicher- und Lesepfad:** Integrität beim Speichern, Migration schreibt kanonisch, Canvas und Datenauflösung lesen normalisiert, Inspector schreibt `query` mit sichtbaren Sperrgründen. T1 (b) grün. Ein Undo nimmt eine Abfrageänderung vollständig zurück.
+- [x] **T5 Server-Struktur:** Migration Teil 1 (Strukturprüfung); SQL-Tests inklusive Restore einer P07-Revision; Strukturparität über die gemeinsamen Fixtures. T1 (c) grün.
+- [x] **T6 Aggregat-RPC:** Migration Teil 2 mit Rechten; SQL-Tests (Nichtmitglied, deaktiviert, fremde Organisation, `anon`, `LP_CRM_INVALID_DEAL`, 1.500 Deals vollständig).
+- [x] **T7 Client-Datenpfad:** `crmAggregateSource.ts`, Query-Schlüssel, Hook, Tie-Break in `getPipelineOverview`. Tests: geteilte Abrufe (24 Kacheln, 3 Pipelines → 3 Aufrufe), Cache-Bereinigung, Fallback ohne Supabase, Fehlerabbildung. T1 (a) grün.
+- [x] **T8 Fachparität und Last:** gemeinsame Fixtures in Browser und lokaler Supabase; `EXPLAIN (ANALYZE, BUFFERS)` mit 5.000 Deals.
+- [x] **T9 Typen:** `database.generated.ts` um die RPC ergänzen bzw. neu generieren; Diff im BUILD_LOG.
+- [x] **T10 Doku:** Spezifikation und Nachträge (2.5).
+- [x] **T11 Abschluss:** Pflicht-Verifikation (§7), Screenshot-Matrix für den Inspector-Daten-Tab (gesperrte Optionen mit Grund; 1440/768/375, nur README committen), Schutzbereichs-Diff, BUILD_LOG-Builder-Eintrag mit Schrittliste für Marc, PR öffnen, Review anfordern.
 
 ## 6. Abnahme
 

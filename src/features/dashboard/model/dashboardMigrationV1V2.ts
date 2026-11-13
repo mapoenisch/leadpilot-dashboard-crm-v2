@@ -8,8 +8,10 @@ import type {
   DashboardScope,
   DashboardTileConfigV2,
   GridPosition,
+  TileQueryConfig,
 } from './dashboardConfigV2';
-import { getCatalogEntry } from './dashboardCatalog';
+import { getCatalogEntry, isActiveEntry } from './dashboardCatalog';
+import { getQueryCapabilities } from './queryCapabilities';
 
 export interface V1ToV2MigrationContext {
   id: string;
@@ -117,16 +119,32 @@ export function migrateV1ToV2(
   const mobilePositions = packLayout(tiles, 1, 'mobile');
 
   const v2Tiles: DashboardTileConfigV2[] = tiles.map((t, idx) => {
-    // Kachelspezifische Filterausnahmen exakt abbilden
-    const timeframeOverride =
-      t.filterMode === 'eigener_zeitraum' && t.period
-        ? `${t.period.from}/${t.period.to}`
-        : undefined;
-    const pipelineOverride = t.pipeline;
-
     // Titel-Auflösung: Benutzerdefinierter Titel > Katalogname aus DASHBOARD_CATALOG > Katalog-ID
-    const catalogName = getCatalogEntry(t.catalogId)?.name;
+    const catalogEntry = getCatalogEntry(t.catalogId);
+    const activeEntry = catalogEntry && isActiveEntry(catalogEntry) ? catalogEntry : undefined;
+    const catalogName = catalogEntry?.name;
     const resolvedTitle = t.title ?? catalogName ?? t.catalogId;
+
+    // Auftrag 154 §2.1: Schreibt nur die kanonische Abfrage, keine Overrides,
+    // kein globaler Wert in query.pipelineId (fehlt = erbt)
+    const query: TileQueryConfig = {
+      metricId: t.catalogId,
+    };
+
+    if (activeEntry?.source.layer === 'crm' && t.pipeline) {
+      query.pipelineId = t.pipeline;
+    }
+
+    if (activeEntry) {
+      query.timeframe = activeEntry.timeMode;
+      const caps = getQueryCapabilities(activeEntry);
+      if (caps.defaultAggregation) {
+        query.aggregation = caps.defaultAggregation;
+      }
+      if (caps.supportsStageGrouping) {
+        query.groupBy = ['stage'];
+      }
+    }
 
     return {
       id: t.tileId,
@@ -138,13 +156,7 @@ export function migrateV1ToV2(
         tablet: tabletPositions[idx]!,
         mobile: mobilePositions[idx]!,
       },
-      timeframeOverride,
-      pipelineOverride,
-      query: {
-        metricId: t.catalogId,
-        pipelineId: pipelineOverride ?? globalPipeline,
-        timeframe: timeframeOverride ?? globalTimeframe,
-      },
+      query,
     };
   });
 

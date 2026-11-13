@@ -5,6 +5,8 @@ import { useEffect, useState, type ChangeEvent } from 'react';
 import { cn } from '@/lib/utils';
 import type { ActiveCatalogEntry, DashboardView } from '../../../model/dashboardCatalog';
 import type { DashboardTileConfigV2, TileThresholdRule } from '../../../model/dashboardConfigV2';
+import { getQueryCapabilities } from '../../../model/queryCapabilities';
+import { normalizeTileQuery } from '../../../model/tileQuery';
 
 export const AVAILABLE_VIEWS: Array<{ id: DashboardView; label: string }> = [
   { id: 'zahl', label: 'Zahl' },
@@ -132,6 +134,41 @@ export function InspectorDataTab({
   catalogEntry: ActiveCatalogEntry | undefined;
   onTileOverrideChange: (tileId: string, patch: Partial<DashboardTileConfigV2>) => void;
 }) {
+  const normQuery = normalizeTileQuery(selectedTile);
+  const caps = catalogEntry ? getQueryCapabilities(catalogEntry) : undefined;
+  const supportsPipeline = caps?.supportsPipelineFilter ?? false;
+
+  let pipelineValue = '';
+  if (normQuery.pipelineId === null) {
+    pipelineValue = '__all__';
+  } else if (typeof normQuery.pipelineId === 'string') {
+    pipelineValue = normQuery.pipelineId;
+  }
+
+  const handlePipelineChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const rawVal = e.target.value;
+    let nextPipelineId: string | null | undefined;
+    if (rawVal === '__all__') {
+      nextPipelineId = null;
+    } else if (rawVal) {
+      nextPipelineId = rawVal;
+    } else {
+      nextPipelineId = undefined;
+    }
+
+    onTileOverrideChange(selectedTile.id, {
+      query: {
+        ...normQuery,
+        pipelineId: nextPipelineId,
+      },
+    });
+  };
+
+  const pipelineReason =
+    catalogEntry?.source.layer === 'live'
+      ? 'Live-Feed, kein Pipeline-Filter'
+      : 'Feste Stammdaten, kein Pipeline-Filter';
+
   return (
     <div data-testid="tab-content-daten" className="space-y-4">
       {catalogEntry && (
@@ -150,23 +187,23 @@ export function InspectorDataTab({
         </div>
       )}
 
-      {/* Pipeline-Override */}
+      {/* Pipeline-Zuordnung */}
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-[var(--color-text-muted)]">
           Pipeline-Zuordnung
         </label>
         <select
           data-testid="inspector-pipeline-override"
-          value={selectedTile.pipelineOverride ?? ''}
-          onChange={(e) =>
-            onTileOverrideChange(selectedTile.id, {
-              pipelineOverride: e.target.value || undefined,
-            })
-          }
-          className="h-8 w-full rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-2 text-xs text-white outline-none focus:border-primary"
+          disabled={!supportsPipeline}
+          value={supportsPipeline ? pipelineValue : ''}
+          onChange={handlePipelineChange}
+          className="h-8 w-full rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-2 text-xs text-white outline-none focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <option value="" className="bg-[var(--color-bg-deep,#051413)]">
             Standard (folgt Dashboard)
+          </option>
+          <option value="__all__" className="bg-[var(--color-bg-deep,#051413)]">
+            Alle Pipelines (kein Filter)
           </option>
           <option value="vertrieb_q4" className="bg-[var(--color-bg-deep,#051413)]">
             Vertrieb Q4
@@ -178,36 +215,42 @@ export function InspectorDataTab({
             Inbound Leads
           </option>
         </select>
+        {!supportsPipeline && (
+          <p
+            className="text-[10px] text-[var(--color-text-muted)]"
+            data-testid="pipeline-disabled-reason"
+          >
+            {pipelineReason}
+          </p>
+        )}
       </div>
 
-      {/* Zeitraum-Override */}
+      {/* Zeitraum */}
       <div className="space-y-1.5">
-        <label className="text-xs font-medium text-[var(--color-text-muted)]">
-          Zeitraum-Override
-        </label>
+        <label className="text-xs font-medium text-[var(--color-text-muted)]">Zeitraum</label>
         <select
           data-testid="inspector-timeframe-override"
-          value={selectedTile.timeframeOverride ?? ''}
-          onChange={(e) =>
-            onTileOverrideChange(selectedTile.id, {
-              timeframeOverride: e.target.value || undefined,
-            })
-          }
-          className="h-8 w-full rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-2 text-xs text-white outline-none focus:border-primary"
+          disabled
+          value={caps?.allowedTimeframes[0] ?? 'fest'}
+          className="h-8 w-full rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-2 text-xs text-white outline-none focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <option value="" className="bg-[var(--color-bg-deep,#051413)]">
-            Standard (folgt Dashboard)
+          <option value="fest" className="bg-[var(--color-bg-deep,#051413)]">
+            Fester Stichtag (31.12.2025)
           </option>
-          <option value="letzte_7_tage" className="bg-[var(--color-bg-deep,#051413)]">
-            Feste 7 Tage
+          <option value="aktuell" className="bg-[var(--color-bg-deep,#051413)]">
+            Aktueller Snapshot (CRM)
           </option>
-          <option value="letzte_30_tage" className="bg-[var(--color-bg-deep,#051413)]">
-            Feste 30 Tage
-          </option>
-          <option value="quartal" className="bg-[var(--color-bg-deep,#051413)]">
-            Festes Quartal
+          <option value="live" className="bg-[var(--color-bg-deep,#051413)]">
+            Echtzeit-Stream (Live)
           </option>
         </select>
+        <p
+          className="text-[10px] text-[var(--color-text-muted)]"
+          data-testid="timeframe-disabled-reason"
+        >
+          Fester Zeitbezug laut Kennzahl ({caps?.allowedTimeframes[0] ?? 'fest'}). Eigene
+          Zeitfenster folgen in P10.
+        </p>
       </div>
     </div>
   );

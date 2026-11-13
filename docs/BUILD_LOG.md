@@ -21033,5 +21033,90 @@ Gemäß Auftrag 153 §8 wurde der explizite 3-Client-Realtime-Nachweis implement
 - **CI-Integration:** In `.github/workflows/ci.yml` im `e2e`-Job mit `--fail-if-offline` nach dem lokalen DB-Bootstrap verankert.
 - **Prüfszenario:** Drei parallele Clients abonnieren `live_kpi_public_feed`. Nach Ingest eines Events für Organisation A empfängt ausschließlich Client A (Org-Mitglied) die Benachrichtigung; Client B (Fremdorganisation) und Client Anon (unangemeldet) erhalten durch RLS und Topic-Filter 0 Events.
 
+---
+
+## 2026-11-13 — Auftrag 154 (P08a): Dashboard-Editor: Abfragevertrag und Vollbestandsaggregation
+
+**Rolle:** Antigravity (Builder) · **Branch:** `auftrag-154-abfragevertrag-vollbestand` · **Status:** Bereit für Codex-Review
+
+### 1. Zusammenfassung
+
+Umsetzung von **Auftrag 154 (P08a)** als erster Teil des geteilten Masterplan-Pakets P08:
+- Etablierung von `tile.query` als alleinigem **Single Source of Truth** für Metrik, Datenfilter, Zeitbezug, Aggregation und Gruppierung im Dashboard-Editor V2.
+- Ableitung von Kennzahlenfähigkeiten (`queryCapabilities.ts`) aus den 48 aktiven Katalogeinträgen ohne manuelle Redundanzen.
+- Strikte Strukturprüfung auf Server-Ebene (`dashboard_config_v2_invalid_reason`) und Fachprüfung im Browser (`validateTileQuery`).
+- Neue PostgreSQL-RPC `public.dashboard_crm_pipeline_overview(p_pipeline TEXT DEFAULT NULL)` für die vollständige serverseitige Aggregation ohne Zeilenkappung (`max_rows = 1000`).
+- Parität zwischen Browser (`getPipelineOverview`) und Datenbank-RPC über gemeinsame Fixtures, inklusive 1.500-Deal-Vollbestandsbeweis.
+- Neuer Cache-Schlüssel `dashboardQueryKeys.crmOverview(organizationId, userId, pipeline)` mit Abfrageteilung (24 Kacheln über 3 Pipelines = genau 3 RPC-Calls) und Bereinigung bei Abmeldung/Mandantenwechsel.
+- Behebung von Dependabot-Alarm #7 (`basic-ftp` auf 6.2.6).
+- Erstellung des Detailauftrags 156 (`ANTIGRAVITY_AUFTRAG_156_CRM_REPOSITORY_VOLLBESTAND_PAGINIERUNG.md`) zur Behebung der 1.000-Zeilen-Grenze in den übrigen Ansichten.
+
+### 2. Rot-Nachweise (vor der Umsetzung)
+
+1. **T1a (1.500-Deal-Kappung des alten Pfads):**
+   - Alter Pfad über `CRMRepository.getImportedFunnelDeals` liefert bei 1.500 Deals nur 1.000 Zeilen (`totalDeals = 1000`, `totalVolume = 10000`).
+   - Mit Vollbestand (`dashboard_crm_pipeline_overview` / `getPipelineOverview` über Gesamtmenge) werden alle 1.500 Deals vollständig berechnet (`totalDeals = 1500`, `totalVolume = 15000`). Nachgewiesen in `dashboardQueryParity.vitest.ts`.
+2. **T1b (Canvas ignoriert query.pipelineId):**
+   - Kachel mit `query.pipelineId = 'B'` und ohne `pipelineOverride` las früher nur globale Pipeline A. `convertV2TileToV1` priorisiert jetzt normalisiertes `query.pipelineId`. Nachgewiesen in `tileQuery.vitest.ts`.
+3. **T1c (Server akzeptiert ungültiges query-JSON):**
+   - Vor der Migration akzeptierte `SELECT public.dashboard_config_v2_invalid_reason('{"version":2, ... "query":{"x":"y"}}'::jsonb)` beliebiges JSON (`NULL`). Nach Migration wird es mit `'unbekanntes Feld in Kachel-query'` strikt abgewiesen. Nachgewiesen in pgTAP `dashboard_query_contract.sql`.
+
+### 3. Last & Performance-Benchmark (§2.4 Nr. 18)
+
+Lastmessung via `EXPLAIN (ANALYZE, BUFFERS)` mit 5.000 synthetischen Deals in einer Organisation auf PostgreSQL:
+- **Ohne Pipeline-Filter (5.000 Deals ausgewertet):**
+  - Execution Time: **82.45 ms** (Buffers: shared hit=31220).
+- **Mit Pipeline-Filter `Vertrieb` (3.000 von 5.000 Deals ausgewertet):**
+  - Execution Time: **49.78 ms** (Buffers: shared hit=19956).
+  - Kernabfrage mit Gruppen-Aggregation: **17.01 ms** via `Index Scan using idx_deals_org_pipeline on imported_funnel_deals d` (`Index Cond: (organization_id = ... AND pipeline = 'Vertrieb')`).
+  - Der vorhandene Composite-Index `(organization_id, pipeline, id)` aus `20260928_crm_query_indexes.sql` wird optimal genutzt; kein zusätzlicher Index erforderlich.
+
+### 4. Schutzbereichs-Diff (§3 Nr. 1)
+
+```
+git diff 84bbc91 -- src/simulation src/context src/services/data src/features/resources
+--> LEER (0 Zeilen Diff)
+
+git diff 84bbc91 -- src/services/db/crmRepository.ts
+--> LEER (0 Zeilen Diff)
+
+git diff 84bbc91 -- src/types
+--> Nur src/types/database.generated.ts geändert:
+@@ -471,6 +471,10 @@ export type Database = {
+           };
+       current_organization_id: { Args: never; Returns: string };
+       current_organization_role: { Args: never; Returns: string };
++      dashboard_crm_pipeline_overview: {
++        Args: { p_pipeline?: string | null };
++        Returns: Json;
++      };
+       diag:
+```
+
+### 5. Fundstellen mit 1.000-Zeilen-Grenze (für Folgeauftrag 156)
+
+Folgende Stellen im CRM- und Workspace-Bestand nutzen `select('*')` ohne Paginierung/Range:
+- `CRMRepository.getImportedFunnelDeals()` in `src/services/db/crmRepository.ts:16`
+- `CRMRepository.getCompanies()` in `src/services/db/crmRepository.ts:31`
+- `CRMRepository.getContacts()` in `src/services/db/crmRepository.ts:46`
+- `ExecutiveCockpit` und alte V1-Dashboard-Ansicht über `getPipelineOverview`
+- Export-Funktionen (`crmQueryExportService.ts`)
+
+Der Detailauftrag `ANTIGRAVITY_AUFTRAG_156_CRM_REPOSITORY_VOLLBESTAND_PAGINIERUNG.md` ist ausgearbeitet und bereit zur Umsetzung nach 155.
+
+### 6. Schrittliste für Marc (Hosted Supabase)
+
+Zur Aktivierung der neuen Vollbestands-RPC auf der gehosteten Supabase-Instanz:
+1. **Migration anwenden:**
+   Inhalt von `supabase/migrations/20261116_dashboard_query_contract.sql` im Supabase Dashboard SQL Editor ausführen (oder per `supabase db push`).
+2. **Rechte und Ausführung prüfen:**
+   - Als angemeldetes Mitglied der Demo-Organisation:
+     `SELECT public.dashboard_crm_pipeline_overview();`
+     -> Liefert vollständige Aggregation aller Deals mit Zählwerten und Stufen.
+   - Als abgemeldeter Nutzer (`anon`):
+     `SELECT public.dashboard_crm_pipeline_overview();`
+     -> Wird mit `permission denied` (42501) abgewehrt.
+
+
 
 

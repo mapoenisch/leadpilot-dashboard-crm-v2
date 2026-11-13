@@ -16,6 +16,7 @@ import type {
   DashboardTileConfig,
 } from '../../../model/dashboardConfig';
 import type { DashboardView } from '../../../model/dashboardCatalog';
+import { normalizeTileQuery } from '../../../model/tileQuery';
 import { LazyDashboardTile, type TileDataHook } from '../../LazyDashboardTile';
 import { GridResizeHandle, type ResizeDirection } from '../grid/GridResizeHandle';
 import { getGridPlacementClasses } from '../grid/gridTailwindClasses';
@@ -54,6 +55,18 @@ export function convertV2TileToV1(
   const w = tile.layouts.desktop.w;
   const size = w >= 12 ? 'voll' : w >= 9 ? 'gross' : w >= 6 ? 'mittel' : 'klein';
 
+  // Auftrag 154 §2.1: query ist die kanonische Abfragequelle
+  const normQuery = normalizeTileQuery(tile);
+
+  let effectivePipeline: string | undefined;
+  if (normQuery.pipelineId === null) {
+    effectivePipeline = undefined;
+  } else if (typeof normQuery.pipelineId === 'string') {
+    effectivePipeline = normQuery.pipelineId;
+  } else {
+    effectivePipeline = tile.pipelineOverride ?? globalPipeline;
+  }
+
   return {
     tileId: tile.id,
     catalogId: tile.catalogId,
@@ -62,7 +75,7 @@ export function convertV2TileToV1(
     size,
     filterMode: tile.timeframeOverride ? 'eigener_zeitraum' : 'dashboard',
     period: tile.timeframeOverride ? parseTimeframeToPeriod(tile.timeframeOverride) : undefined,
-    pipeline: tile.pipelineOverride ?? globalPipeline,
+    pipeline: effectivePipeline,
   };
 }
 

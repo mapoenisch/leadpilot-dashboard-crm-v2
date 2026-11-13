@@ -471,6 +471,10 @@ export type Database = {
           };
       current_organization_id: { Args: never; Returns: string };
       current_organization_role: { Args: never; Returns: string };
+      dashboard_crm_pipeline_overview: {
+        Args: { p_pipeline?: string | null };
+        Returns: Json;
+      };
       diag:
         | {
             Args: { msg: unknown };
