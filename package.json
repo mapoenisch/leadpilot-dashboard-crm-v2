@@ -14,6 +14,7 @@
     "agent-review": "node scripts/agentReview.mjs",
     "verify:licenses": "node scripts/checkThirdPartyLicenses.mjs",
     "verify:migrations": "node scripts/verifyMigrationUpgrade.mjs",
+    "verify:realtime": "tsx scripts/verifyLiveKpiRealtimeIsolation.ts",
     "verify:backup": "node scripts/verifyBackupRestore.mjs",
     "verify:facelift": "tsx scripts/verifyFacelift.ts",
     "test": "vitest run",

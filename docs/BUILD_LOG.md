@@ -21026,4 +21026,12 @@ Zur gefahrlosen Inbetriebnahme auf der gehosteten Instanz ohne offenes Lesefenst
    - Als abgemeldeter Nutzer (`anon`): Kein Zugriff über REST oder Realtime möglich (401/Empty).
    - Erst nach erfolgreichem Testbetrieb darf die Betriebsregel („keine echten Kennzahlen einspeisen“) aufgehoben werden.
 
+### Realtime-Mandantenisolation (3 Clients: A, B, anonym)
+
+Gemäß Auftrag 153 §8 wurde der explizite 3-Client-Realtime-Nachweis implementiert:
+- **Skript:** `scripts/verifyLiveKpiRealtimeIsolation.ts` (ausführbar via `npm run verify:realtime`).
+- **CI-Integration:** In `.github/workflows/ci.yml` im `e2e`-Job mit `--fail-if-offline` nach dem lokalen DB-Bootstrap verankert.
+- **Prüfszenario:** Drei parallele Clients abonnieren `live_kpi_public_feed`. Nach Ingest eines Events für Organisation A empfängt ausschließlich Client A (Org-Mitglied) die Benachrichtigung; Client B (Fremdorganisation) und Client Anon (unangemeldet) erhalten durch RLS und Topic-Filter 0 Events.
+
+
 
