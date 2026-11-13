@@ -272,6 +272,8 @@ Die Nummern legen die vorgesehene Reihenfolge fest. Die Spalte „Fachliche Vora
 
 **Plananpassung 11.11.2026:** Ein externes Audit (Triage: `docs/reviews/2026-11-11-externes-audit-triage.md`) hat gezeigt, dass P06 seine Abnahme „Kein Überlappen“ nicht erfüllt und P07 solche Layouts dauerhaft speichert. P06b wird deshalb vor P08 eingeschoben; P08 ist bis zur Gate-Freigabe von P06b sowie der Aufträge 152 (Sicherheits- und Robustheitsnacharbeit) und 153 (Live-KPI-Feed mandantengebunden; ändert nach Merge den Feed-Vertrag aus §4.C und den Alarmquellen-Ausschluss in §4.D) pausiert.
 
+**Plananpassung 13.11.2026:** 151, 152 und 153 sind gemergt, P08 ist freigegeben. P08 wird vor der Umsetzung geteilt: Auftrag 154 = P08a (Abfragevertrag, Fähigkeiten aus dem Katalog, Abfrageprüfung in Browser und Server, Vollbestands-RPC für CRM-Kennzahlen, geteilter Cache; ohne neue Oberfläche) und Auftrag 155 = P08b (Panel-Editor mit Vorschau, visuellem Baukasten, deklarativem Modus und Rohdateninspektor). Anlass ist neben dem Umfang ein Planungsbefund: Der Dashboard-CRM-Pfad liest Deals ohne Seitenbildung und sieht bei `max_rows = 1000` höchstens 1.000 Deals. Die P08-Abnahme gilt erst mit 155 als erfüllt.
+
 ### 6.1 Nutzbare Zwischenstände
 
 **Zwischenstand A, P01–P08:** neuer persönlicher Editor mit Vier-Zonen-Layout, richtigem Raster, Inspector, Panel-Editor und sicherer Speicherung. Eigenständig prüfbarer Pilot auf V2-Kopien hinter dem Rollout-Schalter; reguläre Nutzer bleiben bis P16 im alten Editor.
