@@ -276,6 +276,8 @@ Die Nummern legen die vorgesehene Reihenfolge fest. Die Spalte „Fachliche Vora
 
 **Umsetzungsstand 13.11.2026 (P08a / Auftrag 154):** P08a vollständig umgesetzt: `tile.query` als kanonischer Vertrag (`ABFRAGEVERTRAG_P08A.md`), Fähigkeitsableitung aus 48 aktiven Katalogeinträgen (`queryCapabilities.ts`), Strukturprüfung in `dashboard_config_v2_invalid_reason`, Vollbestands-RPC `dashboard_crm_pipeline_overview` ohne Zeilenbegrenzung, deterministischer Tie-Break und Paritätsnachweise über gemeinsame Fixtures. P08b (Auftrag 155) baut direkt darauf auf.
 
+**Plananpassung 14.11.2026:** P09 wird vor der Umsetzung geteilt: Auftrag 157 = P09a (Sektionen mit eigenem Raster je Bereich, einklappbare Gruppen ohne Rendering und Datenabruf, Inhaltsprüfung von `sections` in Browser und Server; eine Migration ohne neue RPC; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_157_DASHBOARD_SEKTIONEN.md`) und Auftrag 158 = P09b (V2-Vorlagen und Dashboard-Auswahl mit neuer Listen-RPC für persönliche Dashboards). Anlass ist neben dem Umfang ein Planungsbefund: `sections` ist seit P03 als Top-Level-Feld zugelassen, wird aber weder im Browser noch auf dem Server inhaltlich geprüft. Die P09-Abnahme gilt erst mit 158 als erfüllt. Reihenfolge: 155 → 156 → 157 → 158.
+
 ### 6.1 Nutzbare Zwischenstände
 
 **Zwischenstand A, P01–P08:** neuer persönlicher Editor mit Vier-Zonen-Layout, richtigem Raster, Inspector, Panel-Editor und sicherer Speicherung. Eigenständig prüfbarer Pilot auf V2-Kopien hinter dem Rollout-Schalter; reguläre Nutzer bleiben bis P16 im alten Editor.
