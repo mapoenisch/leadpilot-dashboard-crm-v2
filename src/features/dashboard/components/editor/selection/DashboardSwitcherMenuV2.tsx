@@ -25,6 +25,7 @@ export interface DashboardSwitcherMenuV2Props {
 export function formatRelativeTime(dateString: string): string {
   try {
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return '';
     const now = new Date();
     const diffSec = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 1000));
     if (diffSec < 60) return 'gerade eben';

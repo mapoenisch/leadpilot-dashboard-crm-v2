@@ -234,6 +234,47 @@ describe('DashboardSwitcherV2 UI-Tests', () => {
     expect(screen.getByTestId('duplicate-dashboard-menu-item')).toBeDisabled();
   });
 
+  it('öffnet Duplizieren-Dialog und führt Duplizieren aus', async () => {
+    const { onDuplicateCurrent } = renderSwitcher();
+    fireEvent.click(screen.getByTestId('dashboard-switcher-button'));
+    fireEvent.click(screen.getByTestId('duplicate-dashboard-menu-item'));
+
+    expect(screen.getByTestId('duplicate-dashboard-dialog')).toBeInTheDocument();
+    const titleInput = screen.getByTestId('duplicate-dashboard-title-input');
+    fireEvent.change(titleInput, { target: { value: 'Kopie 1' } });
+    fireEvent.click(screen.getByTestId('duplicate-submit-button'));
+
+    await waitFor(() => {
+      expect(onDuplicateCurrent).toHaveBeenCalledWith('Kopie 1');
+    });
+  });
+
+  it('erlaubt Abbrechen in Duplizieren-, Neu- und Löschdialog', async () => {
+    renderSwitcher();
+    const trigger = screen.getByTestId('dashboard-switcher-button');
+
+    // Lösch-Dialog abbrechen
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByTestId('delete-dashboard-menu-item'));
+    expect(screen.getByTestId('delete-dashboard-dialog')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }));
+    expect(screen.queryByTestId('delete-dashboard-dialog')).not.toBeInTheDocument();
+
+    // Neu-Dialog abbrechen
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByTestId('new-dashboard-menu-item'));
+    expect(screen.getByTestId('new-dashboard-dialog')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }));
+    expect(screen.queryByTestId('new-dashboard-dialog')).not.toBeInTheDocument();
+
+    // Duplizieren-Dialog abbrechen
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByTestId('duplicate-dashboard-menu-item'));
+    expect(screen.getByTestId('duplicate-dashboard-dialog')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }));
+    expect(screen.queryByTestId('duplicate-dashboard-dialog')).not.toBeInTheDocument();
+  });
+
   it('blendet Aktionen im Vorschau-Modus aus', () => {
     renderSwitcher({ isPreviewMode: true });
     fireEvent.click(screen.getByTestId('dashboard-switcher-button'));
