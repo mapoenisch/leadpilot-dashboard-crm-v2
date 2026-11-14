@@ -270,4 +270,65 @@ describe('SectionedCanvasV2 UI & Entlastung (P09a)', () => {
     fireEvent.click(screen.getByTestId('confirm-remove-section-btn'));
     expect(onConfirmRemove).toHaveBeenCalled();
   });
+
+  it('behandelt Drops auf den unsektionierten Bereich mit Ziel null auch wenn eine Sektion aktiv ist', () => {
+    const onAddTileAtPosition = vi.fn();
+    const config: DashboardConfigV2 = {
+      version: 2,
+      id: 'd_test',
+      title: 'Test Dashboard',
+      scope: 'personal',
+      ownerUserId: 'u_test',
+      organizationId: 'org_test',
+      globalTimeframe: 'monat',
+      sections: [{ id: 'sec_1', title: 'Vertrieb', collapsed: false, tileIds: [] }],
+      tiles: [
+        {
+          id: 't_unsec',
+          catalogId: 'crm.leads_count',
+          title: 'Leads',
+          presentation: 'zahl',
+          layouts: {
+            desktop: { x: 0, y: 0, w: 3, h: 3 },
+            tablet: { x: 0, y: 0, w: 4, h: 3 },
+            mobile: { x: 0, y: 0, w: 1, h: 3 },
+          },
+        },
+      ],
+    };
+
+    render(
+      <SectionedCanvasV2
+        config={config}
+        activeBreakpoint="desktop"
+        selectedTileId={null}
+        activeAreaId="sec_1"
+        onSelectTile={vi.fn()}
+        onDeselect={vi.fn()}
+        onRemoveTile={vi.fn()}
+        onDuplicateTile={vi.fn()}
+        onAddTileAtPosition={onAddTileAtPosition}
+        useData={useEditorPreviewData}
+      />,
+    );
+
+    const unsectionedArea = screen.getByTestId('unsectioned-area');
+    expect(unsectionedArea).toBeInTheDocument();
+
+    const dataTransfer = {
+      getData: (format: string) => (format === 'text/leadpilot-kpi' ? 'baseline.umsatz' : ''),
+    };
+
+    fireEvent.drop(unsectionedArea, {
+      clientX: 50,
+      clientY: 50,
+      dataTransfer,
+    });
+
+    expect(onAddTileAtPosition).toHaveBeenCalledWith(
+      'baseline.umsatz',
+      expect.objectContaining({ w: 6, h: 4 }),
+      null,
+    );
+  });
 });

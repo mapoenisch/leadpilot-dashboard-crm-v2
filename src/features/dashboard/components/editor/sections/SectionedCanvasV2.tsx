@@ -218,6 +218,10 @@ export function SectionedCanvasV2({
               role="region"
               aria-label="Bereich Ohne Sektion"
               onPointerDown={() => onSelectActiveArea?.(null)}
+              onDrop={(e) => {
+                e.stopPropagation();
+                handleDrop(e, null);
+              }}
               className={cn(
                 'rounded-lg transition-colors',
                 activeAreaId === null &&
