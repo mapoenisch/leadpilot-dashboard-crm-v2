@@ -37,6 +37,7 @@ export interface DashboardEditorShellV2Props {
   onCreateFromTemplate?: (templateId: string, title?: string) => Promise<{ ok: boolean; error?: unknown }>;
   onDuplicateCurrent?: (title?: string) => Promise<{ ok: boolean; error?: unknown }>;
   onDeleteDashboard?: (id: string) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
+  onRefreshList?: () => Promise<void>;
 }
 
 export function DashboardEditorShellV2({
@@ -55,6 +56,7 @@ export function DashboardEditorShellV2({
   onCreateFromTemplate,
   onDuplicateCurrent,
   onDeleteDashboard,
+  onRefreshList,
 }: DashboardEditorShellV2Props) {
   const isDesktop = typeof window === 'undefined' || window.innerWidth >= 1024;
   const [isLibraryOpen, setIsLibraryOpen] = useState(isDesktop);
@@ -239,6 +241,7 @@ export function DashboardEditorShellV2({
         onCreateFromTemplate={onCreateFromTemplate}
         onDuplicateCurrent={onDuplicateCurrent}
         onDeleteDashboard={onDeleteDashboard}
+        onRefreshList={onRefreshList}
       />
 
       {/* MITTLERER ARBEITSBEREICH: BIBLIOTHEK + CANVAS + INSPECTOR */}

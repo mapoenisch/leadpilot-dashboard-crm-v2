@@ -36,6 +36,7 @@ function failTechnically<T>(cause: unknown): StorageResult<T> {
 import {
   getInMemoryDashboard,
   inMemoryStore,
+  nextMonotonicIsoDate,
   resetInMemoryDashboardV2Storage,
 } from './dashboardInMemoryStoreV2';
 export { resetInMemoryDashboardV2Storage };
@@ -214,7 +215,7 @@ export async function createDashboardV2(params: {
       config.id && !inMemoryStore.has(config.id)
         ? config.id
         : 'dash_mock_' + Math.random().toString(36).slice(2, 10);
-    const now = new Date().toISOString();
+    const now = nextMonotonicIsoDate();
     const stored: StoredDashboardV2Row = {
       id,
       title: trimmedTitle,
@@ -317,7 +318,7 @@ export async function saveDashboardV2(params: {
     }
 
     const nextRev = existing.row.revision + 1;
-    const now = new Date().toISOString();
+    const now = nextMonotonicIsoDate();
     existing.row = {
       ...existing.row,
       title: params.title,

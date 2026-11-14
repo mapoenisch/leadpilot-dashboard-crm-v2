@@ -61,6 +61,7 @@ export interface EditorTopBarV2Props {
   onCreateFromTemplate?: (templateId: string, title?: string) => Promise<{ ok: boolean; error?: unknown }>;
   onDuplicateCurrent?: (title?: string) => Promise<{ ok: boolean; error?: unknown }>;
   onDeleteDashboard?: (id: string) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
+  onRefreshList?: () => Promise<void>;
 }
 
 export const TIMEFRAME_OPTIONS = [
@@ -107,6 +108,7 @@ export function EditorTopBarV2({
   onCreateFromTemplate,
   onDuplicateCurrent,
   onDeleteDashboard,
+  onRefreshList,
 }: EditorTopBarV2Props) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState(config.title);
@@ -191,6 +193,7 @@ export function EditorTopBarV2({
             onCreateFromTemplate={onCreateFromTemplate}
             onDuplicateCurrent={onDuplicateCurrent}
             onDeleteDashboard={onDeleteDashboard}
+            onRefreshList={onRefreshList}
             onSaveCurrent={async () => {
               onSave();
               return true;

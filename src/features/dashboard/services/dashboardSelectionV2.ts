@@ -3,7 +3,7 @@
 
 import { isSupabaseConfigured, supabase } from '@/services/db/supabaseClient';
 import { logger } from '@/services/logger';
-import { inMemoryStore } from './dashboardInMemoryStoreV2';
+import { inMemoryStore, nextMonotonicIsoDate } from './dashboardInMemoryStoreV2';
 import {
   type DeleteDashboardV2Result,
   type DuplicateDashboardV2Result,
@@ -201,7 +201,7 @@ export async function duplicatePersonalDashboardV2(params: {
     }
 
     const newId = 'dash_v2_' + Math.random().toString(36).slice(2, 10);
-    const now = new Date().toISOString();
+    const now = nextMonotonicIsoDate();
     const newConfig = {
       ...source.row.config,
       id: newId,

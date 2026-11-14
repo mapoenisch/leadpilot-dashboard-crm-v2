@@ -110,6 +110,7 @@ function PersonalExecutiveDashboardV2Container({
         onCreateFromTemplate={v2Storage.createFromTemplate}
         onDuplicateCurrent={v2Storage.duplicateCurrent}
         onDeleteDashboard={v2Storage.deleteDashboard}
+        onRefreshList={v2Storage.refreshList}
       />
       <DashboardConflictDialogV2
         open={showConflictDialog}

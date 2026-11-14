@@ -26,6 +26,7 @@ export interface DashboardSwitcherV2Props {
   onDuplicateCurrent: (title?: string) => Promise<{ ok: boolean; error?: unknown }>;
   onDeleteDashboard: (id: string) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
   onSaveCurrent: () => Promise<boolean>;
+  onRefreshList?: () => Promise<void>;
   className?: string;
 }
 
@@ -39,6 +40,7 @@ export function DashboardSwitcherV2({
   onDuplicateCurrent,
   onDeleteDashboard,
   onSaveCurrent,
+  onRefreshList,
   className,
 }: DashboardSwitcherV2Props) {
   const selection = useDashboardSelection({
@@ -77,6 +79,13 @@ export function DashboardSwitcherV2({
 
   const [, setFocusedIndex] = useState<number>(-1);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  // Beim Öffnen des Menüs Liste vom Server aktualisieren (Codex P2 / Auftrag 158 §2.5 Nr. 29)
+  useEffect(() => {
+    if (isOpen && onRefreshList) {
+      void onRefreshList();
+    }
+  }, [isOpen, onRefreshList]);
 
   // Klick außerhalb schließt das Menü
   useEffect(() => {

@@ -71,6 +71,7 @@ function renderSwitcher(props: Partial<DashboardSwitcherV2Props> = {}) {
   const onDeleteDashboard =
     props.onDeleteDashboard ?? vi.fn().mockResolvedValue({ ok: true, nextDashboardId: 'dash-2' });
   const onSaveCurrent = props.onSaveCurrent ?? vi.fn().mockResolvedValue(true);
+  const onRefreshList = props.onRefreshList ?? vi.fn().mockResolvedValue(undefined);
 
   const view = render(
     <DashboardSwitcherV2
@@ -83,14 +84,32 @@ function renderSwitcher(props: Partial<DashboardSwitcherV2Props> = {}) {
       onDuplicateCurrent={onDuplicateCurrent}
       onDeleteDashboard={onDeleteDashboard}
       onSaveCurrent={onSaveCurrent}
+      onRefreshList={onRefreshList}
       {...props}
     />,
   );
 
-  return { ...view, onOpenDashboard, onCreateFromTemplate, onDuplicateCurrent, onDeleteDashboard, onSaveCurrent };
+  return {
+    ...view,
+    onOpenDashboard,
+    onCreateFromTemplate,
+    onDuplicateCurrent,
+    onDeleteDashboard,
+    onSaveCurrent,
+    onRefreshList,
+  };
 }
 
 describe('DashboardSwitcherV2 UI-Tests', () => {
+  it('ruft onRefreshList beim Öffnen des Menüs auf (Codex P2)', () => {
+    const onRefreshList = vi.fn().mockResolvedValue(undefined);
+    renderSwitcher({ onRefreshList });
+
+    expect(onRefreshList).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId('dashboard-switcher-button'));
+    expect(onRefreshList).toHaveBeenCalledTimes(1);
+  });
+
   it('rendert Auswahlknopf mit Scope-Badge und aktuellem Titel', () => {
     renderSwitcher();
     const trigger = screen.getByTestId('dashboard-switcher-button');
