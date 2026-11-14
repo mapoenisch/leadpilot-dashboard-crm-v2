@@ -10,6 +10,7 @@ export interface EditorStatusBarV2Props {
   connectionStatus: 'connected' | 'paused' | 'offline';
   dataTimestamp?: string;
   tileCount: number;
+  activeTileCount?: number;
   maxTiles?: number;
   undoCount: number;
   redoCount: number;
@@ -29,6 +30,7 @@ export function EditorStatusBarV2({
   connectionStatus,
   dataTimestamp = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
   tileCount,
+  activeTileCount,
   maxTiles = 24,
   undoCount,
   redoCount,
@@ -107,7 +109,9 @@ export function EditorStatusBarV2({
         >
           <Database className="h-3 w-3" />
           <span>
-            {tileCount} / {maxTiles} Kacheln
+            {activeTileCount !== undefined && activeTileCount !== tileCount
+              ? `${activeTileCount} von ${tileCount} aktiv (max. ${maxTiles})`
+              : `${tileCount} / ${maxTiles} Kacheln`}
           </span>
         </div>
 

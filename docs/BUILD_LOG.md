@@ -21190,6 +21190,108 @@ Keine Dateien in Schutzbereichen berührt.
   - Largest chunk: 79.41 kB (Limit 250 kB) - grün
 - Maximale Dateilängen: Alle modifizierten Dateien unter 400 Zeilen (`runRepository.ts` 325, `crmRepository.ts` 235, `supabasePagingHelper.ts` 69, `scenarioRepository.ts` 64, `usePipelineOverview.ts` 17).
 
+---
+
+## Auftrag 157 – Dashboard-Editor: Sektionen und einklappbare Gruppen (P09a)
+
+**Datum:** 14.11.2026  
+**Builder:** Antigravity  
+**Branch:** `auftrag-157-dashboard-sektionen`  
+**Baseline:** `60aa96b` (Merge von PR #184)  
+
+### 1. Rot-Nachweise (§3 Nr. 8)
+
+- **(a) Client-Validierung:** Vor 157 akzeptierte `validateDashboardConfigV2` beliebige Top-Level-Inhalte in `sections` (z. B. `[{"foo": 1}]`). Jetzt strikt typisiert und geprüft über `validateDashboardSections()`.
+- **(b) Server-Validierung:** `dashboard_config_v2_invalid_reason` in PostgreSQL akzeptierte unvalidierte `sections`. Jetzt per Migration `20261117_dashboard_sections.sql` auf exakt identische Fehlertexte gehärtet; 14 pgTAP-Suiten (332 Tests) und Fixture-Paritätsläufe sind grün.
+- **(c) Rasterintegrität:** Kacheln mit identischen Koordinaten in unterschiedlichen Sektionen galten als Überlappung. Jetzt arbeitet `dashboardLayoutIntegrity.ts` bereichsisoliert.
+
+### 2. Leistungsmessung & Entlastungsnachweis (§2.6 Nr. 29 & 30)
+
+Vergleichsmessung: Dashboard mit 24 Kacheln in 4 Sektionen (je 6 Kacheln), davon 2 Sektionen eingeklappt, gegen dieselben 24 Kacheln ohne Sektionen:
+
+| Metrik | Ohne Sektionen (24 Kacheln) | Mit Sektionen (2 eingeklappt) | Entlastung |
+|---|---|---|---|
+| Gerenderte Kacheln | 24 | 12 | **-50 %** |
+| `useData`-Aufrufe | 24 | 12 | **-50 %** |
+| RPC-Aufrufe beim Öffnen | 24 | 12 | **-50 %** |
+
+Eingeklappte Sektionen rendern im DOM weder Kachelkarten noch Tile-Komponenten; `dataCallsPerTile` ist für Kacheln eingeklappter Sektionen exakt 0 (nachgewiesen durch `SectionedCanvasV2.ui.vitest.tsx`).
+
+**Bundle-Größen (`npx size-limit`):**
+- Initial JS bundle (gzip): **178.77 kB** (Limit: 180 kB) — GRÜN
+- Largest chunk (gzip): **79.41 kB** (Limit: 250 kB) — GRÜN
+- Editor-Chunk: `DashboardEditorShellV2` 43.26 kB gzipped (Code-Splitting, wird nur im Editor geladen).
+
+### 3. Durchgeführte Änderungen
+
+1. `src/features/dashboard/model/dashboardSections.ts` (Neu, 229 Zeilen):
+   - Typdefinition `DashboardSectionV2`, Validierungsregeln mit identischen Fehlertexten zum Server.
+   - Idempotente Normalisierung `normalizeDashboardSections()`.
+2. `supabase/migrations/20261117_dashboard_sections.sql` (Neu, 192 Zeilen):
+   - Ersetzt `dashboard_config_v2_invalid_reason` um strikte Prüfung von `sections` (Max 12 Sektionen, ID-Format `^sec_[a-zA-Z0-9_-]{1,60}$`, Kachel-Existenz, keine Mehrfachzuordnung).
+3. `src/features/dashboard/core/sectionCommands.ts` (229 Zeilen) & `sectionPlacementCommands.ts` (Neu, 251 Zeilen):
+   - 6 Reversible Commands (`AddSectionCommand`, `RenameSectionCommand`, `MoveSectionCommand`, `SetSectionCollapsedCommand`, `RemoveSectionCommand`, `MoveTileToSectionCommand`) mit präzisem 1-Schritt-Undo.
+4. `src/features/dashboard/components/editor/sections/`:
+   - `SectionedCanvasV2.tsx` (366 Zeilen): Canvas-Rendering mit Sektionen, vollständiges Ausblenden eingeklappter Kacheln, Bereichsauswahl und barrierefreie Live-Ansagen.
+   - `SectionHeaderV2.tsx` (245 Zeilen): Sektionskopf mit Inline-Umbenennung, Einklapp-Schalter (`aria-expanded`, `aria-controls`), Reihenfolge- und Löschaktionen.
+   - `SectionAreaGridV2.tsx` (160 Zeilen): Isoliertes CSS-Raster je Bereich.
+   - `RemoveSectionDialog.tsx` (70 Zeilen): Bestätigungsdialog bei belegten Sektionen verhindert Datenverlust.
+   - `useSectionActions.ts` (219 Zeilen): Handler für Bereichsauswahl, flüchtigen Vorschau-Einklappzustand und Screenreader-Ansagen.
+5. `src/features/dashboard/components/editor/useTilePlacementActions.ts` (Neu, 199 Zeilen):
+   - Kachel-Aktionen (Add, Remove, Duplicate, Commit, Drop, Mobil-Reorder) aus Shell extrahiert.
+6. `src/features/dashboard/components/editor/DashboardEditorShellV2.tsx` (315 Zeilen):
+   - Einbindung von `SectionedCanvasV2` und `useSectionActions`, Drawer-Standard (Breite < 1024 geschlossen).
+7. `src/features/dashboard/components/editor/canvas/CanvasTileCard.tsx` (326 Zeilen):
+   - Schnellaktions-Menü „In Sektion verschieben…“.
+8. `src/features/dashboard/components/editor/EditorInspectorV2.tsx` (361 Zeilen):
+   - Dropdown zur Sektionszuweisung und Hinweiskarte mit „Sektion ausklappen“-Schaltfläche.
+9. `src/features/dashboard/components/editor/EditorStatusBarV2.tsx` (138 Zeilen):
+   - Zähler für aktive vs. gesamte Kacheln.
+10. `docs/screenshots/auftrag-157/README.md`:
+    - 9/9 Screenshots (1440, 768, 375 across 3 scenarios), alle 0 px horizontal overflow, dokumentierte SHA-256 Hashes.
+11. `e2e/personal-dashboard-sections.spec.ts` (Neu, 125 Zeilen) & `e2e/a11y.spec.ts`:
+    - 6/6 E2E-Tests und 21/21 Axe-A11y-Tests grün.
+12. `docs/dashboard/SEKTIONEN_P09A.md` (Neu, 114 Zeilen):
+    - Verbindliche Spezifikation.
+
+### 4. Schutzbereichs-Prüfung
+
+```bash
+git diff 60aa96b -- src/simulation src/types src/context src/services/data src/features/resources
+--> LEER (0 Zeilen Diff)
+
+git diff 60aa96b -- src/services/db/crmRepository.ts src/domain/executiveCockpitData.ts src/features/dashboard/data
+--> LEER (0 Zeilen Diff)
+
+git diff 60aa96b --stat -- supabase/migrations
+--> 1 neue Datei (20261117_dashboard_sections.sql), 0 geänderte Dateien
+```
+
+### 5. Pflicht-Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run format:check`: Alle Dateien entsprechen Prettier-Standard
+- `npm test`: 381/381 Testdateien bestanden (2.815 Tests grün)
+- `npm run verify`: Alle 25 Integrity-Suiten bestanden
+- `npm run build`: Erfolgreich
+- `npm run build:production`: Erfolgreich (mit gültiger Beispielkonfiguration)
+- `npx size-limit`: Grün (178.77 kB / 180 kB Initial-Bundle)
+- `scripts/verifyMigrationUpgrade.mjs`: GRÜN
+- `supabase test db`: 14 pgTAP-Suiten (332 Tests) bestanden
+- Maximale Dateilängen: Alle neu erstellten und modifizierten Dateien liegen strikt unter 400 Zeilen (Budget eingehalten).
+
+### 6. PR-CI & Codex-Review Nacharbeit (14.11.2026)
+
+1. **CI-Fix (Commit `117e17c`):**
+   - Im CI-Job `e2e` fehlte `VITE_DASHBOARD_PREVIEW: 'true'` im Schritt `Build für E2E und Lighthouse`, weswegen `dist/dashboard-vorschau.html` im Preview-Server nicht existierte und `dashboard-editor-shell-v2` in den E2E-Tests nicht gefunden wurde. In `.github/workflows/ci.yml` und `scripts/runV23Acceptance.mjs` ergänzt.
+   - In `e2e/personal-dashboard-sections.spec.ts` wurde `getByRole('button', { name: 'Finanzen & Ertrag' })` durch einen eindeutigen Test-ID-Filter präzisiert, um eine Strict-Mode-Kollision mit dem Sektions-Header zu verhindern.
+2. **Codex-Review P2 Nacharbeit (Commit `9d0a1be`):**
+   - **Befund:** Bei aktiver benannter Sektion (`activeAreaId !== null`) wurden Drops aus der Widget-Bibliothek auf den Bereich „Ohne Sektion“ fälschlicherweise der aktiven Sektion zugewiesen, weil das Event an `<main>` aufstieg und dort auf `activeAreaId` zurückfiel.
+   - **Behebung:** Expliziter `onDrop`-Handler mit `e.stopPropagation()` und `handleDrop(e, null)` auf `unsectioned-area` in `SectionedCanvasV2.tsx` ergänzt.
+   - **Verifikation:** Neuer Unit-Test in `SectionedCanvasV2.ui.vitest.tsx` prüft, dass Drops auf den unsektionierten Bereich explizit mit `targetSection: null` aufgerufen werden. Testsuite `SectionedCanvasV2.ui.vitest.tsx` (5/5) und alle 71 Dashboard-Dateien (783 Tests) grün. Line-Counts: `SectionedCanvasV2.tsx` 370 Zeilen, `SectionedCanvasV2.ui.vitest.tsx` 334 Zeilen (beide <= 400).
+
+
 
 
 

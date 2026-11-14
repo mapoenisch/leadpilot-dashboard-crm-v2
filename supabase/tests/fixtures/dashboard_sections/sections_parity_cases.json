@@ -1,0 +1,260 @@
+{
+  "validCases": [
+    {
+      "id": "valid_without_sections",
+      "config": {
+        "version": 2,
+        "id": "00000000-0000-0000-0000-000000000001",
+        "title": "Ohne Sektionen",
+        "scope": "personal",
+        "ownerUserId": "00000000-0000-0000-0000-000000000001",
+        "organizationId": "00000000-0000-0000-0000-000000000001",
+        "globalTimeframe": "this_month",
+        "tiles": [
+          {
+            "id": "t1",
+            "catalogId": "crm.pipeline_deals",
+            "title": "Deals",
+            "presentation": "zahl",
+            "layouts": { "desktop": { "x": 0, "y": 0, "w": 4, "h": 2 } }
+          }
+        ]
+      }
+    },
+    {
+      "id": "valid_empty_sections",
+      "config": {
+        "version": 2,
+        "id": "00000000-0000-0000-0000-000000000001",
+        "title": "Leere Sektionsliste",
+        "scope": "personal",
+        "ownerUserId": "00000000-0000-0000-0000-000000000001",
+        "organizationId": "00000000-0000-0000-0000-000000000001",
+        "globalTimeframe": "this_month",
+        "tiles": [],
+        "sections": []
+      }
+    },
+    {
+      "id": "valid_with_sections_and_tiles",
+      "config": {
+        "version": 2,
+        "id": "00000000-0000-0000-0000-000000000001",
+        "title": "Mit Sektionen",
+        "scope": "personal",
+        "ownerUserId": "00000000-0000-0000-0000-000000000001",
+        "organizationId": "00000000-0000-0000-0000-000000000001",
+        "globalTimeframe": "this_month",
+        "tiles": [
+          {
+            "id": "t1",
+            "catalogId": "crm.pipeline_deals",
+            "title": "Deals",
+            "presentation": "zahl",
+            "layouts": { "desktop": { "x": 0, "y": 0, "w": 4, "h": 2 } }
+          },
+          {
+            "id": "t2",
+            "catalogId": "crm.pipeline_volumen",
+            "title": "Volumen",
+            "presentation": "zahl",
+            "layouts": { "desktop": { "x": 0, "y": 0, "w": 4, "h": 2 } }
+          },
+          {
+            "id": "t3",
+            "catalogId": "crm.pipeline_deals",
+            "title": "Unsectioned Tile",
+            "presentation": "zahl",
+            "layouts": { "desktop": { "x": 0, "y": 0, "w": 4, "h": 2 } }
+          }
+        ],
+        "sections": [
+          {
+            "id": "sec-1",
+            "title": "Pipeline",
+            "collapsed": false,
+            "tileIds": ["t1"]
+          },
+          {
+            "id": "sec-2",
+            "title": "Finanzen",
+            "collapsed": true,
+            "tileIds": ["t2"]
+          },
+          {
+            "id": "sec-empty",
+            "title": "Leere Gruppe",
+            "collapsed": false,
+            "tileIds": []
+          }
+        ]
+      }
+    }
+  ],
+  "invalidCases": [
+    {
+      "id": "sections_not_array",
+      "expectedReason": "sections muss ein Array sein",
+      "override": {
+        "sections": "not_an_array"
+      }
+    },
+    {
+      "id": "more_than_12_sections",
+      "expectedReason": "maximal 12 Sektionen zulässig",
+      "override": {
+        "sections": [
+          { "id": "s1", "title": "S1", "collapsed": false, "tileIds": [] },
+          { "id": "s2", "title": "S2", "collapsed": false, "tileIds": [] },
+          { "id": "s3", "title": "S3", "collapsed": false, "tileIds": [] },
+          { "id": "s4", "title": "S4", "collapsed": false, "tileIds": [] },
+          { "id": "s5", "title": "S5", "collapsed": false, "tileIds": [] },
+          { "id": "s6", "title": "S6", "collapsed": false, "tileIds": [] },
+          { "id": "s7", "title": "S7", "collapsed": false, "tileIds": [] },
+          { "id": "s8", "title": "S8", "collapsed": false, "tileIds": [] },
+          { "id": "s9", "title": "S9", "collapsed": false, "tileIds": [] },
+          { "id": "s10", "title": "S10", "collapsed": false, "tileIds": [] },
+          { "id": "s11", "title": "S11", "collapsed": false, "tileIds": [] },
+          { "id": "s12", "title": "S12", "collapsed": false, "tileIds": [] },
+          { "id": "s13", "title": "S13", "collapsed": false, "tileIds": [] }
+        ]
+      }
+    },
+    {
+      "id": "section_not_object",
+      "expectedReason": "Sektion-Eintrag ist kein Objekt",
+      "override": {
+        "sections": [null]
+      }
+    },
+    {
+      "id": "section_unknown_field",
+      "expectedReason": "unbekanntes Sektions-Feld im JSON",
+      "override": {
+        "sections": [
+          { "id": "s1", "title": "S1", "collapsed": false, "tileIds": [], "extraField": 123 }
+        ]
+      }
+    },
+    {
+      "id": "section_missing_required_field",
+      "expectedReason": "Sektion-Pflichtfeld fehlt (erwartet: id, title, collapsed, tileIds)",
+      "override": {
+        "sections": [
+          { "id": "s1", "title": "S1", "collapsed": false }
+        ]
+      }
+    },
+    {
+      "id": "section_id_empty",
+      "expectedReason": "Sektion-ID muss ein nicht-leerer String (max. 64 Zeichen) sein",
+      "override": {
+        "sections": [
+          { "id": "   ", "title": "S1", "collapsed": false, "tileIds": [] }
+        ]
+      }
+    },
+    {
+      "id": "section_id_too_long",
+      "expectedReason": "Sektion-ID muss ein nicht-leerer String (max. 64 Zeichen) sein",
+      "override": {
+        "sections": [
+          {
+            "id": "a_very_long_section_id_that_exceeds_sixty_four_characters_limit_1234567890",
+            "title": "S1",
+            "collapsed": false,
+            "tileIds": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "section_ids_duplicate",
+      "expectedReason": "Sektion-IDs müssen eindeutig sein",
+      "override": {
+        "sections": [
+          { "id": "dup", "title": "Sektion 1", "collapsed": false, "tileIds": [] },
+          { "id": "dup", "title": "Sektion 2", "collapsed": false, "tileIds": [] }
+        ]
+      }
+    },
+    {
+      "id": "section_title_empty",
+      "expectedReason": "Sektion-Titel muss nach dem Trimmen zwischen 1 und 80 Zeichen lang sein",
+      "override": {
+        "sections": [
+          { "id": "s1", "title": "   ", "collapsed": false, "tileIds": [] }
+        ]
+      }
+    },
+    {
+      "id": "section_title_too_long",
+      "expectedReason": "Sektion-Titel muss nach dem Trimmen zwischen 1 und 80 Zeichen lang sein",
+      "override": {
+        "sections": [
+          {
+            "id": "s1",
+            "title": "Dieser Sektionstitel ist viel zu lang und überschreitet die erlaubte Maximallänge von achtzig Zeichen deutlich!",
+            "collapsed": false,
+            "tileIds": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "section_collapsed_not_boolean",
+      "expectedReason": "Sektion-collapsed muss ein boolescher Wert sein",
+      "override": {
+        "sections": [
+          { "id": "s1", "title": "S1", "collapsed": "false", "tileIds": [] }
+        ]
+      }
+    },
+    {
+      "id": "section_tile_ids_not_array",
+      "expectedReason": "Sektion-tileIds muss ein Array sein",
+      "override": {
+        "sections": [
+          { "id": "s1", "title": "S1", "collapsed": false, "tileIds": "t1" }
+        ]
+      }
+    },
+    {
+      "id": "section_tile_id_not_string",
+      "expectedReason": "Kachel-ID in Sektion muss ein String sein",
+      "override": {
+        "sections": [
+          { "id": "s1", "title": "S1", "collapsed": false, "tileIds": [123] }
+        ]
+      }
+    },
+    {
+      "id": "section_tile_id_not_in_tiles",
+      "expectedReason": "Kachel-ID in Sektion existiert nicht in tiles",
+      "override": {
+        "sections": [
+          { "id": "s1", "title": "S1", "collapsed": false, "tileIds": ["non_existent_tile"] }
+        ]
+      }
+    },
+    {
+      "id": "section_tile_id_in_multiple_sections",
+      "expectedReason": "Kachel-ID ist mehr als einer Sektion zugeordnet",
+      "override": {
+        "tiles": [
+          {
+            "id": "t1",
+            "catalogId": "crm.pipeline_deals",
+            "title": "Deals",
+            "presentation": "zahl",
+            "layouts": { "desktop": { "x": 0, "y": 0, "w": 4, "h": 2 } }
+          }
+        ],
+        "sections": [
+          { "id": "s1", "title": "S1", "collapsed": false, "tileIds": ["t1"] },
+          { "id": "s2", "title": "S2", "collapsed": false, "tileIds": ["t1"] }
+        ]
+      }
+    }
+  ]
+}

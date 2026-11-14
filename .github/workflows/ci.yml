@@ -203,7 +203,7 @@ jobs:
       # v2.2.0 in Wegwerf-Datenbanken; Schemagleichheit, Bootstrap-Idempotenz, pgTAP.
       - name: Migrationsnachweis (leere DB und Upgrade v2.2.0)
         run: npm run verify:migrations
-      - name: "Realtime-Mandantenisolation (3 Clients: A, B, anonym)"
+      - name: 'Realtime-Mandantenisolation (3 Clients: A, B, anonym)'
         run: npm run verify:realtime -- --fail-if-offline
       - name: Playwright-Browser cachen
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -217,6 +217,8 @@ jobs:
       - run: npx playwright install --with-deps chromium || (sleep 5 && npx playwright install --with-deps chromium)
       - name: Build für E2E und Lighthouse
         run: npx vite build
+        env:
+          VITE_DASHBOARD_PREVIEW: 'true'
       - name: Playwright E2E & Axe Accessibility Tests
         run: npx playwright test e2e/a11y.spec.ts e2e/audit-health.spec.ts e2e/auth.spec.ts e2e/crm-query-export.spec.ts e2e/element-clipping.acceptance.ts e2e/mobile-menu-touch.spec.ts e2e/resources-viewer.spec.ts e2e/routes.spec.ts e2e/semantic-routes.spec.ts e2e/tenant-isolation.spec.ts e2e/visual.spec.ts
       - name: Playwright Simulation & Worker Tests (sequentiell)
@@ -225,7 +227,7 @@ jobs:
       # (Rollout-Schalter und Rückschaltung entfernt). Die Specs laufen gegen den
       # regulären Build; Lighthouse folgt direkt danach ohne Neuaufbau.
       - name: Playwright persönliches Dashboard und Gesamtabnahme (Aufträge 077/079)
-        run: npx playwright test e2e/personal-dashboard.spec.ts e2e/personal-dashboard-acceptance.spec.ts e2e/dashboard-config-states.spec.ts --workers=1
+        run: npx playwright test e2e/personal-dashboard.spec.ts e2e/personal-dashboard-acceptance.spec.ts e2e/dashboard-config-states.spec.ts e2e/personal-dashboard-sections.spec.ts --workers=1
         env:
           # Serielle Absicherung der geteilten Testbenutzer-Präferenzen (Codex PR #162).
           E2E_DASHBOARD_SERIAL: 'true'

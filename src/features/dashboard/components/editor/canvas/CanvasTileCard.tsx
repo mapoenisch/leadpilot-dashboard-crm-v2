@@ -2,8 +2,8 @@
 // Kachelkarte auf dem Canvas mit WAI-ARIA gridcell-Semantik,
 // Drag-Handle, Resize-Handles, Schnellaktionen und Renderer-Anbindung.
 
-import type { PointerEvent as ReactPointerEvent } from 'react';
-import { ArrowDown, ArrowUp, Copy, GripVertical, Sliders, Trash2 } from 'lucide-react';
+import { useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { ArrowDown, ArrowUp, Copy, FolderInput, GripVertical, Sliders, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type {
   BreakpointKey,
@@ -38,6 +38,9 @@ export interface CanvasTileCardProps {
   globalTimeframe: string;
   globalPipeline?: string;
   className?: string;
+  availableSections?: Array<{ id: string; title: string }>;
+  currentSectionId?: string | null;
+  onMoveTileToSection?: (tileId: string, targetSectionId: string | null) => void;
 }
 
 export function parseTimeframeToPeriod(timeframe: string): DashboardPeriod | undefined {
@@ -96,7 +99,11 @@ export function CanvasTileCard({
   globalTimeframe,
   globalPipeline,
   className,
+  availableSections = [],
+  currentSectionId,
+  onMoveTileToSection,
 }: CanvasTileCardProps) {
+  const [showSectionMenu, setShowSectionMenu] = useState(false);
   const v1Tile = convertV2TileToV1(tile, globalTimeframe, globalPipeline);
   const filters: DashboardFilters = { pipeline: globalPipeline };
   const isMobile = activeBreakpoint === 'mobile';
@@ -180,6 +187,80 @@ export function CanvasTileCard({
                 <ArrowDown className="h-3 w-3" />
               </button>
             </>
+          )}
+
+          {availableSections && availableSections.length > 0 && onMoveTileToSection && (
+            <div className="relative">
+              <button
+                type="button"
+                data-testid={`tile-move-section-btn-${tile.id}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSectionMenu((prev) => !prev);
+                }}
+                className={cn(
+                  'flex h-6 w-6 items-center justify-center rounded transition-colors',
+                  showSectionMenu
+                    ? 'bg-primary/20 text-primary'
+                    : 'text-[var(--color-text-muted)] hover:bg-white/10 hover:text-white',
+                )}
+                title="In Sektion verschieben…"
+              >
+                <FolderInput className="h-3 w-3" />
+              </button>
+
+              {showSectionMenu && (
+                <div
+                  data-testid={`tile-move-section-menu-${tile.id}`}
+                  className="absolute top-7 right-0 z-50 min-w-[140px] rounded-md border border-[var(--color-border,#1b3d39)] bg-[var(--color-bg-deep,#051413)] p-1 shadow-xl text-xs space-y-0.5"
+                >
+                  <div className="px-2 py-1 text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">
+                    Bereich wählen
+                  </div>
+                  <button
+                    type="button"
+                    data-testid={`tile-move-section-option-unsectioned-${tile.id}`}
+                    onClick={() => {
+                      onMoveTileToSection(tile.id, null);
+                      setShowSectionMenu(false);
+                    }}
+                    className={cn(
+                      'flex w-full items-center justify-between rounded px-2 py-1 text-left text-xs transition-colors',
+                      currentSectionId === null || currentSectionId === undefined
+                        ? 'bg-primary/20 text-primary font-medium'
+                        : 'text-[var(--color-text-soft)] hover:bg-white/10 hover:text-white',
+                    )}
+                  >
+                    <span>Ohne Sektion</span>
+                    {(currentSectionId === null || currentSectionId === undefined) && (
+                      <span className="text-[10px] text-primary">✓</span>
+                    )}
+                  </button>
+                  {availableSections.map((sec) => (
+                    <button
+                      key={sec.id}
+                      type="button"
+                      data-testid={`tile-move-section-option-${sec.id}-${tile.id}`}
+                      onClick={() => {
+                        onMoveTileToSection(tile.id, sec.id);
+                        setShowSectionMenu(false);
+                      }}
+                      className={cn(
+                        'flex w-full items-center justify-between rounded px-2 py-1 text-left text-xs transition-colors',
+                        currentSectionId === sec.id
+                          ? 'bg-primary/20 text-primary font-medium'
+                          : 'text-[var(--color-text-soft)] hover:bg-white/10 hover:text-white',
+                      )}
+                    >
+                      <span className="truncate">{sec.title}</span>
+                      {currentSectionId === sec.id && (
+                        <span className="text-[10px] text-primary">✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           <button

@@ -44,6 +44,7 @@ export const E2E_DASHBOARD = [
   'e2e/personal-dashboard.spec.ts',
   'e2e/personal-dashboard-acceptance.spec.ts',
   'e2e/dashboard-config-states.spec.ts',
+  'e2e/personal-dashboard-sections.spec.ts',
 ];
 export const E2E_SEQUENTIAL = [
   'e2e/persistence-multisession.spec.ts',
@@ -62,7 +63,11 @@ export const GATES = [
   { id: 'quality-budget', code: 14, steps: [['npm', 'run', 'verify:quality-budget']] },
   { id: 'unit-coverage', code: 15, steps: [['npm', 'run', 'test:coverage']] },
   { id: 'integrity', code: 16, steps: [['npm', 'run', 'verify']] },
-  { id: 'build', code: 17, steps: [['npx', 'vite', 'build']] },
+  {
+    id: 'build',
+    code: 17,
+    steps: [['env', 'VITE_DASHBOARD_PREVIEW=true', 'npx', 'vite', 'build']],
+  },
   { id: 'bundle', code: 18, needs: ['build'], steps: [['npx', 'size-limit']] },
   {
     id: 'audit',

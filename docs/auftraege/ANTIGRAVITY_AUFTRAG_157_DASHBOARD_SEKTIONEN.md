@@ -6,10 +6,10 @@
 **Fachgrundlage:** [GRID_VERGLEICH_ZIELMODELL_146.md](../dashboard/GRID_VERGLEICH_ZIELMODELL_146.md) (Top-Level-Feld `sections` vorgesehen), [RASTERENGINE_P06.md](../dashboard/RASTERENGINE_P06.md), [EDITOR_KERN_P04.md](../dashboard/EDITOR_KERN_P04.md) (Befehle, Undo), [EDITOR_UX_FACHVERTRAEGE_145.md](../dashboard/EDITOR_UX_FACHVERTRAEGE_145.md) §5 (`aria-expanded` für einklappbare Gruppen).
 **Vorgelagert:** 155 (P08b Panel-Editor) und 156 (CRM-Repository-Paginierung). 157 startet erst, wenn beide gemergt sind.
 **Nachgelagert:** 158 (P09b Vorlagen und Dashboard-Auswahl), danach P10.
-**Baseline:** `main` nach dem Merge von 156. Der Builder trägt den Commit in T0 ein und verwendet ihn in allen Diff-Befehlen aus §7 (Platzhalter `<BASELINE>`).
-**Branch:** `auftrag-157-dashboard-sektionen` (enthält diesen Auftrag; vor T0 auf den aktuellen `main` rebasen).
+**Baseline:** `60aa96b` (Merge von PR #184 / Auftrag 156 in `main`).
+**Branch:** `auftrag-157-dashboard-sektionen` (auf aktuellen `main` rebased).
 **Builder:** Antigravity. **Prüfer:** Codex auf GitHub (oder ein anderer Agent, der nicht gebaut hat) gemäß `CLAUDE.md` §4.1. **Merge:** Marc.
-**Status:** GEPLANT, noch nicht gebaut.
+**Status:** IN ARBEIT.
 
 ---
 
@@ -163,19 +163,19 @@ Bei Bedarf außerhalb dieser Liste: stoppen und im PR begründen (`CLAUDE.md` §
 
 Reihenfolge je Block: Tests zuerst, dann Umsetzung.
 
-- [ ] **T0 Einstieg:** Branch auf aktuellen `main` rebasen, `<BASELINE>` notieren. Masterplan P09/§4.A/§5.1, `RASTERENGINE_P06.md`, `EDITOR_KERN_P04.md`, `PANEL_EDITOR_P08B.md` und diesen Auftrag lesen. Per SQL bestätigen, dass kein gespeichertes Dashboard und keine Revision `sections` enthält (Ergebnis im BUILD_LOG). Schutzbereichs-Diff notieren.
-- [ ] **T1 Rot-Nachweise:** §3 Nr. 8 (a)–(c). Ergebnisse im BUILD_LOG.
-- [ ] **T2 Datenvertrag:** Typ, Prüfregeln, `dashboardSections.ts`, gemeinsame Fixtures; Test „ohne Sektionen bytegleich“.
-- [ ] **T3 Server:** Migration, pgTAP-Test, Paritätslauf mit denselben Fixtures, `verifyMigrationUpgrade` grün.
-- [ ] **T4 Raster und Integrität je Bereich:** `dashboardLayoutIntegrity.ts`, Platzierung, Anpassung der bestehenden Befehle. T1 (c) grün.
-- [ ] **T5 Sektionsbefehle:** `sectionCommands.ts` mit Tabellentest (2.3 Nr. 15).
-- [ ] **T6 Canvas und Kopf:** `SectionedCanvasV2`, `SectionHeaderV2`, `useSectionActions`; aktiver Bereich; Einklappen in Bearbeitung und Vorschau; Entlastungstest mit zählendem `useData`.
-- [ ] **T7 Kachel verschieben, Inspector, Statusleiste:** Aktionsmenü, Inspector-Feld und Hinweis, Zählung.
-- [ ] **T8 Tastatur, Fokus, Ansagen, Mobil.**
-- [ ] **T9 E2E, a11y, Screenshots:** Playwright-Ablauf; a11y-Ergänzung; Harness (Editor ohne Sektionen = Vorher; mit zwei Sektionen, eine eingeklappt; Entfernen-Bestätigung; jeweils 1440/768/375), SHA-256 unterschiedlich, 0 px Overflow. Zusätzlich Nachweis, dass der Editor ohne Sektionen gegenüber `<BASELINE>` gleiche Hashes liefert.
-- [ ] **T10 Leistung:** Messung aus 2.6 im BUILD_LOG.
-- [ ] **T11 Doku:** Spezifikation und Nachträge (2.8).
-- [ ] **T12 Abschluss:** Pflicht-Verifikation (§7), Bundle-Größen, Schutzbereichs-Diff, BUILD_LOG-Builder-Eintrag, PR öffnen, Review anfordern.
+- [x] **T0 Einstieg:** Branch auf aktuellen `main` rebasen, `<BASELINE>` notieren (`60aa96b`). Masterplan P09/§4.A/§5.1, `RASTERENGINE_P06.md`, `EDITOR_KERN_P04.md`, `PANEL_EDITOR_P08B.md` und diesen Auftrag lesen. Per SQL bestätigt: 0 Dashboards und 0 Revisionen enthalten `sections` (Seed 0). Schutzbereichs-Diff leer.
+- [x] **T1 Rot-Nachweise:** §3 Nr. 8 (a)–(c). Ergebnisse im BUILD_LOG.
+- [x] **T2 Datenvertrag:** Typ, Prüfregeln, `dashboardSections.ts`, gemeinsame Fixtures; Test „ohne Sektionen bytegleich“.
+- [x] **T3 Server:** Migration, pgTAP-Test, Paritätslauf mit denselben Fixtures, `verifyMigrationUpgrade` grün.
+- [x] **T4 Raster und Integrität je Bereich:** `dashboardLayoutIntegrity.ts`, Platzierung, Anpassung der bestehenden Befehle. T1 (c) grün.
+- [x] **T5 Sektionsbefehle:** `sectionCommands.ts` mit Tabellentest (2.3 Nr. 15).
+- [x] **T6 Canvas und Kopf:** `SectionedCanvasV2`, `SectionHeaderV2`, `useSectionActions`; aktiver Bereich; Einklappen in Bearbeitung und Vorschau; Entlastungstest mit zählendem `useData`.
+- [x] **T7 Kachel verschieben, Inspector, Statusleiste:** Aktionsmenü, Inspector-Feld und Hinweis, Zählung.
+- [x] **T8 Tastatur, Fokus, Ansagen, Mobil.**
+- [x] **T9 E2E, a11y, Screenshots:** Playwright-Ablauf; a11y-Ergänzung; Harness (Editor ohne Sektionen = Vorher; mit zwei Sektionen, eine eingeklappt; Entfernen-Bestätigung; jeweils 1440/768/375), SHA-256 unterschiedlich, 0 px Overflow. Zusätzlich Nachweis, dass der Editor ohne Sektionen gegenüber `<BASELINE>` gleiche Hashes liefert.
+- [x] **T10 Leistung:** Messung aus 2.6 im BUILD_LOG.
+- [x] **T11 Doku:** Spezifikation und Nachträge (2.8).
+- [x] **T12 Abschluss:** Pflicht-Verifikation (§7), Bundle-Größen, Schutzbereichs-Diff, BUILD_LOG-Builder-Eintrag, PR öffnen, Review anfordern.
 
 ## 6. Abnahme
 

@@ -979,3 +979,13 @@ Mit diesem Dokument ist die technische Baugrundlage für den neuen visuellen Das
 - Die Rasterengine ist auf Basis harter Messungen ausgewählt (0 KiB Zusatz-Bundle, sub-millisekunden Latenz, perfekte A11y).
 - Das V2-Speichermodell trennt Metadaten von Historie, schützt vor Mehrbenutzer-Konflikten und bereitet Teams relational vor.
 - Die Kopiermigration garantiert 100 % Datenintegrität für alle bestehenden V1-Dashboards.
+
+---
+
+## 8. Nachtrag 14.11.2026: Spezifikation des Top-Level-Felds `sections` (P09a / Auftrag 157)
+
+In Abschnitt 4.1 wurde `sections` bereits als zulässiges Top-Level-Feld in `DashboardConfigV2` vorgesehen. Mit Auftrag 157 (P09a) wurde die Datenstruktur und Servervalidierung verbindlich festgelegt:
+- Struktur `DashboardSectionV2`: `{ id: string, title: string, collapsed?: boolean, tileIds: string[] }`.
+- Max. 12 Sektionen je Dashboard, Kachel-IDs müssen existieren und dürfen nicht mehrfach zugeordnet sein.
+- Serverfunktion `dashboard_config_v2_invalid_reason` prüft diese Invarianten paritätisch zum Client.
+- Vollständige Spezifikation siehe [`SEKTIONEN_P09A.md`](./SEKTIONEN_P09A.md).

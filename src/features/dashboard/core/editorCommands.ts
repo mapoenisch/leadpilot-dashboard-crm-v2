@@ -17,6 +17,7 @@ import {
 // Re-Export von Basistypen und Layout-Befehlen für einheitlichen Zugriff
 export * from './commandTypes';
 export * from './layoutCommands';
+export * from './sectionCommands';
 
 /** 4. Neue Kachel hinzufügen */
 export class AddTileCommand implements EditorCommand {
@@ -30,6 +31,7 @@ export class AddTileCommand implements EditorCommand {
     public readonly tile: DashboardTileConfigV2,
     public readonly index?: number,
     customDesc?: string,
+    public readonly targetSectionId?: string | null,
   ) {
     this.id = generateCommandId('cmd_add');
     this.timestamp = Date.now();
@@ -51,19 +53,36 @@ export class AddTileCommand implements EditorCommand {
 
     tiles.splice(insertIdx, 0, this.tile);
 
+    let sections = state.config.sections;
+    if (this.targetSectionId && sections) {
+      sections = sections.map((s) => {
+        if (s.id !== this.targetSectionId) return s;
+        if (s.tileIds.includes(this.tile.id)) return s;
+        return { ...s, tileIds: [...s.tileIds, this.tile.id] };
+      });
+    }
+
     return applyDraftMeta({
       ...state,
       selectedTileId: this.tile.id,
-      config: { ...state.config, tiles },
+      config: { ...state.config, tiles, ...(sections !== undefined ? { sections } : {}) },
     });
   }
 
   undo(state: DashboardDraftState): DashboardDraftState {
     const tiles = state.config.tiles.filter((t) => t.id !== this.tile.id);
+    let sections = state.config.sections;
+    if (this.targetSectionId && sections) {
+      sections = sections.map((s) => {
+        if (s.id !== this.targetSectionId) return s;
+        return { ...s, tileIds: s.tileIds.filter((id) => id !== this.tile.id) };
+      });
+    }
+
     return applyDraftMeta({
       ...state,
       selectedTileId: state.selectedTileId === this.tile.id ? null : state.selectedTileId,
-      config: { ...state.config, tiles },
+      config: { ...state.config, tiles, ...(sections !== undefined ? { sections } : {}) },
     });
   }
 
@@ -79,6 +98,8 @@ export class RemoveTileCommand implements EditorCommand {
   readonly description: string;
   readonly timestamp: number;
   private readonly cachedByteSize: number;
+  private removedFromSectionId?: string | null;
+  private removedFromSectionIndex?: number;
 
   constructor(
     public readonly tile: DashboardTileConfigV2,
@@ -93,10 +114,20 @@ export class RemoveTileCommand implements EditorCommand {
 
   execute(state: DashboardDraftState): DashboardDraftState {
     const tiles = state.config.tiles.filter((t) => t.id !== this.tile.id);
+    let sections = state.config.sections;
+    if (sections) {
+      sections = sections.map((s) => {
+        if (!s.tileIds.includes(this.tile.id)) return s;
+        this.removedFromSectionId = s.id;
+        this.removedFromSectionIndex = s.tileIds.indexOf(this.tile.id);
+        return { ...s, tileIds: s.tileIds.filter((id) => id !== this.tile.id) };
+      });
+    }
+
     return applyDraftMeta({
       ...state,
       selectedTileId: state.selectedTileId === this.tile.id ? null : state.selectedTileId,
-      config: { ...state.config, tiles },
+      config: { ...state.config, tiles, ...(sections !== undefined ? { sections } : {}) },
     });
   }
 
@@ -105,10 +136,26 @@ export class RemoveTileCommand implements EditorCommand {
     const insertIdx = this.index >= 0 && this.index <= tiles.length ? this.index : tiles.length;
     tiles.splice(insertIdx, 0, this.tile);
 
+    let sections = state.config.sections;
+    if (sections && this.removedFromSectionId) {
+      sections = sections.map((s) => {
+        if (s.id !== this.removedFromSectionId) return s;
+        const copy = [...s.tileIds];
+        const secIdx =
+          this.removedFromSectionIndex !== undefined &&
+          this.removedFromSectionIndex >= 0 &&
+          this.removedFromSectionIndex <= copy.length
+            ? this.removedFromSectionIndex
+            : copy.length;
+        copy.splice(secIdx, 0, this.tile.id);
+        return { ...s, tileIds: copy };
+      });
+    }
+
     return applyDraftMeta({
       ...state,
       selectedTileId: this.tile.id,
-      config: { ...state.config, tiles },
+      config: { ...state.config, tiles, ...(sections !== undefined ? { sections } : {}) },
     });
   }
 

@@ -130,3 +130,11 @@ Anlass: externes Audit, Befunde N-1 bis N-5 (Triage `docs/reviews/2026-11-11-ext
 - **Drop:** nur aktive Katalog-IDs (`text/leadpilot-kpi` bevorzugt, `text/plain` nur nach Katalogprüfung).
 - **Speichern:** `prepareConfigForStorage` normalisiert Layouts deterministisch und lehnt unbekannte Katalog-IDs ab (`ungueltig`), bevor `create_dashboard_v2`/`save_dashboard_v2` eine Revision anlegen. Serverparität (SQL) ist ein offener Punkt; eine Umgehung betrifft nur das eigene persönliche Dashboard.
 - **Nachweis:** `gridInvariants.vitest.ts` (Audit-Regressionsfälle, 400 Reflow-Läufe auf dichten Layouts, 150 × 30 zufällige Operationen über alle Breakpoints), `gridDragScroll.ui.vitest.tsx`, `dashboardLayoutIntegrity.vitest.ts`.
+
+## 7. Nachtrag P09a – Raster je Bereich & Sektionen (Auftrag 157, 14.11.2026)
+
+Mit Auftrag 157 (P09a) wird das Dashboard-Raster in isolierte Bereiche unterteilt:
+- **Bereichs-Isolation:** Kacheln innerhalb einer Sektion oder im Bereich „Ohne Sektion“ bilden unabhängige Koordinatenräume. Kollisionsprüfung, Reflow und Kompaktierung (`dashboardLayoutIntegrity.ts`) arbeiten strikt bereichsbezogen.
+- **Kollisionsfreie Bereichswechsel:** Beim Verschieben einer Kachel (`MoveTileToSectionCommand`) oder beim Entfernen einer Sektion (`RemoveSectionCommand`) berechnet `computeNextAvailablePosition` deterministisch die nächste freie Position im Zielbereich.
+- **Einklapp-Entlastung:** Eingeklappte Sektionen blenden ihre Kacheln im DOM vollständig aus und erzeugen weder Rendering- noch Daten-Overhead (`SectionedCanvasV2.tsx`).
+- Vollständige Details siehe [`SEKTIONEN_P09A.md`](./SEKTIONEN_P09A.md).

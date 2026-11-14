@@ -18,6 +18,8 @@ import {
   getBreakpointLayout,
   GRID_CONFIGS,
 } from '../components/editor/grid/gridEngine';
+import { groupTilesBySection, normalizeSections } from '../model/dashboardSections';
+import { validateDashboardConfigV2 } from '../model/dashboardConfigV2';
 
 const BREAKPOINTS: readonly BreakpointKey[] = ['desktop', 'tablet', 'mobile'];
 
@@ -27,29 +29,47 @@ function samePosition(a: GridPosition, b: GridPosition): boolean {
 
 /**
  * Ersetzt explizit gespeicherte Positionen, die überlappen oder das Raster verlassen, durch das
- * abgeleitete, überlappungsfreie Layout. Reihenfolge desktop → tablet → mobile, weil Tablet und
- * Mobil ohne eigene Position aus Desktop abgeleitet werden. Idempotent; liefert bei sauberem
- * Layout dasselbe Objekt zurück.
+ * abgeleitete, überlappungsfreie Layout. Läuft je Bereich (Ohne Sektion + jede definierte Sektion).
+ * Reihenfolge desktop → tablet → mobile, weil Tablet und Mobil ohne eigene Position aus Desktop
+ * abgeleitet werden. Idempotent; liefert bei sauberem Layout dasselbe Objekt zurück.
  */
 export function normalizeDashboardLayouts(config: DashboardConfigV2): DashboardConfigV2 {
-  let tiles: DashboardTileConfigV2[] = config.tiles;
-  let changed = false;
+  const grouped = groupTilesBySection(config.tiles, config.sections);
+  const bereiche: DashboardTileConfigV2[][] = [
+    grouped.unsectionedTiles,
+    ...grouped.sectionedTiles.map((s) => s.tiles),
+  ];
 
-  for (const bp of BREAKPOINTS) {
-    const derived = getBreakpointLayout(tiles, bp);
-    tiles = tiles.map((tile) => {
-      const stored = tile.layouts[bp];
-      const target = derived.get(tile.id);
-      if (!stored || !target || samePosition(stored, target)) return tile;
-      changed = true;
-      return { ...tile, layouts: { ...tile.layouts, [bp]: { ...target } } };
-    });
+  let changed = false;
+  const tileReplacements = new Map<string, DashboardTileConfigV2>();
+
+  for (const bereichTiles of bereiche) {
+    if (bereichTiles.length === 0) continue;
+    let currentBereich = bereichTiles;
+
+    for (const bp of BREAKPOINTS) {
+      const derived = getBreakpointLayout(currentBereich, bp);
+      currentBereich = currentBereich.map((tile) => {
+        const stored = tile.layouts[bp];
+        const target = derived.get(tile.id);
+        if (!stored || !target || samePosition(stored, target)) return tile;
+        changed = true;
+        return { ...tile, layouts: { ...tile.layouts, [bp]: { ...target } } };
+      });
+    }
+
+    for (const tile of currentBereich) {
+      tileReplacements.set(tile.id, tile);
+    }
   }
 
-  return changed ? { ...config, tiles } : config;
+  if (!changed) return config;
+
+  const tiles = config.tiles.map((t) => tileReplacements.get(t.id) ?? t);
+  return { ...config, tiles };
 }
 
-/** Liefert die erste Integritätsverletzung oder null */
+/** Liefert die erste Integritätsverletzung oder null. Prüfung erfolgt je Bereich und Breakpoint. */
 export function findLayoutIntegrityError(config: DashboardConfigV2): string | null {
   for (let i = 0; i < config.tiles.length; i++) {
     const tile = config.tiles[i]!;
@@ -66,22 +86,33 @@ export function findLayoutIntegrityError(config: DashboardConfigV2): string | nu
     }
   }
 
-  for (const bp of BREAKPOINTS) {
-    const cols = GRID_CONFIGS[bp].cols;
-    const explicit = new Map<string, GridPosition>();
-    for (const tile of config.tiles) {
-      const pos = tile.layouts[bp];
-      if (!pos) continue;
-      if (pos.x < 0 || pos.y < 0 || pos.w < 1 || pos.h < 1 || pos.x + pos.w > cols) {
-        return `Kachel '${tile.id}' liegt im Breakpoint ${bp} außerhalb des Rasters`;
+  const grouped = groupTilesBySection(config.tiles, config.sections);
+  const bereiche: DashboardTileConfigV2[][] = [
+    grouped.unsectionedTiles,
+    ...grouped.sectionedTiles.map((s) => s.tiles),
+  ];
+
+  for (const bereichTiles of bereiche) {
+    if (bereichTiles.length === 0) continue;
+
+    for (const bp of BREAKPOINTS) {
+      const cols = GRID_CONFIGS[bp].cols;
+      const explicit = new Map<string, GridPosition>();
+      for (const tile of bereichTiles) {
+        const pos = tile.layouts[bp];
+        if (!pos) continue;
+        if (pos.x < 0 || pos.y < 0 || pos.w < 1 || pos.h < 1 || pos.x + pos.w > cols) {
+          return `Kachel '${tile.id}' liegt im Breakpoint ${bp} außerhalb des Rasters`;
+        }
+        explicit.set(tile.id, pos);
       }
-      explicit.set(tile.id, pos);
-    }
-    const overlap = findOverlap(explicit);
-    if (overlap) {
-      return `Kacheln '${overlap[0]}' und '${overlap[1]}' überlappen im Breakpoint ${bp}`;
+      const overlap = findOverlap(explicit);
+      if (overlap) {
+        return `Kacheln '${overlap[0]}' und '${overlap[1]}' überlappen im Breakpoint ${bp}`;
+      }
     }
   }
+
   return null;
 }
 
@@ -106,11 +137,24 @@ export function prepareConfigForStorage(
     };
   });
 
+  // Auftrag 157 §2.1 Nr. 7: Sektionen normalisieren (Titel getrimmt, tileIds nach Desktop-Position sortiert)
+  const normalizedSections = normalizeSections(normalizedLayout.sections, canonicalTiles);
+
   const canonicalConfig: DashboardConfigV2 = {
     ...normalizedLayout,
     tiles: canonicalTiles,
+    ...(normalizedSections !== undefined ? { sections: normalizedSections } : {}),
   };
 
   const error = findLayoutIntegrityError(canonicalConfig);
-  return error ? { ok: false, error } : { ok: true, config: canonicalConfig };
+  if (error) {
+    return { ok: false, error };
+  }
+
+  const valid = validateDashboardConfigV2(canonicalConfig);
+  if (!valid.ok) {
+    return { ok: false, error: valid.error };
+  }
+
+  return { ok: true, config: canonicalConfig };
 }
