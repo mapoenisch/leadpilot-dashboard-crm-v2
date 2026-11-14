@@ -99,7 +99,7 @@
 6. **Keine neuen Abhängigkeiten.** Vorhandene Komponenten (`Button`, `UnsavedChangesDialog`, `DashboardConflictDialogV2`, Bestätigungsdialog aus 157, Design-Tokens, Lucide-Symbole) wiederverwenden.
 7. **`max-lines` 400** für alle neuen und geänderten Dateien; `EditorTopBarV2.tsx` wird kürzer, nicht länger (2.4 Nr. 17). `DashboardEditorShellV2.tsx` (315) und `PersonalExecutiveDashboard.tsx` (155) bekommen nur Einbindung und Weitergabe.
 8. **Tests zuerst** (rot vor grün), Rot-Läufe im BUILD_LOG: (a) `list_personal_dashboards_v2` existiert nicht; (b) ein Nutzer kann per RPC kein Dashboard löschen; (c) `create_dashboard_v2` legt ein 21. Dashboard an; (d) die V1-Vorlage „Vertrieb & Pipeline“ über `migrateV1ToV2` hat keine Sektionen.
-9. **Kein Eingriff in Hosted-Supabase.** Die Migration läuft lokal und in CI; die Anwendung auf die Hosted-Instanz entscheidet Marc. Betriebsregel aus 153 gilt weiter.
+9. **Hosted-Supabase erst nach dem Merge.** Der Builder ändert die Hosted-Instanz nicht. Marc hat am 14.11.2026 freigegeben, dass `20261118_dashboard_selection.sql` nach dem Merge auf die Hosted-Instanz kommt. Das übernimmt ein Agent mit Supabase-Zugang nach dem Merge, sobald die Vorgänger-Migrationen dort angewendet sind (§8). Der Builder legt im BUILD_LOG eine Schrittliste mit Prüfabfragen an (Muster 154). Die Betriebsregel aus 153 gilt weiter.
 10. `crmRepository.ts`, `src/domain/executiveCockpitData.ts` und die Datenauflösung (`data/**`) bleiben unverändert.
 
 ## 4. Ziel-Dateien
@@ -183,9 +183,9 @@ Zusätzlich: SQL-Tests unter `supabase/tests/` gegen die lokale Supabase-Instanz
 
 ## 8. Offene Punkte und Risiken
 
-- **Endgültiges Löschen:** Kein Papierkorb, weil die Revisionen mitgelöscht werden und der Pilot hinter dem Rollout-Schalter läuft. Ein Papierkorb oder eine Aufbewahrungsfrist ist eine Produktentscheidung für Marc (Masterplan §8, Aufbewahrung) und nicht Teil von 158.
-- **Obergrenze 20:** Planungsannahme, damit Liste und Speicher klein bleiben. Marc kann den Wert ändern; er steht an genau einer Stelle je Seite (Migration, Browser-Konstante) und ist durch Tests abgesichert.
+- **Endgültiges Löschen (Entscheidung Marc 14.11.2026):** Kein Papierkorb; Revisionen werden mitgelöscht. Ein Papierkorb oder eine Aufbewahrungsfrist ist nicht Teil von 158.
+- **Obergrenze 20 (Entscheidung Marc 14.11.2026):** Der Wert steht an genau einer Stelle je Seite (Migration, Browser-Konstante) und ist durch Tests abgesichert.
 - **Titel eindeutig?** Gleiche Titel sind erlaubt (der Server erzwingt nichts); die Oberfläche schlägt nur eindeutige Titel vor.
 - **Konfliktkopie:** Bleibt wie in P07. Nach 158 ist das Original über die Auswahl wieder erreichbar; das löst die heutige Sackgasse aus §1.
-- **Hosted-Supabase:** Erst nach Marcs Freigabe anwenden; bis dahin zeigt die Hosted-Instanz ohne die RPCs im Switcher den Fehlertext für `technisch` und der Editor bleibt nutzbar (Test mit fehlender RPC).
+- **Hosted-Supabase (Freigabe Marc 14.11.2026, Anwendung nach dem Merge):** Stand 14.11.2026 ist die Hosted-Instanz auf `20261111_lead_qualification`. Dort fehlen `20261112` bis `20261117`. `20261118` setzt die Tabellen aus `20261113` voraus und darf erst danach laufen. Bis dahin zeigt der Switcher ohne die RPCs den Fehlertext für `technisch`, und der Editor bleibt nutzbar (Test mit fehlender RPC).
 - **Nicht Teil dieses Auftrags:** Team- und Organisations-Dashboards und Freigaben (P11), Versionshistorie-Oberfläche und JSON-Austausch (P12), nutzereigene Vorlagen, Papierkorb, Favoriten und Sortierung der Liste.
