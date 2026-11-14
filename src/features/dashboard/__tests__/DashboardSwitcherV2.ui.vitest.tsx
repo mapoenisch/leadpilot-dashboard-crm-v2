@@ -153,6 +153,44 @@ describe('DashboardSwitcherV2 UI-Tests', () => {
     expect(document.activeElement).toBe(screen.getByTestId('dashboard-item-dash-1'));
   });
 
+  it('überspringt deaktivierte Einträge bei der Tastaturnavigation (Codex P2)', () => {
+    // Fall 1: Nur 1 Dashboard -> Löschen ist deaktiviert
+    const single = renderSwitcher({ dashboards: createMockList(1) });
+    fireEvent.click(single.getByTestId('dashboard-switcher-button'));
+    const menuSingle = single.getByTestId('dashboard-switcher-menu');
+
+    // End fokussiert den letzten AKTIVEN Eintrag (Duplizieren), nicht Löschen
+    fireEvent.keyDown(menuSingle, { key: 'End' });
+    expect(document.activeElement).toBe(single.getByTestId('duplicate-dashboard-menu-item'));
+
+    // ArrowDown auf Duplizieren springt direkt zum ersten Eintrag zurück
+    fireEvent.keyDown(menuSingle, { key: 'ArrowDown' });
+    expect(document.activeElement).toBe(single.getByTestId('dashboard-item-dash-1'));
+
+    // ArrowUp auf erstem Eintrag springt zum letzten AKTIVEN Eintrag (Duplizieren)
+    fireEvent.keyDown(menuSingle, { key: 'ArrowUp' });
+    expect(document.activeElement).toBe(single.getByTestId('duplicate-dashboard-menu-item'));
+    single.unmount();
+
+    // Fall 2: 20 Dashboards -> Limit erreicht, Neu und Duplizieren deaktiviert
+    const maxList = renderSwitcher({ dashboards: createMockList(MAX_PERSONAL_DASHBOARDS) });
+    fireEvent.click(maxList.getByTestId('dashboard-switcher-button'));
+    const menuMax = maxList.getByTestId('dashboard-switcher-menu');
+
+    // Zu letztem Dashboard navigieren
+    const lastDashItem = maxList.getByTestId(`dashboard-item-dash-${MAX_PERSONAL_DASHBOARDS}`);
+    lastDashItem.focus();
+
+    // ArrowDown springt über die deaktivierten Neu/Duplizieren direkt zu Löschen
+    fireEvent.keyDown(menuMax, { key: 'ArrowDown' });
+    expect(document.activeElement).toBe(maxList.getByTestId('delete-dashboard-menu-item'));
+
+    // ArrowUp von Löschen springt zurück zum 20. Dashboard
+    fireEvent.keyDown(menuMax, { key: 'ArrowUp' });
+    expect(document.activeElement).toBe(lastDashItem);
+    maxList.unmount();
+  });
+
   it('wechselt Dashboard direkt, wenn keine ungespeicherten Änderungen vorliegen', async () => {
     const { onOpenDashboard } = renderSwitcher();
     fireEvent.click(screen.getByTestId('dashboard-switcher-button'));

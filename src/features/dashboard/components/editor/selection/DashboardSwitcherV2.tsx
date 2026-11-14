@@ -1,7 +1,7 @@
 // Auftrag 158 (P09b): Dashboard-Auswahl in der Top-Bar.
 // Scope-Badge, Disclosure-Menü, Tastaturbedienung und barrierefreie Ansagen.
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
@@ -98,7 +98,6 @@ export function DashboardSwitcherV2({
     returnFocusToTrigger,
   } = selection;
 
-  const [, setFocusedIndex] = useState<number>(-1);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   // Beim Öffnen des Menüs Liste vom Server aktualisieren (Codex P2 / Auftrag 158 §2.5 Nr. 29)
@@ -126,35 +125,31 @@ export function DashboardSwitcherV2({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, setIsOpen, triggerButtonRef, menuRef]);
 
-  // Tastaturnavigation im Menü (Pfeiltasten, Home, End)
+  // Tastaturnavigation im Menü (Pfeiltasten, Home, End - überspringt deaktivierte Einträge)
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen) return;
-    const itemsCount = itemRefs.current.filter(Boolean).length;
-    if (itemsCount === 0) return;
+    const enabledItems = itemRefs.current.filter(
+      (el): el is HTMLButtonElement => el !== null && !el.disabled,
+    );
+    if (enabledItems.length === 0) return;
+
+    const currentIndex = enabledItems.indexOf(document.activeElement as HTMLButtonElement);
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setFocusedIndex((prev) => {
-        const next = prev + 1 >= itemsCount ? 0 : prev + 1;
-        itemRefs.current[next]?.focus();
-        return next;
-      });
+      const nextIndex =
+        currentIndex === -1 || currentIndex + 1 >= enabledItems.length ? 0 : currentIndex + 1;
+      enabledItems[nextIndex]?.focus();
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setFocusedIndex((prev) => {
-        const next = prev - 1 < 0 ? itemsCount - 1 : prev - 1;
-        itemRefs.current[next]?.focus();
-        return next;
-      });
+      const nextIndex = currentIndex <= 0 ? enabledItems.length - 1 : currentIndex - 1;
+      enabledItems[nextIndex]?.focus();
     } else if (e.key === 'Home') {
       e.preventDefault();
-      setFocusedIndex(0);
-      itemRefs.current[0]?.focus();
+      enabledItems[0]?.focus();
     } else if (e.key === 'End') {
       e.preventDefault();
-      const last = itemsCount - 1;
-      setFocusedIndex(last);
-      itemRefs.current[last]?.focus();
+      enabledItems[enabledItems.length - 1]?.focus();
     }
   };
 
@@ -190,7 +185,6 @@ export function DashboardSwitcherV2({
         aria-expanded={isOpen}
         onClick={() => {
           setIsOpen((prev) => !prev);
-          setFocusedIndex(-1);
         }}
         className={cn(
           'flex h-9 items-center gap-2 rounded-md border border-[var(--color-border,#1b3d39)] bg-black/30 px-2.5 py-1 text-xs font-medium text-white transition-all hover:border-primary/50 hover:bg-black/50 focus:outline-none focus:ring-1 focus:ring-primary',
