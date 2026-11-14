@@ -1,0 +1,191 @@
+# Auftrag 158 – Dashboard-Editor: V2-Vorlagen und Dashboard-Auswahl (P09b)
+
+**Ziel:** Nutzer können im V2-Editor mehrere persönliche Dashboards führen. Eine Dashboard-Auswahl in der Top-Bar listet sie auf. Von dort lässt sich ein Dashboard öffnen, aus einer Vorlage neu anlegen, duplizieren, umbenennen oder löschen. Die Vorlagen sind gültige V2-Konfigurationen und bringen Sektionen aus 157 mit. Ungespeicherte Änderungen gehen beim Wechsel nie verloren. Nach 158 ist P09 vollständig abgenommen.
+
+**Masterplan:** [Dashboard-Editor-Masterplan](../dashboard/DASHBOARD_EDITOR_MASTERPLAN.md), P09 (§6) und §3.1 (Top-Bar: „Dashboard-Auswahl“). Plananpassung vom 14.11.2026: P09 ist geteilt, dies ist P09b.
+**Fachgrundlage:** [EDITOR_UX_FACHVERTRAEGE_145.md](../dashboard/EDITOR_UX_FACHVERTRAEGE_145.md) §2.1 (Dashboard-Auswahl mit Scope-Badge), [SPEICHERSTRUKTUR_REVISIONEN_P07.md](../dashboard/SPEICHERSTRUKTUR_REVISIONEN_P07.md) (Tabellen, RPCs, Revisionen), [SEKTIONEN_P09A.md](../dashboard/SEKTIONEN_P09A.md) (Sektionen), [EDITOR_KERN_P04.md](../dashboard/EDITOR_KERN_P04.md) (Navigationsschutz).
+**Vorgelagert:** 157 (P09a Sektionen; PR #185 gemergt).
+**Nachgelagert:** P10 (belegte Historie und gemeinsame Zeitsteuerung).
+**Baseline:** `ba603db8` (Merge von PR #185 / Auftrag 157 in `main`).
+**Branch:** `auftrag-158-vorlagen-dashboard-auswahl`.
+**Builder:** Antigravity. **Prüfer:** Codex auf GitHub (oder ein anderer Agent, der nicht gebaut hat) gemäß `CLAUDE.md` §4.1. **Merge:** Marc.
+**Status:** GEPLANT.
+
+---
+
+## 1. Ist-Stand (geprüft auf `main` `ba603db8`)
+
+| Baustein             | Ist                                                                                                                                                                                                                                                       | Fundstelle                                                                   |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Tabelle `dashboards` | Mehrere persönliche Dashboards je Nutzer sind schon möglich (kein Unique-Constraint auf `(organization_id, user_id)`). `title` 1–120 Zeichen. Direktschreiben gesperrt, `SELECT` per RLS nur eigene persönliche Dashboards.                               | `supabase/migrations/20261113_dashboard_v2_storage_and_revisions.sql:29–128` |
+| RPCs                 | `create_dashboard_v2`, `save_dashboard_v2`, `restore_dashboard_revision_v2`, `load_personal_dashboard_v2`, `get_or_create_personal_dashboard_v2`, `get_dashboard_v2_revisions`. **Es gibt keine Listen-RPC und keine Lösch-RPC.**                         | ebd. `:330–781`                                                              |
+| Mehrere Dashboards   | Entstehen heute nur als Konfliktkopie (`saveAsNewPersonalCopy` → `create_dashboard_v2`, Titel „… (Kopie)“). Danach ist die Kopie aktiv; das Original ist in der Oberfläche nicht mehr erreichbar.                                                         | `hooks/useDashboardV2Storage.ts:155–200`                                     |
+| Aktives Dashboard    | `getActiveDashboardV2Id`/`setActiveDashboardV2Id`: tablokal (`sessionStorage`) mit browserweitem Rückfall (`localStorage`), Schlüssel je Organisation und Nutzer. Fehlt die ID oder ist sie fremd, lädt `get_or_create…` das zuletzt geänderte Dashboard. | `services/dashboardStorageV2Types.ts:81–114`, Migration `:675–745`           |
+| Erstanlage           | `get_or_create_personal_dashboard_v2` legt beim ersten Öffnen per Advisory-Lock genau ein Dashboard an, Inhalt aus `migrateV1ToV2` der V1-Einstellungen.                                                                                                  | Migration `:675–745`, `hooks/useDashboardV2Storage.ts:53–88`                 |
+| Vorlagen             | `DASHBOARD_PRESETS` (`executive`, `sales`, `finance`, `blank`) sind **V1**-Konfigurationen ohne Sektionen. Nur der V1-Editor nutzt sie (`EditorToolbar.tsx`, `useDashboardDraftActions.ts`).                                                              | `model/dashboardPresets.ts` (128 Zeilen)                                     |
+| Top-Bar V2           | Titel inline bearbeitbar (80 Zeichen, `UpdateDashboardMetaCommand`), keine Dashboard-Auswahl, kein Scope-Badge. `EditorTopBarV2.tsx` hat 424 Zeilen (Ausnahme besteht, darf nicht wachsen).                                                               | `components/editor/EditorTopBarV2.tsx`                                       |
+| Navigationsschutz    | `UnsavedChangesDialog` beim Abbrechen mit `isDirty`.                                                                                                                                                                                                      | `components/editor/DashboardEditorShellV2.tsx:176, 302`                      |
+| Container            | `PersonalExecutiveDashboardV2Container` rendert die Shell mit `key = id_revision`; ein Wechsel des Dashboards baut die Shell neu auf.                                                                                                                     | `pages/PersonalExecutiveDashboard.tsx:24–90`                                 |
+| Ohne Supabase        | `dashboardInMemoryStoreV2.ts` bildet die RPCs im Speicher nach (Vorschau, E2E mit `VITE_DASHBOARD_PREVIEW`).                                                                                                                                              | `services/dashboardInMemoryStoreV2.ts`, `services/dashboardStorageV2.ts`     |
+| Fehlerarten          | `konflikt`, `ungueltig`, `nicht_berechtigt`, `nicht_gefunden`, `keine_mitgliedschaft`, `sitzung_abgelaufen`, `nicht_konfiguriert`, `technisch`.                                                                                                           | `services/dashboardStorageV2Types.ts:6–14`                                   |
+
+## 2. Soll
+
+### 2.1 Server: Liste, Löschen, Duplizieren
+
+1. Genau eine neue Migration `supabase/migrations/20261118_dashboard_selection.sql`, idempotent (`CREATE OR REPLACE`), mit drei neuen RPCs. Alle `SECURITY DEFINER`, `SET search_path = public, pg_temp`, Muster und Fehlercodes wie in den bestehenden V2-RPCs (`LP_AUTH_REQUIRED`, `LP_DASHBOARD_NOT_FOUND`, `LP_DASHBOARD_INVALID`). `REVOKE ALL … FROM PUBLIC, anon`, `GRANT EXECUTE … TO authenticated`.
+2. **`list_personal_dashboards_v2()`** → `TABLE (id, title, scope, revision, tile_count, section_count, updated_at)`. Nur eigene persönliche Dashboards im aktuellen Mandanten (`organization_id = current_organization_id()`, `user_id = auth.uid()`, `scope = 'personal'`), sortiert nach `updated_at DESC, id`. Kein `config` im Ergebnis (die Liste bleibt klein). `tile_count` und `section_count` aus `jsonb_array_length` mit `COALESCE(…, 0)`.
+3. **`delete_personal_dashboard_v2(p_dashboard_id UUID, p_expected_revision INTEGER)`** → `TABLE (deleted_id UUID, next_dashboard_id UUID)`.
+   - Nur eigenes persönliches Dashboard im aktuellen Mandanten, sonst `LP_DASHBOARD_NOT_FOUND` (kein Hinweis, ob es fremd existiert).
+   - Revisionsprüfung wie beim Speichern: abweichende Revision → `LP_DASHBOARD_CONFLICT` (gleicher Code wie `save_dashboard_v2`), nichts gelöscht.
+   - **Das letzte persönliche Dashboard lässt sich nicht löschen:** `LP_LAST_DASHBOARD` (`ERRCODE = '22023'`). Prüfung unter demselben Advisory-Lock wie `get_or_create_personal_dashboard_v2` (`hashtext('personal_dashboard:' || org || ':' || user)`), damit zwei parallele Löschungen nicht beide letzten Dashboards entfernen.
+   - Löschen ist endgültig; Revisionen gehen über das bestehende `ON DELETE CASCADE` mit. `next_dashboard_id` = zuletzt geändertes verbleibendes Dashboard.
+4. **`duplicate_personal_dashboard_v2(p_dashboard_id UUID, p_title TEXT)`** → wie `create_dashboard_v2` (`dashboard_id, revision, created_at`). Liest den gespeicherten Stand des Quelldashboards (nicht den Entwurf), setzt Titel und neue `id` in der Konfiguration, prüft mit `dashboard_config_v2_invalid_reason` und legt Revision 1 mit `change_summary = 'Dupliziert aus „<Quelltitel>“'` an. Quelle muss ein eigenes persönliches Dashboard sein.
+5. **Obergrenze:** höchstens **20** persönliche Dashboards je Nutzer und Mandant. `create_dashboard_v2` und `duplicate_…` prüfen das unter dem Advisory-Lock und werfen `LP_DASHBOARD_LIMIT` (`ERRCODE = '22023'`). Dafür wird `create_dashboard_v2` per `CREATE OR REPLACE` ersetzt; Signatur, Rückgabe und alles andere bleiben gleich (Diff im PR zeigen). `get_or_create_personal_dashboard_v2` bleibt unverändert.
+6. **Titel:** Server-Regel für alle drei Wege: nach Trimmen 1–80 Zeichen (Browser-Grenze aus 145 §2.1). Die Tabellenspalte (120) bleibt unverändert.
+7. Bestehende RPCs `save_dashboard_v2`, `restore_dashboard_revision_v2`, `load_personal_dashboard_v2`, `get_or_create_personal_dashboard_v2`, `get_dashboard_v2_revisions` und `dashboard_config_v2_invalid_reason` bleiben unverändert. Keine Tabellen-, RLS- oder Grant-Änderung an Tabellen. Bestehende Migrationen werden nicht verändert.
+8. pgTAP-Test `supabase/tests/dashboard_selection.sql`: Liste zeigt nur eigene Dashboards (zweiter Nutzer derselben Organisation und Nutzer einer fremden Organisation sehen nichts); Sortierung; Löschen mit richtiger und falscher Revision; Löschen fremder ID → `LP_DASHBOARD_NOT_FOUND`; letztes Dashboard → `LP_LAST_DASHBOARD`; Revisionen nach Löschen weg; Duplizieren übernimmt Kacheln und Sektionen, neue ID, Revision 1; Obergrenze 20 bei `create` und `duplicate`; `anon` darf keine der drei RPCs ausführen.
+9. `scripts/verifyMigrationUpgrade.mjs` bleibt grün. Generierte Supabase-Typen nur aktualisieren, falls das Repo sie für RPC-Aufrufe nutzt (Builder prüft in T0; sonst im BUILD_LOG vermerken).
+
+### 2.2 V2-Vorlagen
+
+10. Neue Datei `model/dashboardTemplatesV2.ts` mit `DASHBOARD_TEMPLATES_V2: readonly DashboardTemplateV2[]` (`id`, `name`, `description`, `category`, `build(context) → DashboardConfigV2`). Die Vorlagen entstehen aus `DASHBOARD_PRESETS` über `migrateV1ToV2` und werden danach um Sektionen ergänzt. `dashboardPresets.ts` bleibt unverändert (V1-Editor nutzt es weiter).
+11. Inhalt (Kacheln exakt aus den V1-Vorlagen, keine neuen Katalog-IDs):
+    - **Executive Summary** – ohne Sektionen (bytegleich zur heutigen Erstmigration aus `DEFAULT_DASHBOARD_CONFIG`; Test).
+    - **Vertrieb & Pipeline** – Sektionen „Pipeline“ (CRM-Kacheln) und „Umsatz & Verlauf“ (ARR, CAC, Verlauf, Paketmix).
+    - **Finanzen & Unit Economics** – Sektionen „Kennzahlen“ (Zahlenkacheln) und „Verläufe“ (Diagramme).
+    - **Leere Vorlage** – keine Kacheln, keine Sektionen.
+12. `build` ist deterministisch für gleichen Kontext (gleiche IDs, Layouts, Sektions-IDs). Jede Vorlage besteht `validateDashboardConfigV2`, `findLayoutIntegrityError === null` und `prepareConfigForStorage` ist idempotent. Für jede Vorlage prüft der pgTAP-Test aus Nr. 8 zusätzlich `dashboard_config_v2_invalid_reason = NULL` über eine gemeinsame Fixture `supabase/tests/fixtures/dashboard_templates/*.json` (vom Browser-Test erzeugt und gegen den Bestand verglichen, Muster aus 154/157).
+
+### 2.3 Speicheradapter und Hook
+
+13. `services/dashboardStorageV2.ts` bzw. ein neues `services/dashboardSelectionV2.ts` (falls `dashboardStorageV2.ts` sonst über 400 Zeilen wächst): `listPersonalDashboardsV2()`, `deletePersonalDashboardV2({ dashboardId, expectedRevision })`, `duplicatePersonalDashboardV2({ dashboardId, title })`, jeweils mit `StorageResult`. Neue Fehlerarten `letztes_dashboard` und `obergrenze_erreicht` in `DashboardV2StorageError` und `classifyDashboardV2Error`. Weil `LP_LAST_DASHBOARD`, `LP_DASHBOARD_LIMIT` und `LP_DASHBOARD_INVALID` denselben `ERRCODE 22023` tragen, unterscheidet die Klassifizierung sie am Meldungspräfix vor der Prüfung auf `22023` (Tabellentest je Code).
+14. `dashboardInMemoryStoreV2.ts` bildet alle drei RPCs einschließlich Obergrenze, Letztes-Dashboard-Regel und Revisionsprüfung nach (gleiche Fehlerarten), damit Vorschau und E2E ohne Supabase funktionieren.
+15. `useDashboardV2Storage` erhält `dashboards` (Listenzeilen), `refreshList()`, `openDashboard(id)`, `createFromTemplate(templateId, title)`, `duplicateCurrent(title)`, `deleteDashboard(id)`. Nach Öffnen, Anlegen, Duplizieren und Löschen wird `setActiveDashboardV2Id` gesetzt und die Liste neu geladen. Löschen des aktiven Dashboards öffnet `next_dashboard_id`. Umbenennen läuft weiter über den Titel im Editor und `save_dashboard_v2` (keine eigene RPC); die Liste zeigt den Titel nach dem Speichern.
+16. Wird das aktive Dashboard in einem anderen Tab gelöscht, liefert das nächste Speichern `nicht_gefunden`. Der Container zeigt dann „Dieses Dashboard wurde gelöscht.“ mit den Aktionen „Als neues Dashboard speichern“ (bestehendes `saveAsNewPersonalCopy`) und „Anderes Dashboard öffnen“. Der Entwurf bleibt bis zur Entscheidung erhalten (Test).
+
+### 2.4 Oberfläche
+
+17. Neue Komponente `components/editor/selection/DashboardSwitcherV2.tsx`, in der Top-Bar links neben dem Titel. `EditorTopBarV2.tsx` darf nicht länger werden: der Builder lagert zuerst einen bestehenden Teil (z. B. Breakpoint-Umschalter oder Undo/Redo-Gruppe) ohne Verhaltensänderung in eine eigene Datei aus (mit bestehendem Test) und bindet dann den Switcher ein. Ziel: `EditorTopBarV2.tsx` ≤ 400 Zeilen, damit die Ausnahme entfällt.
+18. **Auswahlknopf:** zeigt den Scope-Badge „Persönlich“ (Text, nicht nur Farbe) und öffnet ein Menü nach dem Disclosure-/Listbox-Muster aus 145 §5 (`aria-expanded`, `aria-haspopup`, Pfeiltasten, Enter, Escape, Fokus zurück auf den Knopf).
+19. **Menüinhalt:** Liste der persönlichen Dashboards (Titel, „4 Kacheln · 2 Sektionen“, relative Änderungszeit; aktives Dashboard markiert mit Text „Geöffnet“). Darunter: „Neues Dashboard …“, „Dashboard duplizieren …“, „Dashboard löschen …“. Bei 20 Dashboards sind Neu und Duplizieren deaktiviert mit sichtbarem Grund „Höchstens 20 persönliche Dashboards“. Löschen ist beim letzten Dashboard deaktiviert mit Grund „Das letzte Dashboard kann nicht gelöscht werden“.
+20. **Neues Dashboard:** Dialog mit Titel (vorbelegt mit dem Vorlagennamen, 1–80 Zeichen, eindeutiger Vorschlag „… 2“ bei gleichem Titel) und Vorlagenauswahl als Radiogruppe mit Name, Beschreibung und Kachel-/Sektionsanzahl. „Anlegen“ erstellt und öffnet das neue Dashboard.
+21. **Duplizieren:** Dialog mit Titel „<Titel> (Kopie)“. Es wird der **gespeicherte** Stand dupliziert. Hat der Entwurf ungespeicherte Änderungen, sagt der Dialog das ausdrücklich („Ungespeicherte Änderungen werden nicht übernommen. Erst speichern?“) und bietet „Speichern und duplizieren“ an.
+22. **Löschen:** Bestätigungsdialog mit Titel und Anzahl Kacheln, Hinweis „Das Dashboard und seine Versionshistorie werden endgültig gelöscht.“ Bestätigungsknopf nennt den Titel. Kein Undo (serverseitige Aktion, nicht Teil der Editor-Befehle).
+23. **Wechsel mit ungespeicherten Änderungen:** Öffnen eines anderen Dashboards, Anlegen und Löschen des aktiven Dashboards laufen über den bestehenden `UnsavedChangesDialog` („Speichern“, „Verwerfen“, „Abbrechen“). „Speichern“ mit Konflikt öffnet den bestehenden Konfliktdialog und wechselt nicht. Ohne Entscheidung geht kein Entwurf verloren (Test je Aktion).
+24. **Undo-Verlauf:** Beim Wechsel beginnt der Verlauf neu (die Shell wird mit neuem `key` aufgebaut). Wechsel, Anlegen, Duplizieren und Löschen erzeugen keinen Undo-Eintrag.
+25. **Vorschau-Modus:** Der Switcher bleibt sichtbar, aber nur Öffnen ist möglich; Neu, Duplizieren und Löschen sind im Vorschau-Modus ausgeblendet.
+26. **Fehler:** Jede Fehlerart aus Nr. 13 hat einen eigenen verständlichen Text im Menü bzw. Dialog (`role="alert"`), z. B. Konflikt beim Löschen: „Das Dashboard wurde inzwischen geändert. Bitte neu laden und erneut löschen.“
+27. **Mobil (375):** Menü als volle Breite unterhalb der Top-Bar, Touch-Ziele mindestens 44 × 44 px, kein horizontaler Overflow. 768 und 1440 ebenso ohne Overflow.
+28. **Ansagen** über die bestehende Live-Region: „Dashboard ‚Vertrieb‘ geöffnet“, „Dashboard ‚Vertrieb (Kopie)‘ angelegt“, „Dashboard ‚Alt‘ gelöscht, ‚Vertrieb‘ geöffnet“. Nach jedem Dialog Fokus auf den Auswahlknopf, nie auf `body` (Test).
+
+### 2.5 Leistung
+
+29. Die Liste wird beim Öffnen des Menüs geladen (und nach Mutationen), nicht bei jedem Rendern. Öffnen des Editors ruft `list_personal_dashboards_v2` höchstens einmal auf (Zähltest).
+30. `size-limit` bleibt grün; Switcher und Dialoge liegen im Editor-Chunk, Vorlagen werden erst beim Öffnen des Neu-Dialogs geladen (dynamischer Import). Größe vor/nach im BUILD_LOG.
+
+### 2.6 Dokumentation
+
+31. Neue Spezifikation `docs/dashboard/VORLAGEN_AUSWAHL_P09B.md`: RPC-Verträge mit Fehlercodes, Obergrenze und Letztes-Dashboard-Regel (mit Begründung: `get_or_create` würde sonst beim nächsten Öffnen still neu aus V1 migrieren), Vorlageninhalte, Verhalten bei ungespeicherten Änderungen, Löschen in anderem Tab, bewusste Grenzen (keine Team- oder Organisations-Dashboards bis P11, kein Papierkorb, kein Export/Import bis P12, Vorlagen nur aus dem Code, keine nutzereigenen Vorlagen).
+32. Datierte Nachträge (nichts umschreiben): `DASHBOARD_EDITOR_MASTERPLAN.md` §6 (Umsetzungsstand P09b, P09 abgenommen), `SPEICHERSTRUKTUR_REVISIONEN_P07.md` (neue RPCs, geänderte `create_dashboard_v2`-Obergrenze), `EDITOR_UX_FACHVERTRAEGE_145.md` §2.1 (umgesetzt: Badge „Persönlich“; Team/Organisation folgen mit P11).
+
+## 3. Verbindliche Grenzen
+
+1. **Schutzbereiche:** `src/simulation/**`, `src/types/**`, `src/context/**`, `src/services/data/**`, `src/features/resources/**` bleiben unberührt (Diff leer).
+2. **Genau eine Migration.** Neu: drei RPCs; ersetzt nur `create_dashboard_v2` (Obergrenze, Titelregel). Keine Tabellen-, RLS- oder Tabellen-Grant-Änderung. Keine Datenmigration.
+3. **Team-Scope bleibt gesperrt** (`LP_TEAM_DASHBOARDS_LOCKED_UNTIL_P11`). Keine Team- oder Organisationseinträge in der Auswahl.
+4. **Keine Änderung an `DashboardConfigV2`**, keine neue Schema-Version, keine neuen Felder in Kacheln oder Sektionen.
+5. **V1-Editor und `dashboardPresets.ts` unverändert**, Rollout-Schalter (`dashboardRollout.ts`) unverändert.
+6. **Keine neuen Abhängigkeiten.** Vorhandene Komponenten (`Button`, `UnsavedChangesDialog`, `DashboardConflictDialogV2`, Bestätigungsdialog aus 157, Design-Tokens, Lucide-Symbole) wiederverwenden.
+7. **`max-lines` 400** für alle neuen und geänderten Dateien; `EditorTopBarV2.tsx` wird kürzer, nicht länger (2.4 Nr. 17). `DashboardEditorShellV2.tsx` (315) und `PersonalExecutiveDashboard.tsx` (155) bekommen nur Einbindung und Weitergabe.
+8. **Tests zuerst** (rot vor grün), Rot-Läufe im BUILD_LOG: (a) `list_personal_dashboards_v2` existiert nicht; (b) ein Nutzer kann per RPC kein Dashboard löschen; (c) `create_dashboard_v2` legt ein 21. Dashboard an; (d) die V1-Vorlage „Vertrieb & Pipeline“ über `migrateV1ToV2` hat keine Sektionen.
+9. **Kein Eingriff in Hosted-Supabase.** Die Migration läuft lokal und in CI; die Anwendung auf die Hosted-Instanz entscheidet Marc. Betriebsregel aus 153 gilt weiter.
+10. `crmRepository.ts`, `src/domain/executiveCockpitData.ts` und die Datenauflösung (`data/**`) bleiben unverändert.
+
+## 4. Ziel-Dateien
+
+| Pfad                                                                                                                                                  | Änderung                                                                                    |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `docs/auftraege/ANTIGRAVITY_AUFTRAG_158_VORLAGEN_DASHBOARD_AUSWAHL.md`                                                                                | Dieser Auftrag (Checkboxen abhaken, Status)                                                 |
+| `docs/dashboard/VORLAGEN_AUSWAHL_P09B.md`                                                                                                             | Neu: Spezifikation (2.6 Nr. 31)                                                             |
+| `supabase/migrations/20261118_dashboard_selection.sql`                                                                                                | Neu (2.1)                                                                                   |
+| `supabase/tests/dashboard_selection.sql`, `supabase/tests/fixtures/dashboard_templates/**`                                                            | Neu (2.1 Nr. 8, 2.2 Nr. 12)                                                                 |
+| `src/features/dashboard/model/dashboardTemplatesV2.ts`                                                                                                | Neu (2.2)                                                                                   |
+| `src/features/dashboard/services/dashboardStorageV2.ts`, `services/dashboardSelectionV2.ts` (neu, falls nötig), `services/dashboardStorageV2Types.ts` | Listen-, Lösch-, Duplizier-Aufrufe; neue Fehlerarten (2.3 Nr. 13)                           |
+| `src/features/dashboard/services/dashboardInMemoryStoreV2.ts`                                                                                         | Nachbildung der drei RPCs (2.3 Nr. 14)                                                      |
+| `src/features/dashboard/hooks/useDashboardV2Storage.ts`                                                                                               | Liste und Aktionen (2.3 Nr. 15)                                                             |
+| `src/features/dashboard/pages/PersonalExecutiveDashboard.tsx`                                                                                         | Einbindung, Zustand „gelöscht“ (2.3 Nr. 16)                                                 |
+| `src/features/dashboard/components/editor/selection/DashboardSwitcherV2.tsx`                                                                          | Neu: Auswahlknopf und Menü                                                                  |
+| `src/features/dashboard/components/editor/selection/NewDashboardDialogV2.tsx`                                                                         | Neu: Titel und Vorlagenauswahl                                                              |
+| `src/features/dashboard/components/editor/selection/DuplicateDashboardDialogV2.tsx`, `DeleteDashboardDialogV2.tsx`                                    | Neu                                                                                         |
+| `src/features/dashboard/components/editor/selection/useDashboardSelection.ts`                                                                         | Neu: Menüzustand, Schutz bei ungespeicherten Änderungen, Fokus, Ansagen                     |
+| `src/features/dashboard/components/editor/EditorTopBarV2.tsx` und eine daraus ausgelagerte Teilkomponente unter `components/editor/topbar/`           | Auslagerung ohne Verhaltensänderung, Einbindung Switcher (2.4 Nr. 17)                       |
+| `src/features/dashboard/components/editor/DashboardEditorShellV2.tsx`                                                                                 | Weitergabe der Auswahl-Handler und von `isDirty`                                            |
+| `src/features/dashboard/preview/DashboardEditorPreviewV2.tsx`                                                                                         | Zustand mit drei Dashboards für den Screenshot-Harness                                      |
+| `src/features/dashboard/__tests__/dashboardTemplatesV2.vitest.ts`                                                                                     | Neu: Gültigkeit, Determinismus, Executive bytegleich, Fixtures                              |
+| `src/features/dashboard/__tests__/dashboardSelectionStorage.vitest.ts`                                                                                | Neu: Adapter und In-Memory-Nachbildung, Fehlerarten                                         |
+| `src/features/dashboard/__tests__/DashboardSwitcherV2.ui.vitest.tsx`                                                                                  | Neu: Menü, Tastatur, Dialoge, ungespeicherte Änderungen je Aktion, Fokus, Ansagen, Zähltest |
+| bestehende Tests (`EditorTopBarV2`, `DashboardEditorShellV2`, `useDashboardV2Storage`, `PersonalExecutiveDashboard`)                                  | Erwartungen ergänzen; nicht löschen                                                         |
+| `e2e/personal-dashboard-selection.spec.ts`                                                                                                            | Neu: anlegen aus Vorlage, wechseln mit Entwurf, duplizieren, umbenennen, löschen, neu laden |
+| `e2e/a11y.spec.ts`, `e2e/a11y-baseline.json`                                                                                                          | Zustand mit geöffnetem Menü und Neu-Dialog (Baseline nur erweitern)                         |
+| `scripts/captureAuftrag158GateScreenshots.mjs`, `docs/screenshots/auftrag-158/README.md`                                                              | Neu: Harness und Ergebnis-Matrix (nur README committen)                                     |
+| `docs/dashboard/DASHBOARD_EDITOR_MASTERPLAN.md`, `docs/dashboard/SPEICHERSTRUKTUR_REVISIONEN_P07.md`, `docs/dashboard/EDITOR_UX_FACHVERTRAEGE_145.md` | Datierte Nachträge (2.6 Nr. 32)                                                             |
+| `BUILD_PLAN.md`, `docs/BUILD_LOG.md`                                                                                                                  | Status, Builder-Eintrag, Prüfnachweis                                                       |
+
+Bei Bedarf außerhalb dieser Liste: stoppen und im PR begründen (`CLAUDE.md` §5.3).
+
+## 5. Tasks
+
+Reihenfolge je Block: Tests zuerst, dann Umsetzung.
+
+- [ ] **T0 Einstieg:** Branch auf aktuellen `main` rebasen, `<BASELINE>` notieren (`ba603db8`). Masterplan P09/§3.1, `SPEICHERSTRUKTUR_REVISIONEN_P07.md`, `SEKTIONEN_P09A.md`, `EDITOR_UX_FACHVERTRAEGE_145.md` §2.1/§5 und diesen Auftrag lesen. Prüfen, ob generierte Supabase-Typen für RPCs genutzt werden (2.1 Nr. 9). Schutzbereichs-Diff leer.
+- [ ] **T1 Rot-Nachweise:** §3 Nr. 8 (a)–(d). Ergebnisse im BUILD_LOG.
+- [ ] **T2 Server:** Migration, pgTAP-Test, `verifyMigrationUpgrade` grün.
+- [ ] **T3 Vorlagen:** `dashboardTemplatesV2.ts`, Fixtures, Paritätslauf gegen den Server.
+- [ ] **T4 Adapter und In-Memory:** neue Aufrufe, Fehlerarten, Nachbildung.
+- [ ] **T5 Hook und Container:** Liste und Aktionen, Zustand „gelöscht“ (2.3 Nr. 16).
+- [ ] **T6 Top-Bar entlasten:** Teilkomponente auslagern ohne Verhaltensänderung (bestehende Tests grün), danach `EditorTopBarV2.tsx` ≤ 400 Zeilen.
+- [ ] **T7 Switcher und Dialoge:** Menü, Neu, Duplizieren, Löschen, deaktivierte Aktionen mit Grund, Vorschau-Modus.
+- [ ] **T8 Ungespeicherte Änderungen, Fokus, Ansagen, Mobil.**
+- [ ] **T9 E2E, a11y, Screenshots:** Playwright-Ablauf; a11y-Ergänzung; Harness (Editor ohne geöffnetes Menü = Vorher; Menü offen mit drei Dashboards; Neu-Dialog; Lösch-Bestätigung; jeweils 1440/768/375), SHA-256 unterschiedlich, 0 px Overflow.
+- [ ] **T10 Leistung:** Zähltest und Bundle-Größe aus 2.5 im BUILD_LOG.
+- [ ] **T11 Doku:** Spezifikation und Nachträge (2.6).
+- [ ] **T12 Abschluss:** Pflicht-Verifikation (§7), Schutzbereichs-Diff, BUILD_LOG-Builder-Eintrag, PR öffnen, Review anfordern.
+
+## 6. Abnahme
+
+- Persönliche Dashboards lassen sich auflisten, öffnen, aus einer der vier Vorlagen anlegen, duplizieren, umbenennen und löschen; nach Neuladen ist derselbe Stand sichtbar und das zuletzt geöffnete Dashboard aktiv.
+- Kein Wechsel und keine Aktion verliert ungespeicherte Änderungen ohne ausdrückliche Entscheidung.
+- Das letzte Dashboard ist nicht löschbar; mehr als 20 sind nicht anlegbar; Löschen mit veralteter Revision schlägt fehl, ohne zu löschen.
+- Fremde Nutzer und fremde Organisationen sehen keine Einträge und können nichts löschen oder duplizieren (pgTAP).
+- Alle Vorlagen sind in Browser und Server gültig; „Executive Summary“ entspricht der heutigen Erstmigration.
+- 1440/768/375 ohne horizontalen Overflow, Menü und Dialoge vollständig per Tastatur bedienbar, keine neuen a11y-Verstöße.
+- Schutzbereichs-Diff leer, eine Migration ohne Tabellen-/RLS-Änderung, keine neuen Abhängigkeiten, `size-limit` grün, V1-Editor unverändert, `EditorTopBarV2.tsx` ≤ 400 Zeilen.
+- P09 ist damit vollständig abgenommen (Masterplan-Nachtrag).
+
+## 7. Pflicht-Verifikation
+
+```
+npx tsc --noEmit
+npm run lint
+npm run format:check
+npm test
+npm run verify
+npm run build
+npm run build:production      # mit gültiger Beispielkonfiguration
+npm run size-limit
+git diff <BASELINE> -- src/simulation src/types src/context src/services/data src/features/resources   # muss leer sein
+git diff <BASELINE> -- src/services/db/crmRepository.ts src/domain/executiveCockpitData.ts src/features/dashboard/data src/features/dashboard/model/dashboardPresets.ts   # muss leer sein
+git diff <BASELINE> --stat -- supabase/migrations   # genau eine neue Datei, keine geänderte
+```
+
+Zusätzlich: SQL-Tests unter `supabase/tests/` gegen die lokale Supabase-Instanz (wie in 150–157), Playwright `e2e/personal-dashboard-selection.spec.ts` und `e2e/a11y.spec.ts` lokal, CI-Checks `lint`, `typecheck`, `test`, `build`, `livekpi-verifiers`, `size-limit`, `e2e` grün.
+
+## 8. Offene Punkte und Risiken
+
+- **Endgültiges Löschen:** Kein Papierkorb, weil die Revisionen mitgelöscht werden und der Pilot hinter dem Rollout-Schalter läuft. Ein Papierkorb oder eine Aufbewahrungsfrist ist eine Produktentscheidung für Marc (Masterplan §8, Aufbewahrung) und nicht Teil von 158.
+- **Obergrenze 20:** Planungsannahme, damit Liste und Speicher klein bleiben. Marc kann den Wert ändern; er steht an genau einer Stelle je Seite (Migration, Browser-Konstante) und ist durch Tests abgesichert.
+- **Titel eindeutig?** Gleiche Titel sind erlaubt (der Server erzwingt nichts); die Oberfläche schlägt nur eindeutige Titel vor.
+- **Konfliktkopie:** Bleibt wie in P07. Nach 158 ist das Original über die Auswahl wieder erreichbar; das löst die heutige Sackgasse aus §1.
+- **Hosted-Supabase:** Erst nach Marcs Freigabe anwenden; bis dahin zeigt die Hosted-Instanz ohne die RPCs im Switcher den Fehlertext für `technisch` und der Editor bleibt nutzbar (Test mit fehlender RPC).
+- **Nicht Teil dieses Auftrags:** Team- und Organisations-Dashboards und Freigaben (P11), Versionshistorie-Oberfläche und JSON-Austausch (P12), nutzereigene Vorlagen, Papierkorb, Favoriten und Sortierung der Liste.
