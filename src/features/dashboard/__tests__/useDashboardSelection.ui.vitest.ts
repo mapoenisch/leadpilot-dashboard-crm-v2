@@ -163,12 +163,12 @@ describe('useDashboardSelection Hook Tests', () => {
       }),
     );
 
-    let ok = false;
+    let res: { ok: boolean } | undefined;
     await act(async () => {
-      ok = await result.current.handleDuplicate('Kopie', true);
+      res = await result.current.handleDuplicate('Kopie', true);
     });
 
-    expect(ok).toBe(false);
+    expect(res?.ok).toBe(false);
     expect(onSaveCurrent).toHaveBeenCalledTimes(1);
     expect(onDuplicateCurrent).not.toHaveBeenCalled();
   });
@@ -188,12 +188,12 @@ describe('useDashboardSelection Hook Tests', () => {
       }),
     );
 
-    let ok = false;
+    let res: { ok: boolean } | undefined;
     await act(async () => {
-      ok = await result.current.handleDelete();
+      res = await result.current.handleDelete();
     });
 
-    expect(ok).toBe(true);
+    expect(res?.ok).toBe(true);
     expect(result.current.announcement).toContain('Dashboard ‚Dashboard 1‘ gelöscht, ‚Dashboard 2‘ geöffnet');
   });
 
@@ -227,5 +227,105 @@ describe('useDashboardSelection Hook Tests', () => {
     // Neue Instanz nach Remount
     const { result: newResult } = renderHook(() => useDashboardSelection(hookParams));
     expect(newResult.current.activeDialog).toBe('new');
+  });
+
+  it('reicht konkrete Speicherfehler an handleCreate, handleDuplicate und handleDelete weiter (Codex P2)', async () => {
+    const onCreateFromTemplate = vi.fn().mockResolvedValue({
+      ok: false,
+      error: { kind: 'obergrenze_erreicht' },
+    });
+    const onDuplicateCurrent = vi.fn().mockResolvedValue({
+      ok: false,
+      error: { kind: 'konflikt', detail: 'Revisionskonflikt' },
+    });
+    const onDeleteDashboard = vi.fn().mockResolvedValue({
+      ok: false,
+      error: { kind: 'konflikt', detail: 'Externe Änderung' },
+    });
+
+    const { result } = renderHook(() =>
+      useDashboardSelection({
+        currentDashboard: currentDash,
+        dashboards: mockDashboards,
+        isDirty: false,
+        onOpenDashboard: vi.fn(),
+        onCreateFromTemplate,
+        onDuplicateCurrent,
+        onDeleteDashboard,
+        onSaveCurrent: vi.fn(),
+      }),
+    );
+
+    let createRes: { ok: boolean; error?: unknown } | undefined;
+    await act(async () => {
+      createRes = await result.current.handleCreate('sales', 'Vertrieb neu');
+    });
+    expect(createRes).toEqual({
+      ok: false,
+      error: { kind: 'obergrenze_erreicht' },
+    });
+
+    let dupRes: { ok: boolean; error?: unknown } | undefined;
+    await act(async () => {
+      dupRes = await result.current.handleDuplicate('Kopie');
+    });
+    expect(dupRes).toEqual({
+      ok: false,
+      error: { kind: 'konflikt', detail: 'Revisionskonflikt' },
+    });
+
+    let delRes: { ok: boolean; error?: unknown } | undefined;
+    await act(async () => {
+      delRes = await result.current.handleDelete();
+    });
+    expect(delRes).toEqual({
+      ok: false,
+      error: { kind: 'konflikt', detail: 'Externe Änderung' },
+    });
+  });
+
+  it('bewahrt Ansage und Fokus über Shell-Remount nach Dashboard-Wechsel (Codex P2)', async () => {
+    let resolveOpen: (val: boolean) => void = () => {};
+    const onOpenDashboard = vi.fn().mockImplementation(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveOpen = resolve;
+        }),
+    );
+
+    const hookParams = {
+      currentDashboard: currentDash,
+      dashboards: mockDashboards,
+      isDirty: false,
+      onOpenDashboard,
+      onCreateFromTemplate: vi.fn(),
+      onDuplicateCurrent: vi.fn(),
+      onDeleteDashboard: vi.fn(),
+      onSaveCurrent: vi.fn(),
+    };
+
+    const { result, unmount } = renderHook(() => useDashboardSelection(hookParams));
+
+    act(() => {
+      void result.current.handleProtectedAction({
+        type: 'open',
+        id: 'd-2',
+        title: 'Dashboard 2',
+      });
+    });
+
+    // Während des Ladens unmounted die alte Shell (wie im Container bei status=laden)
+    unmount();
+    resolveOpen(true);
+
+    // Neue Shell mountet nach erfolgreichem Laden
+    const { result: newResult } = renderHook(() =>
+      useDashboardSelection({
+        ...hookParams,
+        currentDashboard: { ...currentDash, id: 'd-2', title: 'Dashboard 2' },
+      }),
+    );
+
+    expect(newResult.current.announcement).toContain('Dashboard ‚Dashboard 2‘ geöffnet');
   });
 });

@@ -4,20 +4,41 @@
 import { useEffect, useId, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import type { StoredDashboardV2Row } from '../../../services/dashboardStorageV2Types';
+import type { DashboardV2StorageError, StoredDashboardV2Row } from '../../../services/dashboardStorageV2Types';
 import {
   MAX_DASHBOARD_TITLE_LENGTH,
   buildDerivedDashboardTitle,
 } from '../../../model/dashboardTitles';
 import { useEscapeToClose } from '../../UnsavedChangesDialog';
 
+export type DuplicateConfirmResult =
+  | boolean
+  | { ok: boolean; error?: DashboardV2StorageError };
+
 export interface DuplicateDashboardDialogV2Props {
   open: boolean;
   onClose: () => void;
   currentDashboard: StoredDashboardV2Row;
   isDirty: boolean;
-  onDuplicate: (title: string, saveFirst?: boolean) => Promise<boolean>;
+  onDuplicate: (title: string, saveFirst?: boolean) => Promise<DuplicateConfirmResult>;
   isSaving?: boolean;
+}
+
+function getDuplicateErrorMessage(error?: DashboardV2StorageError): string {
+  if (!error) return 'Das Dashboard konnte nicht dupliziert werden.';
+  switch (error.kind) {
+    case 'obergrenze_erreicht':
+      return 'Die Obergrenze von 20 Dashboards wurde erreicht. Bitte lösche ein bestehendes Dashboard.';
+    case 'konflikt':
+      return 'Revisionskonflikt: Der aktuelle Stand konnte vor dem Duplizieren nicht gespeichert werden.';
+    case 'nicht_gefunden':
+      return 'Das Quell-Dashboard wurde nicht gefunden.';
+    case 'nicht_berechtigt':
+    case 'keine_mitgliedschaft':
+      return 'Keine Berechtigung zum Duplizieren dieses Dashboards.';
+    default:
+      return 'Das Dashboard konnte nicht dupliziert werden.';
+  }
 }
 
 export function DuplicateDashboardDialogV2({
@@ -58,9 +79,11 @@ export function DuplicateDashboardDialogV2({
     }
 
     setError(null);
-    const success = await onDuplicate(trimmed, saveFirst);
-    if (!success) {
-      setError('Das Dashboard konnte nicht dupliziert werden.');
+    const res = await onDuplicate(trimmed, saveFirst);
+    if (typeof res === 'boolean') {
+      if (!res) setError('Das Dashboard konnte nicht dupliziert werden.');
+    } else if (res && !res.ok) {
+      setError(getDuplicateErrorMessage(res.error));
     }
   };
 
@@ -71,8 +94,13 @@ export function DuplicateDashboardDialogV2({
       title="Dashboard duplizieren"
       maxWidth="580px"
       footer={
-        <div className="flex flex-wrap justify-end gap-2">
-          <Button variant="secondary" disabled={isSaving} onClick={handleClose}>
+        <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+          <Button
+            variant="secondary"
+            disabled={isSaving}
+            onClick={handleClose}
+            className="w-full sm:w-auto"
+          >
             Abbrechen
           </Button>
           {isDirty ? (
@@ -81,6 +109,7 @@ export function DuplicateDashboardDialogV2({
                 variant="secondary"
                 disabled={isSaving || !title.trim()}
                 onClick={() => handleSubmit(false)}
+                className="w-full sm:w-auto"
               >
                 Nur Stand duplizieren
               </Button>
@@ -88,6 +117,7 @@ export function DuplicateDashboardDialogV2({
                 data-testid="duplicate-submit-button"
                 disabled={isSaving || !title.trim()}
                 onClick={() => handleSubmit(true)}
+                className="w-full sm:w-auto"
               >
                 {isSaving ? 'Wird gespeichert & dupliziert...' : 'Speichern & duplizieren'}
               </Button>
@@ -97,6 +127,7 @@ export function DuplicateDashboardDialogV2({
               data-testid="duplicate-submit-button"
               disabled={isSaving || !title.trim()}
               onClick={() => handleSubmit(false)}
+              className="w-full sm:w-auto"
             >
               {isSaving ? 'Wird dupliziert...' : 'Dashboard duplizieren'}
             </Button>

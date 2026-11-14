@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
+  DashboardV2StorageError,
   PersonalDashboardListItemV2,
   StoredDashboardV2Row,
 } from '../../../services/dashboardStorageV2Types';
@@ -26,11 +27,15 @@ export interface UseDashboardSelectionParams {
   onSaveCurrent: () => Promise<boolean>;
 }
 
-// Modulweiter Zwischenspeicher für Folgeaktionen über Speicher-Remounts hinweg (P09b / Codex P2)
+// Modulweiter Zwischenspeicher für Folgeaktionen, Ansagen und Trigger-Fokus über Shell-Remounts hinweg (P09b / Codex P2)
 let pendingFollowUpSelectionAction: PendingSelectionAction | null = null;
+let pendingPostSwitchAnnouncement: string | null = null;
+let pendingFocusTriggerOnMount = false;
 
 export function clearPendingFollowUpSelectionAction(): void {
   pendingFollowUpSelectionAction = null;
+  pendingPostSwitchAnnouncement = null;
+  pendingFocusTriggerOnMount = false;
 }
 
 export function useDashboardSelection({
@@ -59,7 +64,14 @@ export function useDashboardSelection({
   });
   const [pendingAction, setPendingAction] = useState<PendingSelectionAction | null>(null);
   const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
-  const [announcement, setAnnouncement] = useState<string>('');
+  const [announcement, setAnnouncement] = useState<string>(() => {
+    if (pendingPostSwitchAnnouncement) {
+      const msg = pendingPostSwitchAnnouncement;
+      pendingPostSwitchAnnouncement = null;
+      return msg;
+    }
+    return '';
+  });
   const [errorText, setErrorText] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -77,12 +89,19 @@ export function useDashboardSelection({
   const isLimitReached = dashboards.length >= MAX_PERSONAL_DASHBOARDS;
   const isOnlyOneDashboard = dashboards.length <= 1;
 
-  // Fokus zurück auf den Auswahlknopf nach Schließen eines Dialogs oder Menüs
   const returnFocusToTrigger = useCallback(() => {
     requestAnimationFrame(() => {
       triggerButtonRef.current?.focus();
     });
   }, []);
+
+  // Fokus nach Shell-Remount auf den Auswahlknopf zurücksetzen (Codex P2)
+  useEffect(() => {
+    if (pendingFocusTriggerOnMount) {
+      pendingFocusTriggerOnMount = false;
+      returnFocusToTrigger();
+    }
+  }, [returnFocusToTrigger]);
 
   const closeMenu = useCallback(() => {
     setIsOpen(false);
@@ -98,12 +117,19 @@ export function useDashboardSelection({
       if (action.type === 'open') {
         if (action.id === currentDashboard.id) return;
         setIsProcessing(true);
+        pendingPostSwitchAnnouncement = `Dashboard ‚${action.title}‘ geöffnet`;
+        pendingFocusTriggerOnMount = true;
         const ok = await onOpenDashboard(action.id);
+        if (!isMountedRef.current) return;
         setIsProcessing(false);
         if (ok) {
+          pendingPostSwitchAnnouncement = null;
+          pendingFocusTriggerOnMount = false;
           announce(`Dashboard ‚${action.title}‘ geöffnet`);
           returnFocusToTrigger();
         } else {
+          pendingPostSwitchAnnouncement = null;
+          pendingFocusTriggerOnMount = false;
           setErrorText('Dashboard konnte nicht geöffnet werden.');
         }
       } else if (action.type === 'new') {
@@ -184,61 +210,140 @@ export function useDashboardSelection({
 
   // Dialog-Aktionen
   const handleCreate = useCallback(
-    async (templateId: string, title?: string): Promise<boolean> => {
+    async (
+      templateId: string,
+      title?: string,
+    ): Promise<{ ok: boolean; error?: DashboardV2StorageError }> => {
       setIsProcessing(true);
       setErrorText(null);
-      const res = await onCreateFromTemplate(templateId, title);
+      const targetTitle = title?.trim() || 'Neues Dashboard';
+      pendingPostSwitchAnnouncement = `Dashboard ‚${targetTitle}‘ angelegt`;
+      pendingFocusTriggerOnMount = true;
+
+      const res = (await onCreateFromTemplate(templateId, title)) as {
+        ok: boolean;
+        error?: DashboardV2StorageError;
+      };
+
+      if (!isMountedRef.current) {
+        return res;
+      }
+
       setIsProcessing(false);
       if (res.ok) {
+        pendingPostSwitchAnnouncement = null;
+        pendingFocusTriggerOnMount = false;
         setActiveDialog(null);
-        announce(`Dashboard ‚${title}‘ angelegt`);
+        announce(`Dashboard ‚${targetTitle}‘ angelegt`);
         returnFocusToTrigger();
-        return true;
+        return { ok: true };
       }
-      return false;
+
+      pendingPostSwitchAnnouncement = null;
+      pendingFocusTriggerOnMount = false;
+      return { ok: false, error: res.error };
     },
     [onCreateFromTemplate, announce, returnFocusToTrigger],
   );
 
   const handleDuplicate = useCallback(
-    async (title?: string, saveFirst = false): Promise<boolean> => {
+    async (
+      title?: string,
+      saveFirst = false,
+    ): Promise<{ ok: boolean; error?: DashboardV2StorageError }> => {
       setIsProcessing(true);
       setErrorText(null);
       if (saveFirst && isDirty) {
         const saved = await onSaveCurrent();
         if (!saved) {
           setIsProcessing(false);
-          return false;
+          return {
+            ok: false,
+            error: {
+              kind: 'konflikt',
+              detail: 'Ungespeicherte Änderungen konnten vor dem Duplizieren nicht gesichert werden.',
+            },
+          };
         }
       }
-      const res = await onDuplicateCurrent(title);
+
+      const targetTitle = title?.trim() || `${currentDashboard.title} (Kopie)`;
+      pendingPostSwitchAnnouncement = `Dashboard ‚${targetTitle}‘ angelegt`;
+      pendingFocusTriggerOnMount = true;
+
+      const res = (await onDuplicateCurrent(title)) as {
+        ok: boolean;
+        error?: DashboardV2StorageError;
+      };
+
+      if (!isMountedRef.current) {
+        return res;
+      }
+
       setIsProcessing(false);
       if (res.ok) {
+        pendingPostSwitchAnnouncement = null;
+        pendingFocusTriggerOnMount = false;
         setActiveDialog(null);
-        announce(`Dashboard ‚${title}‘ angelegt`);
+        announce(`Dashboard ‚${targetTitle}‘ angelegt`);
         returnFocusToTrigger();
-        return true;
+        return { ok: true };
       }
-      return false;
+
+      pendingPostSwitchAnnouncement = null;
+      pendingFocusTriggerOnMount = false;
+      return { ok: false, error: res.error };
     },
-    [isDirty, onSaveCurrent, onDuplicateCurrent, announce, returnFocusToTrigger],
+    [
+      isDirty,
+      onSaveCurrent,
+      currentDashboard.title,
+      onDuplicateCurrent,
+      announce,
+      returnFocusToTrigger,
+    ],
   );
 
-  const handleDelete = useCallback(async (): Promise<boolean> => {
+  const handleDelete = useCallback(async (): Promise<{
+    ok: boolean;
+    error?: DashboardV2StorageError;
+  }> => {
     setIsProcessing(true);
     setErrorText(null);
-    const res = await onDeleteDashboard(currentDashboard.id);
+    const deletedTitle = currentDashboard.title;
+    pendingFocusTriggerOnMount = true;
+
+    const res = (await onDeleteDashboard(currentDashboard.id)) as {
+      ok: boolean;
+      nextDashboardId?: string | null;
+      error?: DashboardV2StorageError;
+    };
+
+    if (res.ok) {
+      const remaining = dashboards.find((d) => d.id === res.nextDashboardId);
+      const msg = `Dashboard ‚${deletedTitle}‘ gelöscht, ‚${remaining?.title ?? 'Nächstes'}‘ geöffnet`;
+      pendingPostSwitchAnnouncement = msg;
+    }
+
+    if (!isMountedRef.current) {
+      return res;
+    }
+
     setIsProcessing(false);
     if (res.ok) {
+      pendingPostSwitchAnnouncement = null;
+      pendingFocusTriggerOnMount = false;
       setActiveDialog(null);
       const remaining = dashboards.find((d) => d.id === res.nextDashboardId);
-      announce(
-        `Dashboard ‚${currentDashboard.title}‘ gelöscht, ‚${remaining?.title ?? 'Nächstes'}‘ geöffnet`,
-      );
+      const msg = `Dashboard ‚${deletedTitle}‘ gelöscht, ‚${remaining?.title ?? 'Nächstes'}‘ geöffnet`;
+      announce(msg);
       returnFocusToTrigger();
-      return true;
+      return { ok: true };
     }
-    return false;
+
+    pendingPostSwitchAnnouncement = null;
+    pendingFocusTriggerOnMount = false;
+    return { ok: false, error: res.error };
   }, [
     currentDashboard.id,
     currentDashboard.title,

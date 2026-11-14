@@ -5,20 +5,40 @@ import { useEffect, useId, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { cn } from '@/lib/utils';
+import type {
+  DashboardV2StorageError,
+  PersonalDashboardListItemV2,
+} from '../../../services/dashboardStorageV2Types';
 import type { DashboardTemplateV2 } from '../../../model/dashboardTemplatesV2';
-import type { PersonalDashboardListItemV2 } from '../../../services/dashboardStorageV2Types';
 import {
   MAX_DASHBOARD_TITLE_LENGTH,
   buildDerivedDashboardTitle,
 } from '../../../model/dashboardTitles';
 import { useEscapeToClose } from '../../UnsavedChangesDialog';
 
+export type CreateDashboardResult =
+  | boolean
+  | { ok: boolean; error?: DashboardV2StorageError };
+
 export interface NewDashboardDialogV2Props {
   open: boolean;
   onClose: () => void;
   existingDashboards: PersonalDashboardListItemV2[];
-  onCreate: (templateId: string, title: string) => Promise<boolean>;
+  onCreate: (templateId: string, title: string) => Promise<CreateDashboardResult>;
   isSaving?: boolean;
+}
+
+function getCreateErrorMessage(error?: DashboardV2StorageError): string {
+  if (!error) return 'Das Dashboard konnte nicht angelegt werden.';
+  switch (error.kind) {
+    case 'obergrenze_erreicht':
+      return 'Die Obergrenze von 20 Dashboards wurde erreicht. Bitte lösche ein bestehendes Dashboard.';
+    case 'nicht_berechtigt':
+    case 'keine_mitgliedschaft':
+      return 'Keine Berechtigung zum Anlegen eines neuen Dashboards.';
+    default:
+      return 'Das Dashboard konnte nicht angelegt werden.';
+  }
 }
 
 function computeUniqueTitle(
@@ -105,9 +125,11 @@ export function NewDashboardDialogV2({
     }
 
     setError(null);
-    const success = await onCreate(selectedTemplateId, trimmed);
-    if (!success) {
-      setError('Das Dashboard konnte nicht angelegt werden.');
+    const res = await onCreate(selectedTemplateId, trimmed);
+    if (typeof res === 'boolean') {
+      if (!res) setError('Das Dashboard konnte nicht angelegt werden.');
+    } else if (res && !res.ok) {
+      setError(getCreateErrorMessage(res.error));
     }
   };
 
@@ -118,14 +140,20 @@ export function NewDashboardDialogV2({
       title="Neues Dashboard anlegen"
       maxWidth="680px"
       footer={
-        <div className="flex justify-end gap-2">
-          <Button variant="secondary" disabled={isSaving} onClick={handleClose}>
+        <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button
+            variant="secondary"
+            disabled={isSaving}
+            onClick={handleClose}
+            className="w-full sm:w-auto"
+          >
             Abbrechen
           </Button>
           <Button
             data-testid="create-dashboard-submit-button"
             disabled={isSaving || !title.trim()}
             onClick={handleSubmit}
+            className="w-full sm:w-auto"
           >
             {isSaving ? 'Wird angelegt...' : 'Dashboard anlegen'}
           </Button>

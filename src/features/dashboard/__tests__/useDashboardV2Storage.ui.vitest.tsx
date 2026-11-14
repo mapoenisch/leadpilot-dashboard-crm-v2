@@ -167,4 +167,33 @@ describe('useDashboardV2Storage Hook Tests', () => {
     expect(result.current.dashboard?.title).toBe('Konfliktentwurf (Kopie)');
     expect(result.current.dashboards).toHaveLength(2);
   });
+
+  it('meldet Fehler wenn Laden nach erfolgreicher Löschung fehlschlägt (Codex P2)', async () => {
+    const { result } = renderHook(() => useDashboardV2Storage());
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('bereit');
+    });
+
+    // Zweites anlegen
+    await act(async () => {
+      await result.current.createFromTemplate('finance', 'Finanz Dashboard');
+    });
+    const secondId = result.current.dashboard!.id;
+
+    const storageMod = await import('../services/dashboardStorageV2');
+    const spy = vi.spyOn(storageMod, 'loadPersonalDashboardV2');
+    spy.mockResolvedValueOnce({ ok: false, error: { kind: 'technisch' } });
+
+    await act(async () => {
+      const delRes = await result.current.deleteDashboard(secondId);
+      expect(delRes.ok).toBe(false);
+      if (!delRes.ok) {
+        expect(delRes.error).toEqual({ kind: 'technisch' });
+      }
+    });
+
+    expect(result.current.error).toEqual({ kind: 'technisch' });
+    spy.mockRestore();
+  });
 });

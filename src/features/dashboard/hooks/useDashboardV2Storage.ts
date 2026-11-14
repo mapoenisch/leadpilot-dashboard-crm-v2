@@ -14,7 +14,6 @@ import {
   setActiveDashboardV2Id,
   type DashboardV2StorageError,
   type PersonalDashboardListItemV2,
-  type SavedDashboardV2Result,
   type StoredDashboardV2Row,
 } from '../services/dashboardStorageV2';
 import {
@@ -27,29 +26,27 @@ import { normalizeDashboardLayouts } from '../services/dashboardLayoutIntegrity'
 import { migrateV1ToV2 } from '../model/dashboardMigrationV1V2';
 import { DEFAULT_DASHBOARD_CONFIG } from '../model/defaultDashboard';
 import { buildDerivedDashboardTitle } from '../model/dashboardTitles';
+import { getDashboardTemplateV2ById } from '../model/dashboardTemplatesV2';
+import type {
+  SaveV2Result,
+  DeleteV2Result,
+  UseDashboardV2StorageResult,
+} from '../services/dashboardStorageV2Types';
+export type { SaveV2Result, DeleteV2Result, UseDashboardV2StorageResult };
 
-export type SaveV2Result =
-  | { ok: true; value: SavedDashboardV2Result }
-  | { ok: false; error: DashboardV2StorageError };
-
-export type DeleteV2Result =
-  | { ok: true; nextDashboardId: string | null }
-  | { ok: false; error: DashboardV2StorageError };
-
-export interface UseDashboardV2StorageResult {
-  status: 'laden' | 'bereit' | 'fehler';
-  dashboard: StoredDashboardV2Row | null;
-  dashboards: PersonalDashboardListItemV2[];
-  error: DashboardV2StorageError | null;
-  isSaving: boolean;
-  save: (config: DashboardConfigV2, changeSummary?: string) => Promise<SaveV2Result>;
-  reload: (explicitDashboardId?: string) => Promise<void>;
-  refreshList: () => Promise<void>;
-  openDashboard: (id: string) => Promise<boolean>;
-  createFromTemplate: (templateId: string, title?: string) => Promise<SaveV2Result>;
-  duplicateCurrent: (title?: string) => Promise<SaveV2Result>;
-  deleteDashboard: (id: string) => Promise<DeleteV2Result>;
-  saveAsNewPersonalCopy: (config: DashboardConfigV2, title?: string) => Promise<SaveV2Result>;
+async function loadAndActivateDashboard(
+  dashboardId: string,
+  orgId: string,
+  userId: string,
+  setDashboard: (d: StoredDashboardV2Row) => void,
+): Promise<{ ok: true } | { ok: false; error: DashboardV2StorageError }> {
+  setActiveDashboardV2Id(orgId, userId, dashboardId);
+  const loaded = await loadPersonalDashboardV2(dashboardId);
+  if (loaded.ok && loaded.value) {
+    setDashboard(loaded.value);
+    return { ok: true };
+  }
+  return { ok: false, error: loaded.ok ? { kind: 'nicht_gefunden' } : loaded.error };
 }
 
 export function useDashboardV2Storage(options?: {
@@ -110,13 +107,9 @@ export function useDashboardV2Storage(options?: {
       setDashboard(res.value);
       setStatus('bereit');
 
-      // Liste beim Initialisieren einmalig laden
-      const listRes = await listPersonalDashboardsV2();
-      if (listRes.ok) {
-        setDashboards(listRes.value);
-      }
+      await refreshList();
     },
-    [options?.preferredDashboardId, orgId, userId, v1Preferences.state?.config],
+    [options?.preferredDashboardId, orgId, refreshList, userId, v1Preferences.state?.config],
   );
 
   useEffect(() => {
@@ -203,9 +196,6 @@ export function useDashboardV2Storage(options?: {
   // Aus Vorlage erstellen
   const createFromTemplate = useCallback(
     async (templateId: string, title?: string): Promise<SaveV2Result> => {
-      const { getDashboardTemplateV2ById } = await import(
-        '../model/dashboardTemplatesV2'
-      );
       const template = getDashboardTemplateV2ById(templateId);
       if (!template) {
         const err: DashboardV2StorageError = {
@@ -220,14 +210,13 @@ export function useDashboardV2Storage(options?: {
       setError(null);
 
       const targetTitle = title?.trim() || template.name;
-      const context = {
+      const initialConfig = template.build({
         id: 'dash_v2_' + Math.random().toString(36).slice(2, 10),
         title: targetTitle,
         ownerUserId: userId,
         organizationId: orgId,
-        scope: 'personal' as const,
-      };
-      const initialConfig = template.build(context);
+        scope: 'personal',
+      });
 
       const res = await createDashboardV2({
         title: targetTitle,
@@ -242,12 +231,17 @@ export function useDashboardV2Storage(options?: {
         return { ok: false, error: res.error };
       }
 
-      setActiveDashboardV2Id(orgId, userId, res.value.dashboardId);
-      const loaded = await loadPersonalDashboardV2(res.value.dashboardId);
-      if (loaded.ok && loaded.value) {
-        setDashboard(loaded.value);
-      }
+      const activateRes = await loadAndActivateDashboard(
+        res.value.dashboardId,
+        orgId,
+        userId,
+        setDashboard,
+      );
       await refreshList();
+      if (!activateRes.ok) {
+        setError(activateRes.error);
+        return activateRes;
+      }
       return { ok: true, value: res.value };
     },
     [orgId, userId, refreshList],
@@ -263,8 +257,7 @@ export function useDashboardV2Storage(options?: {
       setError(null);
 
       const targetTitle =
-        title?.trim() ||
-        buildDerivedDashboardTitle(dashboard.title, ' (Kopie)');
+        title?.trim() || buildDerivedDashboardTitle(dashboard.title, ' (Kopie)');
       const res = await duplicatePersonalDashboardV2({
         dashboardId: dashboard.id,
         title: targetTitle,
@@ -277,12 +270,17 @@ export function useDashboardV2Storage(options?: {
         return { ok: false, error: res.error };
       }
 
-      setActiveDashboardV2Id(orgId, userId, res.value.dashboardId);
-      const loaded = await loadPersonalDashboardV2(res.value.dashboardId);
-      if (loaded.ok && loaded.value) {
-        setDashboard(loaded.value);
-      }
+      const activateRes = await loadAndActivateDashboard(
+        res.value.dashboardId,
+        orgId,
+        userId,
+        setDashboard,
+      );
       await refreshList();
+      if (!activateRes.ok) {
+        setError(activateRes.error);
+        return activateRes;
+      }
       return {
         ok: true,
         value: {
@@ -319,14 +317,21 @@ export function useDashboardV2Storage(options?: {
       }
 
       if (isCurrent && res.value.nextDashboardId) {
-        setActiveDashboardV2Id(orgId, userId, res.value.nextDashboardId);
-        const loaded = await loadPersonalDashboardV2(res.value.nextDashboardId);
-        if (loaded.ok && loaded.value) {
-          setDashboard(loaded.value);
+        const activateRes = await loadAndActivateDashboard(
+          res.value.nextDashboardId,
+          orgId,
+          userId,
+          setDashboard,
+        );
+        await refreshList();
+        if (!activateRes.ok) {
+          setError(activateRes.error);
+          return { ok: false, error: activateRes.error };
         }
+      } else {
+        await refreshList();
       }
 
-      await refreshList();
       return { ok: true, nextDashboardId: res.value.nextDashboardId };
     },
     [dashboard, dashboards, orgId, userId, refreshList],
@@ -380,18 +385,8 @@ export function useDashboardV2Storage(options?: {
   );
 
   return {
-    status,
-    dashboard,
-    dashboards,
-    error,
-    isSaving,
-    save,
-    reload,
-    refreshList,
-    openDashboard,
-    createFromTemplate,
-    duplicateCurrent,
-    deleteDashboard,
-    saveAsNewPersonalCopy,
+    status, dashboard, dashboards, error, isSaving, save, reload,
+    refreshList, openDashboard, createFromTemplate, duplicateCurrent,
+    deleteDashboard, saveAsNewPersonalCopy,
   };
 }

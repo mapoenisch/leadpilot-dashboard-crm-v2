@@ -4,15 +4,36 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import type { StoredDashboardV2Row } from '../../../services/dashboardStorageV2Types';
+import type { DashboardV2StorageError, StoredDashboardV2Row } from '../../../services/dashboardStorageV2Types';
 import { useEscapeToClose } from '../../UnsavedChangesDialog';
+
+export type DeleteConfirmResult =
+  | boolean
+  | { ok: boolean; error?: DashboardV2StorageError };
 
 export interface DeleteDashboardDialogV2Props {
   open: boolean;
   onClose: () => void;
   dashboard: StoredDashboardV2Row;
-  onConfirm: () => Promise<boolean>;
+  onConfirm: () => Promise<DeleteConfirmResult>;
   isSaving?: boolean;
+}
+
+function getDeleteErrorMessage(error?: DashboardV2StorageError): string {
+  if (!error) return 'Das Dashboard konnte nicht gelöscht werden.';
+  switch (error.kind) {
+    case 'konflikt':
+      return 'Revisionskonflikt: Das Dashboard wurde zwischenzeitlich anderweitig geändert. Bitte lade die Seite neu, bevor du es löschst.';
+    case 'letztes_dashboard':
+      return 'Das letzte Dashboard kann nicht gelöscht werden.';
+    case 'nicht_gefunden':
+      return 'Das Dashboard wurde bereits gelöscht oder existiert nicht mehr.';
+    case 'nicht_berechtigt':
+    case 'keine_mitgliedschaft':
+      return 'Du hast keine Berechtigung, dieses Dashboard zu löschen.';
+    default:
+      return 'Das Dashboard konnte nicht gelöscht werden.';
+  }
 }
 
 export function DeleteDashboardDialogV2({
@@ -35,9 +56,11 @@ export function DeleteDashboardDialogV2({
 
   const handleConfirm = async () => {
     setError(null);
-    const success = await onConfirm();
-    if (!success) {
-      setError('Das Dashboard konnte nicht gelöscht werden.');
+    const res = await onConfirm();
+    if (typeof res === 'boolean') {
+      if (!res) setError('Das Dashboard konnte nicht gelöscht werden.');
+    } else if (res && !res.ok) {
+      setError(getDeleteErrorMessage(res.error));
     }
   };
 
@@ -50,8 +73,13 @@ export function DeleteDashboardDialogV2({
       title="Dashboard löschen?"
       maxWidth="540px"
       footer={
-        <div className="flex justify-end gap-2">
-          <Button variant="secondary" disabled={isSaving} onClick={handleClose}>
+        <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button
+            variant="secondary"
+            disabled={isSaving}
+            onClick={handleClose}
+            className="w-full sm:w-auto"
+          >
             Abbrechen
           </Button>
           <Button
@@ -59,8 +87,11 @@ export function DeleteDashboardDialogV2({
             variant="danger"
             disabled={isSaving}
             onClick={handleConfirm}
+            className="max-w-full truncate w-full sm:w-auto"
           >
-            {isSaving ? 'Wird gelöscht...' : `„${dashboard.title}“ endgültig löschen`}
+            <span className="truncate">
+              {isSaving ? 'Wird gelöscht...' : `„${dashboard.title}“ endgültig löschen`}
+            </span>
           </Button>
         </div>
       }

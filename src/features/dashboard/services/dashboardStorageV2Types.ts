@@ -141,3 +141,27 @@ export function setActiveDashboardV2Id(
     // Fehler bei Quota/Sicherheit im Browser tolerieren
   }
 }
+
+export type SaveV2Result =
+  | { ok: true; value: SavedDashboardV2Result }
+  | { ok: false; error: DashboardV2StorageError };
+
+export type DeleteV2Result =
+  | { ok: true; nextDashboardId: string | null }
+  | { ok: false; error: DashboardV2StorageError };
+
+export interface UseDashboardV2StorageResult {
+  status: 'laden' | 'bereit' | 'fehler';
+  dashboard: StoredDashboardV2Row | null;
+  dashboards: PersonalDashboardListItemV2[];
+  error: DashboardV2StorageError | null;
+  isSaving: boolean;
+  save: (config: DashboardConfigV2, changeSummary?: string) => Promise<SaveV2Result>;
+  reload: (explicitDashboardId?: string) => Promise<void>;
+  refreshList: () => Promise<void>;
+  openDashboard: (id: string) => Promise<boolean>;
+  createFromTemplate: (templateId: string, title?: string) => Promise<SaveV2Result>;
+  duplicateCurrent: (title?: string) => Promise<SaveV2Result>;
+  deleteDashboard: (id: string) => Promise<DeleteV2Result>;
+  saveAsNewPersonalCopy: (config: DashboardConfigV2, title?: string) => Promise<SaveV2Result>;
+}
