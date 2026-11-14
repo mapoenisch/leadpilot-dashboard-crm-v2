@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "id": "00000000-0000-0000-0000-000000000001",
+  "title": "Template Test",
+  "scope": "personal",
+  "ownerUserId": "91580000-0000-0000-0000-000000000001",
+  "organizationId": "a1580000-0000-0000-0000-000000000001",
+  "globalTimeframe": "letzte_30_tage",
+  "tiles": [],
+  "metadata": {
+    "migrated_from_v1": true,
+    "migrated_at": "2026-11-14T12:00:00.000Z",
+    "last_migrated_revision": 1,
+    "user_edited": false
+  },
+  "createdAt": "2026-11-14T12:00:00.000Z",
+  "updatedAt": "2026-11-14T12:00:00.000Z"
+}

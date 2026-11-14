@@ -48,6 +48,11 @@ Der Haupt-Editor teilt den Bildschirm in vier klar voneinander abgegrenzte Zonen
   - `Persönlich` (blauer Badge): Nur für den aktuellen Benutzer sichtbar und bearbeitbar.
   - `Team: [Teamname]` (violetter Badge): Geteiltes Dashboard einer Freigabegruppe.
   - `Organisation` (grüner Badge): Für alle Organisationsmitglieder einsehbares Dashboard.
+- **Dashboard-Auswahl & Scope-Badge (Auftrag 158 / P09b, 14.11.2026):**
+  - Dropdown-Auswahlknopf in der Top-Bar mit Scope-Badge („Persönlich“), aktuellem Dashboard-Titel und Ausklappmenü (`DashboardSwitcherV2.tsx`).
+  - Zeigt alle persönlichen Dashboards des Nutzers (bis zu 20) mit Kachel- und Sektionsanzahl sowie relativer Zeitangabe.
+  - Aktionen: Neues Dashboard aus Vorlage anlegen (Executive Summary, Vertrieb & Pipeline, Finanzen & Unit Economics, Leeres Dashboard), Dashboard duplizieren, Dashboard löschen (letztes Dashboard nicht löschbar).
+  - Navigationsschutz: Ungespeicherte Änderungen vor Wechsel oder Neuanlage werden durch `UnsavedChangesDialog` abgefangen.
 - **Titel & Änderungsstatus:**
   - Klick auf den Titel aktiviert ein Inline-Eingabefeld (max. 80 Zeichen).
   - Ungespeicherte Änderungen werden durch einen Stern am Titel (`*`) und einen bernsteinfarbenen Indikatorpunkt visualisiert.

@@ -54,3 +54,57 @@ for (const routePath of ROUTES) {
     expect(fresh.length).toBe(0);
   });
 }
+
+// Auftrag 158 (P09b §4): Zustand mit geöffnetem Menü und Neu-Dialog
+test('a11y editor_v2 mit geöffnetem Switcher-Menü — keine neuen critical/serious-Verstöße', async ({
+  page,
+}) => {
+  await page.goto('/dashboard-vorschau.html?bereich=editor_v2', { waitUntil: 'networkidle' });
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForTimeout(500);
+
+  const btn = page.getByTestId('dashboard-switcher-button');
+  await btn.click();
+  await page.waitForSelector('[data-testid="dashboard-switcher-menu"]');
+
+  const results = await new AxeBuilder({ page }).analyze();
+  const blocking = results.violations.filter(
+    (v) => v.impact === 'critical' || v.impact === 'serious',
+  );
+  const accepted: string[] = baseline['editor_v2_switcher_menu'] ?? [];
+  const fresh = blocking.filter((v) => !accepted.includes(v.id));
+  if (fresh.length > 0) {
+    const summary = fresh
+      .map((v) => `- [${v.impact}] ${v.id}: ${v.help} (${v.nodes.length} Knoten)`)
+      .join('\n');
+    expect(fresh.length, `editor_v2_switcher_menu: NEUE Axe-Verstöße:\n${summary}`).toBe(0);
+  }
+  expect(fresh.length).toBe(0);
+});
+
+test('a11y editor_v2 mit geöffnetem Neu-Dialog — keine neuen critical/serious-Verstöße', async ({
+  page,
+}) => {
+  await page.goto('/dashboard-vorschau.html?bereich=editor_v2', { waitUntil: 'networkidle' });
+  await page.evaluate(() => document.fonts.ready);
+  await page.waitForTimeout(500);
+
+  const btn = page.getByTestId('dashboard-switcher-button');
+  await btn.click();
+  await page.getByTestId('new-dashboard-menu-item').click();
+  await page.waitForSelector('[data-testid="new-dashboard-dialog"]');
+
+  const results = await new AxeBuilder({ page }).analyze();
+  const blocking = results.violations.filter(
+    (v) => v.impact === 'critical' || v.impact === 'serious',
+  );
+  const accepted: string[] = baseline['editor_v2_new_dialog'] ?? [];
+  const fresh = blocking.filter((v) => !accepted.includes(v.id));
+  if (fresh.length > 0) {
+    const summary = fresh
+      .map((v) => `- [${v.impact}] ${v.id}: ${v.help} (${v.nodes.length} Knoten)`)
+      .join('\n');
+    expect(fresh.length, `editor_v2_new_dialog: NEUE Axe-Verstöße:\n${summary}`).toBe(0);
+  }
+  expect(fresh.length).toBe(0);
+});

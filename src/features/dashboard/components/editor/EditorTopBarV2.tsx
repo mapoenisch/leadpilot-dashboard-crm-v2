@@ -1,22 +1,17 @@
-// Executive Dashboard V2 (Auftrag 148 / P05):
+// Executive Dashboard V2 (Auftrag 148 & 158 / P05 & P09b):
 // Top-Bar des V2-Dashboard-Editors.
-// Dashboard-Titel mit Inline-Edit & Dirty-Indikator, Scope-Badge, Breakpoint-Wahlschalter,
-// Globale Filter, Live/Pause, Vorschau-Modus, Undo/Redo und Speichern/Abbrechen.
+// Dashboard-Auswahl (Switcher) mit Scope-Badge, Inline-Edit-Titel, Dirty-Indikator,
+// Breakpoint-Wahlschalter, Globale Filter, Live/Pause, Vorschau-Modus, Undo/Redo und Speichern/Abbrechen.
 
 import { useState, useRef, useEffect, type ChangeEvent } from 'react';
 import {
   Eye,
   EyeOff,
-  Monitor,
   PanelLeft,
   PanelRight,
   Pause,
   Play,
-  RotateCcw,
-  RotateCw,
   Save,
-  Smartphone,
-  Tablet,
   X,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
@@ -27,6 +22,13 @@ import type {
   DashboardConfigV2,
   DashboardScope,
 } from '../../model/dashboardConfigV2';
+import type {
+  PersonalDashboardListItemV2,
+  StoredDashboardV2Row,
+} from '../../services/dashboardStorageV2Types';
+import { BreakpointSelector } from './topbar/BreakpointSelector';
+import { UndoRedoGroup } from './topbar/UndoRedoGroup';
+import { DashboardSwitcherV2 } from './selection/DashboardSwitcherV2';
 
 export interface EditorTopBarV2Props {
   config: DashboardConfigV2;
@@ -52,6 +54,13 @@ export interface EditorTopBarV2Props {
   isInspectorOpen?: boolean;
   onToggleInspector?: () => void;
   className?: string;
+  // Auftrag 158: Dashboard-Auswahl
+  dashboards?: PersonalDashboardListItemV2[];
+  currentStoredDashboard?: StoredDashboardV2Row;
+  onOpenDashboard?: (id: string) => Promise<boolean>;
+  onCreateFromTemplate?: (templateId: string, title?: string) => Promise<{ ok: boolean; error?: unknown }>;
+  onDuplicateCurrent?: (title?: string) => Promise<{ ok: boolean; error?: unknown }>;
+  onDeleteDashboard?: (id: string) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
 }
 
 export const TIMEFRAME_OPTIONS = [
@@ -92,6 +101,12 @@ export function EditorTopBarV2({
   isInspectorOpen = true,
   onToggleInspector,
   className,
+  dashboards,
+  currentStoredDashboard,
+  onOpenDashboard,
+  onCreateFromTemplate,
+  onDuplicateCurrent,
+  onDeleteDashboard,
 }: EditorTopBarV2Props) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState(config.title);
@@ -127,6 +142,16 @@ export function EditorTopBarV2({
     }
   };
 
+  const storedDashboard =
+    currentStoredDashboard ?? {
+      id: config.id,
+      title: config.title,
+      scope: (config.scope as 'personal' | 'team') ?? 'personal',
+      revision: 1,
+      config,
+      updatedAt: new Date().toISOString(),
+    };
+
   return (
     <header
       data-testid="editor-top-bar"
@@ -135,7 +160,7 @@ export function EditorTopBarV2({
         className,
       )}
     >
-      {/* Linker Bereich: Navigation / Panels Toggle, Scope & Titel */}
+      {/* Linker Bereich: Navigation / Panels Toggle, Scope & Switcher & Titel */}
       <div className="flex items-center gap-3">
         {onToggleLibrary && (
           <button
@@ -155,19 +180,36 @@ export function EditorTopBarV2({
           </button>
         )}
 
-        {/* Scope Badge */}
-        <Badge
-          data-testid="scope-badge"
-          variant="neutral"
-          className={cn(
-            'text-[11px] font-medium tracking-wide uppercase',
-            config.scope === 'personal'
-              ? 'border-blue-500/40 bg-blue-500/10 text-blue-300'
-              : 'border-purple-500/40 bg-purple-500/10 text-purple-300',
-          )}
-        >
-          {config.scope === 'personal' ? 'Persönlich' : `Team: ${config.teamId ?? 'Gruppe'}`}
-        </Badge>
+        {/* Dashboard-Auswahl (Switcher) oder Fallback-Scope-Badge */}
+        {dashboards && onOpenDashboard && onCreateFromTemplate && onDuplicateCurrent && onDeleteDashboard ? (
+          <DashboardSwitcherV2
+            currentDashboard={storedDashboard}
+            dashboards={dashboards}
+            isDirty={isDirty}
+            isPreviewMode={isPreviewMode}
+            onOpenDashboard={onOpenDashboard}
+            onCreateFromTemplate={onCreateFromTemplate}
+            onDuplicateCurrent={onDuplicateCurrent}
+            onDeleteDashboard={onDeleteDashboard}
+            onSaveCurrent={async () => {
+              onSave();
+              return true;
+            }}
+          />
+        ) : (
+          <Badge
+            data-testid="scope-badge"
+            variant="neutral"
+            className={cn(
+              'text-[11px] font-medium tracking-wide uppercase',
+              config.scope === 'personal'
+                ? 'border-blue-500/40 bg-blue-500/10 text-blue-300'
+                : 'border-purple-500/40 bg-purple-500/10 text-purple-300',
+            )}
+          >
+            {config.scope === 'personal' ? 'Persönlich' : `Team: ${config.teamId ?? 'Gruppe'}`}
+          </Badge>
+        )}
 
         {/* Dashboard-Titel mit Inline-Editing & Dirty-Indikator */}
         <div className="flex items-center gap-2">
@@ -209,57 +251,10 @@ export function EditorTopBarV2({
 
       {/* Mittlerer Bereich: Globale Filter & Breakpoints */}
       <div className="flex flex-wrap items-center gap-2">
-        {/* Breakpoint-Umschalter */}
-        <div
-          data-testid="breakpoint-selector"
-          className="flex items-center rounded-md border border-[var(--color-border,#1b3d39)] bg-black/30 p-0.5"
-        >
-          <button
-            type="button"
-            data-testid="breakpoint-desktop"
-            onClick={() => onBreakpointChange('desktop')}
-            className={cn(
-              'flex h-7 w-7 items-center justify-center rounded transition-colors',
-              activeBreakpoint === 'desktop'
-                ? 'bg-primary/20 text-primary font-semibold'
-                : 'text-[var(--color-text-muted)] hover:text-white',
-            )}
-            title="Desktop-Ansicht (12 Spalten)"
-            aria-label="Desktop-Ansicht"
-          >
-            <Monitor className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            data-testid="breakpoint-tablet"
-            onClick={() => onBreakpointChange('tablet')}
-            className={cn(
-              'flex h-7 w-7 items-center justify-center rounded transition-colors',
-              activeBreakpoint === 'tablet'
-                ? 'bg-primary/20 text-primary font-semibold'
-                : 'text-[var(--color-text-muted)] hover:text-white',
-            )}
-            title="Tablet-Ansicht (6 Spalten)"
-            aria-label="Tablet-Ansicht"
-          >
-            <Tablet className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            data-testid="breakpoint-mobile"
-            onClick={() => onBreakpointChange('mobile')}
-            className={cn(
-              'flex h-7 w-7 items-center justify-center rounded transition-colors',
-              activeBreakpoint === 'mobile'
-                ? 'bg-primary/20 text-primary font-semibold'
-                : 'text-[var(--color-text-muted)] hover:text-white',
-            )}
-            title="Smartphone-Ansicht (1 Spalte)"
-            aria-label="Smartphone-Ansicht"
-          >
-            <Smartphone className="h-3.5 w-3.5" />
-          </button>
-        </div>
+        <BreakpointSelector
+          activeBreakpoint={activeBreakpoint}
+          onBreakpointChange={onBreakpointChange}
+        />
 
         {/* Globaler Zeitraum-Filter */}
         <select
@@ -320,41 +315,12 @@ export function EditorTopBarV2({
 
       {/* Rechter Bereich: Undo/Redo, Vorschau, Speichern & Abbrechen */}
       <div className="flex items-center gap-2">
-        {/* Undo / Redo */}
-        <div className="flex items-center rounded-md border border-[var(--color-border,#1b3d39)] bg-black/30 p-0.5">
-          <button
-            type="button"
-            data-testid="undo-button"
-            disabled={!canUndo}
-            onClick={onUndo}
-            className={cn(
-              'flex h-7 w-7 items-center justify-center rounded transition-colors',
-              canUndo
-                ? 'text-[var(--color-text-soft,#e6f3f1)] hover:bg-white/10'
-                : 'text-[var(--color-text-muted)] opacity-40 cursor-not-allowed',
-            )}
-            title="Rückgängig (Strg+Z / Cmd+Z)"
-            aria-label="Rückgängig"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            data-testid="redo-button"
-            disabled={!canRedo}
-            onClick={onRedo}
-            className={cn(
-              'flex h-7 w-7 items-center justify-center rounded transition-colors',
-              canRedo
-                ? 'text-[var(--color-text-soft,#e6f3f1)] hover:bg-white/10'
-                : 'text-[var(--color-text-muted)] opacity-40 cursor-not-allowed',
-            )}
-            title="Wiederholen (Strg+Y / Cmd+Shift+Z)"
-            aria-label="Wiederholen"
-          >
-            <RotateCw className="h-3.5 w-3.5" />
-          </button>
-        </div>
+        <UndoRedoGroup
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={onUndo}
+          onRedo={onRedo}
+        />
 
         {/* Vorschau-Modus Schalter */}
         <button

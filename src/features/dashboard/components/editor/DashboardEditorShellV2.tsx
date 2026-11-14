@@ -30,6 +30,13 @@ export interface DashboardEditorShellV2Props {
   connectionStatus?: 'connected' | 'paused' | 'offline';
   dataTimestamp?: string;
   className?: string;
+  // Auftrag 158: Dashboard-Auswahl
+  dashboards?: import('../../services/dashboardStorageV2Types').PersonalDashboardListItemV2[];
+  currentStoredDashboard?: import('../../services/dashboardStorageV2Types').StoredDashboardV2Row;
+  onOpenDashboard?: (id: string) => Promise<boolean>;
+  onCreateFromTemplate?: (templateId: string, title?: string) => Promise<{ ok: boolean; error?: unknown }>;
+  onDuplicateCurrent?: (title?: string) => Promise<{ ok: boolean; error?: unknown }>;
+  onDeleteDashboard?: (id: string) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
 }
 
 export function DashboardEditorShellV2({
@@ -42,6 +49,12 @@ export function DashboardEditorShellV2({
   connectionStatus = 'connected',
   dataTimestamp,
   className,
+  dashboards,
+  currentStoredDashboard,
+  onOpenDashboard,
+  onCreateFromTemplate,
+  onDuplicateCurrent,
+  onDeleteDashboard,
 }: DashboardEditorShellV2Props) {
   const isDesktop = typeof window === 'undefined' || window.innerWidth >= 1024;
   const [isLibraryOpen, setIsLibraryOpen] = useState(isDesktop);
@@ -220,6 +233,12 @@ export function DashboardEditorShellV2({
         onToggleLibrary={() => setIsLibraryOpen((prev) => !prev)}
         isInspectorOpen={isInspectorOpen}
         onToggleInspector={() => setIsInspectorOpen((prev) => !prev)}
+        dashboards={dashboards}
+        currentStoredDashboard={currentStoredDashboard}
+        onOpenDashboard={onOpenDashboard}
+        onCreateFromTemplate={onCreateFromTemplate}
+        onDuplicateCurrent={onDuplicateCurrent}
+        onDeleteDashboard={onDeleteDashboard}
       />
 
       {/* MITTLERER ARBEITSBEREICH: BIBLIOTHEK + CANVAS + INSPECTOR */}
