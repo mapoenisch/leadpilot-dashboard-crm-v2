@@ -53,7 +53,9 @@ test.describe('Dashboard-Editor V2: Sektionen und einklappbare Gruppen (P09a)', 
     await moveSecBtn.dispatchEvent('click');
 
     // Option für "Finanzen & Ertrag" auswählen
-    const sectionOption = page.getByRole('button', { name: 'Finanzen & Ertrag' });
+    const sectionOption = page
+      .locator('[data-testid^="tile-move-section-option-"]')
+      .filter({ hasText: 'Finanzen & Ertrag' });
     await expect(sectionOption).toBeVisible();
     await sectionOption.dispatchEvent('click');
 
