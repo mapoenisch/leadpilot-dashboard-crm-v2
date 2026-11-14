@@ -96,6 +96,7 @@ export function SectionHeaderV2({
           aria-controls={`section-content-${section.id}`}
           onClick={(e) => {
             e.stopPropagation();
+            onSelectActiveArea?.();
             onToggleCollapse();
           }}
           className="flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-[var(--color-text-muted)] hover:bg-white/10 hover:text-white transition-colors"
@@ -144,12 +145,21 @@ export function SectionHeaderV2({
           </div>
         ) : (
           <div className="flex items-center gap-2 truncate">
-            <h3
-              data-testid={`section-title-${section.id}`}
-              onDoubleClick={() => !isPreviewMode && setIsEditingTitle(true)}
-              className="m-0 truncate text-sm font-semibold text-white tracking-wide"
-            >
-              {section.title}
+            <h3 className="m-0 truncate text-sm font-semibold text-white tracking-wide">
+              {isPreviewMode ? (
+                <span data-testid={`section-title-${section.id}`}>{section.title}</span>
+              ) : (
+                <button
+                  type="button"
+                  data-testid={`section-title-${section.id}`}
+                  onClick={() => onSelectActiveArea?.()}
+                  onDoubleClick={() => setIsEditingTitle(true)}
+                  className="cursor-pointer text-left font-semibold text-white hover:text-primary transition-colors focus:outline-none focus:underline"
+                  title="Bereich auswählen (Doppelklick zum Umbenennen)"
+                >
+                  {section.title}
+                </button>
+              )}
             </h3>
             <span
               data-testid={`section-tile-count-${section.id}`}

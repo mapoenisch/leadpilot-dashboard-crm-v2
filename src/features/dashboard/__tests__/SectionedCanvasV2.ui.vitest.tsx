@@ -331,4 +331,44 @@ describe('SectionedCanvasV2 UI & Entlastung (P09a)', () => {
       null,
     );
   });
+
+  it('erlaubt Bereichsauswahl per Tastatur über Titel- und Einklapp-Schalter', () => {
+    const onSelectArea = vi.fn();
+    const config: DashboardConfigV2 = {
+      version: 2,
+      id: 'd_test',
+      title: 'Test Dashboard',
+      scope: 'personal',
+      ownerUserId: 'u_test',
+      organizationId: 'org_test',
+      globalTimeframe: 'monat',
+      sections: [{ id: 'sec_1', title: 'Vertrieb', collapsed: false, tileIds: [] }],
+      tiles: [],
+    };
+
+    render(
+      <SectionedCanvasV2
+        config={config}
+        activeBreakpoint="desktop"
+        selectedTileId={null}
+        activeAreaId={null}
+        onSelectTile={vi.fn()}
+        onDeselect={vi.fn()}
+        onRemoveTile={vi.fn()}
+        onDuplicateTile={vi.fn()}
+        onSelectActiveArea={onSelectArea}
+        onToggleCollapseSection={vi.fn()}
+        useData={useEditorPreviewData}
+      />,
+    );
+
+    const titleBtn = screen.getByTestId('section-title-sec_1');
+    fireEvent.click(titleBtn);
+    expect(onSelectArea).toHaveBeenCalledWith('sec_1');
+
+    onSelectArea.mockClear();
+    const collapseBtn = screen.getByTestId('section-collapse-btn-sec_1');
+    fireEvent.click(collapseBtn);
+    expect(onSelectArea).toHaveBeenCalledWith('sec_1');
+  });
 });

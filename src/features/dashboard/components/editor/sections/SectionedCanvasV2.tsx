@@ -218,6 +218,7 @@ export function SectionedCanvasV2({
               role="region"
               aria-label="Bereich Ohne Sektion"
               onPointerDown={() => onSelectActiveArea?.(null)}
+              onFocusCapture={() => onSelectActiveArea?.(null)}
               onDrop={(e) => {
                 e.stopPropagation();
                 handleDrop(e, null);
@@ -265,6 +266,7 @@ export function SectionedCanvasV2({
                 aria-label={`Sektion ${section.title}`}
                 data-testid={`dashboard-section-${section.id}`}
                 data-section-id={section.id}
+                onFocusCapture={() => onSelectActiveArea?.(section.id)}
                 onDrop={(e) => {
                   e.stopPropagation();
                   handleDrop(e, section.id);
