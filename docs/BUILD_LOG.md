@@ -21281,6 +21281,16 @@ git diff 60aa96b --stat -- supabase/migrations
 - `supabase test db`: 14 pgTAP-Suiten (332 Tests) bestanden
 - Maximale Dateilängen: Alle neu erstellten und modifizierten Dateien liegen strikt unter 400 Zeilen (Budget eingehalten).
 
+### 6. PR-CI & Codex-Review Nacharbeit (14.11.2026)
+
+1. **CI-Fix (Commit `117e17c`):**
+   - Im CI-Job `e2e` fehlte `VITE_DASHBOARD_PREVIEW: 'true'` im Schritt `Build für E2E und Lighthouse`, weswegen `dist/dashboard-vorschau.html` im Preview-Server nicht existierte und `dashboard-editor-shell-v2` in den E2E-Tests nicht gefunden wurde. In `.github/workflows/ci.yml` und `scripts/runV23Acceptance.mjs` ergänzt.
+   - In `e2e/personal-dashboard-sections.spec.ts` wurde `getByRole('button', { name: 'Finanzen & Ertrag' })` durch einen eindeutigen Test-ID-Filter präzisiert, um eine Strict-Mode-Kollision mit dem Sektions-Header zu verhindern.
+2. **Codex-Review P2 Nacharbeit (Commit `9d0a1be`):**
+   - **Befund:** Bei aktiver benannter Sektion (`activeAreaId !== null`) wurden Drops aus der Widget-Bibliothek auf den Bereich „Ohne Sektion“ fälschlicherweise der aktiven Sektion zugewiesen, weil das Event an `<main>` aufstieg und dort auf `activeAreaId` zurückfiel.
+   - **Behebung:** Expliziter `onDrop`-Handler mit `e.stopPropagation()` und `handleDrop(e, null)` auf `unsectioned-area` in `SectionedCanvasV2.tsx` ergänzt.
+   - **Verifikation:** Neuer Unit-Test in `SectionedCanvasV2.ui.vitest.tsx` prüft, dass Drops auf den unsektionierten Bereich explizit mit `targetSection: null` aufgerufen werden. Testsuite `SectionedCanvasV2.ui.vitest.tsx` (5/5) und alle 71 Dashboard-Dateien (783 Tests) grün. Line-Counts: `SectionedCanvasV2.tsx` 370 Zeilen, `SectionedCanvasV2.ui.vitest.tsx` 334 Zeilen (beide <= 400).
+
 
 
 
