@@ -11,14 +11,43 @@ import type { DashboardConfigV2 } from '../model/dashboardConfigV2';
 import { useEditorPreviewData } from './editorPreviewData';
 
 export function DashboardEditorPreviewV2() {
-  const [config, setConfig] = useState<DashboardConfigV2>(() =>
-    migrateV1ToV2(DEFAULT_DASHBOARD_CONFIG, {
+  const [config, setConfig] = useState<DashboardConfigV2>(() => {
+    const base = migrateV1ToV2(DEFAULT_DASHBOARD_CONFIG, {
       id: 'preview_v2_dashboard',
       title: 'Executive Dashboard (V2 Beta)',
       ownerUserId: 'demo-user-preview',
       organizationId: 'demo-org-preview',
-    }),
-  );
+    });
+
+    const scenario =
+      typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).get('scenario')
+        : null;
+
+    if ((scenario === 'sections' || scenario === 'confirm') && base.tiles.length >= 6) {
+      const sec1Tiles = base.tiles.slice(0, 3).map((t) => t.id);
+      const sec2Tiles = base.tiles.slice(3, 6).map((t) => t.id);
+      return {
+        ...base,
+        sections: [
+          {
+            id: 'sec_finanzen',
+            title: 'Finanzen & Ertrag',
+            collapsed: false,
+            tileIds: sec1Tiles,
+          },
+          {
+            id: 'sec_pipeline',
+            title: 'Pipeline & Vertrieb',
+            collapsed: true,
+            tileIds: sec2Tiles,
+          },
+        ],
+      };
+    }
+
+    return base;
+  });
 
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
 

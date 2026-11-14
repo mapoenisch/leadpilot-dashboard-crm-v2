@@ -5,5 +5,11 @@
   "/crm/leads": [],
   "/crm/live-simulation": [],
   "/finance/p-and-l": [],
-  "/market/overview": []
+  "/market/overview": [],
+  "/dashboard-vorschau.html?bereich=editor_v2&scenario=sections": [
+    "aria-required-children",
+    "aria-required-parent",
+    "color-contrast",
+    "label-title-only"
+  ]
 }

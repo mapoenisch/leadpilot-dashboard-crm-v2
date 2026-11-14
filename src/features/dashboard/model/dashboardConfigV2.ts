@@ -2,6 +2,8 @@
 // Typdefinitionen und Schema-Validierung für die V2-Dashboard-Konfiguration.
 // Vollständig konform mit P02 §9.1 & P03 (GRID_VERGLEICH_ZIELMODELL_146.md).
 
+import { validateDashboardSections } from './dashboardSections';
+
 export const DASHBOARD_CONFIG_VERSION_V2 = 2 as const;
 export const MAX_TILES_V2 = 24;
 export const MAX_CONFIG_V2_BYTES = 65536; // 64 KiB
@@ -88,6 +90,13 @@ export interface DashboardMetadataV2 {
   [key: string]: unknown;
 }
 
+export interface DashboardSectionV2 {
+  id: string; // stabil, eindeutig im Dashboard, 1–64 Zeichen
+  title: string; // getrimmt 1–80 Zeichen
+  collapsed: boolean; // Zustand beim Öffnen des Dashboards
+  tileIds: string[]; // Kacheln dieser Sektion
+}
+
 /** Vollständige Dashboard-Konfiguration (V2) */
 export interface DashboardConfigV2 {
   version: typeof DASHBOARD_CONFIG_VERSION_V2;
@@ -100,7 +109,7 @@ export interface DashboardConfigV2 {
   globalTimeframe: string; // Standard-Zeitraum
   globalPipeline?: string; // Standard-Pipeline
   tiles: DashboardTileConfigV2[]; // Max. 24 Kacheln
-  sections?: unknown[];
+  sections?: DashboardSectionV2[];
   metadata?: DashboardMetadataV2;
   variables?: Record<string, unknown>;
   createdAt?: string;
@@ -297,6 +306,14 @@ export function validateDashboardConfigV2(
           error: `tiles[${i}].layouts.mobile muss 1 Spalte (x=0, w=1) haben`,
         };
       }
+    }
+  }
+
+  // Sektionen prüfen (Auftrag 157)
+  if (record.sections !== undefined) {
+    const secValidation = validateDashboardSections(record.sections, tileIds);
+    if (!secValidation.ok) {
+      return secValidation;
     }
   }
 

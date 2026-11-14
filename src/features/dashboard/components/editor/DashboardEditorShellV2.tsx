@@ -1,39 +1,24 @@
-// Executive Dashboard V2 (Auftrag 148 / P05):
+// Executive Dashboard V2 (Auftrag 148 & 157 / P05 & P09a):
 // Vier-Zonen-Shell des neuen visuellen Dashboard-Editors.
-// Koordiniert Top-Bar, Widget-Bibliothek, Canvas, Inspector und Statusleiste,
+// Koordiniert Top-Bar, Widget-Bibliothek, Sektions-Canvas, Inspector und Statusleiste,
 // steuert Undo/Redo über den Editor-Kern und sichert Entwürfe vor Datenverlust.
 
 import { useCallback, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
-import {
-  AddTileCommand,
-  RemoveTileCommand,
-  SetGlobalFilterCommand,
-  UpdateDashboardMetaCommand,
-} from '../../core/editorCommands';
-import {
-  BatchMoveTilesCommand,
-  MoveTileCommand,
-  ResizeTileCommand,
-  type TileMovement,
-} from '../../core/layoutCommands';
+import { SetGlobalFilterCommand, UpdateDashboardMetaCommand } from '../../core/editorCommands';
 import { useDashboardEditorV2 } from '../../hooks/useDashboardEditorV2';
-import type { DashboardConfigV2, GridPosition } from '../../model/dashboardConfigV2';
+import type { DashboardConfigV2 } from '../../model/dashboardConfigV2';
 import type { TileDataHook } from '../LazyDashboardTile';
 import { UnsavedChangesDialog } from '../UnsavedChangesDialog';
-import { EditorCanvasV2 } from './EditorCanvasV2';
+import { SectionedCanvasV2 } from './sections/SectionedCanvasV2';
+import { useSectionActions } from './sections/useSectionActions';
 import { EditorInspectorV2 } from './EditorInspectorV2';
 import { EditorStatusBarV2 } from './EditorStatusBarV2';
 import { EditorTopBarV2 } from './EditorTopBarV2';
 import { WidgetLibraryV2 } from './WidgetLibraryV2';
-import {
-  buildDuplicateTile,
-  buildNewTile,
-  createTileAtGridPosition,
-  reorderMobileTiles,
-} from './editorPlacement';
 import { useEditorShortcuts } from './useEditorShortcuts';
 import { useTileInspectorActions } from './useTileInspectorActions';
+import { useTilePlacementActions } from './useTilePlacementActions';
 
 export interface DashboardEditorShellV2Props {
   initialConfig: DashboardConfigV2;
@@ -58,8 +43,9 @@ export function DashboardEditorShellV2({
   dataTimestamp,
   className,
 }: DashboardEditorShellV2Props) {
-  const [isLibraryOpen, setIsLibraryOpen] = useState(true);
-  const [isInspectorOpen, setIsInspectorOpen] = useState(true);
+  const isDesktop = typeof window === 'undefined' || window.innerWidth >= 1024;
+  const [isLibraryOpen, setIsLibraryOpen] = useState(isDesktop);
+  const [isInspectorOpen, setIsInspectorOpen] = useState(isDesktop);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isLivePaused, setIsLivePaused] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -97,131 +83,31 @@ export function DashboardEditorShellV2({
     redo,
   });
 
-  // Ausgewählte Kachel ermitteln
-  const selectedTile = useMemo(
-    () => config.tiles.find((t) => t.id === selectedTileId) ?? null,
-    [config.tiles, selectedTileId],
-  );
+  // Sektionsaktionen (Auftrag 157 / P09a)
+  const sectionActions = useSectionActions({
+    config,
+    dispatch,
+    isPreviewMode,
+    selectedTileId,
+    setSelectedTileId,
+  });
 
-  // Kachel hinzufügen
-  const handleAddTile = useCallback(
-    (catalogId: string) => {
-      if (config.tiles.length >= 24) return;
-      // Gemeinsamer, kollisionssicherer Platzierungspfad (Auftrag 151 / P06b)
-      const newTile = buildNewTile(catalogId, config.tiles, {
-        timeframe: config.globalTimeframe,
-        pipeline: config.globalPipeline,
-      });
-      if (!newTile) return;
-
-      const cmd = new AddTileCommand(newTile);
-      dispatch(cmd);
-      setSelectedTileId(newTile.id);
-    },
-    [config.tiles, config.globalPipeline, config.globalTimeframe, dispatch, setSelectedTileId],
-  );
-
-  // Kachel entfernen
-  const handleRemoveTile = useCallback(
-    (tileId: string) => {
-      const index = config.tiles.findIndex((t) => t.id === tileId);
-      if (index === -1) return;
-      const tile = config.tiles[index]!;
-
-      const cmd = new RemoveTileCommand(tile, index);
-      dispatch(cmd);
-      if (selectedTileId === tileId) {
-        setSelectedTileId(null);
-      }
-    },
-    [config.tiles, selectedTileId, dispatch, setSelectedTileId],
-  );
-
-  // Kachel duplizieren
-  const handleDuplicateTile = useCallback(
-    (tileId: string) => {
-      if (config.tiles.length >= 24) return;
-      const tile = config.tiles.find((t) => t.id === tileId);
-      if (!tile) return;
-
-      const clonedTile = buildDuplicateTile(tile, config.tiles);
-
-      const cmd = new AddTileCommand(clonedTile);
-      dispatch(cmd);
-      setSelectedTileId(clonedTile.id);
-    },
-    [config.tiles, dispatch, setSelectedTileId],
-  );
-
-  // Raster-Layout Bewegungen / Reflow committen
-  const handleCommitLayout = useCallback(
-    (moves: TileMovement[]) => {
-      if (moves.length === 0) return;
-      if (moves.length === 1) {
-        const m = moves[0]!;
-        if (m.from.w !== m.to.w || m.from.h !== m.to.h) {
-          dispatch(
-            new ResizeTileCommand(
-              m.tileId,
-              activeBreakpoint,
-              m.from,
-              m.to,
-              undefined,
-              m.wasDerived,
-            ),
-          );
-        } else {
-          dispatch(
-            new MoveTileCommand(m.tileId, activeBreakpoint, m.from, m.to, undefined, m.wasDerived),
-          );
-        }
-      } else {
-        dispatch(new BatchMoveTilesCommand(activeBreakpoint, moves));
-      }
-    },
-    [activeBreakpoint, dispatch],
-  );
-
-  // Kachel an gezielter Rasterposition hinzufügen (Drop von WidgetLibrary)
-  const handleAddTileAtPosition = useCallback(
-    (catalogId: string, position: GridPosition) => {
-      if (config.tiles.length >= 24) return;
-      const placement = createTileAtGridPosition(
-        catalogId,
-        position,
-        config.tiles,
-        activeBreakpoint,
-        config.globalTimeframe,
-        config.globalPipeline,
-      );
-      if (!placement) return;
-      const { newTile, reflowMoves } = placement;
-      if (reflowMoves.length > 0) {
-        dispatch(new BatchMoveTilesCommand(activeBreakpoint, reflowMoves));
-      }
-      dispatch(new AddTileCommand(newTile));
-      setSelectedTileId(newTile.id);
-    },
-    [
-      activeBreakpoint,
-      config.globalPipeline,
-      config.globalTimeframe,
-      config.tiles,
-      dispatch,
-      setSelectedTileId,
-    ],
-  );
-
-  // Kacheln auf Mobile vertikal sortieren
-  const handleMoveMobile = useCallback(
-    (tileId: string, direction: 'up' | 'down') => {
-      const moves = reorderMobileTiles(config.tiles, tileId, direction);
-      if (moves && moves.length > 0) {
-        dispatch(new BatchMoveTilesCommand('mobile', moves));
-      }
-    },
-    [config.tiles, dispatch],
-  );
+  // Platzierungs- und Layoutaktionen
+  const {
+    handleAddTile,
+    handleRemoveTile,
+    handleDuplicateTile,
+    handleCommitLayout,
+    handleAddTileAtPosition,
+    handleMoveMobile,
+  } = useTilePlacementActions({
+    config,
+    activeBreakpoint,
+    selectedTileId,
+    dispatch,
+    setSelectedTileId,
+    getTargetSectionForNewTile: sectionActions.getTargetSectionForNewTile,
+  });
 
   // Kachel-Konfigurationsänderungen aus dem Inspector anbinden
   const {
@@ -231,6 +117,24 @@ export function DashboardEditorShellV2({
     handleTileThresholdChange,
     handleTileDrilldownChange,
   } = useTileInspectorActions({ tiles: config.tiles, dispatch });
+
+  // Ausgewählte Kachel ermitteln
+  const selectedTile = useMemo(
+    () => config.tiles.find((t) => t.id === selectedTileId) ?? null,
+    [config.tiles, selectedTileId],
+  );
+
+  // Aktive Kachelanzahl (eingeklappte Sektionen zählen als inaktiv, Auftrag 157 §2.4 Nr. 24)
+  const activeTileCount = useMemo(() => {
+    if (!config.sections || config.sections.length === 0) return config.tiles.length;
+    let inactive = 0;
+    for (const sec of config.sections) {
+      if (sectionActions.isSectionCollapsed(sec.id)) {
+        inactive += sec.tileIds.length;
+      }
+    }
+    return config.tiles.length - inactive;
+  }, [config.sections, config.tiles.length, sectionActions]);
 
   // Dashboard-Titel ändern
   const handleDashboardTitleChange = useCallback(
@@ -267,7 +171,7 @@ export function DashboardEditorShellV2({
     }
   };
 
-  // Abbrechen
+  // Abbrechen & Verwerfen
   const handleCancelClick = () => {
     if (isDirty) {
       setShowDiscardConfirm(true);
@@ -330,8 +234,8 @@ export function DashboardEditorShellV2({
           />
         )}
 
-        {/* ZONE 3: CANVAS (MITTE) */}
-        <EditorCanvasV2
+        {/* ZONE 3: SEKTIONEN-CANVAS (MITTE) */}
+        <SectionedCanvasV2
           config={config}
           activeBreakpoint={activeBreakpoint}
           selectedTileId={selectedTileId}
@@ -346,6 +250,19 @@ export function DashboardEditorShellV2({
           onAddTileClick={() => setIsLibraryOpen(true)}
           isPreviewMode={isPreviewMode}
           useData={useData}
+          activeAreaId={sectionActions.activeAreaId}
+          onSelectActiveArea={sectionActions.setActiveAreaId}
+          isSectionCollapsed={sectionActions.isSectionCollapsed}
+          onToggleCollapseSection={sectionActions.handleToggleCollapse}
+          onAddSection={sectionActions.handleAddSection}
+          onRenameSection={sectionActions.handleRenameSection}
+          onMoveSection={sectionActions.handleMoveSection}
+          onRemoveSection={sectionActions.handleRequestRemoveSection}
+          onMoveTileToSection={sectionActions.handleMoveTileToSection}
+          sectionToRemove={sectionActions.sectionToRemove}
+          onConfirmRemoveSection={sectionActions.handleConfirmRemoveSection}
+          onCancelRemoveSection={sectionActions.handleCancelRemoveSection}
+          announcement={sectionActions.announcement}
         />
 
         {/* ZONE 4: INSPECTOR (RECHTS) */}
@@ -361,6 +278,9 @@ export function DashboardEditorShellV2({
             onTileDrilldownChange={handleTileDrilldownChange}
             onOpenPanelEditor={onOpenPanelEditor}
             onClose={() => setIsInspectorOpen(false)}
+            onMoveTileToSection={sectionActions.handleMoveTileToSection}
+            onExpandSection={(secId) => sectionActions.handleToggleCollapse(secId)}
+            isSectionCollapsed={sectionActions.isSectionCollapsed}
           />
         )}
       </div>
@@ -370,6 +290,7 @@ export function DashboardEditorShellV2({
         connectionStatus={isLivePaused ? 'paused' : connectionStatus}
         dataTimestamp={dataTimestamp}
         tileCount={config.tiles.length}
+        activeTileCount={activeTileCount}
         maxTiles={24}
         undoCount={historyStats.undoCount}
         redoCount={historyStats.redoCount}

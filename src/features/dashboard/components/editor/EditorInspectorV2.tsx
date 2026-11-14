@@ -19,6 +19,7 @@ import type {
   DashboardTileConfigV2,
   TileThresholdRule,
 } from '../../model/dashboardConfigV2';
+import { getSectionForTile } from '../../model/dashboardSections';
 import {
   InspectorDataTab,
   InspectorInteractionTab,
@@ -38,6 +39,9 @@ export interface EditorInspectorV2Props {
   onOpenPanelEditor?: (tileId: string) => void;
   onClose?: () => void;
   className?: string;
+  onMoveTileToSection?: (tileId: string, targetSectionId: string | null) => void;
+  onExpandSection?: (sectionId: string) => void;
+  isSectionCollapsed?: (sectionId: string) => boolean;
 }
 
 type InspectorTab = 'daten' | 'darstellung' | 'schwellenwerte' | 'interaktion';
@@ -54,6 +58,9 @@ export function EditorInspectorV2({
   onOpenPanelEditor,
   onClose,
   className,
+  onMoveTileToSection,
+  onExpandSection,
+  isSectionCollapsed,
 }: EditorInspectorV2Props) {
   const [activeTab, setActiveTab] = useState<InspectorTab>('darstellung');
 
@@ -168,6 +175,72 @@ export function EditorInspectorV2({
               </Badge>
             </div>
           </div>
+
+          {/* Sektions-Warnung bei eingeklappter Kachel (Auftrag 157 §2.4 Nr. 23) */}
+          {(() => {
+            const tileSection = getSectionForTile(config.sections, selectedTile.id);
+            const isCollapsed = tileSection
+              ? isSectionCollapsed
+                ? isSectionCollapsed(tileSection.id)
+                : tileSection.collapsed
+              : false;
+
+            return (
+              <>
+                {isCollapsed && tileSection && (
+                  <div
+                    data-testid="inspector-tile-collapsed-warning"
+                    className="flex items-center justify-between gap-2 border-b border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300"
+                  >
+                    <span className="truncate">
+                      Kachel liegt in eingeklappter Sektion „{tileSection.title}“
+                    </span>
+                    {onExpandSection && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        data-testid="inspector-expand-section-btn"
+                        onClick={() => onExpandSection(tileSection.id)}
+                        className="h-6 px-2 text-[11px] shrink-0 border-amber-500/40 text-amber-200 hover:bg-amber-500/20"
+                      >
+                        Sektion ausklappen
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+                {/* Sektion-Auswahlfeld (Auftrag 157 §2.4 Nr. 19) */}
+                {config.sections && config.sections.length > 0 && (
+                  <div className="border-b border-[var(--color-border,#1b3d39)] bg-black/10 px-3 py-2 flex items-center justify-between gap-2">
+                    <label
+                      htmlFor="inspector-section-select"
+                      className="text-xs text-[var(--color-text-muted)] shrink-0"
+                    >
+                      Sektion:
+                    </label>
+                    <select
+                      id="inspector-section-select"
+                      data-testid="inspector-section-select"
+                      value={tileSection?.id ?? ''}
+                      onChange={(e) => {
+                        const val = e.target.value === '' ? null : e.target.value;
+                        onMoveTileToSection?.(selectedTile.id, val);
+                      }}
+                      className="h-7 flex-1 rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-2 text-xs text-white outline-none focus:border-primary truncate cursor-pointer"
+                    >
+                      <option value="">Ohne Sektion</option>
+                      {config.sections.map((sec) => (
+                        <option key={sec.id} value={sec.id}>
+                          {sec.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </>
+            );
+          })()}
 
           {/* Tab-Leiste */}
           <div

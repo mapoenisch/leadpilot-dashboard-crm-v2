@@ -5,7 +5,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const baseline = JSON.parse(
-  fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), 'a11y-baseline.json'), 'utf8')
+  fs.readFileSync(
+    path.join(path.dirname(fileURLToPath(import.meta.url)), 'a11y-baseline.json'),
+    'utf8',
+  ),
 ) as Record<string, string[]>;
 
 // Gate G31 (Auftrag 046, Nacharbeit Runde 3): ersetzt
@@ -20,6 +23,7 @@ const ROUTES = [
   '/crm/live-simulation',
   '/finance/p-and-l',
   '/market/overview',
+  '/dashboard-vorschau.html?bereich=editor_v2&scenario=sections',
 ] as const;
 
 for (const routePath of ROUTES) {
@@ -29,7 +33,9 @@ for (const routePath of ROUTES) {
     await page.waitForTimeout(1000);
 
     const results = await new AxeBuilder({ page }).analyze();
-    const blocking = results.violations.filter((v) => v.impact === 'critical' || v.impact === 'serious');
+    const blocking = results.violations.filter(
+      (v) => v.impact === 'critical' || v.impact === 'serious',
+    );
     const accepted: string[] = baseline[routePath] ?? [];
     const fresh = blocking.filter((v) => !accepted.includes(v.id));
     if (fresh.length > 0) {
@@ -41,7 +47,9 @@ for (const routePath of ROUTES) {
           return `- [${v.impact}] ${v.id}: ${v.help} (${v.nodes.length} Knoten)\n${nodes}`;
         })
         .join('\n');
-      expect(fresh.length, `${routePath}: NEUE Axe-Verstöße (critical/serious):\n${summary}`).toBe(0);
+      expect(fresh.length, `${routePath}: NEUE Axe-Verstöße (critical/serious):\n${summary}`).toBe(
+        0,
+      );
     }
     expect(fresh.length).toBe(0);
   });
