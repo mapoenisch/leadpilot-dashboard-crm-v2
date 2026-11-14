@@ -3,6 +3,7 @@ import type { SimulationEvent, SimulationEventType } from '@/types/simulation';
 import type { TimeSeriesPoint } from '@/types/aggregation';
 import type { SimulationSnapshot } from '@/types/snapshot';
 import { resultData, type SupabaseLike } from './supabaseClientLike';
+import { fetchChunkedTable } from '@/services/db/supabasePagingHelper';
 
 // 067F / G49 — Supabase-Repository für Run-Bundles. Jeder Schreibpfad läuft
 // über den atomaren RPC `persist_completed_run` (alles oder nichts);
@@ -252,8 +253,20 @@ async function selectByOrg<T>(
   table: string,
   organizationId: string,
 ): Promise<T[]> {
-  const result = await client.from(table).select('*').eq('organization_id', organizationId);
-  return resultData<T[]>(result, `select ${table}`);
+  try {
+    return await fetchChunkedTable<T>(client, table, {
+      filter: { column: 'organization_id', value: organizationId },
+      tieBreakColumn: 'id',
+    });
+  } catch (e: unknown) {
+    const msg =
+      e instanceof Error
+        ? e.message
+        : typeof e === 'object' && e !== null && 'message' in e
+          ? String((e as { message: unknown }).message)
+          : String(e);
+    throw new Error(`select ${table}: ${msg}`);
+  }
 }
 
 export interface WorkspaceRows {

@@ -1,6 +1,7 @@
 import type { Scenario, ScenarioVersion } from '@/types/scenario';
 import { mapScenarioRow, mapVersionRow } from '../runs/runRepository';
-import { resultData, type SupabaseLike } from '../runs/supabaseClientLike';
+import type { SupabaseLike } from '../runs/supabaseClientLike';
+import { fetchChunkedTable } from '@/services/db/supabasePagingHelper';
 
 // 067F / G49 — Supabase-Repository für Szenario-Stammdaten (Reads für die
 // Workspace-Hydrierung). Schreibpfade laufen ausschließlich über den
@@ -11,22 +12,52 @@ export async function loadScenarios(
   client: SupabaseLike,
   organizationId: string,
 ): Promise<Scenario[]> {
-  const result = await client
-    .from('simulation_scenarios')
-    .select('*')
-    .eq('organization_id', organizationId);
-  const rows = resultData<Parameters<typeof mapScenarioRow>[0][]>(result, 'select scenarios');
-  return rows.map(mapScenarioRow);
+  try {
+    const rows = await fetchChunkedTable<Parameters<typeof mapScenarioRow>[0]>(
+      client,
+      'simulation_scenarios',
+      {
+        filter: { column: 'organization_id', value: organizationId },
+        orderColumn: 'created_at',
+        ascending: true,
+        tieBreakColumn: 'id',
+      },
+    );
+    return rows.map(mapScenarioRow);
+  } catch (e: unknown) {
+    const msg =
+      e instanceof Error
+        ? e.message
+        : typeof e === 'object' && e !== null && 'message' in e
+          ? String((e as { message: unknown }).message)
+          : String(e);
+    throw new Error(`select scenarios: ${msg}`);
+  }
 }
 
 export async function loadVersions(
   client: SupabaseLike,
   organizationId: string,
 ): Promise<ScenarioVersion[]> {
-  const result = await client
-    .from('simulation_scenario_versions')
-    .select('*')
-    .eq('organization_id', organizationId);
-  const rows = resultData<Parameters<typeof mapVersionRow>[0][]>(result, 'select versions');
-  return rows.map(mapVersionRow);
+  try {
+    const rows = await fetchChunkedTable<Parameters<typeof mapVersionRow>[0]>(
+      client,
+      'simulation_scenario_versions',
+      {
+        filter: { column: 'organization_id', value: organizationId },
+        orderColumn: 'created_at',
+        ascending: true,
+        tieBreakColumn: 'id',
+      },
+    );
+    return rows.map(mapVersionRow);
+  } catch (e: unknown) {
+    const msg =
+      e instanceof Error
+        ? e.message
+        : typeof e === 'object' && e !== null && 'message' in e
+          ? String((e as { message: unknown }).message)
+          : String(e);
+    throw new Error(`select versions: ${msg}`);
+  }
 }
