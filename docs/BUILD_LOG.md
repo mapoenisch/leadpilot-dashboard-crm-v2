@@ -21291,8 +21291,14 @@ git diff 60aa96b --stat -- supabase/migrations
    - **Behebung:** Expliziter `onDrop`-Handler mit `e.stopPropagation()` und `handleDrop(e, null)` auf `unsectioned-area` in `SectionedCanvasV2.tsx` ergänzt.
    - **Verifikation:** Neuer Unit-Test in `SectionedCanvasV2.ui.vitest.tsx` prüft, dass Drops auf den unsektionierten Bereich explizit mit `targetSection: null` aufgerufen werden. Testsuite `SectionedCanvasV2.ui.vitest.tsx` (5/5) und alle 71 Dashboard-Dateien (783 Tests) grün. Line-Counts: `SectionedCanvasV2.tsx` 370 Zeilen, `SectionedCanvasV2.ui.vitest.tsx` 334 Zeilen (beide <= 400).
 
+---
 
+## 2026-11-14 — Hosted-Umstellung: Migrationen 20261112–20261117 und Live-KPI-Mandantenbindung (Betrieb, kein Auftrag)
 
+**Ausgeführt von:** Claude Code auf ausdrückliche Anweisung von Marc · **Ziel:** Hosted-Projekt `nfyiywfcnfjtjbdbptdg` · **Ausgangsstand:** letzte Migration `20261111`.
 
-
-
+1. **Migrationen angewendet** (je Transaktion, Versionseintrag in `supabase_migrations.schema_migrations` gleich der Datei): `20261112`, `20261113`, `20261114`, `20261116`, `20261117`, `20261115`. `20261116` war vorher schon von Hand ausgeführt worden (Funktionstext und Rechte von `dashboard_crm_pipeline_overview` per MD5 identisch mit der Datei); nur die Historie wurde nachgetragen.
+2. **Schrittliste 153:** Secret für Sender `leadpilot-demo` erzeugt und als `LEADPILOT_INGEST_SENDERS` gesetzt (Wert nur lokal bei Marc unter `~/.leadpilot/`, nicht im Repo). Ein altes `LEADPILOT_INGEST_SECRET` existierte online nicht; Schritt 5 entfällt. `live-kpi-ingest` neu deployt. Vorhandene 49 Events und 12 Rejections (Testdaten vom 14./15.09.2026) der Demo-Organisation zugeordnet.
+3. **Befund und Korrektur online:** `service_role` hatte online kein `EXECUTE` auf `claim_ingress_slot` und `ingest_live_kpi_event` (lokal über Supabase-Standardrechte vorhanden). Die Edge Function lieferte deshalb `500 INGEST_FAILED`; sie war online also nie lauffähig. Online nachgezogen: `GRANT EXECUTE … TO service_role` für genau diese zwei Funktionen. **Offen für einen Folgeauftrag:** dieselben zwei Grants als Migration ins Repo aufnehmen, damit lokal und online gleich bleiben. Außerdem prüfen, welche weiteren RPCs online `service_role` brauchen.
+4. **Abnahme:** signiertes Probe-Event (`sourceSystem = abnahme-test`, `pipeline_leads = 1`) → `201 accepted`, Organisation = Demo-Organisation, im Feed sichtbar; gleiche Nonce → `401 INGEST_REPLAY_DETECTED`; falsche Signatur → `401 INGEST_SIGNATURE_INVALID`; anonymer REST-Lesezugriff auf `live_kpi_public_feed` → `401 permission denied`. Prüfungen der übrigen Migrationen: Sektionsprüfung online gültig/ungültig wie erwartet, `anon` ohne Zugriff auf `dashboards` und die Dashboard-RPCs, RLS aktiv.
+5. **Noch bei Marc:** n8n-Credential `HMAC Sign Base` mit dem neuen Secret aktualisieren und den Workflow mit `X-LeadPilot-Sender: leadpilot-demo` neu importieren (der n8n-Zugang war aus dieser Sitzung nicht erreichbar). Die Betriebsregel „keine echten Kennzahlen einspeisen“ gilt bis zum erfolgreichen n8n-Testlauf weiter.

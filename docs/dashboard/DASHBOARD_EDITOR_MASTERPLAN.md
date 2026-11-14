@@ -280,6 +280,8 @@ Die Nummern legen die vorgesehene Reihenfolge fest. Die Spalte „Fachliche Vora
 
 **Umsetzungsstand 14.11.2026 (P09a / Auftrag 157):** P09a vollständig umgesetzt: `DashboardSectionV2`-Datenvertrag (`docs/dashboard/SEKTIONEN_P09A.md`), Servervalidierung (`dashboard_config_v2_invalid_reason` via Migration `20261117_dashboard_sections.sql`), Paritätsprüfungen mit gemeinsamen Fixtures, isoliertes Raster je Bereich in `dashboardLayoutIntegrity.ts` und `SectionedCanvasV2.tsx`, Einklappen im Entwurf (persistiert) und in Vorschau (flüchtig), 0 Kacheln / 0 useData-Aufrufe / 0 RPCs bei eingeklappten Sektionen (Entlastungsnachweis), barrierefreier Sektionskopf (`SectionHeaderV2.tsx`) und Aktionsmenü zum Verschieben, Schutz vor Datenverlust beim Löschen einer Sektion. P09b (Auftrag 158: Vorlagen & Dashboard-Auswahl) folgt.
 
+**Planungsstand 14.11.2026 (P09b / Auftrag 158):** Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_158_VORLAGEN_DASHBOARD_AUSWAHL.md` geschrieben. Umfang: drei neue RPCs (`list_personal_dashboards_v2`, `delete_personal_dashboard_v2`, `duplicate_personal_dashboard_v2`) in einer Migration, Obergrenze 20 persönliche Dashboards, letztes Dashboard nicht löschbar, V2-Vorlagen mit Sektionen auf Basis der V1-Vorlagen, Dashboard-Auswahl in der Top-Bar mit Schutz ungespeicherter Änderungen. Team- und Organisations-Dashboards bleiben bei P11.
+
 ### 6.1 Nutzbare Zwischenstände
 
 **Zwischenstand A, P01–P08:** neuer persönlicher Editor mit Vier-Zonen-Layout, richtigem Raster, Inspector, Panel-Editor und sicherer Speicherung. Eigenständig prüfbarer Pilot auf V2-Kopien hinter dem Rollout-Schalter; reguläre Nutzer bleiben bis P16 im alten Editor.
