@@ -180,7 +180,7 @@ Reihenfolge je Block: Tests zuerst, dann Umsetzung.
 - [ ] **T8 E2E, a11y, Screenshots:** Playwright-Ablauf; a11y-Ergänzung; Harness (Vorher: Statusleiste „Live“ ohne Feed; Nachher: live/verbunden, pausiert, offline, nicht konfiguriert; Kachel mit Abweichungskennzeichnung; jeweils 1440/768/375, hell und dunkel), SHA-256 unterschiedlich, 0 px Overflow.
 - [ ] **T9 Leistung:** Zähltests und Bundle-Größe aus 2.6 im BUILD_LOG.
 - [ ] **T10 V1-Gegenprobe:** V1-Editor und Kachel-Detailseite unverändert (bestehende Tests grün, Diff der V1-Dateien leer).
-- [ ] **T11 Doku:** Spezifikation, Nachträge, Plananpassung P10a/P10b und Vorgabe für 160 (2.7).
+- [ ] **T11 Doku:** Spezifikation, Nachträge, Plananpassung P10a/P10b und Vorgabe für 160 (2.7); Aufhebung der Live-Feed-Betriebsregel in `BUILD_PLAN.md` vermerken (§8).
 - [ ] **T12 Abschluss:** Pflicht-Verifikation (§7), Schutzbereichs-Diff, BUILD_LOG-Builder-Eintrag, PR öffnen, Review anfordern.
 
 ## 6. Abnahme
@@ -217,5 +217,5 @@ Zusätzlich: Playwright `e2e/editor-time-control.spec.ts` und `e2e/a11y.spec.ts`
 - **Pause im Viewer-Modus/Kiosk:** 159 betrifft nur den V2-Editor und seine Vorschau. Eine Zeitsteuerung für das reine Ansehen (und Kiosk) folgt mit der Ausrollung des V2-Viewers; im Masterplan-Nachtrag vermerken.
 - **Filterwechsel während der Pause:** Der Builder entscheidet zwischen „einmal laden und kennzeichnen“ und „sperren mit Grund“ (2.3 Nr. 10). Beides ist zulässig, die Wahl steht begründet im BUILD_LOG.
 - **CRM-Kennzahlen mit `ereignisse`:** Wahrscheinlich bleibt es in 159 bei `keine` für alle CRM-Einträge, weil die heutigen Kennzahlen Bestände sind. Neue ereignisbasierte Flusskennzahlen (z. B. „Phaseneintritte je Woche“) sind Sache von 160 und brauchen dort eigene Katalogeinträge.
-- **Live-Feed-Betriebsregel aus 153:** Die Migrationen und die Edge Function sind seit 14.11.2026 online (BUILD_LOG „Hosted-Umstellung 14.11.2026“). Ob die Regel „keine echten Kennzahlen einspeisen“ damit aufgehoben ist, entscheidet Marc. 159 ändert daran nichts und speist keine Daten ein.
+- **Live-Feed-Betriebsregel aus 153 aufgehoben (Entscheidung Marc 14.11.2026):** Die Migrationen und die Edge Function sind seit 14.11.2026 online (BUILD_LOG „Hosted-Umstellung 14.11.2026“). Marc hat die Regel „keine echten Kennzahlen einspeisen“ am 14.11.2026 aufgehoben; echte Kennzahlen dürfen über den mandantengebundenen Feed eingespeist werden. Der Builder trägt die Aufhebung in T11 datiert in `BUILD_PLAN.md` (Zeile „Betriebsregel Live-Feed“, nur ergänzen) und im BUILD_LOG-Builder-Eintrag ein. 159 selbst speist keine Daten ein.
 - **Nicht Teil dieses Auftrags:** Zeitreihen vom Server, Historienbeginn je Organisation, Rolling Windows, Time-Travel, Shared Crosshair (alle P10b/160), Alarme (P13), Vergleichszeiträume und Erwartungsbänder (P14).
