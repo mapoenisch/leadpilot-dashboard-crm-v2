@@ -17,6 +17,8 @@ import {
   setDashboardEditorV2Override,
 } from '../model/dashboardRollout';
 
+import { DashboardDeletedDialogV2 } from '../components/editor/DashboardDeletedDialogV2';
+
 export const RETURN_ANNOUNCEMENT = 'Zurück im Dashboard. Die Filter deiner Sitzung gelten weiter.';
 export const RETURN_MISSING_ANNOUNCEMENT =
   'Zurück im Dashboard. Die zuvor geöffnete Kachel gibt es nicht mehr.';
@@ -31,6 +33,8 @@ function PersonalExecutiveDashboardV2Container({
   const v2Storage = useDashboardV2Storage({ preferredDashboardId });
   const [showConflictDialog, setShowConflictDialog] = useState(false);
   const [conflictDraft, setConflictDraft] = useState<DashboardConfigV2 | null>(null);
+  const [showDeletedDialog, setShowDeletedDialog] = useState(false);
+  const [deletedDraft, setDeletedDraft] = useState<DashboardConfigV2 | null>(null);
 
   if (v2Storage.status === 'laden' || !v2Storage.dashboard) {
     return (
@@ -49,6 +53,9 @@ function PersonalExecutiveDashboardV2Container({
       if (res.error.kind === 'konflikt') {
         setConflictDraft(cfg);
         setShowConflictDialog(true);
+      } else if (res.error.kind === 'nicht_gefunden') {
+        setDeletedDraft(cfg);
+        setShowDeletedDialog(true);
       }
       return false;
     }
@@ -70,6 +77,21 @@ function PersonalExecutiveDashboardV2Container({
     }
   };
 
+  const handleSaveAsNewFromDeleted = async () => {
+    if (!deletedDraft) return;
+    const res = await v2Storage.saveAsNewPersonalCopy(deletedDraft);
+    if (res.ok) {
+      setShowDeletedDialog(false);
+      setDeletedDraft(null);
+    }
+  };
+
+  const handleOpenOtherFromDeleted = async () => {
+    setShowDeletedDialog(false);
+    setDeletedDraft(null);
+    await v2Storage.reload();
+  };
+
   return (
     <>
       <DashboardEditorShellV2
@@ -82,6 +104,12 @@ function PersonalExecutiveDashboardV2Container({
           window.location.reload();
         }}
         onShowDetails={(tileId) => onShowDetails(tileId, v2Storage.dashboard?.id)}
+        dashboards={v2Storage.dashboards}
+        currentStoredDashboard={v2Storage.dashboard}
+        onOpenDashboard={v2Storage.openDashboard}
+        onCreateFromTemplate={v2Storage.createFromTemplate}
+        onDuplicateCurrent={v2Storage.duplicateCurrent}
+        onDeleteDashboard={v2Storage.deleteDashboard}
       />
       <DashboardConflictDialogV2
         open={showConflictDialog}
@@ -89,6 +117,13 @@ function PersonalExecutiveDashboardV2Container({
         onReload={handleReloadConflict}
         onSaveAsCopy={handleSaveAsCopyConflict}
         onStay={() => setShowConflictDialog(false)}
+      />
+      <DashboardDeletedDialogV2
+        open={showDeletedDialog}
+        isSaving={v2Storage.isSaving}
+        onSaveAsNew={handleSaveAsNewFromDeleted}
+        onOpenOther={handleOpenOtherFromDeleted}
+        onStay={() => setShowDeletedDialog(false)}
       />
     </>
   );

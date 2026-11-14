@@ -227,7 +227,7 @@ jobs:
       # (Rollout-Schalter und Rückschaltung entfernt). Die Specs laufen gegen den
       # regulären Build; Lighthouse folgt direkt danach ohne Neuaufbau.
       - name: Playwright persönliches Dashboard und Gesamtabnahme (Aufträge 077/079)
-        run: npx playwright test e2e/personal-dashboard.spec.ts e2e/personal-dashboard-acceptance.spec.ts e2e/dashboard-config-states.spec.ts e2e/personal-dashboard-sections.spec.ts --workers=1
+        run: npx playwright test e2e/personal-dashboard.spec.ts e2e/personal-dashboard-acceptance.spec.ts e2e/dashboard-config-states.spec.ts e2e/personal-dashboard-sections.spec.ts e2e/personal-dashboard-selection.spec.ts --workers=1
         env:
           # Serielle Absicherung der geteilten Testbenutzer-Präferenzen (Codex PR #162).
           E2E_DASHBOARD_SERIAL: 'true'

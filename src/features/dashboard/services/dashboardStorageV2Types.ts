@@ -10,6 +10,8 @@ export type DashboardV2StorageError =
   | { kind: 'nicht_gefunden' }
   | { kind: 'keine_mitgliedschaft' }
   | { kind: 'sitzung_abgelaufen' }
+  | { kind: 'letztes_dashboard' }
+  | { kind: 'obergrenze_erreicht' }
   | { kind: 'nicht_konfiguriert' }
   | { kind: 'technisch' };
 
@@ -23,6 +25,27 @@ export interface StoredDashboardV2Row {
   revision: number;
   config: DashboardConfigV2;
   updatedAt: string;
+}
+
+export interface PersonalDashboardListItemV2 {
+  id: string;
+  title: string;
+  scope: 'personal';
+  revision: number;
+  tileCount: number;
+  sectionCount: number;
+  updatedAt: string;
+}
+
+export interface DeleteDashboardV2Result {
+  deletedId: string;
+  nextDashboardId: string | null;
+}
+
+export interface DuplicateDashboardV2Result {
+  dashboardId: string;
+  revision: number;
+  createdAt: string;
 }
 
 export interface DashboardV2RevisionRow {
@@ -52,6 +75,12 @@ export function classifyDashboardV2Error(
   status?: number,
 ): DashboardV2StorageError {
   const message = error?.message ?? '';
+  if (message.includes('LP_LAST_DASHBOARD')) {
+    return { kind: 'letztes_dashboard' };
+  }
+  if (message.includes('LP_DASHBOARD_LIMIT')) {
+    return { kind: 'obergrenze_erreicht' };
+  }
   if (message.includes('LP_DASHBOARD_CONFLICT')) {
     return { kind: 'konflikt', detail: error?.details ?? undefined };
   }

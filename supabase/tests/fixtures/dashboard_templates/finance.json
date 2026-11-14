@@ -1,0 +1,355 @@
+{
+  "version": 2,
+  "id": "00000000-0000-0000-0000-000000000001",
+  "title": "Template Test",
+  "scope": "personal",
+  "ownerUserId": "91580000-0000-0000-0000-000000000001",
+  "organizationId": "a1580000-0000-0000-0000-000000000001",
+  "globalTimeframe": "letzte_30_tage",
+  "tiles": [
+    {
+      "id": "preset_fin_arr",
+      "catalogId": "baseline.arr",
+      "title": "ARR",
+      "presentation": "zahl",
+      "layouts": {
+        "desktop": {
+          "x": 0,
+          "y": 0,
+          "w": 3,
+          "h": 3
+        },
+        "tablet": {
+          "x": 0,
+          "y": 0,
+          "w": 3,
+          "h": 3
+        },
+        "mobile": {
+          "x": 0,
+          "y": 0,
+          "w": 1,
+          "h": 3
+        }
+      },
+      "query": {
+        "metricId": "baseline.arr",
+        "timeframe": "fest",
+        "aggregation": "letzter_stand"
+      }
+    },
+    {
+      "id": "preset_fin_umsatz",
+      "catalogId": "baseline.umsatz",
+      "title": "Umsatzerlöse",
+      "presentation": "zahl",
+      "layouts": {
+        "desktop": {
+          "x": 3,
+          "y": 0,
+          "w": 3,
+          "h": 3
+        },
+        "tablet": {
+          "x": 3,
+          "y": 0,
+          "w": 3,
+          "h": 3
+        },
+        "mobile": {
+          "x": 0,
+          "y": 3,
+          "w": 1,
+          "h": 3
+        }
+      },
+      "query": {
+        "metricId": "baseline.umsatz",
+        "timeframe": "fest",
+        "aggregation": "summe"
+      }
+    },
+    {
+      "id": "preset_fin_ebitda",
+      "catalogId": "baseline.ebitda",
+      "title": "EBITDA",
+      "presentation": "zahl",
+      "layouts": {
+        "desktop": {
+          "x": 6,
+          "y": 0,
+          "w": 3,
+          "h": 3
+        },
+        "tablet": {
+          "x": 0,
+          "y": 3,
+          "w": 3,
+          "h": 3
+        },
+        "mobile": {
+          "x": 0,
+          "y": 6,
+          "w": 1,
+          "h": 3
+        }
+      },
+      "query": {
+        "metricId": "baseline.ebitda",
+        "timeframe": "fest",
+        "aggregation": "summe"
+      }
+    },
+    {
+      "id": "preset_fin_kunden",
+      "catalogId": "baseline.kunden_aktiv",
+      "title": "Aktive Kunden",
+      "presentation": "zahl",
+      "layouts": {
+        "desktop": {
+          "x": 9,
+          "y": 0,
+          "w": 3,
+          "h": 3
+        },
+        "tablet": {
+          "x": 3,
+          "y": 3,
+          "w": 3,
+          "h": 3
+        },
+        "mobile": {
+          "x": 0,
+          "y": 9,
+          "w": 1,
+          "h": 3
+        }
+      },
+      "query": {
+        "metricId": "baseline.kunden_aktiv",
+        "timeframe": "fest",
+        "aggregation": "letzter_stand"
+      }
+    },
+    {
+      "id": "preset_fin_arpa",
+      "catalogId": "baseline.arpa",
+      "title": "ARPA",
+      "presentation": "zahl",
+      "layouts": {
+        "desktop": {
+          "x": 0,
+          "y": 3,
+          "w": 3,
+          "h": 3
+        },
+        "tablet": {
+          "x": 0,
+          "y": 6,
+          "w": 3,
+          "h": 3
+        },
+        "mobile": {
+          "x": 0,
+          "y": 12,
+          "w": 1,
+          "h": 3
+        }
+      },
+      "query": {
+        "metricId": "baseline.arpa",
+        "timeframe": "fest",
+        "aggregation": "verhaeltnis"
+      }
+    },
+    {
+      "id": "preset_fin_m_cac",
+      "catalogId": "baseline.marketing_cac",
+      "title": "Marketing-CAC",
+      "presentation": "zahl",
+      "layouts": {
+        "desktop": {
+          "x": 3,
+          "y": 3,
+          "w": 3,
+          "h": 3
+        },
+        "tablet": {
+          "x": 3,
+          "y": 6,
+          "w": 3,
+          "h": 3
+        },
+        "mobile": {
+          "x": 0,
+          "y": 15,
+          "w": 1,
+          "h": 3
+        }
+      },
+      "query": {
+        "metricId": "baseline.marketing_cac",
+        "timeframe": "fest",
+        "aggregation": "verhaeltnis"
+      }
+    },
+    {
+      "id": "preset_fin_fl_cac",
+      "catalogId": "baseline.fully_loaded_cac",
+      "title": "Gesamtkosten pro Neukunde",
+      "presentation": "zahl",
+      "layouts": {
+        "desktop": {
+          "x": 6,
+          "y": 3,
+          "w": 3,
+          "h": 3
+        },
+        "tablet": {
+          "x": 0,
+          "y": 9,
+          "w": 3,
+          "h": 3
+        },
+        "mobile": {
+          "x": 0,
+          "y": 18,
+          "w": 1,
+          "h": 3
+        }
+      },
+      "query": {
+        "metricId": "baseline.fully_loaded_cac",
+        "timeframe": "fest",
+        "aggregation": "verhaeltnis"
+      }
+    },
+    {
+      "id": "preset_fin_headcount",
+      "catalogId": "baseline.headcount",
+      "title": "Teamgröße",
+      "presentation": "zahl",
+      "layouts": {
+        "desktop": {
+          "x": 9,
+          "y": 3,
+          "w": 3,
+          "h": 3
+        },
+        "tablet": {
+          "x": 3,
+          "y": 9,
+          "w": 3,
+          "h": 3
+        },
+        "mobile": {
+          "x": 0,
+          "y": 21,
+          "w": 1,
+          "h": 3
+        }
+      },
+      "query": {
+        "metricId": "baseline.headcount",
+        "timeframe": "fest",
+        "aggregation": "letzter_stand"
+      }
+    },
+    {
+      "id": "preset_fin_arr_verlauf",
+      "catalogId": "baseline.arr_verlauf",
+      "title": "ARR-Verlauf",
+      "presentation": "linie",
+      "layouts": {
+        "desktop": {
+          "x": 0,
+          "y": 6,
+          "w": 6,
+          "h": 4
+        },
+        "tablet": {
+          "x": 0,
+          "y": 12,
+          "w": 6,
+          "h": 4
+        },
+        "mobile": {
+          "x": 0,
+          "y": 24,
+          "w": 1,
+          "h": 4
+        }
+      },
+      "query": {
+        "metricId": "baseline.arr_verlauf",
+        "timeframe": "fest",
+        "aggregation": "letzter_stand"
+      }
+    },
+    {
+      "id": "preset_fin_mrr_mix",
+      "catalogId": "baseline.mrr_paketmix",
+      "title": "MRR nach Paket",
+      "presentation": "ring",
+      "layouts": {
+        "desktop": {
+          "x": 6,
+          "y": 6,
+          "w": 6,
+          "h": 4
+        },
+        "tablet": {
+          "x": 0,
+          "y": 16,
+          "w": 6,
+          "h": 4
+        },
+        "mobile": {
+          "x": 0,
+          "y": 28,
+          "w": 1,
+          "h": 4
+        }
+      },
+      "query": {
+        "metricId": "baseline.mrr_paketmix",
+        "timeframe": "fest",
+        "aggregation": "letzter_stand"
+      }
+    }
+  ],
+  "metadata": {
+    "migrated_from_v1": true,
+    "migrated_at": "2026-11-14T12:00:00.000Z",
+    "last_migrated_revision": 1,
+    "user_edited": false
+  },
+  "createdAt": "2026-11-14T12:00:00.000Z",
+  "updatedAt": "2026-11-14T12:00:00.000Z",
+  "sections": [
+    {
+      "id": "sec_fin_kennzahlen",
+      "title": "Kennzahlen",
+      "collapsed": false,
+      "tileIds": [
+        "preset_fin_arr",
+        "preset_fin_umsatz",
+        "preset_fin_ebitda",
+        "preset_fin_kunden",
+        "preset_fin_arpa",
+        "preset_fin_m_cac",
+        "preset_fin_fl_cac",
+        "preset_fin_headcount"
+      ]
+    },
+    {
+      "id": "sec_fin_verlaeufe",
+      "title": "Verläufe",
+      "collapsed": false,
+      "tileIds": [
+        "preset_fin_arr_verlauf",
+        "preset_fin_mrr_mix"
+      ]
+    }
+  ]
+}
