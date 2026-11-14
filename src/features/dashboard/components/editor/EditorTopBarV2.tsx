@@ -14,6 +14,7 @@ import type {
   DashboardScope,
 } from '../../model/dashboardConfigV2';
 import type {
+  DashboardV2StorageError,
   PersonalDashboardListItemV2,
   StoredDashboardV2Row,
 } from '../../services/dashboardStorageV2Types';
@@ -58,6 +59,7 @@ export interface EditorTopBarV2Props {
     id: string,
   ) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
   onRefreshList?: () => Promise<void>;
+  listError?: DashboardV2StorageError | null;
 }
 
 export const TIMEFRAME_OPTIONS = [
@@ -105,6 +107,7 @@ export function EditorTopBarV2({
   onDuplicateCurrent,
   onDeleteDashboard,
   onRefreshList,
+  listError,
 }: EditorTopBarV2Props) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState(config.title);
@@ -193,6 +196,7 @@ export function EditorTopBarV2({
             onDuplicateCurrent={onDuplicateCurrent}
             onDeleteDashboard={onDeleteDashboard}
             onRefreshList={onRefreshList}
+            listError={listError}
             onSaveCurrent={async () => {
               onSave();
               return true;

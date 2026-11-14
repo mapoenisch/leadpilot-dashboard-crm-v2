@@ -79,6 +79,13 @@ export function DashboardSwitcherMenuV2({
         </span>
 
         <div className="mt-1 flex flex-col gap-0.5">
+          {dashboards.length === 0 && (
+            <div className="px-2.5 py-3 text-center text-xs text-muted-foreground">
+              {errorText
+                ? 'Dashboard-Liste konnte nicht geladen werden.'
+                : 'Keine Dashboards vorhanden.'}
+            </div>
+          )}
           {dashboards.map((dash, idx) => {
             const isCurrent = dash.id === currentDashboard.id;
             return (

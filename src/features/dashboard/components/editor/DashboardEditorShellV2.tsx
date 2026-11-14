@@ -43,6 +43,7 @@ export interface DashboardEditorShellV2Props {
     id: string,
   ) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
   onRefreshList?: () => Promise<void>;
+  listError?: import('../../services/dashboardStorageV2Types').DashboardV2StorageError | null;
 }
 
 export function DashboardEditorShellV2({
@@ -62,6 +63,7 @@ export function DashboardEditorShellV2({
   onDuplicateCurrent,
   onDeleteDashboard,
   onRefreshList,
+  listError,
 }: DashboardEditorShellV2Props) {
   const isDesktop = typeof window === 'undefined' || window.innerWidth >= 1024;
   const [isLibraryOpen, setIsLibraryOpen] = useState(isDesktop);
@@ -247,6 +249,7 @@ export function DashboardEditorShellV2({
         onDuplicateCurrent={onDuplicateCurrent}
         onDeleteDashboard={onDeleteDashboard}
         onRefreshList={onRefreshList}
+        listError={listError}
       />
 
       {/* MITTLERER ARBEITSBEREICH: BIBLIOTHEK + CANVAS + INSPECTOR */}

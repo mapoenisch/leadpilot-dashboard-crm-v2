@@ -44,6 +44,7 @@ export function useDashboardV2Storage(options?: {
   const [dashboard, setDashboard] = useState<StoredDashboardV2Row | null>(null);
   const [dashboards, setDashboards] = useState<PersonalDashboardListItemV2[]>([]);
   const [error, setError] = useState<DashboardV2StorageError | null>(null);
+  const [listError, setListError] = useState<DashboardV2StorageError | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const orgId = session?.organizationId ?? 'default-org';
@@ -56,6 +57,9 @@ export function useDashboardV2Storage(options?: {
     const res = await listPersonalDashboardsV2();
     if (res.ok) {
       setDashboards(res.value);
+      setListError(null);
+    } else {
+      setListError(res.error);
     }
   }, []);
 
@@ -374,6 +378,7 @@ export function useDashboardV2Storage(options?: {
     dashboard,
     dashboards,
     error,
+    listError,
     isSaving,
     save,
     reload,

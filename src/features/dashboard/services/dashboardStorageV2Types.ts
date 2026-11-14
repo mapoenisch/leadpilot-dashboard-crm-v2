@@ -153,6 +153,7 @@ export interface UseDashboardV2StorageResult {
   dashboard: StoredDashboardV2Row | null;
   dashboards: PersonalDashboardListItemV2[];
   error: DashboardV2StorageError | null;
+  listError: DashboardV2StorageError | null;
   isSaving: boolean;
   save: (config: DashboardConfigV2, changeSummary?: string) => Promise<SaveV2Result>;
   reload: (explicitDashboardId?: string) => Promise<void>;

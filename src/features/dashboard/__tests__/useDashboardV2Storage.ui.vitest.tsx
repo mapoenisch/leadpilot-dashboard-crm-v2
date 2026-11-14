@@ -2,6 +2,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useDashboardV2Storage } from '../hooks/useDashboardV2Storage';
 import { resetInMemoryDashboardV2Storage } from '../services/dashboardInMemoryStoreV2';
+import * as dashboardSelectionV2 from '../services/dashboardSelectionV2';
 
 vi.mock('@/auth/organizationContext', () => ({
   useOrganization: () => ({
@@ -195,5 +196,19 @@ describe('useDashboardV2Storage Hook Tests', () => {
 
     expect(result.current.error).toEqual({ kind: 'technisch' });
     spy.mockRestore();
+  });
+
+  it('setzt listError wenn Laden der Dashboard-Liste fehlschlägt (Codex P2)', async () => {
+    const listSpy = vi.spyOn(dashboardSelectionV2, 'listPersonalDashboardsV2');
+    listSpy.mockResolvedValueOnce({ ok: false, error: { kind: 'technisch' } });
+
+    const { result } = renderHook(() => useDashboardV2Storage());
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('bereit');
+    });
+
+    expect(result.current.listError).toEqual({ kind: 'technisch' });
+    listSpy.mockRestore();
   });
 });

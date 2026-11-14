@@ -309,4 +309,15 @@ describe('DashboardSwitcherV2 UI-Tests', () => {
     expect(listSpy).toHaveBeenCalledTimes(1);
     listSpy.mockRestore();
   });
+
+  it('zeigt Fehlerhinweis im Menü an wenn listError vorliegt (Codex P2)', () => {
+    renderSwitcher({
+      dashboards: [],
+      listError: { kind: 'technisch' },
+    });
+    fireEvent.click(screen.getByTestId('dashboard-switcher-button'));
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Dashboard-Liste konnte nicht geladen werden.',
+    );
+  });
 });

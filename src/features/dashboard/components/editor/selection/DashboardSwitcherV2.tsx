@@ -6,6 +6,7 @@ import { ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
 import type {
+  DashboardV2StorageError,
   PersonalDashboardListItemV2,
   StoredDashboardV2Row,
 } from '../../../services/dashboardStorageV2Types';
@@ -32,7 +33,20 @@ export interface DashboardSwitcherV2Props {
   ) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
   onSaveCurrent: () => Promise<boolean>;
   onRefreshList?: () => Promise<void>;
+  listError?: DashboardV2StorageError | null;
   className?: string;
+}
+
+function getListErrorMessage(error?: DashboardV2StorageError | null): string | null {
+  if (!error) return null;
+  switch (error.kind) {
+    case 'nicht_berechtigt':
+    case 'keine_mitgliedschaft':
+      return 'Keine Berechtigung zum Laden der Dashboards.';
+    case 'technisch':
+    default:
+      return 'Dashboard-Liste konnte nicht geladen werden.';
+  }
 }
 
 export function DashboardSwitcherV2({
@@ -46,6 +60,7 @@ export function DashboardSwitcherV2({
   onDeleteDashboard,
   onSaveCurrent,
   onRefreshList,
+  listError,
   className,
 }: DashboardSwitcherV2Props) {
   const selection = useDashboardSelection({
@@ -205,7 +220,7 @@ export function DashboardSwitcherV2({
           menuRef={menuRef}
           currentDashboard={currentDashboard}
           dashboards={dashboards}
-          errorText={errorText}
+          errorText={errorText ?? getListErrorMessage(listError)}
           isPreviewMode={isPreviewMode}
           isLimitReached={isLimitReached}
           isOnlyOneDashboard={isOnlyOneDashboard}
