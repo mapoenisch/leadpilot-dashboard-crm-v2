@@ -1,10 +1,9 @@
-// Executive Dashboard, Teilauftrag 2 (Auftrag 071): Hook je Kachel, gesteuert über enabled.
-// Teilt CRM-Abfragen je Organisation und Pipeline; verwaltet Live-Abos mit Referenzzählung.
-import { useCallback, useSyncExternalStore } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useCallback, useEffect, useSyncExternalStore } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useOrganization } from '@/auth/organizationContext';
 import { CRMRepository } from '@/services/db/crmRepository';
-import { getPipelineOverview, type FunnelDealSource } from '@/domain/executiveCockpitData';
+import { type FunnelDealSource } from '@/domain/executiveCockpitData';
+import { fetchCrmPipelineOverview } from '../data/crmAggregateSource';
 import { LIVE_KPI_DEFINITIONS } from '@/services/liveKpi/liveKpiDefinitions';
 import { liveKpiStreamStore, type LiveKpiStreamStore } from '@/services/liveKpi/liveKpiStreamStore';
 import { getCatalogEntry, isActiveEntry, type ActiveCatalogEntry } from '../model/dashboardCatalog';
@@ -19,7 +18,7 @@ import {
 import { dashboardQueryKeys } from '../data/dashboardQueryKeys';
 import { resolveBaseline } from '../data/resolveBaseline';
 import { resolveCombination } from '../data/resolveCombination';
-import { FilteredFunnelDealSource, resolveCrmFromOverview } from '../data/resolveCrm';
+import { resolveCrmFromOverview } from '../data/resolveCrm';
 import { resolveLive } from '../data/resolveLive';
 
 const LIVE_IDS = LIVE_KPI_DEFINITIONS.map((def) => def.id);
@@ -71,19 +70,43 @@ export function useDashboardData(
 
   const { session } = useOrganization();
   const organizationId = session?.organizationId;
+  const userId = session?.userId ?? (organizationId ? 'anonymous' : undefined);
+
+  const queryClient = useQueryClient();
+  const identity = organizationId && userId ? `${organizationId}|${userId}` : null;
+
+  // Cache-Bereinigung bei Abmelden, Nutzerwechsel und Organisationswechsel (Auftrag 154 §2.4 Nr. 16)
+  useEffect(() => {
+    queryClient.removeQueries({
+      queryKey: [...dashboardQueryKeys.all],
+      predicate: (query) => {
+        if (!query.queryKey.includes('crmOverview')) return false;
+        return (
+          !organizationId ||
+          !userId ||
+          query.queryKey[1] !== organizationId ||
+          query.queryKey[4] !== userId
+        );
+      },
+    });
+  }, [queryClient, organizationId, userId, identity]);
 
   // CRM-Bedingungen
   const isCrm = Boolean(
     catalogEntry && isActiveEntry(catalogEntry) && catalogEntry.source.layer === 'crm',
   );
-  const crmEnabled = isEnabled && isCrm && Boolean(organizationId);
+  const crmEnabled = isEnabled && isCrm && Boolean(organizationId && userId);
 
   const crmQuery = useQuery({
-    queryKey: organizationId
-      ? dashboardQueryKeys.pipelineOverview(organizationId, effectiveFilter.pipeline)
-      : (['dashboard', 'crm', 'disabled'] as const),
+    queryKey:
+      organizationId && userId
+        ? dashboardQueryKeys.crmOverview(organizationId, userId, effectiveFilter.pipeline)
+        : (['dashboard', 'crm', 'disabled'] as const),
     queryFn: () =>
-      getPipelineOverview(new FilteredFunnelDealSource(dealSource, effectiveFilter.pipeline)),
+      fetchCrmPipelineOverview({
+        pipeline: effectiveFilter.pipeline,
+        dealSource,
+      }),
     enabled: crmEnabled,
   });
 

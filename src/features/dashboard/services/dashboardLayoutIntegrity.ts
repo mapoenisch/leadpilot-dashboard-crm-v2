@@ -11,7 +11,8 @@ import type {
   DashboardTileConfigV2,
   GridPosition,
 } from '../model/dashboardConfigV2';
-import { getCatalogEntry } from '../model/dashboardCatalog';
+import { getCatalogEntry, isActiveEntry } from '../model/dashboardCatalog';
+import { normalizeTileQuery, validateTileQuery } from '../model/tileQuery';
 import {
   findOverlap,
   getBreakpointLayout,
@@ -52,8 +53,16 @@ export function normalizeDashboardLayouts(config: DashboardConfigV2): DashboardC
 export function findLayoutIntegrityError(config: DashboardConfigV2): string | null {
   for (let i = 0; i < config.tiles.length; i++) {
     const tile = config.tiles[i]!;
-    if (!getCatalogEntry(tile.catalogId)) {
+    const entry = getCatalogEntry(tile.catalogId);
+    if (!entry) {
       return `tiles[${i}].catalogId '${tile.catalogId}' ist keine bekannte Katalog-ID`;
+    }
+    if (isActiveEntry(entry)) {
+      const query = tile.query ?? normalizeTileQuery(tile, config);
+      const val = validateTileQuery(query, entry);
+      if (!val.valid) {
+        return `Kachel '${tile.id}' (${tile.title}): ${val.errors[0]?.message}`;
+      }
     }
   }
 
@@ -80,7 +89,28 @@ export function findLayoutIntegrityError(config: DashboardConfigV2): string | nu
 export function prepareConfigForStorage(
   config: DashboardConfigV2,
 ): { ok: true; config: DashboardConfigV2 } | { ok: false; error: string } {
-  const normalized = normalizeDashboardLayouts(config);
-  const error = findLayoutIntegrityError(normalized);
-  return error ? { ok: false, error } : { ok: true, config: normalized };
+  const normalizedLayout = normalizeDashboardLayouts(config);
+
+  // Auftrag 154 §2.1 Nr. 4: Normalisiert jede Kachelabfrage und verwirft Legacy-Overrides beim Speichern
+  const canonicalTiles = normalizedLayout.tiles.map((tile) => {
+    const query = normalizeTileQuery(tile, config);
+    const {
+      pipelineOverride: _p,
+      timeframeOverride: _t,
+      aggregationOverride: _a,
+      ...cleanTile
+    } = tile;
+    return {
+      ...cleanTile,
+      query,
+    };
+  });
+
+  const canonicalConfig: DashboardConfigV2 = {
+    ...normalizedLayout,
+    tiles: canonicalTiles,
+  };
+
+  const error = findLayoutIntegrityError(canonicalConfig);
+  return error ? { ok: false, error } : { ok: true, config: canonicalConfig };
 }

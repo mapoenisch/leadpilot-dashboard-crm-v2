@@ -157,3 +157,13 @@ Die 40 nicht-aktiven Einträge gliedern sich in:
 
 **Fazit für P02/P03:**
 Nur die 48 aktiven Einträge bilden die Grundlage für die neue Raster- und Panel-Editor-Konfiguration. Das neue Zielmodell in P03 muss sicherstellen, dass inaktive oder zukünftig entfallende IDs nicht zu Laufzeitabstürzen führen (Ladevertrag: Kacheln bleiben als Platzhalter erhalten, wie in `UnavailableTileSlot.tsx`).
+
+---
+
+### Nachtrag 13.11.2026 (Auftrag 154 / P08a): Vollbestands-RPC implementiert
+
+Die in §3.2 Nr. 1 dokumentierte Grenze von 1.000 Zeilen im Client-Repository wurde für das Dashboard in Auftrag 154 gelöst:
+
+- Über die serverseitige RPC `public.dashboard_crm_pipeline_overview(p_pipeline TEXT DEFAULT NULL)` wird der Vollbestand ohne Zeilenbegrenzung unter RLS aggregiert.
+- Bei konfigurierter Supabase-Verbindung nutzt der Dashboard-CRM-Pfad (`crmAggregateSource.ts`) direkt diese RPC. Der Fallback auf `getPipelineOverview` im Browser bleibt für Demo-/Offline-Modi erhalten.
+- Deterministischer Tie-Break für Stufen (`volume DESC, count DESC, stage COLLATE "C" ASC`) ist in PostgreSQL und in `src/domain/executiveCockpitData.ts` identisch implementiert.

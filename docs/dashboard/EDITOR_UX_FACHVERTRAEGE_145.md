@@ -490,3 +490,11 @@ Mit dieser Spezifikation sind alle fachlichen und bedienungsseitigen Grundlagen 
 - Die Vorgaben für P03 definieren das exakte Zielschema und die Migrationsregeln.
 
 Damit ist das Paket P02 abgeschlossen und bereit für das unabhängige Review durch Codex.
+
+---
+
+### Nachtrag 13.11.2026 (Auftrag 154 / P08a): Abfragevertrag & 48 aktive IDs
+
+- **Katalogumfang:** Es sind exakt 48 aktive Katalog-IDs freigegeben (nicht mehr die theoretische Maximalzahl von 144).
+- **Filter- & Gruppierungsregeln:** Dürfen ausschließlich laut Fähigkeitsmatrix des Katalogeintrags konfiguriert werden (`queryCapabilities.ts`). Unzulässige Optionen werden im Inspector gesperrt und mit Gründen versehen.
+- **Kanonische Abfrage:** Im V2-Speichermodell werden keine Legacy-Overrides (`timeframeOverride`, `pipelineOverride`, `aggregationOverride`) mehr geschrieben, sondern ausschließlich das strukturierte `query`-Objekt laut `ABFRAGEVERTRAG_P08A.md`.

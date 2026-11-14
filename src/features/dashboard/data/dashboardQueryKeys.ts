@@ -6,4 +6,6 @@ export const dashboardQueryKeys = {
   crm: (organizationId: string) => [...dashboardQueryKeys.all, organizationId, 'crm'] as const,
   pipelineOverview: (organizationId: string, pipeline?: string | null) =>
     [...dashboardQueryKeys.crm(organizationId), 'pipelineOverview', pipeline ?? null] as const,
+  crmOverview: (organizationId: string, userId: string, pipeline?: string | null) =>
+    [...dashboardQueryKeys.crm(organizationId), 'crmOverview', userId, pipeline ?? null] as const,
 };

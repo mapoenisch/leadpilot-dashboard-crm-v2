@@ -1,0 +1,230 @@
+{
+  "validCases": [
+    {
+      "id": "valid_crm_minimal",
+      "tile": {
+        "id": "t_crm_1",
+        "catalogId": "crm.pipeline_deals",
+        "title": "Deals Minimal",
+        "presentation": "zahl",
+        "layouts": { "desktop": { "x": 0, "y": 0, "w": 3, "h": 2 } },
+        "query": {
+          "metricId": "crm.pipeline_deals"
+        }
+      }
+    },
+    {
+      "id": "valid_crm_full",
+      "tile": {
+        "id": "t_crm_2",
+        "catalogId": "crm.pipeline_deals",
+        "title": "Deals Full",
+        "presentation": "zahl",
+        "layouts": { "desktop": { "x": 0, "y": 0, "w": 3, "h": 2 } },
+        "query": {
+          "metricId": "crm.pipeline_deals",
+          "pipelineId": "Standard-Pipeline",
+          "aggregation": "letzter_stand",
+          "timeframe": "aktuell",
+          "filters": {}
+        }
+      }
+    },
+    {
+      "id": "valid_crm_all_pipelines_null",
+      "tile": {
+        "id": "t_crm_3",
+        "catalogId": "crm.pipeline_volumen",
+        "title": "Volumen Alle",
+        "presentation": "zahl",
+        "layouts": { "desktop": { "x": 0, "y": 0, "w": 3, "h": 2 } },
+        "query": {
+          "metricId": "crm.pipeline_volumen",
+          "pipelineId": null,
+          "aggregation": "letzter_stand",
+          "timeframe": "aktuell"
+        }
+      }
+    },
+    {
+      "id": "valid_crm_stages_with_grouping",
+      "tile": {
+        "id": "t_crm_4",
+        "catalogId": "crm.pipeline_stufen_volumen",
+        "title": "Stufen Volumen",
+        "presentation": "balken",
+        "layouts": { "desktop": { "x": 0, "y": 0, "w": 6, "h": 4 } },
+        "query": {
+          "metricId": "crm.pipeline_stufen_volumen",
+          "groupBy": ["stage"],
+          "timeframe": "aktuell"
+        }
+      }
+    },
+    {
+      "id": "valid_baseline_arr",
+      "tile": {
+        "id": "t_base_1",
+        "catalogId": "baseline.arr",
+        "title": "ARR",
+        "presentation": "zahl",
+        "layouts": { "desktop": { "x": 0, "y": 0, "w": 3, "h": 2 } },
+        "query": {
+          "metricId": "baseline.arr",
+          "aggregation": "letzter_stand",
+          "timeframe": "fest"
+        }
+      }
+    }
+  ],
+  "invalidCases": [
+    {
+      "id": "invalid_unknown_key",
+      "expectedCode": "unbekanntes_feld",
+      "tile": {
+        "id": "inv_1",
+        "catalogId": "crm.pipeline_deals",
+        "title": "Unbekanntes Feld",
+        "presentation": "zahl",
+        "layouts": { "desktop": { "x": 0, "y": 0, "w": 3, "h": 2 } },
+        "query": {
+          "metricId": "crm.pipeline_deals",
+          "unknown_key": "not_allowed"
+        }
+      }
+    },
+    {
+      "id": "invalid_metric_mismatch",
+      "expectedCode": "metrik_abweichend",
+      "tile": {
+        "id": "inv_2",
+        "catalogId": "crm.pipeline_deals",
+        "title": "Metrik Abweichend",
+        "presentation": "zahl",
+        "layouts": { "desktop": { "x": 0, "y": 0, "w": 3, "h": 2 } },
+        "query": {
+          "metricId": "crm.pipeline_volumen"
+        }
+      }
+    },
+    {
+      "id": "invalid_type_metric_not_string",
+      "expectedCode": "typ_ungueltig",
+      "tile": {
+        "id": "inv_3",
+        "catalogId": "crm.pipeline_deals",
+        "title": "Typ ungültig",
+        "presentation": "zahl",
+        "layouts": { "desktop": { "x": 0, "y": 0, "w": 3, "h": 2 } },
+        "query": {
+          "metricId": 12345
+        }
+      }
+    },
+    {
+      "id": "invalid_type_groupby_not_array",
+      "expectedCode": "typ_ungueltig",
+      "tile": {
+        "id": "inv_4",
+        "catalogId": "crm.pipeline_stufen_volumen",
+        "title": "GroupBy kein Array",
+        "presentation": "balken",
+        "layouts": { "desktop": { "x": 0, "y": 0, "w": 6, "h": 4 } },
+        "query": {
+          "metricId": "crm.pipeline_stufen_volumen",
+          "groupBy": "stage"
+        }
+      }
+    },
+    {
+      "id": "invalid_aggregation_on_bestand",
+      "expectedCode": "aggregation_unzulaessig",
+      "tile": {
+        "id": "inv_5",
+        "catalogId": "baseline.arr",
+        "title": "Summe auf Bestand",
+        "presentation": "zahl",
+        "layouts": { "desktop": { "x": 0, "y": 0, "w": 3, "h": 2 } },
+        "query": {
+          "metricId": "baseline.arr",
+          "aggregation": "summe"
+        }
+      }
+    },
+    {
+      "id": "invalid_filter_pipeline_on_baseline",
+      "expectedCode": "filter_unzulaessig",
+      "tile": {
+        "id": "inv_6",
+        "catalogId": "baseline.arr",
+        "title": "Pipeline auf Baseline",
+        "presentation": "zahl",
+        "layouts": { "desktop": { "x": 0, "y": 0, "w": 3, "h": 2 } },
+        "query": {
+          "metricId": "baseline.arr",
+          "pipelineId": "Sales-1"
+        }
+      }
+    },
+    {
+      "id": "invalid_filters_object_not_empty",
+      "expectedCode": "filter_unzulaessig",
+      "tile": {
+        "id": "inv_7",
+        "catalogId": "crm.pipeline_deals",
+        "title": "Filters nicht leer",
+        "presentation": "zahl",
+        "layouts": { "desktop": { "x": 0, "y": 0, "w": 3, "h": 2 } },
+        "query": {
+          "metricId": "crm.pipeline_deals",
+          "filters": { "customFilter": true }
+        }
+      }
+    },
+    {
+      "id": "invalid_grouping_on_unsupported_metric",
+      "expectedCode": "gruppierung_unzulaessig",
+      "tile": {
+        "id": "inv_8",
+        "catalogId": "crm.pipeline_deals",
+        "title": "Gruppierung unzulässig",
+        "presentation": "zahl",
+        "layouts": { "desktop": { "x": 0, "y": 0, "w": 3, "h": 2 } },
+        "query": {
+          "metricId": "crm.pipeline_deals",
+          "groupBy": ["stage"]
+        }
+      }
+    },
+    {
+      "id": "invalid_grouping_unknown_dimension",
+      "expectedCode": "gruppierung_unzulaessig",
+      "tile": {
+        "id": "inv_9",
+        "catalogId": "crm.pipeline_stufen_volumen",
+        "title": "Unbekannte Gruppierungsdimension",
+        "presentation": "balken",
+        "layouts": { "desktop": { "x": 0, "y": 0, "w": 6, "h": 4 } },
+        "query": {
+          "metricId": "crm.pipeline_stufen_volumen",
+          "groupBy": ["region"]
+        }
+      }
+    },
+    {
+      "id": "invalid_timeframe_mismatch",
+      "expectedCode": "zeitraum_unzulaessig",
+      "tile": {
+        "id": "inv_10",
+        "catalogId": "crm.pipeline_deals",
+        "title": "Zeitbezug unzulässig",
+        "presentation": "zahl",
+        "layouts": { "desktop": { "x": 0, "y": 0, "w": 3, "h": 2 } },
+        "query": {
+          "metricId": "crm.pipeline_deals",
+          "timeframe": "live"
+        }
+      }
+    }
+  ]
+}

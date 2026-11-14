@@ -84,7 +84,7 @@ describe('dashboardMigrationV1V2', () => {
       tiles: [
         {
           tileId: 't1',
-          catalogId: 'win_rate',
+          catalogId: 'crm.pipeline_deals',
           size: 'mittel',
           view: 'zahl',
           filterMode: 'eigener_zeitraum',
@@ -99,9 +99,10 @@ describe('dashboardMigrationV1V2', () => {
     expect(v2.globalTimeframe).toBe('2026-01-01/2026-06-30');
 
     const tile = v2.tiles[0]!;
-    expect(tile.pipelineOverride).toBe('smb_deals');
-    expect(tile.timeframeOverride).toBe('2026-03-01/2026-03-31');
+    expect(tile.pipelineOverride).toBeUndefined();
+    expect(tile.timeframeOverride).toBeUndefined();
+    expect(tile.query?.metricId).toBe('crm.pipeline_deals');
     expect(tile.query?.pipelineId).toBe('smb_deals');
-    expect(tile.query?.timeframe).toBe('2026-03-01/2026-03-31');
+    expect(tile.query?.timeframe).toBe('aktuell');
   });
 });

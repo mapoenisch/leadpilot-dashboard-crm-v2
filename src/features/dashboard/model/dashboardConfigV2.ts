@@ -35,10 +35,18 @@ export interface TileDisplayOptions {
   [key: string]: unknown;
 }
 
-/** Persistierte Abfragestruktur einer Kachel */
+/**
+ * Persistierte Abfragestruktur einer Kachel (Auftrag 154 §2.1).
+ * metricId: Pflicht, identisch mit catalogId.
+ * pipelineId: fehlt = erbt Dashboard-Pipeline; string = feste Pipeline; null = ausdrücklich alle Pipelines.
+ * timeframe: fehlt oder genau der Zeitbezug der Kennzahl ('fest' | 'aktuell' | 'live').
+ * aggregation: optional, nur aus getQueryCapabilities.
+ * groupBy: fehlt oder ['stage'], nur bei Kennzahlen mit dieser Gruppierung.
+ * filters: fehlt oder leeres Objekt {}.
+ */
 export interface TileQueryConfig {
   metricId?: string;
-  pipelineId?: string;
+  pipelineId?: string | null;
   timeframe?: string;
   aggregation?: string;
   groupBy?: string[];

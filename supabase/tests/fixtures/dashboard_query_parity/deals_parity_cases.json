@@ -1,0 +1,45 @@
+{
+  "leer": [],
+  "eine_pipeline": [
+    { "id": "d1", "stage": "Erstkontakt", "amount": 1000.0, "pipeline": "Vertrieb" },
+    { "id": "d2", "stage": "Qualifizierung", "amount": 2500.0, "pipeline": "Vertrieb" },
+    { "id": "d3", "stage": "Gewonnen", "amount": 5000.0, "pipeline": "Vertrieb" }
+  ],
+  "mehrere_pipelines": [
+    { "id": "d10", "stage": "Erstkontakt", "amount": 1000.0, "pipeline": "Pipeline-A" },
+    { "id": "d11", "stage": "Gewonnen", "amount": 2000.0, "pipeline": "Pipeline-A" },
+    { "id": "d12", "stage": "Erstkontakt", "amount": 3000.0, "pipeline": "Pipeline-B" },
+    { "id": "d13", "stage": "Verloren", "amount": 4000.0, "pipeline": "Pipeline-B" }
+  ],
+  "gleiche_volumen": [
+    { "id": "d20", "stage": "B-Stufe", "amount": 250.0, "pipeline": "P" },
+    { "id": "d21", "stage": "B-Stufe", "amount": 250.0, "pipeline": "P" },
+    { "id": "d22", "stage": "A-Stufe", "amount": 500.0, "pipeline": "P" }
+  ],
+  "stufen_formatting": [
+    { "id": "d30", "stage": "  Erstkontakt  ", "amount": 1200.0, "pipeline": "P" },
+    { "id": "d31", "stage": "Erstkontakt", "amount": 800.0, "pipeline": "P" },
+    { "id": "d32", "stage": " GEWONNEN ", "amount": 3000.0, "pipeline": "P" },
+    { "id": "d33", "stage": "verloren", "amount": 1500.0, "pipeline": "P" }
+  ],
+  "gewonnen_verloren_offen": [
+    { "id": "d40", "stage": "In Verhandlung", "amount": 4000.0, "pipeline": "P" },
+    { "id": "d41", "stage": "Deal gewonnen (Closed Won)", "amount": 6000.0, "pipeline": "P" },
+    { "id": "d42", "stage": "Deal verloren (Closed Lost)", "amount": 2500.0, "pipeline": "P" }
+  ],
+  "betrag_null": [
+    { "id": "d50", "stage": "Erstkontakt", "amount": null, "pipeline": "P" },
+    { "id": "d51", "stage": "Qualifizierung", "amount": 1500.0, "pipeline": "P" }
+  ],
+  "cent_betraege": [
+    { "id": "d60", "stage": "Angebot", "amount": 1234.56, "pipeline": "P" },
+    { "id": "d61", "stage": "Angebot", "amount": 765.44, "pipeline": "P" },
+    { "id": "d62", "stage": "Gewonnen", "amount": 2000.5, "pipeline": "P" }
+  ],
+  "ungueltig_betrag_negativ": [
+    { "id": "d70", "stage": "Erstkontakt", "amount": -100.0, "pipeline": "P" }
+  ],
+  "ungueltig_stufe_leer": [
+    { "id": "d80", "stage": "   ", "amount": 500.0, "pipeline": "P" }
+  ]
+}

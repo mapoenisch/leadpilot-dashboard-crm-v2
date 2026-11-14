@@ -20,7 +20,10 @@ test.skip(
 
 const AUTH_FILE = 'playwright/.auth/user.json';
 const TILE = '[data-testid="lazy-tile"]';
-const CRM_TABLE = '/rest/v1/imported_funnel_deals';
+// Auftrag 154: CRM-Kacheln nutzen die serverseitige Vollbestands-RPC (Fallback auf imported_funnel_deals).
+const isCrmRequest = (url: string) =>
+  url.includes('/rest/v1/rpc/dashboard_crm_pipeline_overview') ||
+  url.includes('/rest/v1/imported_funnel_deals');
 
 const tile = (
   tileId: string,
@@ -295,7 +298,7 @@ test.describe('Lazy Loading', () => {
   }) => {
     const crmRequests: string[] = [];
     page.on('request', (request) => {
-      if (request.url().includes(CRM_TABLE)) crmRequests.push(request.url());
+      if (isCrmRequest(request.url())) crmRequests.push(request.url());
     });
     await openDashboard(page);
     await expect(tileOf(page, FILLER[0].tileId)).toHaveAttribute('data-active', 'true');

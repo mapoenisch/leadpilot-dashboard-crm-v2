@@ -88,4 +88,38 @@ describe('dashboardLayoutIntegrity (Auftrag 151 / P06b)', () => {
     expect(saved.ok).toBe(true);
     if (saved.ok) expect(saved.value.revision).toBe(created.value.revision + 1);
   });
+
+  it('lehnt unzulässige Kachelabfragen beim Speichern ab (Auftrag 154 §2.3 Nr. 9)', () => {
+    const invalidQueryTile = {
+      ...tile('a', { desktop: { x: 0, y: 0, w: 6, h: 4 } }, 'baseline.arr'),
+      query: {
+        metricId: 'baseline.arr',
+        aggregation: 'summe', // unzulässig für baseline.arr (Bestand)
+      },
+    };
+    const invalidConfig = config([invalidQueryTile]);
+    const res = prepareConfigForStorage(invalidConfig);
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.error).toMatch(/Aggregation "summe" ist für Kennzahl "baseline\.arr" unzulässig/);
+    }
+  });
+
+  it('normalisiert Kachelabfrage und verwirft Legacy-Overrides beim Speichern (Auftrag 154 §2.1)', () => {
+    const legacyTile = {
+      ...tile('a', { desktop: { x: 0, y: 0, w: 6, h: 4 } }, 'crm.pipeline_deals'),
+      pipelineOverride: 'Inbound-Deals',
+      timeframeOverride: '2025-01-01/2025-12-31',
+    };
+    const legacyConfig = config([legacyTile]);
+    const res = prepareConfigForStorage(legacyConfig);
+    expect(res.ok).toBe(true);
+    if (res.ok) {
+      const storedTile = res.config.tiles[0]!;
+      expect(storedTile.query?.metricId).toBe('crm.pipeline_deals');
+      expect(storedTile.query?.pipelineId).toBe('Inbound-Deals');
+      expect(storedTile.pipelineOverride).toBeUndefined();
+      expect(storedTile.timeframeOverride).toBeUndefined();
+    }
+  });
 });
