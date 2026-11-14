@@ -64,7 +64,10 @@ describe('Auftrag 158: dashboardSelectionStorage (In-Memory & Adapter)', () => {
       status?: number;
       expectedKind: DashboardV2StorageError['kind'];
     }> = [
-      { input: { message: 'LP_LAST_DASHBOARD: cannot delete last' }, expectedKind: 'letztes_dashboard' },
+      {
+        input: { message: 'LP_LAST_DASHBOARD: cannot delete last' },
+        expectedKind: 'letztes_dashboard',
+      },
       { input: { message: 'LP_DASHBOARD_LIMIT: maximum 20' }, expectedKind: 'obergrenze_erreicht' },
       { input: { message: 'LP_DASHBOARD_CONFLICT: revision mismatch' }, expectedKind: 'konflikt' },
       { input: { message: 'LP_DASHBOARD_INVALID: bad schema' }, expectedKind: 'ungueltig' },

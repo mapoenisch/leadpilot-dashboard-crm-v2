@@ -9,7 +9,9 @@ describe('Auftrag 158: buildDerivedDashboardTitle', () => {
   });
 
   it('trimmt führende und nachlaufende Leerzeichen der Basis', () => {
-    expect(buildDerivedDashboardTitle('  Mein Dashboard   ', ' (Kopie)')).toBe('Mein Dashboard (Kopie)');
+    expect(buildDerivedDashboardTitle('  Mein Dashboard   ', ' (Kopie)')).toBe(
+      'Mein Dashboard (Kopie)',
+    );
   });
 
   it('hält exakt 80 Zeichen bei 72 Zeichen Basis mit " (Kopie)" (8 Zeichen)', () => {

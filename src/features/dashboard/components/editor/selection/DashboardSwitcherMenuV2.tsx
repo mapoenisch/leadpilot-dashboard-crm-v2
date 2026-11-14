@@ -103,12 +103,11 @@ export function DashboardSwitcherMenuV2({
                 )}
               >
                 <div className="flex flex-col truncate pr-2">
-                  <span className="truncate font-semibold text-white">
-                    {dash.title}
-                  </span>
+                  <span className="truncate font-semibold text-white">{dash.title}</span>
                   <span className="text-[11px] text-muted-foreground">
-                    {dash.tileCount} {dash.tileCount === 1 ? 'Kachel' : 'Kacheln'} · {dash.sectionCount}{' '}
-                    {dash.sectionCount === 1 ? 'Sektion' : 'Sektionen'} · {formatRelativeTime(dash.updatedAt)}
+                    {dash.tileCount} {dash.tileCount === 1 ? 'Kachel' : 'Kacheln'} ·{' '}
+                    {dash.sectionCount} {dash.sectionCount === 1 ? 'Sektion' : 'Sektionen'} ·{' '}
+                    {formatRelativeTime(dash.updatedAt)}
                   </span>
                 </div>
                 {isCurrent && (
@@ -147,7 +146,11 @@ export function DashboardSwitcherMenuV2({
                 ? 'cursor-not-allowed opacity-50 text-muted-foreground'
                 : 'text-[var(--color-text-soft,#e6f3f1)] hover:bg-white/5 hover:text-white focus:bg-white/10 focus:outline-none',
             )}
-            title={isLimitReached ? `Höchstens ${MAX_PERSONAL_DASHBOARDS} persönliche Dashboards` : undefined}
+            title={
+              isLimitReached
+                ? `Höchstens ${MAX_PERSONAL_DASHBOARDS} persönliche Dashboards`
+                : undefined
+            }
           >
             <Plus className="h-4 w-4 text-primary" />
             <div className="flex flex-col">
@@ -178,7 +181,11 @@ export function DashboardSwitcherMenuV2({
                 ? 'cursor-not-allowed opacity-50 text-muted-foreground'
                 : 'text-[var(--color-text-soft,#e6f3f1)] hover:bg-white/5 hover:text-white focus:bg-white/10 focus:outline-none',
             )}
-            title={isLimitReached ? `Höchstens ${MAX_PERSONAL_DASHBOARDS} persönliche Dashboards` : undefined}
+            title={
+              isLimitReached
+                ? `Höchstens ${MAX_PERSONAL_DASHBOARDS} persönliche Dashboards`
+                : undefined
+            }
           >
             <Copy className="h-4 w-4 text-primary" />
             <div className="flex flex-col">
@@ -213,7 +220,9 @@ export function DashboardSwitcherMenuV2({
                 ? 'cursor-not-allowed opacity-50 text-muted-foreground'
                 : 'text-error hover:bg-error/10 focus:bg-error/15 focus:outline-none',
             )}
-            title={isOnlyOneDashboard ? 'Das letzte Dashboard kann nicht gelöscht werden' : undefined}
+            title={
+              isOnlyOneDashboard ? 'Das letzte Dashboard kann nicht gelöscht werden' : undefined
+            }
           >
             <Trash2 className="h-4 w-4 text-error" />
             <div className="flex flex-col">

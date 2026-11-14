@@ -49,9 +49,7 @@ export function DashboardEditorPreviewV2() {
   const [dashboards, setDashboards] = useState<PersonalDashboardListItemV2[]>(
     INITIAL_PREVIEW_DASHBOARDS,
   );
-  const [activeDashboardId, setActiveDashboardId] = useState<string>(
-    'preview_v2_dashboard',
-  );
+  const [activeDashboardId, setActiveDashboardId] = useState<string>('preview_v2_dashboard');
 
   const [config, setConfig] = useState<DashboardConfigV2>(() => {
     const base = migrateV1ToV2(DEFAULT_DASHBOARD_CONFIG, {
@@ -66,10 +64,7 @@ export function DashboardEditorPreviewV2() {
         ? new URLSearchParams(window.location.search).get('scenario')
         : null;
 
-    if (
-      (scenario === 'sections' || scenario === 'confirm') &&
-      base.tiles.length >= 6
-    ) {
+    if ((scenario === 'sections' || scenario === 'confirm') && base.tiles.length >= 6) {
       const sec1Tiles = base.tiles.slice(0, 3).map((t) => t.id);
       const sec2Tiles = base.tiles.slice(3, 6).map((t) => t.id);
       return {
@@ -136,67 +131,64 @@ export function DashboardEditorPreviewV2() {
     [dashboards],
   );
 
-  const handleCreateFromTemplate = useCallback(
-    async (templateId: string, title?: string) => {
-      const { getDashboardTemplateV2ById } = await import(
-        '../model/dashboardTemplatesV2'
-      );
-      const template = getDashboardTemplateV2ById(templateId);
-      const newTitle = title?.trim() || template?.name || 'Neues Dashboard';
-      const newId = 'preview_' + Math.random().toString(36).slice(2, 8);
-      const now = new Date().toISOString();
-
-      const newListItem: PersonalDashboardListItemV2 = {
-        id: newId,
-        title: newTitle,
-        scope: 'personal',
-        revision: 1,
-        tileCount: template?.tileCount ?? 0,
-        sectionCount: template?.sectionCount ?? 0,
-        updatedAt: now,
-      };
-
-      setDashboards((prev) => [newListItem, ...prev]);
-      setActiveDashboardId(newId);
-      if (template) {
-        const built = template.build({
-          id: newId,
-          title: newTitle,
-          ownerUserId: 'demo-user-preview',
-          organizationId: 'demo-org-preview',
-        });
-        setConfig(built);
-      }
-      return { ok: true, value: { dashboardId: newId, revision: 1, updatedAt: now } };
-    },
-    [],
-  );
-
-  const handleDuplicateCurrent = useCallback(async (title?: string) => {
-    const targetTitle =
-      title?.trim() || buildDerivedDashboardTitle(config.title, ' (Kopie)');
+  const handleCreateFromTemplate = useCallback(async (templateId: string, title?: string) => {
+    const { getDashboardTemplateV2ById } = await import('../model/dashboardTemplatesV2');
+    const template = getDashboardTemplateV2ById(templateId);
+    const newTitle = title?.trim() || template?.name || 'Neues Dashboard';
     const newId = 'preview_' + Math.random().toString(36).slice(2, 8);
     const now = new Date().toISOString();
 
     const newListItem: PersonalDashboardListItemV2 = {
       id: newId,
-      title: targetTitle,
+      title: newTitle,
       scope: 'personal',
       revision: 1,
-      tileCount: config.tiles.length,
-      sectionCount: config.sections?.length ?? 0,
+      tileCount: template?.tileCount ?? 0,
+      sectionCount: template?.sectionCount ?? 0,
       updatedAt: now,
     };
 
     setDashboards((prev) => [newListItem, ...prev]);
     setActiveDashboardId(newId);
-    setConfig((prev) => ({
-      ...prev,
-      id: newId,
-      title: targetTitle,
-    }));
+    if (template) {
+      const built = template.build({
+        id: newId,
+        title: newTitle,
+        ownerUserId: 'demo-user-preview',
+        organizationId: 'demo-org-preview',
+      });
+      setConfig(built);
+    }
     return { ok: true, value: { dashboardId: newId, revision: 1, updatedAt: now } };
-  }, [config]);
+  }, []);
+
+  const handleDuplicateCurrent = useCallback(
+    async (title?: string) => {
+      const targetTitle = title?.trim() || buildDerivedDashboardTitle(config.title, ' (Kopie)');
+      const newId = 'preview_' + Math.random().toString(36).slice(2, 8);
+      const now = new Date().toISOString();
+
+      const newListItem: PersonalDashboardListItemV2 = {
+        id: newId,
+        title: targetTitle,
+        scope: 'personal',
+        revision: 1,
+        tileCount: config.tiles.length,
+        sectionCount: config.sections?.length ?? 0,
+        updatedAt: now,
+      };
+
+      setDashboards((prev) => [newListItem, ...prev]);
+      setActiveDashboardId(newId);
+      setConfig((prev) => ({
+        ...prev,
+        id: newId,
+        title: targetTitle,
+      }));
+      return { ok: true, value: { dashboardId: newId, revision: 1, updatedAt: now } };
+    },
+    [config],
+  );
 
   const handleDeleteDashboard = useCallback(
     async (id: string) => {

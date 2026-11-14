@@ -4,7 +4,10 @@ import {
   DashboardSwitcherMenuV2,
   formatRelativeTime,
 } from '../components/editor/selection/DashboardSwitcherMenuV2';
-import type { PersonalDashboardListItemV2, StoredDashboardV2Row } from '../services/dashboardStorageV2Types';
+import type {
+  PersonalDashboardListItemV2,
+  StoredDashboardV2Row,
+} from '../services/dashboardStorageV2Types';
 
 describe('formatRelativeTime', () => {
   it('formatiert Zeiten korrekt für relative Abschnitte', () => {
@@ -14,7 +17,9 @@ describe('formatRelativeTime', () => {
     expect(formatRelativeTime(new Date(now - 3 * 3600 * 1000).toISOString())).toBe('vor 3 Std.');
     expect(formatRelativeTime(new Date(now - 24 * 3600 * 1000).toISOString())).toBe('vor 1 Tag');
     expect(formatRelativeTime(new Date(now - 3 * 86400 * 1000).toISOString())).toBe('vor 3 Tagen');
-    expect(formatRelativeTime(new Date(now - 30 * 86400 * 1000).toISOString())).toMatch(/\d{2}\.\d{2}/);
+    expect(formatRelativeTime(new Date(now - 30 * 86400 * 1000).toISOString())).toMatch(
+      /\d{2}\.\d{2}/,
+    );
     expect(formatRelativeTime('ungültiges-datum')).toBe('');
   });
 });

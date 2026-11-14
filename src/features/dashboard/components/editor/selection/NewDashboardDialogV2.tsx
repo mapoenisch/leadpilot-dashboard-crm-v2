@@ -16,9 +16,7 @@ import {
 } from '../../../model/dashboardTitles';
 import { useEscapeToClose } from '../../UnsavedChangesDialog';
 
-export type CreateDashboardResult =
-  | boolean
-  | { ok: boolean; error?: DashboardV2StorageError };
+export type CreateDashboardResult = boolean | { ok: boolean; error?: DashboardV2StorageError };
 
 export interface NewDashboardDialogV2Props {
   open: boolean;
@@ -41,10 +39,7 @@ function getCreateErrorMessage(error?: DashboardV2StorageError): string {
   }
 }
 
-function computeUniqueTitle(
-  baseName: string,
-  existingTitles: Set<string>,
-): string {
+function computeUniqueTitle(baseName: string, existingTitles: Set<string>): string {
   if (!existingTitles.has(baseName)) {
     return baseName;
   }
@@ -177,7 +172,10 @@ export function NewDashboardDialogV2({
 
         {/* Titel-Eingabe */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor={titleInputId} className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <label
+            htmlFor={titleInputId}
+            className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+          >
             Titel (1–80 Zeichen)
           </label>
           <input
@@ -241,8 +239,8 @@ export function NewDashboardDialogV2({
                   </div>
                   <div className="mt-2 flex items-center justify-between text-[11px] text-primary/80">
                     <span>
-                      {tpl.tileCount} {tpl.tileCount === 1 ? 'Kachel' : 'Kacheln'} · {tpl.sectionCount}{' '}
-                      {tpl.sectionCount === 1 ? 'Sektion' : 'Sektionen'}
+                      {tpl.tileCount} {tpl.tileCount === 1 ? 'Kachel' : 'Kacheln'} ·{' '}
+                      {tpl.sectionCount} {tpl.sectionCount === 1 ? 'Sektion' : 'Sektionen'}
                     </span>
                     {isSelected && <span className="font-semibold text-primary">Ausgewählt</span>}
                   </div>

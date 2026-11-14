@@ -47,13 +47,17 @@ export function DashboardDeletedDialogV2({
         </div>
       }
     >
-      <div className="flex flex-col gap-3 text-sm text-[var(--color-text-soft,#e6f3f1)]" role="alert">
+      <div
+        className="flex flex-col gap-3 text-sm text-[var(--color-text-soft,#e6f3f1)]"
+        role="alert"
+      >
         <p>
-          Dieses Dashboard wurde zwischenzeitlich in einem anderen Tab oder von einem anderen Gerät gelöscht.
+          Dieses Dashboard wurde zwischenzeitlich in einem anderen Tab oder von einem anderen Gerät
+          gelöscht.
         </p>
         <p className="text-muted-foreground">
-          Dein lokaler Entwurf ist noch vorhanden. Du kannst deine Änderungen als neues persönliches Dashboard speichern
-          oder zu einem anderen vorhandenen Dashboard wechseln.
+          Dein lokaler Entwurf ist noch vorhanden. Du kannst deine Änderungen als neues persönliches
+          Dashboard speichern oder zu einem anderen vorhandenen Dashboard wechseln.
         </p>
       </div>
     </Modal>

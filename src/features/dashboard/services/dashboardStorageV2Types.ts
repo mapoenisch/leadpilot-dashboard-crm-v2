@@ -143,12 +143,10 @@ export function setActiveDashboardV2Id(
 }
 
 export type SaveV2Result =
-  | { ok: true; value: SavedDashboardV2Result }
-  | { ok: false; error: DashboardV2StorageError };
+  { ok: true; value: SavedDashboardV2Result } | { ok: false; error: DashboardV2StorageError };
 
 export type DeleteV2Result =
-  | { ok: true; nextDashboardId: string | null }
-  | { ok: false; error: DashboardV2StorageError };
+  { ok: true; nextDashboardId: string | null } | { ok: false; error: DashboardV2StorageError };
 
 export interface UseDashboardV2StorageResult {
   status: 'laden' | 'bereit' | 'fehler';

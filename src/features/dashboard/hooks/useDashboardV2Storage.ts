@@ -20,6 +20,7 @@ import {
   deletePersonalDashboardV2,
   duplicatePersonalDashboardV2,
   listPersonalDashboardsV2,
+  loadAndActivateDashboardV2,
 } from '../services/dashboardSelectionV2';
 import type { DashboardConfigV2 } from '../model/dashboardConfigV2';
 import { normalizeDashboardLayouts } from '../services/dashboardLayoutIntegrity';
@@ -33,21 +34,6 @@ import type {
   UseDashboardV2StorageResult,
 } from '../services/dashboardStorageV2Types';
 export type { SaveV2Result, DeleteV2Result, UseDashboardV2StorageResult };
-
-async function loadAndActivateDashboard(
-  dashboardId: string,
-  orgId: string,
-  userId: string,
-  setDashboard: (d: StoredDashboardV2Row) => void,
-): Promise<{ ok: true } | { ok: false; error: DashboardV2StorageError }> {
-  setActiveDashboardV2Id(orgId, userId, dashboardId);
-  const loaded = await loadPersonalDashboardV2(dashboardId);
-  if (loaded.ok && loaded.value) {
-    setDashboard(loaded.value);
-    return { ok: true };
-  }
-  return { ok: false, error: loaded.ok ? { kind: 'nicht_gefunden' } : loaded.error };
-}
 
 export function useDashboardV2Storage(options?: {
   preferredDashboardId?: string;
@@ -231,7 +217,7 @@ export function useDashboardV2Storage(options?: {
         return { ok: false, error: res.error };
       }
 
-      const activateRes = await loadAndActivateDashboard(
+      const activateRes = await loadAndActivateDashboardV2(
         res.value.dashboardId,
         orgId,
         userId,
@@ -256,8 +242,7 @@ export function useDashboardV2Storage(options?: {
       setIsSaving(true);
       setError(null);
 
-      const targetTitle =
-        title?.trim() || buildDerivedDashboardTitle(dashboard.title, ' (Kopie)');
+      const targetTitle = title?.trim() || buildDerivedDashboardTitle(dashboard.title, ' (Kopie)');
       const res = await duplicatePersonalDashboardV2({
         dashboardId: dashboard.id,
         title: targetTitle,
@@ -270,7 +255,7 @@ export function useDashboardV2Storage(options?: {
         return { ok: false, error: res.error };
       }
 
-      const activateRes = await loadAndActivateDashboard(
+      const activateRes = await loadAndActivateDashboardV2(
         res.value.dashboardId,
         orgId,
         userId,
@@ -317,7 +302,7 @@ export function useDashboardV2Storage(options?: {
       }
 
       if (isCurrent && res.value.nextDashboardId) {
-        const activateRes = await loadAndActivateDashboard(
+        const activateRes = await loadAndActivateDashboardV2(
           res.value.nextDashboardId,
           orgId,
           userId,
@@ -385,8 +370,18 @@ export function useDashboardV2Storage(options?: {
   );
 
   return {
-    status, dashboard, dashboards, error, isSaving, save, reload,
-    refreshList, openDashboard, createFromTemplate, duplicateCurrent,
-    deleteDashboard, saveAsNewPersonalCopy,
+    status,
+    dashboard,
+    dashboards,
+    error,
+    isSaving,
+    save,
+    reload,
+    refreshList,
+    openDashboard,
+    createFromTemplate,
+    duplicateCurrent,
+    deleteDashboard,
+    saveAsNewPersonalCopy,
   };
 }

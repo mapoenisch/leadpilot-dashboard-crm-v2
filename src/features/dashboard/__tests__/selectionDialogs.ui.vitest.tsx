@@ -3,7 +3,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { DeleteDashboardDialogV2 } from '../components/editor/selection/DeleteDashboardDialogV2';
 import { DuplicateDashboardDialogV2 } from '../components/editor/selection/DuplicateDashboardDialogV2';
 import { NewDashboardDialogV2 } from '../components/editor/selection/NewDashboardDialogV2';
-import type { PersonalDashboardListItemV2, StoredDashboardV2Row } from '../services/dashboardStorageV2Types';
+import type {
+  PersonalDashboardListItemV2,
+  StoredDashboardV2Row,
+} from '../services/dashboardStorageV2Types';
 
 const createTile = (id: string, title: string) => ({
   id,
@@ -48,7 +51,9 @@ describe('DeleteDashboardDialogV2 UI-Tests', () => {
     );
 
     expect(screen.getByText(/1 Kachel/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /„Vertriebs-Cockpit“ endgültig löschen/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /„Vertriebs-Cockpit“ endgültig löschen/i }),
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /„Vertriebs-Cockpit“ endgültig löschen/i }));
     await waitFor(() => {
@@ -63,10 +68,7 @@ describe('DeleteDashboardDialogV2 UI-Tests', () => {
       ...baseDashboard,
       config: {
         ...baseDashboard.config,
-        tiles: [
-          ...baseDashboard.config.tiles,
-          createTile('t-2', 'T2'),
-        ],
+        tiles: [...baseDashboard.config.tiles, createTile('t-2', 'T2')],
       },
     };
 

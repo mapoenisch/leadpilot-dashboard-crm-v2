@@ -1,7 +1,10 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { useDashboardSelection } from '../components/editor/selection/useDashboardSelection';
-import type { PersonalDashboardListItemV2, StoredDashboardV2Row } from '../services/dashboardStorageV2Types';
+import type {
+  PersonalDashboardListItemV2,
+  StoredDashboardV2Row,
+} from '../services/dashboardStorageV2Types';
 
 const currentDash: StoredDashboardV2Row = {
   id: 'd-1',
@@ -194,7 +197,9 @@ describe('useDashboardSelection Hook Tests', () => {
     });
 
     expect(res?.ok).toBe(true);
-    expect(result.current.announcement).toContain('Dashboard ‚Dashboard 1‘ gelöscht, ‚Dashboard 2‘ geöffnet');
+    expect(result.current.announcement).toContain(
+      'Dashboard ‚Dashboard 1‘ gelöscht, ‚Dashboard 2‘ geöffnet',
+    );
   });
 
   it('bewahrt Folgeaktion über Speicher-Remount hinweg auf (P2 Finding 1)', async () => {

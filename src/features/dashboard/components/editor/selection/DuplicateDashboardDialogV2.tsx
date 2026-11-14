@@ -4,16 +4,17 @@
 import { useEffect, useId, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import type { DashboardV2StorageError, StoredDashboardV2Row } from '../../../services/dashboardStorageV2Types';
+import type {
+  DashboardV2StorageError,
+  StoredDashboardV2Row,
+} from '../../../services/dashboardStorageV2Types';
 import {
   MAX_DASHBOARD_TITLE_LENGTH,
   buildDerivedDashboardTitle,
 } from '../../../model/dashboardTitles';
 import { useEscapeToClose } from '../../UnsavedChangesDialog';
 
-export type DuplicateConfirmResult =
-  | boolean
-  | { ok: boolean; error?: DashboardV2StorageError };
+export type DuplicateConfirmResult = boolean | { ok: boolean; error?: DashboardV2StorageError };
 
 export interface DuplicateDashboardDialogV2Props {
   open: boolean;
@@ -135,7 +136,10 @@ export function DuplicateDashboardDialogV2({
         </div>
       }
     >
-      <div data-testid="duplicate-dashboard-dialog" className="flex flex-col gap-4 text-sm text-[var(--color-text-soft,#e6f3f1)]">
+      <div
+        data-testid="duplicate-dashboard-dialog"
+        className="flex flex-col gap-4 text-sm text-[var(--color-text-soft,#e6f3f1)]"
+      >
         {error && (
           <div
             role="alert"
@@ -153,14 +157,18 @@ export function DuplicateDashboardDialogV2({
           >
             <p className="font-semibold">Ungespeicherte Änderungen vorhanden</p>
             <p className="mt-1">
-              Es wird der gespeicherte Server-Stand dupliziert. Ungespeicherte Änderungen im aktuellen Entwurf
-              werden nicht übernommen, es sei denn, du wählst „Speichern & duplizieren“.
+              Es wird der gespeicherte Server-Stand dupliziert. Ungespeicherte Änderungen im
+              aktuellen Entwurf werden nicht übernommen, es sei denn, du wählst „Speichern &
+              duplizieren“.
             </p>
           </div>
         )}
 
         <div className="flex flex-col gap-1.5">
-          <label htmlFor={inputId} className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <label
+            htmlFor={inputId}
+            className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+          >
             Titel des neuen Dashboards
           </label>
           <input

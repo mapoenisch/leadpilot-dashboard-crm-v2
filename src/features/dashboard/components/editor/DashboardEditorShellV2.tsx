@@ -34,9 +34,14 @@ export interface DashboardEditorShellV2Props {
   dashboards?: import('../../services/dashboardStorageV2Types').PersonalDashboardListItemV2[];
   currentStoredDashboard?: import('../../services/dashboardStorageV2Types').StoredDashboardV2Row;
   onOpenDashboard?: (id: string) => Promise<boolean>;
-  onCreateFromTemplate?: (templateId: string, title?: string) => Promise<{ ok: boolean; error?: unknown }>;
+  onCreateFromTemplate?: (
+    templateId: string,
+    title?: string,
+  ) => Promise<{ ok: boolean; error?: unknown }>;
   onDuplicateCurrent?: (title?: string) => Promise<{ ok: boolean; error?: unknown }>;
-  onDeleteDashboard?: (id: string) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
+  onDeleteDashboard?: (
+    id: string,
+  ) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
   onRefreshList?: () => Promise<void>;
 }
 

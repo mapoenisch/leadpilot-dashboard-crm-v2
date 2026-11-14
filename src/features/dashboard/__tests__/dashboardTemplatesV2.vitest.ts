@@ -94,10 +94,7 @@ describe('Auftrag 158: V2-Vorlagen (dashboardTemplatesV2)', () => {
   });
 
   it('erzeugt und aktualisiert die Server-Fixtures für pgTAP', () => {
-    const fixtureDir = resolve(
-      process.cwd(),
-      'supabase/tests/fixtures/dashboard_templates',
-    );
+    const fixtureDir = resolve(process.cwd(), 'supabase/tests/fixtures/dashboard_templates');
     if (!existsSync(fixtureDir)) {
       mkdirSync(fixtureDir, { recursive: true });
     }

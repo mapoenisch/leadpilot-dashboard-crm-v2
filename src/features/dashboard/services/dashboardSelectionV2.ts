@@ -5,6 +5,7 @@ import { isSupabaseConfigured, supabase } from '@/services/db/supabaseClient';
 import { logger } from '@/services/logger';
 import { inMemoryStore, nextMonotonicIsoDate } from './dashboardInMemoryStoreV2';
 import {
+  type DashboardV2StorageError,
   type DeleteDashboardV2Result,
   type DuplicateDashboardV2Result,
   type PersonalDashboardListItemV2,
@@ -12,6 +13,7 @@ import {
   type StoredDashboardV2Row,
   classifyDashboardV2Error,
 } from './dashboardStorageV2Types';
+import { loadPersonalDashboardV2, setActiveDashboardV2Id } from './dashboardStorageV2';
 
 function failTechnically<T>(cause: unknown): StorageResult<T> {
   logger.warn('[dashboardSelectionV2] Operation fehlgeschlagen.', cause);
@@ -25,9 +27,7 @@ export async function listPersonalDashboardsV2(): Promise<
   StorageResult<PersonalDashboardListItemV2[]>
 > {
   if (!isSupabaseConfigured || !supabase) {
-    const list: PersonalDashboardListItemV2[] = Array.from(
-      inMemoryStore.values(),
-    )
+    const list: PersonalDashboardListItemV2[] = Array.from(inMemoryStore.values())
       .filter((e) => e.row.scope === 'personal')
       .map((e) => ({
         id: e.row.id,
@@ -38,17 +38,12 @@ export async function listPersonalDashboardsV2(): Promise<
         sectionCount: e.row.config.sections?.length ?? 0,
         updatedAt: e.row.updatedAt,
       }))
-      .sort(
-        (a, b) =>
-          b.updatedAt.localeCompare(a.updatedAt) || a.id.localeCompare(b.id),
-      );
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.id.localeCompare(b.id));
     return { ok: true, value: list };
   }
 
   try {
-    const { data, error, status } = await supabase.rpc(
-      'list_personal_dashboards_v2',
-    );
+    const { data, error, status } = await supabase.rpc('list_personal_dashboards_v2');
     if (error) {
       const classified = classifyDashboardV2Error(error, status);
       return classified.kind === 'technisch'
@@ -96,10 +91,7 @@ export async function deletePersonalDashboardV2(params: {
       return { ok: false, error: { kind: 'nicht_gefunden' } };
     }
 
-    if (
-      params.expectedRevision !== undefined &&
-      entry.row.revision !== params.expectedRevision
-    ) {
+    if (params.expectedRevision !== undefined && entry.row.revision !== params.expectedRevision) {
       return {
         ok: false,
         error: {
@@ -122,8 +114,7 @@ export async function deletePersonalDashboardV2(params: {
       .filter((e) => e.row.scope === 'personal')
       .sort(
         (a, b) =>
-          b.row.updatedAt.localeCompare(a.row.updatedAt) ||
-          a.row.id.localeCompare(b.row.id),
+          b.row.updatedAt.localeCompare(a.row.updatedAt) || a.row.id.localeCompare(b.row.id),
       );
 
     return {
@@ -136,13 +127,10 @@ export async function deletePersonalDashboardV2(params: {
   }
 
   try {
-    const { data, error, status } = await supabase.rpc(
-      'delete_personal_dashboard_v2',
-      {
-        p_dashboard_id: params.dashboardId,
-        p_expected_revision: params.expectedRevision ?? null,
-      },
-    );
+    const { data, error, status } = await supabase.rpc('delete_personal_dashboard_v2', {
+      p_dashboard_id: params.dashboardId,
+      p_expected_revision: params.expectedRevision ?? null,
+    });
 
     if (error) {
       const classified = classifyDashboardV2Error(error, status);
@@ -241,13 +229,10 @@ export async function duplicatePersonalDashboardV2(params: {
   }
 
   try {
-    const { data, error, status } = await supabase.rpc(
-      'duplicate_personal_dashboard_v2',
-      {
-        p_dashboard_id: params.dashboardId,
-        p_title: trimmedTitle,
-      },
-    );
+    const { data, error, status } = await supabase.rpc('duplicate_personal_dashboard_v2', {
+      p_dashboard_id: params.dashboardId,
+      p_title: trimmedTitle,
+    });
 
     if (error) {
       const classified = classifyDashboardV2Error(error, status);
@@ -273,4 +258,22 @@ export async function duplicatePersonalDashboardV2(params: {
   } catch (cause) {
     return failTechnically(cause);
   }
+}
+
+/**
+ * Lädt ein Dashboard und setzt es als aktiv. Fängt Ladefehler explizit ab (Codex P2).
+ */
+export async function loadAndActivateDashboardV2(
+  dashboardId: string,
+  orgId: string,
+  userId: string,
+  setDashboard: (d: StoredDashboardV2Row) => void,
+): Promise<{ ok: true } | { ok: false; error: DashboardV2StorageError }> {
+  setActiveDashboardV2Id(orgId, userId, dashboardId);
+  const loaded = await loadPersonalDashboardV2(dashboardId);
+  if (loaded.ok && loaded.value) {
+    setDashboard(loaded.value);
+    return { ok: true };
+  }
+  return { ok: false, error: loaded.ok ? { kind: 'nicht_gefunden' } : loaded.error };
 }

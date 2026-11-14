@@ -4,16 +4,7 @@
 // Breakpoint-Wahlschalter, Globale Filter, Live/Pause, Vorschau-Modus, Undo/Redo und Speichern/Abbrechen.
 
 import { useState, useRef, useEffect, type ChangeEvent } from 'react';
-import {
-  Eye,
-  EyeOff,
-  PanelLeft,
-  PanelRight,
-  Pause,
-  Play,
-  Save,
-  X,
-} from 'lucide-react';
+import { Eye, EyeOff, PanelLeft, PanelRight, Pause, Play, Save, X } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
@@ -58,9 +49,14 @@ export interface EditorTopBarV2Props {
   dashboards?: PersonalDashboardListItemV2[];
   currentStoredDashboard?: StoredDashboardV2Row;
   onOpenDashboard?: (id: string) => Promise<boolean>;
-  onCreateFromTemplate?: (templateId: string, title?: string) => Promise<{ ok: boolean; error?: unknown }>;
+  onCreateFromTemplate?: (
+    templateId: string,
+    title?: string,
+  ) => Promise<{ ok: boolean; error?: unknown }>;
   onDuplicateCurrent?: (title?: string) => Promise<{ ok: boolean; error?: unknown }>;
-  onDeleteDashboard?: (id: string) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
+  onDeleteDashboard?: (
+    id: string,
+  ) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
   onRefreshList?: () => Promise<void>;
 }
 
@@ -144,15 +140,14 @@ export function EditorTopBarV2({
     }
   };
 
-  const storedDashboard =
-    currentStoredDashboard ?? {
-      id: config.id,
-      title: config.title,
-      scope: (config.scope as 'personal' | 'team') ?? 'personal',
-      revision: 1,
-      config,
-      updatedAt: new Date().toISOString(),
-    };
+  const storedDashboard = currentStoredDashboard ?? {
+    id: config.id,
+    title: config.title,
+    scope: (config.scope as 'personal' | 'team') ?? 'personal',
+    revision: 1,
+    config,
+    updatedAt: new Date().toISOString(),
+  };
 
   return (
     <header
@@ -183,7 +178,11 @@ export function EditorTopBarV2({
         )}
 
         {/* Dashboard-Auswahl (Switcher) oder Fallback-Scope-Badge */}
-        {dashboards && onOpenDashboard && onCreateFromTemplate && onDuplicateCurrent && onDeleteDashboard ? (
+        {dashboards &&
+        onOpenDashboard &&
+        onCreateFromTemplate &&
+        onDuplicateCurrent &&
+        onDeleteDashboard ? (
           <DashboardSwitcherV2
             currentDashboard={storedDashboard}
             dashboards={dashboards}
@@ -318,12 +317,7 @@ export function EditorTopBarV2({
 
       {/* Rechter Bereich: Undo/Redo, Vorschau, Speichern & Abbrechen */}
       <div className="flex items-center gap-2">
-        <UndoRedoGroup
-          canUndo={canUndo}
-          canRedo={canRedo}
-          onUndo={onUndo}
-          onRedo={onRedo}
-        />
+        <UndoRedoGroup canUndo={canUndo} canRedo={canRedo} onUndo={onUndo} onRedo={onRedo} />
 
         {/* Vorschau-Modus Schalter */}
         <button

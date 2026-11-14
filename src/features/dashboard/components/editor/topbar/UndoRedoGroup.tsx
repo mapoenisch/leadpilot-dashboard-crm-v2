@@ -9,13 +9,7 @@ export interface UndoRedoGroupProps {
   className?: string;
 }
 
-export function UndoRedoGroup({
-  canUndo,
-  canRedo,
-  onUndo,
-  onRedo,
-  className,
-}: UndoRedoGroupProps) {
+export function UndoRedoGroup({ canUndo, canRedo, onUndo, onRedo, className }: UndoRedoGroupProps) {
   return (
     <div
       data-testid="undo-redo-group"

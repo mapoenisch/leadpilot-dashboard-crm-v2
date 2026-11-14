@@ -22,9 +22,14 @@ export interface DashboardSwitcherV2Props {
   isDirty: boolean;
   isPreviewMode?: boolean;
   onOpenDashboard: (id: string) => Promise<boolean>;
-  onCreateFromTemplate: (templateId: string, title?: string) => Promise<{ ok: boolean; error?: unknown }>;
+  onCreateFromTemplate: (
+    templateId: string,
+    title?: string,
+  ) => Promise<{ ok: boolean; error?: unknown }>;
   onDuplicateCurrent: (title?: string) => Promise<{ ok: boolean; error?: unknown }>;
-  onDeleteDashboard: (id: string) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
+  onDeleteDashboard: (
+    id: string,
+  ) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
   onSaveCurrent: () => Promise<boolean>;
   onRefreshList?: () => Promise<void>;
   className?: string;
@@ -185,9 +190,7 @@ export function DashboardSwitcherV2({
             Persönlich
           </Badge>
         </span>
-        <span className="max-w-[160px] truncate sm:max-w-[220px]">
-          {currentDashboard.title}
-        </span>
+        <span className="max-w-[160px] truncate sm:max-w-[220px]">{currentDashboard.title}</span>
         <ChevronDown
           className={cn(
             'h-3.5 w-3.5 text-muted-foreground transition-transform duration-200',

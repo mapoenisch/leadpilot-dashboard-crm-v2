@@ -1,14 +1,8 @@
 // Auftrag 158 (P09b): V2-Vorlagen für den Dashboard-Editor.
 // V2-Pendant zu dashboardPresets.ts mit Sektionen aus Auftrag 157.
 
-import type {
-  DashboardConfigV2,
-  DashboardSectionV2,
-} from './dashboardConfigV2';
-import {
-  type V1ToV2MigrationContext,
-  migrateV1ToV2,
-} from './dashboardMigrationV1V2';
+import type { DashboardConfigV2, DashboardSectionV2 } from './dashboardConfigV2';
+import { type V1ToV2MigrationContext, migrateV1ToV2 } from './dashboardMigrationV1V2';
 import { DASHBOARD_PRESETS } from './dashboardPresets';
 import { DEFAULT_DASHBOARD_CONFIG } from './defaultDashboard';
 import { normalizeDashboardLayouts } from '../services/dashboardLayoutIntegrity';
@@ -27,10 +21,7 @@ export interface DashboardTemplateV2 {
   readonly build: (context: DashboardTemplateContext) => DashboardConfigV2;
 }
 
-function applyTimestamp(
-  config: DashboardConfigV2,
-  timestamp?: string,
-): DashboardConfigV2 {
+function applyTimestamp(config: DashboardConfigV2, timestamp?: string): DashboardConfigV2 {
   if (!timestamp) return config;
   return {
     ...config,
@@ -63,8 +54,7 @@ export const DASHBOARD_TEMPLATES_V2: readonly DashboardTemplateV2[] = [
   {
     id: 'sales',
     name: 'Vertrieb & Pipeline',
-    description:
-      'Fokus auf CRM-Pipeline, Deals, gewonnenes Volumen und ARR-Verlauf.',
+    description: 'Fokus auf CRM-Pipeline, Deals, gewonnenes Volumen und ARR-Verlauf.',
     category: 'vertrieb',
     tileCount: 9,
     sectionCount: 2,
@@ -139,10 +129,7 @@ export const DASHBOARD_TEMPLATES_V2: readonly DashboardTemplateV2[] = [
           id: 'sec_fin_verlaeufe',
           title: 'Verläufe',
           collapsed: false,
-          tileIds: [
-            'preset_fin_arr_verlauf',
-            'preset_fin_mrr_mix',
-          ],
+          tileIds: ['preset_fin_arr_verlauf', 'preset_fin_mrr_mix'],
         },
       ];
 
@@ -158,8 +145,7 @@ export const DASHBOARD_TEMPLATES_V2: readonly DashboardTemplateV2[] = [
   {
     id: 'blank',
     name: 'Leere Vorlage',
-    description:
-      'Leere Arbeitsfläche für eine komplett individuelle Zusammenstellung.',
+    description: 'Leere Arbeitsfläche für eine komplett individuelle Zusammenstellung.',
     category: 'basis',
     tileCount: 0,
     sectionCount: 0,
@@ -171,8 +157,6 @@ export const DASHBOARD_TEMPLATES_V2: readonly DashboardTemplateV2[] = [
   },
 ];
 
-export function getDashboardTemplateV2ById(
-  id: string,
-): DashboardTemplateV2 | undefined {
+export function getDashboardTemplateV2ById(id: string): DashboardTemplateV2 | undefined {
   return DASHBOARD_TEMPLATES_V2.find((t) => t.id === id);
 }

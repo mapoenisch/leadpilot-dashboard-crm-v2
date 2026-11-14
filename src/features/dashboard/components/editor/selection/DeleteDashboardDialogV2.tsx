@@ -4,12 +4,13 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import type { DashboardV2StorageError, StoredDashboardV2Row } from '../../../services/dashboardStorageV2Types';
+import type {
+  DashboardV2StorageError,
+  StoredDashboardV2Row,
+} from '../../../services/dashboardStorageV2Types';
 import { useEscapeToClose } from '../../UnsavedChangesDialog';
 
-export type DeleteConfirmResult =
-  | boolean
-  | { ok: boolean; error?: DashboardV2StorageError };
+export type DeleteConfirmResult = boolean | { ok: boolean; error?: DashboardV2StorageError };
 
 export interface DeleteDashboardDialogV2Props {
   open: boolean;
@@ -96,7 +97,10 @@ export function DeleteDashboardDialogV2({
         </div>
       }
     >
-      <div data-testid="delete-dashboard-dialog" className="flex flex-col gap-3 text-sm text-[var(--color-text-soft,#e6f3f1)]">
+      <div
+        data-testid="delete-dashboard-dialog"
+        className="flex flex-col gap-3 text-sm text-[var(--color-text-soft,#e6f3f1)]"
+      >
         {error && (
           <div
             role="alert"
@@ -118,8 +122,8 @@ export function DeleteDashboardDialogV2({
         >
           <p className="font-semibold">Achtung: Endgültiges Löschen</p>
           <p className="mt-1">
-            Das Dashboard und seine Versionshistorie werden endgültig gelöscht. Diese Aktion kann nicht
-            rückgängig gemacht werden.
+            Das Dashboard und seine Versionshistorie werden endgültig gelöscht. Diese Aktion kann
+            nicht rückgängig gemacht werden.
           </p>
         </div>
       </div>

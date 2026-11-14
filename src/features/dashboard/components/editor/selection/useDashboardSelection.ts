@@ -21,9 +21,14 @@ export interface UseDashboardSelectionParams {
   isDirty: boolean;
   isPreviewMode?: boolean;
   onOpenDashboard: (id: string) => Promise<boolean>;
-  onCreateFromTemplate: (templateId: string, title?: string) => Promise<{ ok: boolean; error?: unknown }>;
+  onCreateFromTemplate: (
+    templateId: string,
+    title?: string,
+  ) => Promise<{ ok: boolean; error?: unknown }>;
   onDuplicateCurrent: (title?: string) => Promise<{ ok: boolean; error?: unknown }>;
-  onDeleteDashboard: (id: string) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
+  onDeleteDashboard: (
+    id: string,
+  ) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
   onSaveCurrent: () => Promise<boolean>;
 }
 
@@ -261,7 +266,8 @@ export function useDashboardSelection({
             ok: false,
             error: {
               kind: 'konflikt',
-              detail: 'Ungespeicherte Änderungen konnten vor dem Duplizieren nicht gesichert werden.',
+              detail:
+                'Ungespeicherte Änderungen konnten vor dem Duplizieren nicht gesichert werden.',
             },
           };
         }

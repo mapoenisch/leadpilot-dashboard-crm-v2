@@ -66,7 +66,8 @@ function renderSwitcher(props: Partial<DashboardSwitcherV2Props> = {}) {
   const current = props.currentDashboard ?? createMockDashboard('dash-1', 'Executive Dashboard');
   const list = props.dashboards ?? createMockList(2);
   const onOpenDashboard = props.onOpenDashboard ?? vi.fn().mockResolvedValue(true);
-  const onCreateFromTemplate = props.onCreateFromTemplate ?? vi.fn().mockResolvedValue({ ok: true });
+  const onCreateFromTemplate =
+    props.onCreateFromTemplate ?? vi.fn().mockResolvedValue({ ok: true });
   const onDuplicateCurrent = props.onDuplicateCurrent ?? vi.fn().mockResolvedValue({ ok: true });
   const onDeleteDashboard =
     props.onDeleteDashboard ?? vi.fn().mockResolvedValue({ ok: true, nextDashboardId: 'dash-2' });
