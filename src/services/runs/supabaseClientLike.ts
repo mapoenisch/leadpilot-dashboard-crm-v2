@@ -10,7 +10,13 @@ export interface DbResult {
 }
 
 export interface QueryBuilder {
-  eq: (column: string, value: unknown) => Promise<DbResult>;
+  eq: (
+    column: string,
+    value: unknown,
+  ) => PromiseLike<DbResult> & {
+    order?: (column: string, options?: { ascending?: boolean }) => unknown;
+    range?: (from: number, to: number) => unknown;
+  };
 }
 
 export interface SelectBuilder {

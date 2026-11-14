@@ -35,13 +35,40 @@ function createWrapper() {
   );
 }
 
+import { fetchCrmPipelineOverview } from '@/features/dashboard/data/crmAggregateSource';
+import * as supabaseClientModule from '@/services/db/supabaseClient';
+
+vi.mock('@/features/dashboard/data/crmAggregateSource', () => ({
+  fetchCrmPipelineOverview: vi.fn().mockResolvedValue({
+    totalDeals: 42,
+    totalVolume: 999000,
+    wonVolume: 400000,
+    openVolume: 599000,
+    stages: [],
+    evaluatedDeals: 42,
+    pipeline: null,
+    asOf: '2026-11-14T10:00:00.000Z',
+  }),
+}));
+
 describe('usePipelineOverview', () => {
-  it('ruft getPipelineOverview mit CRMRepository auf und liefert Ergebnis', async () => {
+  it('ruft getPipelineOverview mit CRMRepository auf und liefert Ergebnis (Fallback ohne Supabase)', async () => {
+    vi.spyOn(supabaseClientModule, 'isSupabaseConfigured', 'get').mockReturnValue(false);
     const { result } = renderHook(() => usePipelineOverview(), { wrapper: createWrapper() });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.totalDeals).toBe(10);
     expect(result.current.data?.totalVolume).toBe(500000);
     expect(getPipelineOverview).toHaveBeenCalledWith(CRMRepository);
+  });
+
+  it('schaltet auf fetchCrmPipelineOverview (Vollbestands-RPC) um wenn Supabase konfiguriert ist (Auftrag 156)', async () => {
+    vi.spyOn(supabaseClientModule, 'isSupabaseConfigured', 'get').mockReturnValue(true);
+    const { result } = renderHook(() => usePipelineOverview(), { wrapper: createWrapper() });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.totalDeals).toBe(42);
+    expect(result.current.data?.totalVolume).toBe(999000);
+    expect(fetchCrmPipelineOverview).toHaveBeenCalled();
   });
 });

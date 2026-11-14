@@ -3,6 +3,7 @@ import type { SimulationEvent, SimulationEventType } from '@/types/simulation';
 import type { TimeSeriesPoint } from '@/types/aggregation';
 import type { SimulationSnapshot } from '@/types/snapshot';
 import { resultData, type SupabaseLike } from './supabaseClientLike';
+import { fetchChunkedTable } from '@/services/db/supabasePagingHelper';
 
 // 067F / G49 — Supabase-Repository für Run-Bundles. Jeder Schreibpfad läuft
 // über den atomaren RPC `persist_completed_run` (alles oder nichts);
@@ -247,13 +248,36 @@ export function mapTimeseriesPoint(row: TimeseriesRow): TimeSeriesPoint {
   };
 }
 
+const TABLE_PAGING_OPTIONS: Record<string, { orderColumn?: string; tieBreakColumn?: string }> = {
+  simulation_scenarios: { tieBreakColumn: 'id' },
+  simulation_scenario_versions: { tieBreakColumn: 'id' },
+  simulation_runs: { tieBreakColumn: 'run_id' },
+  simulation_timeseries: { orderColumn: 'tick', tieBreakColumn: 'run_id' },
+  simulation_events: { tieBreakColumn: 'id' },
+  simulation_snapshots: { tieBreakColumn: 'snapshot_id' },
+};
+
 async function selectByOrg<T>(
   client: SupabaseLike,
   table: string,
   organizationId: string,
 ): Promise<T[]> {
-  const result = await client.from(table).select('*').eq('organization_id', organizationId);
-  return resultData<T[]>(result, `select ${table}`);
+  const options = TABLE_PAGING_OPTIONS[table];
+  try {
+    return await fetchChunkedTable<T>(client, table, {
+      filter: { column: 'organization_id', value: organizationId },
+      orderColumn: options?.orderColumn,
+      tieBreakColumn: options?.tieBreakColumn,
+    });
+  } catch (e: unknown) {
+    const msg =
+      e instanceof Error
+        ? e.message
+        : typeof e === 'object' && e !== null && 'message' in e
+          ? String((e as { message: unknown }).message)
+          : String(e);
+    throw new Error(`select ${table}: ${msg}`);
+  }
 }
 
 export interface WorkspaceRows {

@@ -7,7 +7,7 @@
 **Baseline:** Nach Merge von Auftrag 155.
 **Branch:** `auftrag-156-crm-repository-vollbestand`.
 **Builder:** Antigravity. **Prüfer:** Codex auf GitHub. **Merge:** Marc.
-**Status:** GEPLANT.
+**Status:** GEBAUT, Verifikation grün.
 
 ---
 
@@ -86,11 +86,11 @@ Bereits behoben als Referenzmuster:
 ---
 
 ## 5. Tasks
-
-- [ ] **T0 Vorbereitung:** Baseline und Schutzbereiche prüfen.
-- [ ] **T1 Rot-Nachweise:** Vitest-Test mit Mock-Supabase (Liefergrenze 1.000 Rows, Testbestand 1.500 Rows). Zeigen, dass `getCompanies`, `getContacts` und `getImportedFunnelDeals` heute bei 1.000 abschneiden.
-- [ ] **T2 CRM-Repository Umstellung:** Paginierung in `readSupabaseTable` einbauen (`PAGE_SIZE = 1000`, `range`, stabiler Tie-Break). `getContactsByCompanyId` gezielt per Query auflösen.
-- [ ] **T3 Workspace-Repository Umstellung:** `selectByOrg` in `runRepository.ts` paginieren.
-- [ ] **T4 Pipeline-Overview Hook:** Prüfung & Anpassung an RPC/Vollbestand.
-- [ ] **T5 Verifikation & Tests:** `npx tsc --noEmit`, `npm test`, `npm run verify`, `npm run build`.
-- [ ] **T6 Dokumentation & PR:** Builder-Eintrag in `docs/BUILD_LOG.md`, PR öffnen.
+ 
+- [x] **T0 Vorbereitung:** Baseline und Schutzbereiche prüfen.
+- [x] **T1 Rot-Nachweise:** Vitest-Test mit Mock-Supabase (Liefergrenze 1.000 Rows, Testbestand 1.500 Rows). Zeigen, dass `getCompanies`, `getContacts` und `getImportedFunnelDeals` heute bei 1.000 abschneiden.
+- [x] **T2 CRM-Repository Umstellung:** Paginierung in `readSupabaseTable` einbauen (`PAGE_SIZE = 1000`, `range`, stabiler Tie-Break). `getContactsByCompanyId` gezielt per Query auflösen.
+- [x] **T3 Workspace-Repository Umstellung:** `selectByOrg` in `runRepository.ts` paginieren.
+- [x] **T4 Pipeline-Overview Hook:** Prüfung & Anpassung an RPC/Vollbestand.
+- [x] **T5 Verifikation & Tests:** `npx tsc --noEmit`, `npm test`, `npm run verify`, `npm run build`.
+- [x] **T6 Dokumentation & PR:** Builder-Eintrag in `docs/BUILD_LOG.md`, PR öffnen.

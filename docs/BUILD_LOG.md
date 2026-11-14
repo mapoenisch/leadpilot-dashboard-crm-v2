@@ -21117,6 +21117,80 @@ Zur Aktivierung der neuen Vollbestands-RPC auf der gehosteten Supabase-Instanz:
      `SELECT public.dashboard_crm_pipeline_overview();`
      -> Wird mit `permission denied` (42501) abgewehrt.
 
+---
+
+## Auftrag 156 – CRM-Repository & Workspace: Vollbestandsabruf und Paginierung jenseits 1.000 Zeilen
+
+**Datum:** 14.11.2026
+**Builder:** Antigravity
+**Branch:** `auftrag-156-crm-repository-vollbestand`
+**Baseline:** `3af5605` (Merge von PR #182)
+
+### 1. Ziel & Kontext
+
+Vollständige Behebung der stillen 1.000-Zeilen-Abschneidung (`max_rows = 1000` in PostgREST/Supabase) im gesamten CRM- und Workspace-Datenzugriff:
+- `CRMRepository` (`getCompanies`, `getContacts`, `getContactsByCompanyId`, `getImportedFunnelDeals`)
+- `runRepository` (`selectByOrg` für `simulation_runs`, `simulation_events`, `simulation_timeseries`, `simulation_snapshots`)
+- `scenarioRepository` (`loadScenarios`, `loadVersions`)
+- `usePipelineOverview` (Anbindung an die serverseitige Vollbestands-RPC `dashboard_crm_pipeline_overview` mit transparentem Fallback)
+
+### 2. T1 Rot-Nachweise
+
+Vor der Implementierung wurden dedizierte Vitest-Suiten mit Mock-PostgREST-Clients erstellt, die das PostgREST-Limit `max_rows = 1000` simulieren (Datenbestand 1.500 Zeilen):
+1. `src/services/db/__tests__/crmRepository.paged.vitest.ts`:
+   - `getCompanies`: lieferte unpaginiert nur 1.000 von 1.500 Einträgen (AssertionError: expected 1000 to be 1500).
+   - `getContacts`: lieferte unpaginiert nur 1.000 von 1.500 Einträgen.
+   - `getImportedFunnelDeals`: lieferte unpaginiert nur 1.000 von 1.500 Einträgen.
+   - `getContactsByCompanyId`: filterte nur im unvollständigen Speicherbestand und fand 0 von 300 Kontakten jenseits Zeile 1.000.
+2. `src/services/runs/__tests__/runRepository.paged.vitest.ts`:
+   - `loadScenarios`: schnitt bei 1.000 von 1.500 Szenarien ab.
+   - `loadVersions`: schnitt bei 1.000 von 1.500 Versionen ab.
+   - `loadWorkspaceRows`: schnitt bei `simulation_runs`, `simulation_events`, `simulation_timeseries` und `simulation_snapshots` bei 1.000 ab.
+
+### 3. Änderungen
+
+1. `src/services/db/supabasePagingHelper.ts` (Neu, 69 Zeilen):
+   - Generische Hilfsfunktion `fetchChunkedTable<Row>(client, table, options)`.
+   - Chunk-Größe `POSTGREST_PAGE_SIZE = 1000`.
+   - `.range(from, from + pageSize - 1)`.
+   - Stabile Primärschlüssel-/Spalten-Sortierung mit konfigurierbarem Tie-Break (`id`).
+   - Abbruchbedingung: `chunk.length < pageSize`.
+2. `src/services/db/crmRepository.ts`:
+   - `readSupabaseTable`: Nutzt `fetchChunkedTable` mit stabiler Sortierung und `id`-Tie-Break.
+   - `getContactsByCompanyId`: Sendet bei konfiguriertem Supabase eine gezielte DB-Abfrage mit `.eq('company_id', companyId)` statt des ineffizienten Vollabrufs mit Speicherfilterung.
+3. `src/services/runs/runRepository.ts`:
+   - `selectByOrg`: Nutzt `fetchChunkedTable` mit `organization_id`-Filter und `id`-Tie-Break.
+4. `src/services/scenarios/scenarioRepository.ts`:
+   - `loadScenarios` & `loadVersions`: Nutzen `fetchChunkedTable` mit `organization_id`-Filter, `created_at`-Sortierung und `id`-Tie-Break.
+5. `src/services/runs/supabaseClientLike.ts`:
+   - `QueryBuilder` um optionale `order` und `range` typisiert.
+6. `src/hooks/queries/usePipelineOverview.ts`:
+   - Schaltet bei `isSupabaseConfigured === true` auf die serverseitige Vollbestands-RPC `fetchCrmPipelineOverview()` um; transparenter Fallback auf `getPipelineOverview(CRMRepository)` wenn nicht konfiguriert.
+
+### 4. Schutzbereichs-Prüfung
+
+```bash
+git diff 3af5605 -- src/simulation src/types src/context src/services/data src/features/resources
+--> LEER (0 Zeilen Diff)
+```
+
+Keine Dateien in Schutzbereichen berührt.
+
+### 5. Pflicht-Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run format:check`: alle Dateien entsprechen dem Prettier-Standard
+- `npm test`: 378/378 Testdateien bestanden (2.771 Tests grün)
+- `npm run verify`: Alle 25 Integrity-Suiten bestanden
+- `npm run build`: Erfolgreich
+- `npm run build:production`: Erfolgreich
+- `npx size-limit`:
+  - Initial JS bundle: 178.44 kB (Limit 180 kB) - grün
+  - Largest chunk: 79.41 kB (Limit 250 kB) - grün
+- Maximale Dateilängen: Alle modifizierten Dateien unter 400 Zeilen (`runRepository.ts` 325, `crmRepository.ts` 235, `supabasePagingHelper.ts` 69, `scenarioRepository.ts` 64, `usePipelineOverview.ts` 17).
+
+
 
 
 

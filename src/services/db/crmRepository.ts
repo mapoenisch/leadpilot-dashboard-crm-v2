@@ -47,6 +47,7 @@ interface DealDbRow {
 }
 import { logger } from '@/services/logger';
 import { DataSourceError } from '@/types/dataSource';
+import { fetchChunkedTable } from './supabasePagingHelper';
 
 // 067R / G64 (PR-SOURCE-04): Kein stiller Demo-Fallback mehr. Ist Supabase
 // konfiguriert, ist Supabase die einzige Quelle: Fehler werden zum expliziten
@@ -78,18 +79,21 @@ async function readSupabaseTable<Row>(
   table: string,
   orderColumn: string,
   ascending: boolean,
+  filter?: { column: string; value: unknown },
 ): Promise<Row[] | null> {
   if (!isSupabaseConfigured) return null;
   if (!supabase) throw dataSourceUnavailable(entity);
-  let result: { data: unknown[] | null; error: unknown };
   try {
-    result = await supabase.from(table).select('*').order(orderColumn, { ascending });
+    return await fetchChunkedTable<Row>(supabase, table, {
+      orderColumn,
+      ascending,
+      tieBreakColumn: 'id',
+      filter,
+    });
   } catch (e) {
     logger.warn(`Supabase fetch failed for ${entity}.`, e);
     throw dataSourceUnavailable(entity, e);
   }
-  if (result.error) throw dataSourceUnavailable(entity, result.error);
-  return (result.data ?? []) as Row[];
 }
 
 export class CRMRepository {
@@ -135,11 +139,31 @@ export class CRMRepository {
   }
 
   /**
-   * Fetch Contacts belonging to a specific Company ID
+   * Fetch Contacts belonging to a specific Company ID.
+   * Bei konfiguriertem Supabase gezielte DB-Abfrage per company_id mit Paginierung (Auftrag 156),
+   * sonst In-Memory-Filter auf dem Snapshot.
    */
   public static async getContactsByCompanyId(companyId: string): Promise<Contact[]> {
-    const contacts = await this.getContacts();
-    return contacts.filter((ct) => ct.companyId === companyId);
+    if (!isSupabaseConfigured) {
+      const contacts = await this.getContacts();
+      return contacts.filter((ct) => ct.companyId === companyId);
+    }
+    const rows = await readSupabaseTable<ContactDbRow>('Contacts', 'contacts', 'last_name', true, {
+      column: 'company_id',
+      value: companyId,
+    });
+    if (rows === null) {
+      const contacts = await this.getContacts();
+      return contacts.filter((ct) => ct.companyId === companyId);
+    }
+    return rows.map((row) => ({
+      id: row.id,
+      companyId: row.company_id || row.companyId || '',
+      email: row.email,
+      firstName: row.first_name || row.firstName || '',
+      lastName: row.last_name || row.lastName || '',
+      jobTitle: row.job_title || row.jobTitle || '',
+    }));
   }
 
   /**
