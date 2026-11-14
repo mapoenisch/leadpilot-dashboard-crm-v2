@@ -259,6 +259,9 @@ describe('DashboardSwitcherV2 UI-Tests', () => {
     expect(screen.getByTestId('delete-dashboard-dialog')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }));
     expect(screen.queryByTestId('delete-dashboard-dialog')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(trigger).toHaveFocus();
+    });
 
     // Neu-Dialog abbrechen
     fireEvent.click(trigger);
@@ -266,6 +269,9 @@ describe('DashboardSwitcherV2 UI-Tests', () => {
     expect(screen.getByTestId('new-dashboard-dialog')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }));
     expect(screen.queryByTestId('new-dashboard-dialog')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(trigger).toHaveFocus();
+    });
 
     // Duplizieren-Dialog abbrechen
     fireEvent.click(trigger);
@@ -273,6 +279,9 @@ describe('DashboardSwitcherV2 UI-Tests', () => {
     expect(screen.getByTestId('duplicate-dashboard-dialog')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }));
     expect(screen.queryByTestId('duplicate-dashboard-dialog')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(trigger).toHaveFocus();
+    });
   });
 
   it('blendet Aktionen im Vorschau-Modus aus', () => {

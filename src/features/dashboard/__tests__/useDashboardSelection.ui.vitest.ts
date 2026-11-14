@@ -196,4 +196,36 @@ describe('useDashboardSelection Hook Tests', () => {
     expect(ok).toBe(true);
     expect(result.current.announcement).toContain('Dashboard ‚Dashboard 1‘ gelöscht, ‚Dashboard 2‘ geöffnet');
   });
+
+  it('bewahrt Folgeaktion über Speicher-Remount hinweg auf (P2 Finding 1)', async () => {
+    const onSaveCurrent = vi.fn().mockResolvedValue(true);
+
+    const hookParams = {
+      currentDashboard: currentDash,
+      dashboards: mockDashboards,
+      isDirty: true,
+      onOpenDashboard: vi.fn(),
+      onCreateFromTemplate: vi.fn(),
+      onDuplicateCurrent: vi.fn(),
+      onDeleteDashboard: vi.fn(),
+      onSaveCurrent,
+    };
+
+    const { result, unmount } = renderHook(() => useDashboardSelection(hookParams));
+
+    act(() => {
+      result.current.handleProtectedAction({ type: 'new' });
+    });
+    expect(result.current.showUnsavedConfirm).toBe(true);
+
+    await act(async () => {
+      const savePromise = result.current.handleSaveAndProceed();
+      unmount();
+      await savePromise;
+    });
+
+    // Neue Instanz nach Remount
+    const { result: newResult } = renderHook(() => useDashboardSelection(hookParams));
+    expect(newResult.current.activeDialog).toBe('new');
+  });
 });

@@ -1,7 +1,7 @@
 // Auftrag 158 (P09b): Dashboard-Auswahl in der Top-Bar.
 // Scope-Badge, Disclosure-Menü, Tastaturbedienung und barrierefreie Ansagen.
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
@@ -75,6 +75,7 @@ export function DashboardSwitcherV2({
     handleCreate,
     handleDuplicate,
     handleDelete,
+    returnFocusToTrigger,
   } = selection;
 
   const [, setFocusedIndex] = useState<number>(-1);
@@ -136,6 +137,16 @@ export function DashboardSwitcherV2({
       itemRefs.current[last]?.focus();
     }
   };
+
+  const handleCloseActiveDialog = useCallback(() => {
+    setActiveDialog(null);
+    returnFocusToTrigger();
+  }, [setActiveDialog, returnFocusToTrigger]);
+
+  const handleCloseUnsavedConfirm = useCallback(() => {
+    setShowUnsavedConfirm(false);
+    returnFocusToTrigger();
+  }, [setShowUnsavedConfirm, returnFocusToTrigger]);
 
   return (
     <div className={cn('relative inline-block', className)}>
@@ -208,7 +219,7 @@ export function DashboardSwitcherV2({
       {/* Dialog 1: Neues Dashboard */}
       <NewDashboardDialogV2
         open={activeDialog === 'new'}
-        onClose={() => setActiveDialog(null)}
+        onClose={handleCloseActiveDialog}
         existingDashboards={dashboards}
         onCreate={handleCreate}
         isSaving={isProcessing}
@@ -217,7 +228,7 @@ export function DashboardSwitcherV2({
       {/* Dialog 2: Duplizieren */}
       <DuplicateDashboardDialogV2
         open={activeDialog === 'duplicate'}
-        onClose={() => setActiveDialog(null)}
+        onClose={handleCloseActiveDialog}
         currentDashboard={currentDashboard}
         isDirty={isDirty}
         onDuplicate={handleDuplicate}
@@ -227,7 +238,7 @@ export function DashboardSwitcherV2({
       {/* Dialog 3: Löschen */}
       <DeleteDashboardDialogV2
         open={activeDialog === 'delete'}
-        onClose={() => setActiveDialog(null)}
+        onClose={handleCloseActiveDialog}
         dashboard={currentDashboard}
         onConfirm={handleDelete}
         isSaving={isProcessing}
@@ -237,7 +248,7 @@ export function DashboardSwitcherV2({
       <UnsavedChangesDialog
         open={showUnsavedConfirm}
         locked={isProcessing}
-        onStay={() => setShowUnsavedConfirm(false)}
+        onStay={handleCloseUnsavedConfirm}
         onDiscard={handleDiscardAndProceed}
         onSave={handleSaveAndProceed}
       />

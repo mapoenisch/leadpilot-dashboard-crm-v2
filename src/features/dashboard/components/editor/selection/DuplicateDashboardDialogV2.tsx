@@ -46,6 +46,7 @@ export function DuplicateDashboardDialogV2({
   useEscapeToClose(open, handleClose);
 
   const handleSubmit = async (saveFirst: boolean) => {
+    if (isSaving) return;
     const trimmed = title.trim();
     if (!trimmed) {
       setError('Bitte gib einen Titel für das duplizierte Dashboard ein.');
@@ -135,10 +136,11 @@ export function DuplicateDashboardDialogV2({
             id={inputId}
             data-testid="duplicate-dashboard-title-input"
             type="text"
+            disabled={isSaving}
             value={title}
             maxLength={MAX_DASHBOARD_TITLE_LENGTH}
             onChange={(e) => setTitle(e.target.value)}
-            className="h-9 w-full rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-3 text-sm text-white outline-none focus:border-primary"
+            className="h-9 w-full rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-3 text-sm text-white outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
             autoFocus
           />
           <span className="text-[11px] text-muted-foreground">

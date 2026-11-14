@@ -26,6 +26,13 @@ export interface UseDashboardSelectionParams {
   onSaveCurrent: () => Promise<boolean>;
 }
 
+// Modulweiter Zwischenspeicher für Folgeaktionen über Speicher-Remounts hinweg (P09b / Codex P2)
+let pendingFollowUpSelectionAction: PendingSelectionAction | null = null;
+
+export function clearPendingFollowUpSelectionAction(): void {
+  pendingFollowUpSelectionAction = null;
+}
+
 export function useDashboardSelection({
   currentDashboard,
   dashboards,
@@ -38,12 +45,31 @@ export function useDashboardSelection({
   onSaveCurrent,
 }: UseDashboardSelectionParams) {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeDialog, setActiveDialog] = useState<ActiveDialogType>(null);
+  const [activeDialog, setActiveDialog] = useState<ActiveDialogType>(() => {
+    if (
+      pendingFollowUpSelectionAction &&
+      (pendingFollowUpSelectionAction.type === 'new' ||
+        pendingFollowUpSelectionAction.type === 'delete')
+    ) {
+      const type = pendingFollowUpSelectionAction.type;
+      pendingFollowUpSelectionAction = null;
+      return type;
+    }
+    return null;
+  });
   const [pendingAction, setPendingAction] = useState<PendingSelectionAction | null>(null);
   const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
   const [announcement, setAnnouncement] = useState<string>('');
   const [errorText, setErrorText] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -115,21 +141,44 @@ export function useDashboardSelection({
     }
   }, [pendingAction, executeAction]);
 
+  // Folgeaktion nach Mount (z. B. nach Speicher-Remount bei type === 'open') ausführen
+  useEffect(() => {
+    if (pendingFollowUpSelectionAction) {
+      const act = pendingFollowUpSelectionAction;
+      pendingFollowUpSelectionAction = null;
+      if (act.type === 'new' || act.type === 'delete') {
+        setActiveDialog(act.type);
+      } else if (act.type === 'open') {
+        executeAction(act);
+      }
+    }
+  }, [executeAction]);
+
   const handleSaveAndProceed = useCallback(async () => {
     setIsProcessing(true);
+    const act = pendingAction;
+    pendingFollowUpSelectionAction = act;
     const saved = await onSaveCurrent();
+    if (!isMountedRef.current) {
+      // Instanz wurde während des Speicherns unmounted (z. B. Revisions-Remount).
+      // Die Folgeaktion bleibt für die neu einhängende Instanz erhalten.
+      return;
+    }
     setIsProcessing(false);
     if (!saved) {
       // Speichern fehlgeschlagen oder Revisionskonflikt -> nicht wechseln
+      pendingFollowUpSelectionAction = null;
       setShowUnsavedConfirm(false);
       setPendingAction(null);
       return;
     }
     setShowUnsavedConfirm(false);
-    if (pendingAction) {
-      const act = pendingAction;
-      setPendingAction(null);
-      await executeAction(act);
+    setPendingAction(null);
+    // Falls keine Unmount/Remount-Welle erfolgte (z. B. im selben Render-Baum):
+    if (pendingFollowUpSelectionAction) {
+      const followUp = pendingFollowUpSelectionAction;
+      pendingFollowUpSelectionAction = null;
+      await executeAction(followUp);
     }
   }, [onSaveCurrent, pendingAction, executeAction]);
 

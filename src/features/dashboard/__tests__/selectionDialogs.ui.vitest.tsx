@@ -307,4 +307,26 @@ describe('NewDashboardDialogV2 UI-Tests', () => {
       expect(onCreate).toHaveBeenCalledWith('sales', 'Vertrieb & Pipeline');
     });
   });
+
+  it('blockiert Formular-Submits während isSaving aktiv ist (P2 Finding 3)', async () => {
+    const onCreate = vi.fn().mockResolvedValue(true);
+    const onClose = vi.fn();
+
+    render(
+      <NewDashboardDialogV2
+        open={true}
+        onClose={onClose}
+        existingDashboards={[]}
+        onCreate={onCreate}
+        isSaving={true}
+      />,
+    );
+
+    const form = screen.getByTestId('new-dashboard-dialog');
+    fireEvent.submit(form);
+    expect(onCreate).not.toHaveBeenCalled();
+
+    const input = screen.getByTestId('new-dashboard-title-input');
+    expect(input).toBeDisabled();
+  });
 });

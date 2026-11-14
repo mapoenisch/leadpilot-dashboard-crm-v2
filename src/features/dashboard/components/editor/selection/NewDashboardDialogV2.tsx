@@ -93,6 +93,7 @@ export function NewDashboardDialogV2({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving) return;
     const trimmed = title.trim();
     if (!trimmed) {
       setError('Bitte gib einen Titel für das Dashboard ein.');
@@ -155,6 +156,7 @@ export function NewDashboardDialogV2({
             id={titleInputId}
             data-testid="new-dashboard-title-input"
             type="text"
+            disabled={isSaving}
             value={title}
             maxLength={MAX_DASHBOARD_TITLE_LENGTH}
             onChange={(e) => {
@@ -162,7 +164,7 @@ export function NewDashboardDialogV2({
               setUserHasEditedTitle(true);
             }}
             placeholder="Dashboard-Titel..."
-            className="h-9 w-full rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-3 text-sm text-white outline-none focus:border-primary"
+            className="h-9 w-full rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-3 text-sm text-white outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
             autoFocus
           />
           <span className="text-[11px] text-muted-foreground">
@@ -189,6 +191,7 @@ export function NewDashboardDialogV2({
                   key={tpl.id}
                   type="button"
                   role="radio"
+                  disabled={isSaving}
                   aria-checked={isSelected}
                   data-testid={`template-card-${tpl.id}`}
                   onClick={() => {
@@ -196,6 +199,7 @@ export function NewDashboardDialogV2({
                   }}
                   className={cn(
                     'flex min-h-[92px] flex-col justify-between rounded-lg border p-3 text-left transition-all',
+                    isSaving && 'cursor-not-allowed opacity-50',
                     isSelected
                       ? 'border-primary bg-primary/10 shadow-[0_0_12px_rgba(30,174,152,0.15)]'
                       : 'border-[var(--color-border,#1b3d39)] bg-black/20 hover:border-primary/40 hover:bg-black/40',
