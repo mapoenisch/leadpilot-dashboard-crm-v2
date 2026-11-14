@@ -78,18 +78,7 @@ export function SectionHeaderV2({
     <div
       data-testid={`section-header-${section.id}`}
       data-active-area={isActiveArea}
-      role="button"
-      tabIndex={0}
-      aria-label={`Sektion ${section.title} aktivieren`}
-      onClick={onSelectActiveArea}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          if (e.target === e.currentTarget) {
-            e.preventDefault();
-            onSelectActiveArea?.();
-          }
-        }
-      }}
+      onPointerDown={() => onSelectActiveArea?.()}
       className={cn(
         'group flex flex-wrap items-center justify-between gap-2 rounded-lg border px-3 py-2 transition-colors select-none',
         isActiveArea && !isPreviewMode
