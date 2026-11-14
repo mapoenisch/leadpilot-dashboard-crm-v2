@@ -248,15 +248,26 @@ export function mapTimeseriesPoint(row: TimeseriesRow): TimeSeriesPoint {
   };
 }
 
+const TABLE_PAGING_OPTIONS: Record<string, { orderColumn?: string; tieBreakColumn?: string }> = {
+  simulation_scenarios: { tieBreakColumn: 'id' },
+  simulation_scenario_versions: { tieBreakColumn: 'id' },
+  simulation_runs: { tieBreakColumn: 'run_id' },
+  simulation_timeseries: { orderColumn: 'tick', tieBreakColumn: 'run_id' },
+  simulation_events: { tieBreakColumn: 'id' },
+  simulation_snapshots: { tieBreakColumn: 'snapshot_id' },
+};
+
 async function selectByOrg<T>(
   client: SupabaseLike,
   table: string,
   organizationId: string,
 ): Promise<T[]> {
+  const options = TABLE_PAGING_OPTIONS[table];
   try {
     return await fetchChunkedTable<T>(client, table, {
       filter: { column: 'organization_id', value: organizationId },
-      tieBreakColumn: 'id',
+      orderColumn: options?.orderColumn,
+      tieBreakColumn: options?.tieBreakColumn,
     });
   } catch (e: unknown) {
     const msg =

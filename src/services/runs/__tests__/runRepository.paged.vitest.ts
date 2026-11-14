@@ -25,7 +25,6 @@ describe('runRepository & scenarioRepository - Paginierung und Vollbestandsabruf
     }));
 
     const runs = Array.from({ length: totalRows }, (_, i) => ({
-      id: `run_${i + 1}`,
       run_id: `run_${i + 1}`,
       organization_id: orgId,
       scenario_id: `scen_${i + 1}`,
@@ -37,7 +36,7 @@ describe('runRepository & scenarioRepository - Paginierung und Vollbestandsabruf
     }));
 
     const events = Array.from({ length: totalRows }, (_, i) => ({
-      id: `event_${i + 1}`,
+      id: i + 1,
       organization_id: orgId,
       run_id: `run_1`,
       event_type: 'LEAD_QUALIFIED',
@@ -46,17 +45,18 @@ describe('runRepository & scenarioRepository - Paginierung und Vollbestandsabruf
     }));
 
     const points = Array.from({ length: totalRows }, (_, i) => ({
-      id: `point_${i + 1}`,
-      organization_id: orgId,
       run_id: `run_1`,
+      tick: i,
+      organization_id: orgId,
       simulated_date: '2026-01-02T00:00:00Z',
       metrics: { arr: 1000, mrr: 100, customers: 5, wonDeals: 2 },
     }));
 
     const snapshots = Array.from({ length: totalRows }, (_, i) => ({
-      id: `snap_${i + 1}`,
+      snapshot_id: `snap_${i + 1}`,
       organization_id: orgId,
       run_id: `run_1`,
+      tick_id: i,
       created_at: '2026-01-01T00:00:00Z',
       state: {},
     }));
@@ -73,10 +73,17 @@ describe('runRepository & scenarioRepository - Paginierung und Vollbestandsabruf
     const fromMock = vi.fn((table: string) => {
       let filtered = [...(tableMap[table] ?? [])];
       let rangeBounds: { from: number; to: number } | null = null;
+      let orderError: Error | null = null;
 
       const builder = {
         select: vi.fn(() => builder),
-        order: vi.fn(() => builder),
+        order: vi.fn((col: string) => {
+          const sampleRow = (tableMap[table] ?? [])[0];
+          if (sampleRow && !(col in sampleRow)) {
+            orderError = new Error(`column "${col}" does not exist on table "${table}"`);
+          }
+          return builder;
+        }),
         eq: vi.fn((col: string, val: unknown) => {
           filtered = filtered.filter((row: Record<string, unknown>) => row[col] === val);
           return builder;
@@ -85,7 +92,18 @@ describe('runRepository & scenarioRepository - Paginierung und Vollbestandsabruf
           rangeBounds = { from, to };
           return builder;
         }),
-        then: async (resolve: (val: { data: unknown[]; error: null }) => void) => {
+        then: async (
+          resolve: (val: { data: unknown[]; error: unknown }) => void,
+          reject?: (err: unknown) => void,
+        ) => {
+          if (orderError) {
+            if (reject) {
+              reject(orderError);
+            } else {
+              resolve({ data: null as unknown as unknown[], error: orderError });
+            }
+            return;
+          }
           if (rangeBounds) {
             const chunk = filtered.slice(rangeBounds.from, rangeBounds.to + 1);
             resolve({ data: chunk.slice(0, 1000), error: null });
