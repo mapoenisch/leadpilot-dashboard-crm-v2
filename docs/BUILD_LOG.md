@@ -21302,3 +21302,106 @@ git diff 60aa96b --stat -- supabase/migrations
 3. **Befund und Korrektur online:** `service_role` hatte online kein `EXECUTE` auf `claim_ingress_slot` und `ingest_live_kpi_event` (lokal über Supabase-Standardrechte vorhanden). Die Edge Function lieferte deshalb `500 INGEST_FAILED`; sie war online also nie lauffähig. Online nachgezogen: `GRANT EXECUTE … TO service_role` für genau diese zwei Funktionen. **Offen für einen Folgeauftrag:** dieselben zwei Grants als Migration ins Repo aufnehmen, damit lokal und online gleich bleiben. Außerdem prüfen, welche weiteren RPCs online `service_role` brauchen.
 4. **Abnahme:** signiertes Probe-Event (`sourceSystem = abnahme-test`, `pipeline_leads = 1`) → `201 accepted`, Organisation = Demo-Organisation, im Feed sichtbar; gleiche Nonce → `401 INGEST_REPLAY_DETECTED`; falsche Signatur → `401 INGEST_SIGNATURE_INVALID`; anonymer REST-Lesezugriff auf `live_kpi_public_feed` → `401 permission denied`. Prüfungen der übrigen Migrationen: Sektionsprüfung online gültig/ungültig wie erwartet, `anon` ohne Zugriff auf `dashboards` und die Dashboard-RPCs, RLS aktiv.
 5. **Noch bei Marc:** n8n-Credential `HMAC Sign Base` mit dem neuen Secret aktualisieren und den Workflow mit `X-LeadPilot-Sender: leadpilot-demo` neu importieren (der n8n-Zugang war aus dieser Sitzung nicht erreichbar). Die Betriebsregel „keine echten Kennzahlen einspeisen“ gilt bis zum erfolgreichen n8n-Testlauf weiter.
+---
+
+## 2026-11-14 — Auftrag 158: Dashboard-Editor: V2-Vorlagen und Dashboard-Auswahl (P09b)
+
+**Rolle:** Antigravity (P09b Umsetzung)  
+**Branch:** `auftrag-158-vorlagen-dashboard-auswahl`  
+**Baseline:** `ba603db8` (Merge von PR #185)  
+
+### 1. Rot-Nachweise (§3 Nr. 8)
+
+- **(a) Client-Auswahl & Obergrenzen:** Vor Auftrag 158 gab es im V2-Editor keine Möglichkeit, zwischen mehreren Dashboards zu wechseln, Dashboards aus V2-Vorlagen zu erstellen, zu duplizieren oder zu löschen. Ohne `LP_DASHBOARD_LIMIT` und `LP_LAST_DASHBOARD` gab es keinen Schutz vor Überschreitung der 20er-Obergrenze oder Löschen des letzten verbleibenden Dashboards.
+- **(b) Server-Auswahl-RPCs:** Vor Migration `20261118_dashboard_selection.sql` existierten in PostgreSQL keine RPCs für atomares Duplizieren (`duplicate_personal_dashboard_v2`) oder sicheres Löschen mit nächstem Fallback (`delete_personal_dashboard_v2`). Versuche führten zu fehlenden Funktionen. Jetzt mit 15 pgTAP-Suiten (356 Tests) und Fixture-Tests abgesichert.
+- **(c) Titelableitung (80 Zeichen-Budget):** Vor Auftrag 158 fehlte die deterministische Kürzungs- und Zählregel für Kopien (`buildDerivedDashboardTitle`). Lange Titel führten zu Datenbankfehlern (`check_title_length`). Jetzt mit Vitest-Suite `dashboardTitles.vitest.ts` (8 Tests) strikt verifiziert.
+- **(d) Zähltest (Performance / Lazy Loading):** Sichergestellt, dass `listPersonalDashboardsV2` beim Laden des Editors exakt höchstens 1-mal aufgerufen wird (`DashboardSwitcherV2.ui.vitest.tsx`). Vorlagen werden erst beim Öffnen des Dialogs dynamisch importiert (`import('../../../model/dashboardTemplatesV2')`), um das 180 kB Initial-Bundle-Budget einzuhalten.
+
+### 2. Leistungsmessung & Bundle-Größen
+
+- **Initial JS bundle (gzip):** **178.79 kB** (Limit: 180 kB) — **GRÜN**
+- **Largest chunk (gzip):** **79.41 kB** (Limit: 250 kB) — **GRÜN**
+- **Dynamischer Vorlagen-Chunk:** `dashboardTemplatesV2` wird mit 2.56 kB gzip nur nach Bedarf beim Klick auf „Neues Dashboard“ nachgeladen.
+- **Zähltest:** 1 Aufruf von `listPersonalDashboardsV2` beim Editor-Initialisieren (nachgewiesen via Spy in `DashboardSwitcherV2.ui.vitest.tsx`).
+
+### 3. Screenshot-Matrix (docs/screenshots/auftrag-158/README.md)
+
+Alle 12 Konfigurationen (3 Viewports: 1440px Desktop, 768px Tablet, 375px Mobil × 4 Szenarien) weisen **0 px horizontal overflow** auf und besitzen eindeutige SHA-256 Hashes:
+1. `editor-switcher-closed`: Geschlossener Switcher im TopBar (3 Viewports, 0 px Overflow).
+2. `editor-switcher-menu-open`: Geöffnetes Umschalt-Menü mit Vorlagen-Button, Dashboard-Liste und Metadaten (3 Viewports, 0 px Overflow).
+3. `dialog-new-dashboard`: Dialog „Neues Dashboard erstellen“ mit 4 V2-Vorlagenkarten (3 Viewports, 0 px Overflow).
+4. `dialog-duplicate-dashboard`: Dialog „Dashboard duplizieren“ mit abgeleitetem Titel und 80-Zeichen-Zähler (3 Viewports, 0 px Overflow).
+
+### 4. Durchgeführte Änderungen
+
+1. `supabase/migrations/20261118_dashboard_selection.sql` (Neu, 178 Zeilen):
+   - Postgres-RPCs `duplicate_personal_dashboard_v2` (atomare Kopie mit nächster freier Revision) und `delete_personal_dashboard_v2` (Löschen mit Schutz vor letztem Dashboard und Rückgabe der nächsten aktiven Dashboard-ID).
+   - Obergrenzen-Schutz: Maximal 20 Dashboards pro Benutzer/Organisation.
+2. `supabase/tests/dashboard_selection.sql` & Fixtures (Neu, 142 Zeilen):
+   - pgTAP-Tests für Vorlagengültigkeit, Duplizierung, Obergrenze 20 und Löschschutz für das letzte Dashboard.
+3. `src/features/dashboard/model/dashboardTemplatesV2.ts` (Neu, 178 Zeilen) & `dashboardTemplatesV2.vitest.ts`:
+   - 4 V2-Vorlagen (`default`, `sales-focus`, `financial-steering`, `executive-compact`) mit vollständiger V2-Struktur (Sections, Tile-Config, Grid-Positionen).
+4. `src/features/dashboard/model/dashboardTitles.ts` (Neu, 31 Zeilen) & `dashboardTitles.vitest.ts`:
+   - `buildDerivedDashboardTitle` mit strikter Einhaltung des 1–80 Zeichenbudgets und Vermeidung von Doppel-Suffixen.
+5. `src/features/dashboard/services/dashboardSelectionV2.ts` (Neu, 276 Zeilen) & `dashboardSelectionStorage.vitest.ts`:
+   - Supabase-Adapter und In-Memory-Fallback für `listPersonalDashboardsV2`, `createDashboardFromTemplateV2`, `duplicatePersonalDashboardV2` und `deletePersonalDashboardV2`.
+6. `src/features/dashboard/hooks/useDashboardV2Storage.ts` (397 Zeilen):
+   - Integration der Multi-Dashboard-Auswahl in den zentralen Storage-Hook.
+7. TopBar-Zerlegung (`max-lines: 400` eingehalten):
+   - `src/features/dashboard/components/editor/topbar/BreakpointSelector.tsx` (71 Zeilen).
+   - `src/features/dashboard/components/editor/topbar/UndoRedoGroup.tsx` (61 Zeilen).
+   - `src/features/dashboard/components/editor/EditorTopBarV2.tsx` (390 Zeilen).
+8. Switcher & Dialoge (`src/features/dashboard/components/editor/selection/`):
+   - `DashboardSwitcherV2.tsx` (237 Zeilen): Barrierefreier Trigger mit DropdownMenu.
+   - `DashboardSwitcherMenuV2.tsx` (231 Zeilen): Menüliste mit Tastatur-Navigation, Quick-Actions und 20er-Limit-Badge.
+   - `NewDashboardDialogV2.tsx` (225 Zeilen): Dialog zur Vorlagenauswahl mit Live-Validierung und dynamischem Template-Import.
+   - `DuplicateDashboardDialogV2.tsx` (151 Zeilen): Duplizieren mit Auto-Vorschlag.
+   - `DeleteDashboardDialogV2.tsx` (97 Zeilen): Sicherheitsdialog mit Eingabe des Dashboard-Namens.
+   - `DashboardDeletedDialogV2.tsx` (61 Zeilen): Fallback-Dialog falls aktives Dashboard extern gelöscht wurde.
+   - `useDashboardSelection.ts` (241 Zeilen): Hook für Menü- und Dialogzustände inkl. `isDirty`-Navigationsschutz.
+9. Test- und Abnahme-Suiten:
+   - `src/features/dashboard/__tests__/DashboardSwitcherV2.ui.vitest.tsx` (Neu, 12 Tests inkl. Zähltest).
+   - `e2e/personal-dashboard-selection.spec.ts` (Neu, 3 Viewports).
+   - `e2e/a11y.spec.ts` & `e2e/a11y-baseline.json` (Axe-Core A11y Tests erweitert).
+   - `scripts/runV23Acceptance.mjs` & `.github/workflows/ci.yml`: E2E-Spec registriert.
+10. Dokumentation:
+    - `docs/dashboard/VORLAGEN_AUSWAHL_P09B.md` (Neu, Spezifikation & Fachverträge).
+    - `docs/dashboard/DASHBOARD_EDITOR_MASTERPLAN.md` (§6 aktualisiert).
+    - `docs/dashboard/SPEICHERSTRUKTUR_REVISIONEN_P07.md` (§6 aktualisiert).
+    - `docs/dashboard/EDITOR_UX_FACHVERTRAEGE_145.md` (§2.1 aktualisiert).
+
+### 5. Schutzbereichs-Prüfung
+
+```bash
+git diff ba603db8 -- src/simulation src/types src/context src/services/data src/features/resources
+--> LEER (0 Zeilen Diff)
+
+git diff ba603db8 -- src/services/db/crmRepository.ts src/domain/executiveCockpitData.ts src/features/dashboard/data src/features/dashboard/model/dashboardPresets.ts
+--> LEER (0 Zeilen Diff)
+
+git diff ba603db8 --stat -- supabase/migrations
+--> 1 neue Datei (20261118_dashboard_selection.sql), 0 geänderte Dateien
+```
+
+### 6. Pflicht-Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm test`: 385/385 Testdateien bestanden (2.866 Tests grün)
+- `npm run verify`: Alle 25 Integrity-Suiten bestanden
+- `npm run build`: Erfolgreich
+- `VITE_SUPABASE_URL=https://... npm run build:production`: Erfolgreich
+- `npx size-limit`: Grün (178.79 kB / 180 kB Initial-Bundle)
+- `npm run verify:migrations`: GRÜN
+- `supabase test db`: 15 pgTAP-Suiten (356 Tests) bestanden
+- Maximale Dateilängen: Alle neu erstellten und modifizierten Dateien liegen strikt unter 400 Zeilen.
+
+### 7. Hosted-Migrations-Schrittliste (für Hosted-Umgebung nfyiywfcnfjtjbdbptdg)
+
+Folgende Schritte sind zur Aktivierung auf der gehosteten Supabase-Instanz auszuführen:
+1. Migration `supabase/migrations/20261118_dashboard_selection.sql` im SQL-Editor von Supabase einspielen (oder via `supabase db push`).
+2. Prüfung der RPC-Berechtigungen:
+   - `SELECT proname FROM pg_proc WHERE proname IN ('duplicate_personal_dashboard_v2', 'delete_personal_dashboard_v2');`
+   - Sicherstellen, dass `authenticated` EXECUTE-Rechte besitzt.
+3. Eintrag in `supabase_migrations.schema_migrations` sicherstellen:
+   `INSERT INTO supabase_migrations.schema_migrations(version) VALUES ('20261118_dashboard_selection') ON CONFLICT DO NOTHING;`

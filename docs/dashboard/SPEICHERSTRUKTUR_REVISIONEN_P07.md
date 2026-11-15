@@ -115,3 +115,15 @@ Dadurch ist das Layout über alle Breakpoints deterministisch, frei von Überlap
   - Speichern aktualisiert Revision und hebt Dirty-Zustand auf.
   - Revisionskonflikt wird abgefangen und verständlich angezeigt.
   - V1-Bestandspfad bleibt 100 % funktionsfähig.
+
+---
+
+## 6. Nachtrag Auftrag 158 (P09b, 14. November 2026): Mehrfach-Dashboards und Auswahl-RPCs
+
+Mit Auftrag 158 (Migration `20261118_dashboard_selection.sql`) wird die V2-Speicherstruktur für mehrere persönliche Dashboards erweitert:
+1. **Obergrenze:** Bis zu 20 Dashboards je Benutzer und Organisation (`LP_DASHBOARD_LIMIT` / `obergrenze_erreicht`).
+2. **Listen-RPC:** `list_personal_dashboards_v2()` liefert Metadaten (`tile_count`, `section_count`, `revision`, `updated_at`) aller persönlichen Dashboards des Nutzers.
+3. **Lösch-RPC:** `delete_personal_dashboard_v2(dashboard_id, expected_revision)` löscht das Dashboard und zugehörige Revisionen. Verhindert das Löschen des letzten Dashboards (`LP_LAST_DASHBOARD` / `letztes_dashboard`) und gibt das nächste zu aktivierende Dashboard zurück.
+4. **Duplizier-RPC:** `duplicate_personal_dashboard_v2(dashboard_id, title)` erzeugt ein neues Dashboard mit identischen Kacheln/Sektionen unter Einhaltung des 20er-Limits.
+5. **Titel-Sicherheit:** Automatische Kopietitel werden über `buildDerivedDashboardTitle` strikt auf maximal 80 Zeichen begrenzt.
+
