@@ -1,14 +1,16 @@
-// Executive Dashboard V2 (Auftrag 148 & 157 / P05 & P09a):
-// Vier-Zonen-Shell des neuen visuellen Dashboard-Editors.
-// Koordiniert Top-Bar, Widget-Bibliothek, Sektions-Canvas, Inspector und Statusleiste,
-// steuert Undo/Redo über den Editor-Kern und sichert Entwürfe vor Datenverlust.
+// Executive Dashboard V2 (Auftrag 148 & 157 / P05 & P09a): Vier-Zonen-Shell des neuen Dashboard-Editors.
+// Koordiniert Top-Bar, Widget-Bibliothek, Sektions-Canvas, Inspector und Statusleiste.
 
 import { useCallback, useMemo, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { SetGlobalFilterCommand, UpdateDashboardMetaCommand } from '../../core/editorCommands';
 import { useDashboardEditorV2 } from '../../hooks/useDashboardEditorV2';
 import type { DashboardConfigV2 } from '../../model/dashboardConfigV2';
-import { TimeControlProvider, useTimeControl } from '../../time/TimeControlProvider';
+import {
+  TimeControlProvider,
+  useTimeControl,
+  useOptionalTimeControl,
+} from '../../time/TimeControlProvider';
 import { useEditorLiveStatus, type EditorLiveStatus } from '../../time/useEditorLiveStatus';
 import type { LiveKpiStreamStore } from '@/services/liveKpi/liveKpiStreamStore';
 import type { TileDataHook } from '../LazyDashboardTile';
@@ -54,6 +56,10 @@ export interface DashboardEditorShellV2Props {
 }
 
 export function DashboardEditorShellV2(props: DashboardEditorShellV2Props) {
+  const existing = useOptionalTimeControl();
+  if (existing) {
+    return <DashboardEditorShellBody {...props} />;
+  }
   return (
     <TimeControlProvider>
       <DashboardEditorShellBody {...props} />
@@ -182,10 +188,11 @@ function DashboardEditorShellBody({
       config.tiles.filter(
         (tile) =>
           !config.sections?.some(
-            (section) => section.collapsed && section.tileIds.includes(tile.id),
+            (section) =>
+              sectionActions.isSectionCollapsed(section.id) && section.tileIds.includes(tile.id),
           ),
       ),
-    [config.sections, config.tiles],
+    [config.sections, config.tiles, sectionActions],
   );
 
   const liveStatus = useEditorLiveStatus({

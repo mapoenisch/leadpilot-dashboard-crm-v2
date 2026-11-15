@@ -17,6 +17,7 @@ import {
   isDashboardEditorV2Enabled,
   setDashboardEditorV2Override,
 } from '../model/dashboardRollout';
+import { TimeControlProvider } from '../time/TimeControlProvider';
 import { invalidateCrmOverviewQueries } from '../time/resumeCrmRefresh';
 import { useTimeControlledData } from '../time/useTimeControlledData';
 
@@ -129,26 +130,28 @@ function PersonalExecutiveDashboardV2Container({
 
   return (
     <>
-      <DashboardEditorShellV2
-        key={`${v2Storage.dashboard.id}_${v2Storage.dashboard.revision}`}
-        initialConfig={v2Storage.dashboard.config}
-        useData={useTimeControlledData}
-        onSave={handleSave}
-        onResume={handleResume}
-        onCancel={() => {
-          setDashboardEditorV2Override(false);
-          window.location.reload();
-        }}
-        onShowDetails={(tileId) => onShowDetails(tileId, v2Storage.dashboard?.id)}
-        dashboards={v2Storage.dashboards}
-        currentStoredDashboard={v2Storage.dashboard}
-        onOpenDashboard={v2Storage.openDashboard}
-        onCreateFromTemplate={v2Storage.createFromTemplate}
-        onDuplicateCurrent={v2Storage.duplicateCurrent}
-        onDeleteDashboard={v2Storage.deleteDashboard}
-        onRefreshList={v2Storage.refreshList}
-        listError={v2Storage.listError}
-      />
+      <TimeControlProvider key={v2Storage.dashboard.id}>
+        <DashboardEditorShellV2
+          key={`${v2Storage.dashboard.id}_${v2Storage.dashboard.revision}`}
+          initialConfig={v2Storage.dashboard.config}
+          useData={useTimeControlledData}
+          onSave={handleSave}
+          onResume={handleResume}
+          onCancel={() => {
+            setDashboardEditorV2Override(false);
+            window.location.reload();
+          }}
+          onShowDetails={(tileId) => onShowDetails(tileId, v2Storage.dashboard?.id)}
+          dashboards={v2Storage.dashboards}
+          currentStoredDashboard={v2Storage.dashboard}
+          onOpenDashboard={v2Storage.openDashboard}
+          onCreateFromTemplate={v2Storage.createFromTemplate}
+          onDuplicateCurrent={v2Storage.duplicateCurrent}
+          onDeleteDashboard={v2Storage.deleteDashboard}
+          onRefreshList={v2Storage.refreshList}
+          listError={v2Storage.listError}
+        />
+      </TimeControlProvider>
       <DashboardConflictDialogV2
         open={showConflictDialog}
         isSaving={v2Storage.isSaving}

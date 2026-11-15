@@ -192,8 +192,7 @@ export function useEditorLiveStatus({
       setStatus((previous) => (sameStatus(previous, next) ? previous : next));
     };
     update();
-    if (control.mode === 'pausiert') return;
-    // Live-Ereignisse und CRM-Abrufe höchstens einmal pro Sekunde übernehmen.
+    // Live-Ereignisse und CRM-Abrufe höchstens einmal pro Sekunde übernehmen (auch bei Pause für lastEventAt).
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
   }, [

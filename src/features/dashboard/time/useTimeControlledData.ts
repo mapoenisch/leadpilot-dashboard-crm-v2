@@ -32,14 +32,48 @@ export function readTileStand(data: TileData): TileStand | null {
   return STANDS.get(data) ?? null;
 }
 
+const CRM_FETCHED_AT = new WeakMap<TileData, number>();
+
+/** Reicht den tatsächlichen Query-Zeitstempel (dataUpdatedAt) von React Query durch. */
+export function attachCrmFetchedAt(data: TileData, fetchedAt: number): TileData {
+  CRM_FETCHED_AT.set(data, fetchedAt);
+  return data;
+}
+
+export function readCrmFetchedAt(data: TileData): number | null {
+  return CRM_FETCHED_AT.get(data) ?? null;
+}
+
 function isSettled(data: TileData): boolean {
-  return data.state !== 'laden';
+  if (data.state === 'laden') return false;
+  // Live-Kacheln ohne Snapshot warten auf den ersten echten Abruf
+  if (
+    data.state !== 'nicht_verfuegbar' &&
+    data.origin.layer === 'live' &&
+    data.state === 'keine_daten' &&
+    !data.asOf
+  ) {
+    return false;
+  }
+  return true;
 }
 
 function signatureOf(data: TileData): string {
   if (data.state === 'nicht_verfuegbar') return `nv:${data.reason}`;
   const series = data.series?.map((point) => `${point.label}:${point.value}`).join(',') ?? '';
   return `${data.state}|${data.value ?? ''}|${data.asOf ?? ''}|${series}|${data.message ?? ''}`;
+}
+
+function queryKeyOf(tile: DashboardTileConfig, filters?: DashboardFilters): string {
+  const pipeline =
+    tile.filterMode === 'eigener_zeitraum'
+      ? (tile.pipeline ?? '')
+      : (tile.pipeline ?? filters?.pipeline ?? '');
+  const period =
+    tile.filterMode === 'eigener_zeitraum'
+      ? `${tile.period?.from ?? ''}_${tile.period?.to ?? ''}`
+      : `${filters?.period?.from ?? ''}_${filters?.period?.to ?? ''}`;
+  return `${tile.catalogId}|${tile.filterMode ?? 'dashboard'}|${pipeline}|${period}`;
 }
 
 /**
@@ -66,6 +100,8 @@ export function useTimeControlledSource(
 
   const source = useSource(tile, filters, { ...options, frozen: paused } as { enabled?: boolean });
 
+  const queryKey = queryKeyOf(tile, filters);
+  const lastQueryKey = useRef<string>(queryKey);
   const lastLive = useRef<{ data: TileData; observedAt: number } | null>(null);
   const frozen = useRef<{ data: TileData; observedAt: number; loadedAfterPause: boolean } | null>(
     null,
@@ -76,13 +112,28 @@ export function useTimeControlledSource(
   const observedAt = useRef<number>(Date.now());
   const now = Date.now();
 
-  const nextSignature = signatureOf(source);
-  if (
-    nextSignature !== signature.current ||
-    (previousState.current === 'laden' && source.state === 'bereit')
-  ) {
-    signature.current = nextSignature;
-    observedAt.current = now;
+  // Bei Änderung der effektiven Kachelabfrage (z. B. Pipelinewechsel während Pause) Stand verwerfen
+  if (lastQueryKey.current !== queryKey) {
+    lastQueryKey.current = queryKey;
+    lastLive.current = null;
+    frozen.current = null;
+  }
+
+  const crmFetchedAt = readCrmFetchedAt(source);
+  if (crmFetchedAt) {
+    observedAt.current = crmFetchedAt;
+  } else if (source.state !== 'nicht_verfuegbar' && source.asOf) {
+    const parsed = Date.parse(source.asOf);
+    if (!Number.isNaN(parsed)) observedAt.current = parsed;
+  } else {
+    const nextSignature = signatureOf(source);
+    if (
+      nextSignature !== signature.current ||
+      (previousState.current === 'laden' && source.state === 'bereit')
+    ) {
+      signature.current = nextSignature;
+      observedAt.current = now;
+    }
   }
   previousState.current = source.state;
 
@@ -116,7 +167,26 @@ export function useTimeControlledSource(
 
   // Ohne Vor-Pausen-Stand (Kachel neu hinzugefügt oder noch im Laden): einmal laden, dann einfrieren.
   if (!frozen.current && isSettled(source)) {
-    frozen.current = { data: source, observedAt: now, loadedAfterPause: true };
+    frozen.current = {
+      data: source,
+      observedAt: crmFetchedAt ?? observedAt.current,
+      loadedAfterPause: true,
+    };
+  }
+
+  // Erstinitialisierung von Live-Kacheln abschließen, sobald ein erster Snapshot eintrifft
+  if (
+    frozen.current?.loadedAfterPause &&
+    frozen.current.data.state !== 'nicht_verfuegbar' &&
+    frozen.current.data.origin.layer === 'live' &&
+    frozen.current.data.state === 'keine_daten' &&
+    source.state === 'bereit'
+  ) {
+    frozen.current = {
+      data: source,
+      observedAt: source.asOf ? Date.parse(source.asOf) : now,
+      loadedAfterPause: true,
+    };
   }
 
   const shown = frozen.current?.data ?? source;

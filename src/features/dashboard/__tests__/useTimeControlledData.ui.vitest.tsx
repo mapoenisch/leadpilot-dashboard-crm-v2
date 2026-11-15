@@ -6,7 +6,12 @@ import type { TileDataHook } from '../components/LazyDashboardTile';
 import type { DashboardTileConfig } from '../model/dashboardConfig';
 import type { TileData } from '../data/dashboardData';
 import { TimeControlProvider, useTimeControl } from '../time/TimeControlProvider';
-import { readTileStand, useTimeControlledSource } from '../time/useTimeControlledData';
+import {
+  attachCrmFetchedAt,
+  readCrmFetchedAt,
+  readTileStand,
+  useTimeControlledSource,
+} from '../time/useTimeControlledData';
 
 let setSourceValue: ((value: number) => void) | null = null;
 
@@ -104,5 +109,99 @@ describe('useTimeControlledData', () => {
     expect(screen.getByTestId('value')).toHaveTextContent('10');
     expect(screen.getByTestId('mode')).toHaveTextContent('pausiert');
     expect(screen.getByTestId('after')).toHaveTextContent('true');
+  });
+
+  it('unterstützt attachCrmFetchedAt und readCrmFetchedAt', () => {
+    const base = fakeData(tile, 42);
+    const stamped = attachCrmFetchedAt(base, 1731679200000);
+    expect(readCrmFetchedAt(stamped)).toBe(1731679200000);
+    expect(readCrmFetchedAt(base)).toBe(1731679200000);
+  });
+
+  it('verwirft den eingefrorenen Stand bei Änderung der Pipeline während einer Pause', () => {
+    let currentPipeline = 'pl-1';
+    const dynamicSource: TileDataHook = (_t, filters) => {
+      currentPipeline = filters?.pipeline ?? 'pl-default';
+      return {
+        ...fakeData(tile, currentPipeline === 'pl-neu' ? 99 : 10),
+        effectiveFilter: { mode: 'dashboard', period: null, pipeline: currentPipeline },
+      };
+    };
+
+    function PipelineHarness() {
+      const [pipe, setPipe] = useState('pl-1');
+      const data = useTimeControlledSource(dynamicSource, tile, { pipeline: pipe }, {});
+      const stand = readTileStand(data);
+      return (
+        <>
+          <button type="button" onClick={() => setPipe('pl-neu')}>
+            pipeline-wechseln
+          </button>
+          <span data-testid="pipe-val">{data.state === 'nicht_verfuegbar' ? '' : data.value}</span>
+          <span data-testid="pipe-after">{String(stand?.loadedAfterPause ?? false)}</span>
+        </>
+      );
+    }
+
+    render(
+      <TimeControlProvider
+        initialState={{ mode: 'pausiert', analysisAt: '2026-11-15T14:32:00.000Z', resumeToken: 0 }}
+      >
+        <PipelineHarness />
+      </TimeControlProvider>,
+    );
+
+    expect(screen.getByTestId('pipe-val')).toHaveTextContent('10');
+    fireEvent.click(screen.getByRole('button', { name: 'pipeline-wechseln' }));
+    expect(screen.getByTestId('pipe-val')).toHaveTextContent('99');
+    expect(screen.getByTestId('pipe-after')).toHaveTextContent('true');
+  });
+
+  it('schließt Erstinitialisierung von Live-Kacheln ab, sobald nach Pausenbeginn der erste Snapshot eintrifft', () => {
+    let emitSnapshot: ((snap: boolean) => void) | null = null;
+    const initialLiveSource: TileDataHook = (t) => {
+      const [hasSnap, setHasSnap] = useState(false);
+      emitSnapshot = setHasSnap;
+      if (!hasSnap) {
+        return {
+          catalogId: t.catalogId,
+          state: 'keine_daten',
+          value: null,
+          series: null,
+          overview: null,
+          unit: 'EUR',
+          timeBasis: 'Live',
+          asOf: null,
+          origin: { layer: 'live', module: 'test', exportName: 'fake' },
+          scope: 'organisation',
+          effectiveFilter: { mode: 'dashboard', period: null, pipeline: null },
+        };
+      }
+      return fakeData(t, 77);
+    };
+
+    function LiveHarness() {
+      const data = useTimeControlledSource(initialLiveSource, tile, undefined, {});
+      return (
+        <span data-testid="live-init-val">
+          {data.state === 'nicht_verfuegbar' ? '' : data.value}
+        </span>
+      );
+    }
+
+    render(
+      <TimeControlProvider
+        initialState={{ mode: 'pausiert', analysisAt: '2026-11-15T14:32:00.000Z', resumeToken: 0 }}
+      >
+        <LiveHarness />
+      </TimeControlProvider>,
+    );
+
+    // Zunächst keine_daten, value ist null
+    expect(screen.getByTestId('live-init-val')).toHaveTextContent('');
+
+    // Snapshot trifft asynchron ein
+    act(() => emitSnapshot?.(true));
+    expect(screen.getByTestId('live-init-val')).toHaveTextContent('77');
   });
 });
