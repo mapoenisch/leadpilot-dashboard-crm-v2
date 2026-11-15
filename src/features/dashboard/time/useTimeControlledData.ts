@@ -20,10 +20,12 @@ export interface TileStand {
 
 const STANDS = new WeakMap<TileData, TileStand>();
 
-function attachStand(data: TileData, stand: TileStand): TileData {
+export function attachTileStand(data: TileData, stand: TileStand): TileData {
   STANDS.set(data, stand);
   return data;
 }
+
+export const attachStand = attachTileStand;
 
 /** Liest den Datenstand einer Kachel; V1-Daten haben keinen und bleiben unverändert. */
 export function readTileStand(data: TileData): TileStand | null {

@@ -4,7 +4,12 @@ import { act, render, screen } from '@testing-library/react';
 import type { DashboardTileConfigV2 } from '../model/dashboardConfigV2';
 import type { LiveKpiStreamState, LiveKpiStreamStore } from '@/services/liveKpi/liveKpiStreamStore';
 import { createPreviewLiveStore } from '../preview/previewLiveStore';
-import { TimeControlProvider } from '../time/TimeControlProvider';
+import {
+  TimeControlProvider,
+  useTimeControl,
+  useOptionalTimeControl,
+  type TimeControlValue,
+} from '../time/TimeControlProvider';
 import { useEditorLiveStatus } from '../time/useEditorLiveStatus';
 
 function tile(catalogId: string): DashboardTileConfigV2 {
@@ -143,5 +148,80 @@ describe('useEditorLiveStatus', () => {
       vi.advanceTimersByTime(600);
     });
     expect(screen.getByTestId('last-event')).toHaveTextContent('2026-11-15T14:32:05.000Z');
+  });
+
+  it('deckt weitere Feed-Zustände wie verbindet, wiederverbinden und offline ab', () => {
+    // offline
+    const offlineStore = createPreviewLiveStore('offline');
+    const { rerender } = render(
+      <TimeControlProvider>
+        <StatusProbe tiles={[tile('live.arr')]} store={offlineStore} />
+      </TimeControlProvider>,
+    );
+    expect(screen.getByTestId('connection')).toHaveTextContent('offline');
+
+    // uebersicht.live_aktivitaet
+    rerender(
+      <TimeControlProvider>
+        <StatusProbe tiles={[tile('uebersicht.live_aktivitaet')]} store={offlineStore} />
+      </TimeControlProvider>,
+    );
+    expect(screen.getByTestId('connection')).toHaveTextContent('offline');
+  });
+});
+
+describe('TimeControlProvider Context Hooks', () => {
+  it('wirft Fehler bei Aufruf von useTimeControl außerhalb des Providers', () => {
+    function BrokenProbe() {
+      useTimeControl();
+      return null;
+    }
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() => render(<BrokenProbe />)).toThrow(
+      'useTimeControl muss innerhalb von TimeControlProvider verwendet werden.',
+    );
+    consoleSpy.mockRestore();
+
+    let optionalValue: TimeControlValue | null | 'not-called' = 'not-called';
+    function OptionalProbe() {
+      optionalValue = useOptionalTimeControl();
+      return null;
+    }
+    render(<OptionalProbe />);
+    expect(optionalValue).toBeNull();
+  });
+
+  it('unterstützt pause() mit Date, String und Default-Parameter im Provider', () => {
+    let captured: TimeControlValue | null = null;
+    function Consumer() {
+      captured = useTimeControl();
+      return null;
+    }
+
+    render(
+      <TimeControlProvider>
+        <Consumer />
+      </TimeControlProvider>,
+    );
+
+    expect(captured).not.toBeNull();
+    expect(captured!.state.mode).toBe('live');
+
+    act(() => {
+      captured!.pause(new Date('2026-11-15T15:00:00.000Z'));
+    });
+    expect(captured!.state.mode).toBe('pausiert');
+    expect(captured!.state.analysisAt).toBe('2026-11-15T15:00:00.000Z');
+
+    act(() => {
+      captured!.resume();
+    });
+    expect(captured!.state.mode).toBe('live');
+
+    act(() => {
+      captured!.pause();
+    });
+    expect(captured!.state.mode).toBe('pausiert');
+    expect(typeof captured!.state.analysisAt).toBe('string');
   });
 });

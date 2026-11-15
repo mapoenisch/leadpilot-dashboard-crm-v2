@@ -54,4 +54,12 @@ describe('timeControl', () => {
     const state: TimeControlState = timeControlReducer(resumed, { type: 'reset' });
     expect(state).toEqual(INITIAL_TIME_CONTROL_STATE);
   });
+
+  it('unterstützt Date-Instanzen und Default-Parameter beim Pausieren', () => {
+    const withDate = pauseTimeControl(INITIAL_TIME_CONTROL_STATE, new Date(PAUSE_AT));
+    expect(withDate.analysisAt).toBe(PAUSE_AT);
+
+    const withDefault = pauseTimeControl(INITIAL_TIME_CONTROL_STATE);
+    expect(typeof withDefault.analysisAt).toBe('string');
+  });
 });
