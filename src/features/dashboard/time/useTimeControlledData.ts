@@ -64,16 +64,13 @@ function signatureOf(data: TileData): string {
   return `${data.state}|${data.value ?? ''}|${data.asOf ?? ''}|${series}|${data.message ?? ''}`;
 }
 
-function queryKeyOf(tile: DashboardTileConfig, filters?: DashboardFilters): string {
-  const pipeline =
-    tile.filterMode === 'eigener_zeitraum'
-      ? (tile.pipeline ?? '')
-      : (tile.pipeline ?? filters?.pipeline ?? '');
-  const period =
-    tile.filterMode === 'eigener_zeitraum'
-      ? `${tile.period?.from ?? ''}_${tile.period?.to ?? ''}`
-      : `${filters?.period?.from ?? ''}_${filters?.period?.to ?? ''}`;
-  return `${tile.catalogId}|${tile.filterMode ?? 'dashboard'}|${pipeline}|${period}`;
+function effectiveQueryKeyOf(tile: DashboardTileConfig, source: TileData): string {
+  if (source.state === 'nicht_verfuegbar') return source.catalogId;
+  const pipeline = source.effectiveFilter.pipeline ?? '';
+  const period = source.effectiveFilter.period
+    ? `${source.effectiveFilter.period.from}_${source.effectiveFilter.period.to}`
+    : '';
+  return `${tile.catalogId}|${pipeline}|${period}`;
 }
 
 /**
@@ -100,7 +97,7 @@ export function useTimeControlledSource(
 
   const source = useSource(tile, filters, { ...options, frozen: paused } as { enabled?: boolean });
 
-  const queryKey = queryKeyOf(tile, filters);
+  const queryKey = effectiveQueryKeyOf(tile, source);
   const lastQueryKey = useRef<string>(queryKey);
   const lastLive = useRef<{ data: TileData; observedAt: number } | null>(null);
   const frozen = useRef<{ data: TileData; observedAt: number; loadedAfterPause: boolean } | null>(

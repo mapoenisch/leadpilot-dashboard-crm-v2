@@ -204,4 +204,49 @@ describe('useTimeControlledData', () => {
     act(() => emitSnapshot?.(true));
     expect(screen.getByTestId('live-init-val')).toHaveTextContent('77');
   });
+
+  it('ignoriert globale Pipeline-Wechsel bei Live-Kacheln, da Pipeline für Live unwirksam ist', () => {
+    let liveEventVal = 42;
+    const useLiveStreamSource: TileDataHook = (t) => {
+      return {
+        ...fakeData(t, liveEventVal),
+        effectiveFilter: { mode: 'dashboard', period: null, pipeline: null }, // Live hat nie eine wirksame Pipeline
+      };
+    };
+
+    function LivePipelineHarness() {
+      const [pipe, setPipe] = useState('pl-1');
+      const data = useTimeControlledSource(useLiveStreamSource, tile, { pipeline: pipe }, {});
+      return (
+        <>
+          <button type="button" onClick={() => setPipe('pl-2')}>
+            global-pipeline-wechseln
+          </button>
+          <span data-testid="live-pipe-val">
+            {data.state === 'nicht_verfuegbar' ? '' : data.value}
+          </span>
+        </>
+      );
+    }
+
+    render(
+      <TimeControlProvider
+        initialState={{ mode: 'pausiert', analysisAt: '2026-11-15T14:32:00.000Z', resumeToken: 0 }}
+      >
+        <LivePipelineHarness />
+      </TimeControlProvider>,
+    );
+
+    // Initial eingefroren bei 42
+    expect(screen.getByTestId('live-pipe-val')).toHaveTextContent('42');
+
+    // Im Hintergrund trifft ein neues Event ein
+    liveEventVal = 100;
+
+    // Globaler Pipelinewechsel wird ausgelöst (z. B. durch CRM-Filterung)
+    fireEvent.click(screen.getByRole('button', { name: 'global-pipeline-wechseln' }));
+
+    // Die Live-Kachel bleibt stabil auf 42 eingefroren und springt nicht auf 100!
+    expect(screen.getByTestId('live-pipe-val')).toHaveTextContent('42');
+  });
 });
