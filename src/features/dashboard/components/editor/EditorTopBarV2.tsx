@@ -191,6 +191,7 @@ export function EditorTopBarV2({
             dashboards={dashboards}
             isDirty={isDirty}
             isPreviewMode={isPreviewMode}
+            isSaving={isSaving}
             onOpenDashboard={onOpenDashboard}
             onCreateFromTemplate={onCreateFromTemplate}
             onDuplicateCurrent={onDuplicateCurrent}

@@ -100,4 +100,20 @@ describe('DashboardDeletedDialogV2 UI-Tests', () => {
     expect(screen.getByRole('button', { name: 'Anderes Dashboard öffnen' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Im Entwurf bleiben' })).toBeDisabled();
   });
+
+  it('rendert Fehlermeldung wenn error uebergeben wird (Codex P2)', () => {
+    render(
+      <DashboardDeletedDialogV2
+        open={true}
+        isSaving={false}
+        error="Maximale Anzahl von 20 Dashboards erreicht."
+        onSaveAsNew={vi.fn()}
+        onOpenOther={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId('deleted-dialog-error')).toHaveTextContent(
+      'Maximale Anzahl von 20 Dashboards erreicht.',
+    );
+  });
 });

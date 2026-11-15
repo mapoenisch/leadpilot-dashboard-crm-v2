@@ -35,6 +35,7 @@ function PersonalExecutiveDashboardV2Container({
   const [conflictDraft, setConflictDraft] = useState<DashboardConfigV2 | null>(null);
   const [showDeletedDialog, setShowDeletedDialog] = useState(false);
   const [deletedDraft, setDeletedDraft] = useState<DashboardConfigV2 | null>(null);
+  const [deletedDialogError, setDeletedDialogError] = useState<string | null>(null);
 
   if (v2Storage.status === 'laden' || !v2Storage.dashboard) {
     return (
@@ -55,6 +56,7 @@ function PersonalExecutiveDashboardV2Container({
         setShowConflictDialog(true);
       } else if (res.error.kind === 'nicht_gefunden') {
         setDeletedDraft(cfg);
+        setDeletedDialogError(null);
         setShowDeletedDialog(true);
       }
       return false;
@@ -79,16 +81,26 @@ function PersonalExecutiveDashboardV2Container({
 
   const handleSaveAsNewFromDeleted = async () => {
     if (!deletedDraft) return;
+    setDeletedDialogError(null);
     const res = await v2Storage.saveAsNewPersonalCopy(deletedDraft);
     if (res.ok) {
       setShowDeletedDialog(false);
       setDeletedDraft(null);
+    } else {
+      setDeletedDialogError(
+        res.error?.kind === 'obergrenze_erreicht'
+          ? 'Maximale Anzahl von 20 Dashboards erreicht.'
+          : res.error?.kind === 'nicht_berechtigt'
+            ? 'Keine Berechtigung zum Speichern eines neuen Dashboards.'
+            : 'Fehler beim Speichern des neuen Dashboards. Bitte erneut versuchen.',
+      );
     }
   };
 
   const handleOpenOtherFromDeleted = async () => {
     setShowDeletedDialog(false);
     setDeletedDraft(null);
+    setDeletedDialogError(null);
     await v2Storage.reload();
   };
 
@@ -123,9 +135,13 @@ function PersonalExecutiveDashboardV2Container({
       <DashboardDeletedDialogV2
         open={showDeletedDialog}
         isSaving={v2Storage.isSaving}
+        error={deletedDialogError}
         onSaveAsNew={handleSaveAsNewFromDeleted}
         onOpenOther={handleOpenOtherFromDeleted}
-        onStay={() => setShowDeletedDialog(false)}
+        onStay={() => {
+          setShowDeletedDialog(false);
+          setDeletedDialogError(null);
+        }}
       />
     </>
   );

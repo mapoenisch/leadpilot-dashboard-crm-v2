@@ -176,7 +176,10 @@ export function useDashboardV2Storage(options?: {
         config: { ...configToSave, id: res.value.dashboardId },
         updatedAt: res.value.updatedAt,
       };
-      setDashboard(updatedRow);
+      // Nur aktives Dashboard aktualisieren wenn in der Zwischenzeit nicht gewechselt wurde (Codex P2)
+      if (dashboardRef.current?.id === res.value.dashboardId) {
+        setDashboard(updatedRow);
+      }
       await refreshList();
       return { ok: true, value: res.value };
     },

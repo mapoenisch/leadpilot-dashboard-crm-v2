@@ -211,4 +211,65 @@ describe('useDashboardV2Storage Hook Tests', () => {
     expect(result.current.listError).toEqual({ kind: 'technisch' });
     listSpy.mockRestore();
   });
+
+  it('ueberschreibt nicht das aktive Dashboard wenn waehrend des Speicherns gewechselt wurde (Codex P2)', async () => {
+    const { result } = renderHook(() => useDashboardV2Storage());
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('bereit');
+    });
+
+    // Zweites Dashboard anlegen
+    await act(async () => {
+      await result.current.createFromTemplate('finance', 'Finanz Dashboard');
+    });
+    const secondId = result.current.dashboard!.id;
+
+    // Wechsel zurück zum ersten Dashboard
+    await act(async () => {
+      await result.current.openDashboard('personal_dashboard_v2');
+    });
+    expect(result.current.dashboard!.id).toBe('personal_dashboard_v2');
+
+    // Langsamer Save für personal_dashboard_v2
+    let finishSave!: (val: unknown) => void;
+    const pendingSave = new Promise((resolve) => {
+      finishSave = resolve;
+    });
+
+    const storageMod = await import('../services/dashboardStorageV2');
+    const saveSpy = vi.spyOn(storageMod, 'saveDashboardV2');
+    saveSpy.mockImplementationOnce(async () => {
+      await pendingSave;
+      return {
+        ok: true,
+        value: {
+          dashboardId: 'personal_dashboard_v2',
+          revision: 2,
+          updatedAt: new Date().toISOString(),
+        },
+      };
+    });
+
+    const savePromise = result.current.save({
+      ...result.current.dashboard!.config,
+      title: 'Neuer Titel',
+    });
+
+    // Während Save läuft, wechselt Nutzer zu secondId
+    await act(async () => {
+      await result.current.openDashboard(secondId);
+    });
+    expect(result.current.dashboard!.id).toBe(secondId);
+
+    // Save abschließen
+    await act(async () => {
+      finishSave(true);
+      await savePromise;
+    });
+
+    // Aktives Dashboard bleibt secondId und wurde nicht überschrieben
+    expect(result.current.dashboard!.id).toBe(secondId);
+    saveSpy.mockRestore();
+  });
 });

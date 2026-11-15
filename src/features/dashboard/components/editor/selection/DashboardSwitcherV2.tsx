@@ -22,6 +22,7 @@ export interface DashboardSwitcherV2Props {
   dashboards: PersonalDashboardListItemV2[];
   isDirty: boolean;
   isPreviewMode?: boolean;
+  isSaving?: boolean;
   onOpenDashboard: (id: string) => Promise<boolean>;
   onCreateFromTemplate: (
     templateId: string,
@@ -54,6 +55,7 @@ export function DashboardSwitcherV2({
   dashboards,
   isDirty,
   isPreviewMode = false,
+  isSaving = false,
   onOpenDashboard,
   onCreateFromTemplate,
   onDuplicateCurrent,
@@ -106,6 +108,13 @@ export function DashboardSwitcherV2({
       void onRefreshList();
     }
   }, [isOpen, onRefreshList]);
+
+  // Bei laufendem Speichern Menü schließen (Codex P2)
+  useEffect(() => {
+    if (isSaving && isOpen) {
+      setIsOpen(false);
+    }
+  }, [isSaving, isOpen, setIsOpen]);
 
   // Klick außerhalb schließt das Menü
   useEffect(() => {
@@ -180,15 +189,18 @@ export function DashboardSwitcherV2({
       <button
         ref={triggerButtonRef}
         type="button"
+        disabled={isSaving}
         data-testid="dashboard-switcher-button"
         aria-haspopup="true"
         aria-expanded={isOpen}
         onClick={() => {
+          if (isSaving) return;
           setIsOpen((prev) => !prev);
         }}
         className={cn(
           'flex h-9 items-center gap-2 rounded-md border border-[var(--color-border,#1b3d39)] bg-black/30 px-2.5 py-1 text-xs font-medium text-white transition-all hover:border-primary/50 hover:bg-black/50 focus:outline-none focus:ring-1 focus:ring-primary',
           isOpen && 'border-primary bg-black/60',
+          isSaving && 'cursor-not-allowed opacity-60',
         )}
       >
         <span data-testid="scope-badge">
@@ -218,8 +230,12 @@ export function DashboardSwitcherV2({
           isPreviewMode={isPreviewMode}
           isLimitReached={isLimitReached}
           isOnlyOneDashboard={isOnlyOneDashboard}
-          onOpenAction={handleProtectedAction}
+          onOpenAction={(action) => {
+            if (isSaving) return;
+            handleProtectedAction(action);
+          }}
           onOpenDuplicateDialog={() => {
+            if (isSaving) return;
             setIsOpen(false);
             setActiveDialog('duplicate');
           }}
@@ -234,7 +250,7 @@ export function DashboardSwitcherV2({
         onClose={handleCloseActiveDialog}
         existingDashboards={dashboards}
         onCreate={handleCreate}
-        isSaving={isProcessing}
+        isSaving={isProcessing || isSaving}
       />
 
       {/* Dialog 2: Duplizieren */}
@@ -244,7 +260,7 @@ export function DashboardSwitcherV2({
         currentDashboard={currentDashboard}
         isDirty={isDirty}
         onDuplicate={handleDuplicate}
-        isSaving={isProcessing}
+        isSaving={isProcessing || isSaving}
       />
 
       {/* Dialog 3: Löschen */}
@@ -253,16 +269,22 @@ export function DashboardSwitcherV2({
         onClose={handleCloseActiveDialog}
         dashboard={currentDashboard}
         onConfirm={handleDelete}
-        isSaving={isProcessing}
+        isSaving={isProcessing || isSaving}
       />
 
       {/* Dialog 4: Navigationsschutz bei ungespeicherten Änderungen vor Wechsel/Neu/Löschen */}
       <UnsavedChangesDialog
         open={showUnsavedConfirm}
-        locked={isProcessing}
+        locked={isProcessing || isSaving}
         onStay={handleCloseUnsavedConfirm}
-        onDiscard={handleDiscardAndProceed}
-        onSave={handleSaveAndProceed}
+        onDiscard={() => {
+          if (isSaving) return;
+          handleDiscardAndProceed();
+        }}
+        onSave={() => {
+          if (isSaving) return;
+          handleSaveAndProceed();
+        }}
       />
     </div>
   );

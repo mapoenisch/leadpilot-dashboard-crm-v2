@@ -358,4 +358,29 @@ describe('DashboardSwitcherV2 UI-Tests', () => {
       'Dashboard-Liste konnte nicht geladen werden.',
     );
   });
+
+  it('sperrt Dashboard-Auswahl und schliesst Menue wenn isSaving aktiv ist (Codex P2)', () => {
+    const { rerender } = renderSwitcher({ isSaving: false });
+    const trigger = screen.getByTestId('dashboard-switcher-button');
+    expect(trigger).not.toBeDisabled();
+
+    fireEvent.click(trigger);
+    expect(screen.getByTestId('dashboard-switcher-menu')).toBeInTheDocument();
+
+    rerender(
+      <DashboardSwitcherV2
+        currentDashboard={createMockDashboard('dash-1', 'Executive Dashboard')}
+        dashboards={createMockList(2)}
+        isDirty={false}
+        isSaving={true}
+        onOpenDashboard={vi.fn().mockResolvedValue(true)}
+        onCreateFromTemplate={vi.fn().mockResolvedValue({ ok: true })}
+        onDuplicateCurrent={vi.fn().mockResolvedValue({ ok: true })}
+        onDeleteDashboard={vi.fn().mockResolvedValue({ ok: true })}
+        onSaveCurrent={vi.fn().mockResolvedValue(true)}
+      />,
+    );
+    expect(trigger).toBeDisabled();
+    expect(screen.queryByTestId('dashboard-switcher-menu')).not.toBeInTheDocument();
+  });
 });

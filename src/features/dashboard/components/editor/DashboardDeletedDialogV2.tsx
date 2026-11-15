@@ -8,6 +8,7 @@ import { useEscapeToClose } from '../UnsavedChangesDialog';
 export interface DashboardDeletedDialogV2Props {
   open: boolean;
   isSaving: boolean;
+  error?: string | null;
   onSaveAsNew: () => void;
   onOpenOther: () => void;
   onStay?: () => void;
@@ -16,6 +17,7 @@ export interface DashboardDeletedDialogV2Props {
 export function DashboardDeletedDialogV2({
   open,
   isSaving,
+  error,
   onSaveAsNew,
   onOpenOther,
   onStay,
@@ -51,6 +53,15 @@ export function DashboardDeletedDialogV2({
         className="flex flex-col gap-3 text-sm text-[var(--color-text-soft,#e6f3f1)]"
         role="alert"
       >
+        {error && (
+          <div
+            role="alert"
+            data-testid="deleted-dialog-error"
+            className="rounded border border-error/40 bg-error/10 p-2.5 text-xs text-error"
+          >
+            {error}
+          </div>
+        )}
         <p>
           Dieses Dashboard wurde zwischenzeitlich in einem anderen Tab oder von einem anderen Gerät
           gelöscht.
