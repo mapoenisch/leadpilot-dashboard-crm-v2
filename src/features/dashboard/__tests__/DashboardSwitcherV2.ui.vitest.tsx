@@ -74,24 +74,27 @@ function renderSwitcher(props: Partial<DashboardSwitcherV2Props> = {}) {
   const onSaveCurrent = props.onSaveCurrent ?? vi.fn().mockResolvedValue(true);
   const onRefreshList = props.onRefreshList ?? vi.fn().mockResolvedValue(undefined);
 
-  const view = render(
-    <DashboardSwitcherV2
-      currentDashboard={current}
-      dashboards={list}
-      isDirty={props.isDirty ?? false}
-      isPreviewMode={props.isPreviewMode ?? false}
-      onOpenDashboard={onOpenDashboard}
-      onCreateFromTemplate={onCreateFromTemplate}
-      onDuplicateCurrent={onDuplicateCurrent}
-      onDeleteDashboard={onDeleteDashboard}
-      onSaveCurrent={onSaveCurrent}
-      onRefreshList={onRefreshList}
-      {...props}
-    />,
-  );
+  const fullProps: DashboardSwitcherV2Props = {
+    currentDashboard: current,
+    dashboards: list,
+    isDirty: false,
+    isPreviewMode: false,
+    onOpenDashboard,
+    onCreateFromTemplate,
+    onDuplicateCurrent,
+    onDeleteDashboard,
+    onSaveCurrent,
+    onRefreshList,
+    ...props,
+  };
+
+  const view = render(<DashboardSwitcherV2 {...fullProps} />);
+  const rerenderSwitcher = (nextProps: Partial<DashboardSwitcherV2Props> = {}) =>
+    view.rerender(<DashboardSwitcherV2 {...fullProps} {...nextProps} />);
 
   return {
     ...view,
+    rerenderSwitcher,
     onOpenDashboard,
     onCreateFromTemplate,
     onDuplicateCurrent,
@@ -360,27 +363,32 @@ describe('DashboardSwitcherV2 UI-Tests', () => {
   });
 
   it('sperrt Dashboard-Auswahl und schliesst Menue wenn isSaving aktiv ist (Codex P2)', () => {
-    const { rerender } = renderSwitcher({ isSaving: false });
+    const { rerenderSwitcher } = renderSwitcher({ isSaving: false });
     const trigger = screen.getByTestId('dashboard-switcher-button');
     expect(trigger).not.toBeDisabled();
 
     fireEvent.click(trigger);
     expect(screen.getByTestId('dashboard-switcher-menu')).toBeInTheDocument();
 
-    rerender(
-      <DashboardSwitcherV2
-        currentDashboard={createMockDashboard('dash-1', 'Executive Dashboard')}
-        dashboards={createMockList(2)}
-        isDirty={false}
-        isSaving={true}
-        onOpenDashboard={vi.fn().mockResolvedValue(true)}
-        onCreateFromTemplate={vi.fn().mockResolvedValue({ ok: true })}
-        onDuplicateCurrent={vi.fn().mockResolvedValue({ ok: true })}
-        onDeleteDashboard={vi.fn().mockResolvedValue({ ok: true })}
-        onSaveCurrent={vi.fn().mockResolvedValue(true)}
-      />,
-    );
+    rerenderSwitcher({ isSaving: true });
     expect(trigger).toBeDisabled();
     expect(screen.queryByTestId('dashboard-switcher-menu')).not.toBeInTheDocument();
+  });
+
+  it('uebertraegt Fehlermeldung statt falscher Erfolgsansage wenn Oeffnen fehlschlaegt (Codex P2)', async () => {
+    const onOpenDashboard = vi.fn().mockResolvedValue(false);
+    renderSwitcher({ onOpenDashboard });
+    fireEvent.click(screen.getByTestId('dashboard-switcher-button'));
+    fireEvent.click(screen.getByTestId('dashboard-item-dash-2'));
+
+    await waitFor(() => {
+      expect(onOpenDashboard).toHaveBeenCalledWith('dash-2');
+    });
+
+    expect(screen.getByTestId('dashboard-switcher-announcement')).not.toHaveTextContent(
+      'Dashboard ‚Dashboard 2‘ geöffnet',
+    );
+    fireEvent.click(screen.getByTestId('dashboard-switcher-button'));
+    expect(screen.getByRole('alert')).toHaveTextContent('Dashboard konnte nicht geöffnet werden.');
   });
 });

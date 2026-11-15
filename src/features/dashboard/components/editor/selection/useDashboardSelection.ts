@@ -1,47 +1,25 @@
 // Auftrag 158 (P09b): Hook für Dashboard-Auswahl, Dialoge, Tastatur, Schutz und Ansagen.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type {
-  DashboardV2StorageError,
-  PersonalDashboardListItemV2,
-  StoredDashboardV2Row,
-} from '../../../services/dashboardStorageV2Types';
+import type { DashboardV2StorageError } from '../../../services/dashboardStorageV2Types';
 import { MAX_PERSONAL_DASHBOARDS } from '../../../model/dashboardTitles';
+import {
+  type ActiveDialogType,
+  type PendingSelectionAction,
+  type UseDashboardSelectionParams,
+  clearPendingFollowUpSelectionAction,
+  getPendingFocusTriggerOnMount,
+  getPendingFollowUpSelectionAction,
+  getPendingPostSwitchAnnouncement,
+  getPendingPostSwitchError,
+  setPendingFocusTriggerOnMount,
+  setPendingFollowUpSelectionAction,
+  setPendingPostSwitchAnnouncement,
+  setPendingPostSwitchError,
+} from './dashboardSelectionState';
 
-export type ActiveDialogType = null | 'new' | 'duplicate' | 'delete';
-
-export type PendingSelectionAction =
-  | { type: 'open'; id: string; title: string }
-  | { type: 'new' }
-  | { type: 'delete'; id: string; title: string };
-
-export interface UseDashboardSelectionParams {
-  currentDashboard: StoredDashboardV2Row;
-  dashboards: PersonalDashboardListItemV2[];
-  isDirty: boolean;
-  isPreviewMode?: boolean;
-  onOpenDashboard: (id: string) => Promise<boolean>;
-  onCreateFromTemplate: (
-    templateId: string,
-    title?: string,
-  ) => Promise<{ ok: boolean; error?: unknown }>;
-  onDuplicateCurrent: (title?: string) => Promise<{ ok: boolean; error?: unknown }>;
-  onDeleteDashboard: (
-    id: string,
-  ) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
-  onSaveCurrent: () => Promise<boolean>;
-}
-
-// Modulweiter Zwischenspeicher für Folgeaktionen, Ansagen und Trigger-Fokus über Shell-Remounts hinweg (P09b / Codex P2)
-let pendingFollowUpSelectionAction: PendingSelectionAction | null = null;
-let pendingPostSwitchAnnouncement: string | null = null;
-let pendingFocusTriggerOnMount = false;
-
-export function clearPendingFollowUpSelectionAction(): void {
-  pendingFollowUpSelectionAction = null;
-  pendingPostSwitchAnnouncement = null;
-  pendingFocusTriggerOnMount = false;
-}
+export type { ActiveDialogType, PendingSelectionAction, UseDashboardSelectionParams };
+export { clearPendingFollowUpSelectionAction };
 
 export function useDashboardSelection({
   currentDashboard,
@@ -56,28 +34,15 @@ export function useDashboardSelection({
 }: UseDashboardSelectionParams) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDialog, setActiveDialog] = useState<ActiveDialogType>(() => {
-    if (
-      pendingFollowUpSelectionAction &&
-      (pendingFollowUpSelectionAction.type === 'new' ||
-        pendingFollowUpSelectionAction.type === 'delete')
-    ) {
-      const type = pendingFollowUpSelectionAction.type;
-      pendingFollowUpSelectionAction = null;
-      return type;
-    }
-    return null;
+    const act = getPendingFollowUpSelectionAction();
+    return act?.type === 'new' || act?.type === 'delete' ? act.type : null;
   });
   const [pendingAction, setPendingAction] = useState<PendingSelectionAction | null>(null);
   const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
-  const [announcement, setAnnouncement] = useState<string>(() => {
-    if (pendingPostSwitchAnnouncement) {
-      const msg = pendingPostSwitchAnnouncement;
-      pendingPostSwitchAnnouncement = null;
-      return msg;
-    }
-    return '';
-  });
-  const [errorText, setErrorText] = useState<string | null>(null);
+  const [announcement, setAnnouncement] = useState<string>(
+    () => getPendingPostSwitchAnnouncement() ?? '',
+  );
+  const [errorText, setErrorText] = useState<string | null>(() => getPendingPostSwitchError());
   const [isProcessing, setIsProcessing] = useState(false);
 
   const isMountedRef = useRef(true);
@@ -100,10 +65,12 @@ export function useDashboardSelection({
     });
   }, []);
 
-  // Fokus nach Shell-Remount auf den Auswahlknopf zurücksetzen (Codex P2)
+  // Fokus & Fehler nach Shell-Remount auf den Auswahlknopf zurücksetzen (Codex P2)
   useEffect(() => {
-    if (pendingFocusTriggerOnMount) {
-      pendingFocusTriggerOnMount = false;
+    const err = getPendingPostSwitchError();
+    if (err) setErrorText(err);
+    if (getPendingFocusTriggerOnMount()) {
+      setPendingFocusTriggerOnMount(false);
       returnFocusToTrigger();
     }
   }, [returnFocusToTrigger]);
@@ -122,20 +89,31 @@ export function useDashboardSelection({
       if (action.type === 'open') {
         if (action.id === currentDashboard.id) return;
         setIsProcessing(true);
-        pendingPostSwitchAnnouncement = `Dashboard ‚${action.title}‘ geöffnet`;
-        pendingFocusTriggerOnMount = true;
+        setPendingPostSwitchAnnouncement(null);
+        setPendingPostSwitchError(null);
+        setPendingFocusTriggerOnMount(true);
+
         const ok = await onOpenDashboard(action.id);
-        if (!isMountedRef.current) return;
-        setIsProcessing(false);
+
         if (ok) {
-          pendingPostSwitchAnnouncement = null;
-          pendingFocusTriggerOnMount = false;
-          announce(`Dashboard ‚${action.title}‘ geöffnet`);
-          returnFocusToTrigger();
+          setPendingPostSwitchAnnouncement(`Dashboard ‚${action.title}‘ geöffnet`);
+          setPendingPostSwitchError(null);
         } else {
-          pendingPostSwitchAnnouncement = null;
-          pendingFocusTriggerOnMount = false;
-          setErrorText('Dashboard konnte nicht geöffnet werden.');
+          setPendingPostSwitchAnnouncement(null);
+          setPendingPostSwitchError('Dashboard konnte nicht geöffnet werden.');
+        }
+
+        if (isMountedRef.current) {
+          setIsProcessing(false);
+          setPendingFocusTriggerOnMount(false);
+          if (ok) {
+            setPendingPostSwitchAnnouncement(null);
+            announce(`Dashboard ‚${action.title}‘ geöffnet`);
+          } else {
+            setPendingPostSwitchError(null);
+            setErrorText('Dashboard konnte nicht geöffnet werden.');
+          }
+          returnFocusToTrigger();
         }
       } else if (action.type === 'new') {
         setActiveDialog('new');
@@ -174,9 +152,8 @@ export function useDashboardSelection({
 
   // Folgeaktion nach Mount (z. B. nach Speicher-Remount bei type === 'open') ausführen
   useEffect(() => {
-    if (pendingFollowUpSelectionAction) {
-      const act = pendingFollowUpSelectionAction;
-      pendingFollowUpSelectionAction = null;
+    const act = getPendingFollowUpSelectionAction();
+    if (act) {
       if (act.type === 'new' || act.type === 'delete') {
         setActiveDialog(act.type);
       } else if (act.type === 'open') {
@@ -188,27 +165,20 @@ export function useDashboardSelection({
   const handleSaveAndProceed = useCallback(async () => {
     setIsProcessing(true);
     const act = pendingAction;
-    pendingFollowUpSelectionAction = act;
+    setPendingFollowUpSelectionAction(act);
     const saved = await onSaveCurrent();
-    if (!isMountedRef.current) {
-      // Instanz wurde während des Speicherns unmounted (z. B. Revisions-Remount).
-      // Die Folgeaktion bleibt für die neu einhängende Instanz erhalten.
-      return;
-    }
+    if (!isMountedRef.current) return;
     setIsProcessing(false);
     if (!saved) {
-      // Speichern fehlgeschlagen oder Revisionskonflikt -> nicht wechseln
-      pendingFollowUpSelectionAction = null;
+      setPendingFollowUpSelectionAction(null);
       setShowUnsavedConfirm(false);
       setPendingAction(null);
       return;
     }
     setShowUnsavedConfirm(false);
     setPendingAction(null);
-    // Falls keine Unmount/Remount-Welle erfolgte (z. B. im selben Render-Baum):
-    if (pendingFollowUpSelectionAction) {
-      const followUp = pendingFollowUpSelectionAction;
-      pendingFollowUpSelectionAction = null;
+    const followUp = getPendingFollowUpSelectionAction();
+    if (followUp) {
       await executeAction(followUp);
     }
   }, [onSaveCurrent, pendingAction, executeAction]);
@@ -222,30 +192,28 @@ export function useDashboardSelection({
       setIsProcessing(true);
       setErrorText(null);
       const targetTitle = title?.trim() || 'Neues Dashboard';
-      pendingPostSwitchAnnouncement = `Dashboard ‚${targetTitle}‘ angelegt`;
-      pendingFocusTriggerOnMount = true;
+      setPendingPostSwitchAnnouncement(`Dashboard ‚${targetTitle}‘ angelegt`);
+      setPendingFocusTriggerOnMount(true);
 
       const res = (await onCreateFromTemplate(templateId, title)) as {
         ok: boolean;
         error?: DashboardV2StorageError;
       };
 
-      if (!isMountedRef.current) {
-        return res;
-      }
+      if (!isMountedRef.current) return res;
 
       setIsProcessing(false);
       if (res.ok) {
-        pendingPostSwitchAnnouncement = null;
-        pendingFocusTriggerOnMount = false;
+        setPendingPostSwitchAnnouncement(null);
+        setPendingFocusTriggerOnMount(false);
         setActiveDialog(null);
         announce(`Dashboard ‚${targetTitle}‘ angelegt`);
         returnFocusToTrigger();
         return { ok: true };
       }
 
-      pendingPostSwitchAnnouncement = null;
-      pendingFocusTriggerOnMount = false;
+      setPendingPostSwitchAnnouncement(null);
+      setPendingFocusTriggerOnMount(false);
       return { ok: false, error: res.error };
     },
     [onCreateFromTemplate, announce, returnFocusToTrigger],
@@ -274,30 +242,28 @@ export function useDashboardSelection({
       }
 
       const targetTitle = title?.trim() || `${currentDashboard.title} (Kopie)`;
-      pendingPostSwitchAnnouncement = `Dashboard ‚${targetTitle}‘ angelegt`;
-      pendingFocusTriggerOnMount = true;
+      setPendingPostSwitchAnnouncement(`Dashboard ‚${targetTitle}‘ angelegt`);
+      setPendingFocusTriggerOnMount(true);
 
       const res = (await onDuplicateCurrent(title)) as {
         ok: boolean;
         error?: DashboardV2StorageError;
       };
 
-      if (!isMountedRef.current) {
-        return res;
-      }
+      if (!isMountedRef.current) return res;
 
       setIsProcessing(false);
       if (res.ok) {
-        pendingPostSwitchAnnouncement = null;
-        pendingFocusTriggerOnMount = false;
+        setPendingPostSwitchAnnouncement(null);
+        setPendingFocusTriggerOnMount(false);
         setActiveDialog(null);
         announce(`Dashboard ‚${targetTitle}‘ angelegt`);
         returnFocusToTrigger();
         return { ok: true };
       }
 
-      pendingPostSwitchAnnouncement = null;
-      pendingFocusTriggerOnMount = false;
+      setPendingPostSwitchAnnouncement(null);
+      setPendingFocusTriggerOnMount(false);
       return { ok: false, error: res.error };
     },
     [
@@ -317,7 +283,7 @@ export function useDashboardSelection({
     setIsProcessing(true);
     setErrorText(null);
     const deletedTitle = currentDashboard.title;
-    pendingFocusTriggerOnMount = true;
+    setPendingFocusTriggerOnMount(true);
 
     const res = (await onDeleteDashboard(currentDashboard.id)) as {
       ok: boolean;
@@ -328,17 +294,15 @@ export function useDashboardSelection({
     if (res.ok) {
       const remaining = dashboards.find((d) => d.id === res.nextDashboardId);
       const msg = `Dashboard ‚${deletedTitle}‘ gelöscht, ‚${remaining?.title ?? 'Nächstes'}‘ geöffnet`;
-      pendingPostSwitchAnnouncement = msg;
+      setPendingPostSwitchAnnouncement(msg);
     }
 
-    if (!isMountedRef.current) {
-      return res;
-    }
+    if (!isMountedRef.current) return res;
 
     setIsProcessing(false);
     if (res.ok) {
-      pendingPostSwitchAnnouncement = null;
-      pendingFocusTriggerOnMount = false;
+      setPendingPostSwitchAnnouncement(null);
+      setPendingFocusTriggerOnMount(false);
       setActiveDialog(null);
       const remaining = dashboards.find((d) => d.id === res.nextDashboardId);
       const msg = `Dashboard ‚${deletedTitle}‘ gelöscht, ‚${remaining?.title ?? 'Nächstes'}‘ geöffnet`;
@@ -347,8 +311,8 @@ export function useDashboardSelection({
       return { ok: true };
     }
 
-    pendingPostSwitchAnnouncement = null;
-    pendingFocusTriggerOnMount = false;
+    setPendingPostSwitchAnnouncement(null);
+    setPendingFocusTriggerOnMount(false);
     return { ok: false, error: res.error };
   }, [
     currentDashboard.id,

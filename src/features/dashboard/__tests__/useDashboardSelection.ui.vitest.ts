@@ -321,7 +321,9 @@ describe('useDashboardSelection Hook Tests', () => {
 
     // Während des Ladens unmounted die alte Shell (wie im Container bei status=laden)
     unmount();
-    resolveOpen(true);
+    await act(async () => {
+      resolveOpen(true);
+    });
 
     // Neue Shell mountet nach erfolgreichem Laden
     const { result: newResult } = renderHook(() =>
@@ -332,5 +334,45 @@ describe('useDashboardSelection Hook Tests', () => {
     );
 
     expect(newResult.current.announcement).toContain('Dashboard ‚Dashboard 2‘ geöffnet');
+  });
+
+  it('uebertraegt bei fehlgeschlagenem Wechsel Fehlermeldung statt Erfolgsansage an neue Shell (Codex P2)', async () => {
+    let resolveOpen!: (val: boolean) => void;
+    const onOpenDashboard = vi.fn().mockImplementation(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveOpen = resolve;
+        }),
+    );
+
+    const hookParams = {
+      currentDashboard: currentDash,
+      dashboards: mockDashboards,
+      isDirty: false,
+      onOpenDashboard,
+      onCreateFromTemplate: vi.fn(),
+      onDuplicateCurrent: vi.fn(),
+      onDeleteDashboard: vi.fn(),
+      onSaveCurrent: vi.fn(),
+    };
+
+    const { result, unmount } = renderHook(() => useDashboardSelection(hookParams));
+
+    act(() => {
+      void result.current.handleProtectedAction({
+        type: 'open',
+        id: 'd-2',
+        title: 'Dashboard 2',
+      });
+    });
+
+    unmount();
+    await act(async () => {
+      resolveOpen(false);
+    });
+
+    const { result: newResult } = renderHook(() => useDashboardSelection(hookParams));
+    expect(newResult.current.announcement).toBe('');
+    expect(newResult.current.errorText).toBe('Dashboard konnte nicht geöffnet werden.');
   });
 });
