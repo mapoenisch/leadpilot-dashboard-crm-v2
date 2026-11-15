@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { BreakpointSelector } from '../components/editor/topbar/BreakpointSelector';
 import { UndoRedoGroup } from '../components/editor/topbar/UndoRedoGroup';
 import { DashboardDeletedDialogV2 } from '../components/editor/DashboardDeletedDialogV2';
+import { DashboardConflictDialogV2 } from '../components/editor/DashboardConflictDialogV2';
 
 describe('BreakpointSelector UI-Tests', () => {
   it('rendert alle drei Breakpoint-Schaltflächen und markiert die aktive', () => {
@@ -114,6 +115,66 @@ describe('DashboardDeletedDialogV2 UI-Tests', () => {
 
     expect(screen.getByTestId('deleted-dialog-error')).toHaveTextContent(
       'Maximale Anzahl von 20 Dashboards erreicht.',
+    );
+  });
+});
+
+describe('DashboardConflictDialogV2 UI-Tests', () => {
+  it('rendert Dialogoptionen und ruft Handler korrekt auf', () => {
+    const onReload = vi.fn();
+    const onSaveAsCopy = vi.fn();
+    const onStay = vi.fn();
+
+    const { rerender } = render(
+      <DashboardConflictDialogV2
+        open={true}
+        isSaving={false}
+        onReload={onReload}
+        onSaveAsCopy={onSaveAsCopy}
+        onStay={onStay}
+      />,
+    );
+
+    expect(screen.getByText('Revisionskonflikt erkannt')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Als Kopie speichern' }));
+    expect(onSaveAsCopy).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Serverstand laden & verwerfen' }));
+    expect(onReload).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hier bleiben' }));
+    expect(onStay).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <DashboardConflictDialogV2
+        open={true}
+        isSaving={true}
+        onReload={onReload}
+        onSaveAsCopy={onSaveAsCopy}
+        onStay={onStay}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Als Kopie speichern' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Serverstand laden & verwerfen' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Hier bleiben' })).toBeDisabled();
+  });
+
+  it('rendert Fehlermeldung wenn error uebergeben wird (Codex P2)', () => {
+    render(
+      <DashboardConflictDialogV2
+        open={true}
+        isSaving={false}
+        error="Maximale Anzahl von 20 Dashboards erreicht. Bitte lösche zunächst ein anderes Dashboard, um Platz für die Kopie zu schaffen."
+        onReload={vi.fn()}
+        onSaveAsCopy={vi.fn()}
+        onStay={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId('conflict-dialog-error')).toHaveTextContent(
+      'Maximale Anzahl von 20 Dashboards erreicht. Bitte lösche zunächst ein anderes Dashboard, um Platz für die Kopie zu schaffen.',
     );
   });
 });

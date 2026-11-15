@@ -33,6 +33,7 @@ function PersonalExecutiveDashboardV2Container({
   const v2Storage = useDashboardV2Storage({ preferredDashboardId });
   const [showConflictDialog, setShowConflictDialog] = useState(false);
   const [conflictDraft, setConflictDraft] = useState<DashboardConfigV2 | null>(null);
+  const [conflictDialogError, setConflictDialogError] = useState<string | null>(null);
   const [showDeletedDialog, setShowDeletedDialog] = useState(false);
   const [deletedDraft, setDeletedDraft] = useState<DashboardConfigV2 | null>(null);
   const [deletedDialogError, setDeletedDialogError] = useState<string | null>(null);
@@ -53,6 +54,7 @@ function PersonalExecutiveDashboardV2Container({
     if (!res.ok) {
       if (res.error.kind === 'konflikt') {
         setConflictDraft(cfg);
+        setConflictDialogError(null);
         setShowConflictDialog(true);
       } else if (res.error.kind === 'nicht_gefunden') {
         setDeletedDraft(cfg);
@@ -67,15 +69,25 @@ function PersonalExecutiveDashboardV2Container({
   const handleReloadConflict = async () => {
     setShowConflictDialog(false);
     setConflictDraft(null);
+    setConflictDialogError(null);
     await v2Storage.reload();
   };
 
   const handleSaveAsCopyConflict = async () => {
     if (!conflictDraft) return;
+    setConflictDialogError(null);
     const res = await v2Storage.saveAsNewPersonalCopy(conflictDraft);
     if (res.ok) {
       setShowConflictDialog(false);
       setConflictDraft(null);
+    } else {
+      setConflictDialogError(
+        res.error?.kind === 'obergrenze_erreicht'
+          ? 'Maximale Anzahl von 20 Dashboards erreicht. Bitte lösche zunächst ein anderes Dashboard, um Platz für die Kopie zu schaffen.'
+          : res.error?.kind === 'nicht_berechtigt'
+            ? 'Keine Berechtigung zum Speichern einer neuen Kopie.'
+            : 'Fehler beim Speichern der Kopie. Bitte erneut versuchen.',
+      );
     }
   };
 
@@ -128,9 +140,13 @@ function PersonalExecutiveDashboardV2Container({
       <DashboardConflictDialogV2
         open={showConflictDialog}
         isSaving={v2Storage.isSaving}
+        error={conflictDialogError}
         onReload={handleReloadConflict}
         onSaveAsCopy={handleSaveAsCopyConflict}
-        onStay={() => setShowConflictDialog(false)}
+        onStay={() => {
+          setShowConflictDialog(false);
+          setConflictDialogError(null);
+        }}
       />
       <DashboardDeletedDialogV2
         open={showDeletedDialog}
