@@ -4,18 +4,24 @@ import { describe, expect, it } from 'vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import type { TileDataHook } from '../components/LazyDashboardTile';
 import type { DashboardTileConfig } from '../model/dashboardConfig';
-import type { TileData } from '../data/dashboardData';
+import type { ResolvedTileData } from '../data/dashboardData';
 import { TimeControlProvider, useTimeControl } from '../time/TimeControlProvider';
 import {
   attachCrmFetchedAt,
+  attachCrmQueryMeta,
   readCrmFetchedAt,
+  readCrmQueryMeta,
   readTileStand,
   useTimeControlledSource,
 } from '../time/useTimeControlledData';
 
 let setSourceValue: ((value: number) => void) | null = null;
 
-function fakeData(tile: DashboardTileConfig, value: number): TileData {
+function fakeData(
+  tile: DashboardTileConfig,
+  value: number,
+  originLayer: 'live' | 'crm' = 'live',
+): ResolvedTileData {
   return {
     catalogId: tile.catalogId,
     state: 'bereit',
@@ -25,7 +31,7 @@ function fakeData(tile: DashboardTileConfig, value: number): TileData {
     unit: 'EUR',
     timeBasis: 'Teststand',
     asOf: '2026-11-15T14:00:00.000Z',
-    origin: { layer: 'live', module: 'test', exportName: 'fake' },
+    origin: { layer: originLayer, module: 'test', exportName: 'fake' },
     scope: 'organisation',
     effectiveFilter: { mode: 'dashboard', period: null, pipeline: null },
   };
@@ -111,11 +117,12 @@ describe('useTimeControlledData', () => {
     expect(screen.getByTestId('after')).toHaveTextContent('true');
   });
 
-  it('unterstützt attachCrmFetchedAt und readCrmFetchedAt', () => {
+  it('unterstützt attachCrmFetchedAt und readCrmFetchedAt sowie attachCrmQueryMeta', () => {
     const base = fakeData(tile, 42);
     const stamped = attachCrmFetchedAt(base, 1731679200000);
     expect(readCrmFetchedAt(stamped)).toBe(1731679200000);
     expect(readCrmFetchedAt(base)).toBe(1731679200000);
+    expect(readCrmQueryMeta(stamped)).toEqual({ fetchedAt: 1731679200000, isFetching: false });
   });
 
   it('verwirft den eingefrorenen Stand bei Änderung der Pipeline während einer Pause', () => {
@@ -248,5 +255,44 @@ describe('useTimeControlledData', () => {
 
     // Die Live-Kachel bleibt stabil auf 42 eingefroren und springt nicht auf 100!
     expect(screen.getByTestId('live-pipe-val')).toHaveTextContent('42');
+  });
+
+  it('wartet beim erstmaligen Einfrieren auf laufende CRM-Abrufe und friert erst das frische Ergebnis ein', () => {
+    let completeFetch: (() => void) | null = null;
+    const useCrmRefetchingSource: TileDataHook = (t) => {
+      const [fetching, setFetching] = useState(true);
+      completeFetch = () => setFetching(false);
+      const base = fakeData(t, fetching ? 10 : 88, 'crm');
+      return attachCrmQueryMeta(base, {
+        fetchedAt: fetching ? 1000 : 2000,
+        isFetching: fetching,
+      });
+    };
+
+    function CrmHarness() {
+      const data = useTimeControlledSource(useCrmRefetchingSource, tile, undefined, {});
+      return (
+        <span data-testid="crm-fetch-val">
+          {data.state === 'nicht_verfuegbar' ? '' : data.value}
+        </span>
+      );
+    }
+
+    render(
+      <TimeControlProvider
+        initialState={{ mode: 'pausiert', analysisAt: '2026-11-15T14:32:00.000Z', resumeToken: 0 }}
+      >
+        <CrmHarness />
+      </TimeControlProvider>,
+    );
+
+    // Während isFetching true ist, zeigt die Kachel zwar gecachte Daten, friert sie aber noch nicht ein
+    expect(screen.getByTestId('crm-fetch-val')).toHaveTextContent('10');
+
+    // Abruf wird abgeschlossen: frische Daten und neuer Zeitstempel treffen ein
+    act(() => completeFetch?.());
+
+    // Jetzt friert die Kachel auf den frischen Stand 88 ein
+    expect(screen.getByTestId('crm-fetch-val')).toHaveTextContent('88');
   });
 });

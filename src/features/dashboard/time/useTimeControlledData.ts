@@ -32,17 +32,27 @@ export function readTileStand(data: TileData): TileStand | null {
   return STANDS.get(data) ?? null;
 }
 
-const CRM_FETCHED_AT = new WeakMap<TileData, number>();
+const CRM_QUERY_META = new WeakMap<TileData, { fetchedAt: number; isFetching: boolean }>();
 
-/** Reicht den tatsächlichen Query-Zeitstempel (dataUpdatedAt) von React Query durch. */
-export function attachCrmFetchedAt(data: TileData, fetchedAt: number): TileData {
-  CRM_FETCHED_AT.set(data, fetchedAt);
+/** Reicht den tatsächlichen Query-Zeitstempel und Abrufzustand von React Query durch. */
+export function attachCrmQueryMeta(
+  data: TileData,
+  meta: { fetchedAt: number; isFetching: boolean },
+): TileData {
+  CRM_QUERY_META.set(data, meta);
   return data;
 }
 
-export function readCrmFetchedAt(data: TileData): number | null {
-  return CRM_FETCHED_AT.get(data) ?? null;
+export function readCrmQueryMeta(
+  data: TileData,
+): { fetchedAt: number; isFetching: boolean } | null {
+  return CRM_QUERY_META.get(data) ?? null;
 }
+
+export const attachCrmFetchedAt = (data: TileData, fetchedAt: number): TileData =>
+  attachCrmQueryMeta(data, { fetchedAt, isFetching: false });
+export const readCrmFetchedAt = (data: TileData): number | null =>
+  readCrmQueryMeta(data)?.fetchedAt ?? null;
 
 function isSettled(data: TileData): boolean {
   if (data.state === 'laden') return false;
@@ -53,6 +63,11 @@ function isSettled(data: TileData): boolean {
     data.state === 'keine_daten' &&
     !data.asOf
   ) {
+    return false;
+  }
+  // CRM-Kacheln im Hintergrundabruf (z. B. veralteter Cache) warten auf den frischen Stand
+  const crmMeta = readCrmQueryMeta(data);
+  if (crmMeta?.isFetching) {
     return false;
   }
   return true;

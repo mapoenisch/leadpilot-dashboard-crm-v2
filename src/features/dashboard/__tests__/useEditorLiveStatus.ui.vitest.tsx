@@ -224,4 +224,68 @@ describe('TimeControlProvider Context Hooks', () => {
     expect(captured!.state.mode).toBe('pausiert');
     expect(typeof captured!.state.analysisAt).toBe('string');
   });
+
+  it('ermittelt bei der Live-Aktivitätsübersicht den jüngsten Zeitstempel als Kachelstand', () => {
+    const baseStore = createPreviewLiveStore('verbunden');
+    const customStore: LiveKpiStreamStore = {
+      ...baseStore,
+      getState: (kpiId: string) => {
+        if (kpiId === 'arr') {
+          return {
+            snapshot: {
+              id: 'arr',
+              kpiId: 'arr',
+              value: 100,
+              unit: 'EUR',
+              occurredAt: '2026-11-15T10:00:00.000Z', // älterer Snapshot
+              qualityStatus: 'valid' as const,
+              sourceSystem: 'test',
+              ingestedAt: '2026-11-15T10:00:00.000Z',
+            },
+            history: [],
+            status: 'live' as const,
+            error: null,
+          };
+        }
+        if (kpiId === 'mrr') {
+          return {
+            snapshot: {
+              id: 'mrr',
+              kpiId: 'mrr',
+              value: 50,
+              unit: 'EUR',
+              occurredAt: '2026-11-15T15:00:00.000Z', // jüngerer Snapshot
+              qualityStatus: 'valid' as const,
+              sourceSystem: 'test',
+              ingestedAt: '2026-11-15T15:00:00.000Z',
+            },
+            history: [],
+            status: 'live' as const,
+            error: null,
+          };
+        }
+        return {
+          snapshot: null,
+          history: [],
+          status: 'live',
+          error: null,
+        };
+      },
+    };
+
+    render(
+      <TimeControlProvider>
+        <StatusProbe
+          tiles={[tile('uebersicht.live_aktivitaet')]}
+          store={customStore}
+          configured={true}
+        />
+      </TimeControlProvider>,
+    );
+
+    // Kachelstand (data-as-of) entspricht dem jüngsten Aktivitätseintrag (15:00), nicht dem ältesten (10:00)
+    expect(screen.getByTestId('data-as-of')).toHaveTextContent('2026-11-15T15:00:00.000Z');
+    // lastEventAt entspricht ebenfalls dem neuesten Event
+    expect(screen.getByTestId('last-event')).toHaveTextContent('2026-11-15T15:00:00.000Z');
+  });
 });

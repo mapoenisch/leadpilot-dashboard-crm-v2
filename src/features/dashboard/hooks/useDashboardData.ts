@@ -20,7 +20,7 @@ import { resolveBaseline } from '../data/resolveBaseline';
 import { resolveCombination } from '../data/resolveCombination';
 import { resolveCrmFromOverview } from '../data/resolveCrm';
 import { resolveLive } from '../data/resolveLive';
-import { attachCrmFetchedAt } from '../time/useTimeControlledData';
+import { attachCrmQueryMeta } from '../time/useTimeControlledData';
 
 const LIVE_IDS = LIVE_KPI_DEFINITIONS.map((def) => def.id);
 
@@ -226,7 +226,10 @@ export function useDashboardData(
       return loadingTileData(catalogEntry, effectiveFilter);
     }
     const resolved = resolveCrmFromOverview(catalogEntry, crmQuery.data, effectiveFilter);
-    return crmQuery.dataUpdatedAt ? attachCrmFetchedAt(resolved, crmQuery.dataUpdatedAt) : resolved;
+    return attachCrmQueryMeta(resolved, {
+      fetchedAt: crmQuery.dataUpdatedAt,
+      isFetching: crmQuery.isFetching,
+    });
   }
 
   // 5. Live (Einzelwert oder Live-Aktivität)

@@ -52,6 +52,30 @@ function liveIdsFor(tile: DashboardTileConfigV2): readonly string[] {
   return entry.source.liveKpiId ? [entry.source.liveKpiId] : [];
 }
 
+function liveTileStandTime(tile: DashboardTileConfigV2, store: LiveKpiStreamStore): number | null {
+  const entry = getCatalogEntry(tile.catalogId);
+  if (!entry || !isActiveEntry(entry) || entry.source.layer !== 'live') return null;
+
+  if (entry.id === 'uebersicht.live_aktivitaet') {
+    const times: number[] = [];
+    for (const id of ALL_LIVE_IDS) {
+      const snap = store.getState(id).snapshot;
+      if (snap) {
+        const parsed = Date.parse(snap.occurredAt);
+        if (!Number.isNaN(parsed)) times.push(parsed);
+      }
+    }
+    return newest(times);
+  }
+
+  const liveKpiId = entry.source.liveKpiId;
+  if (!liveKpiId) return null;
+  const snap = store.getState(liveKpiId).snapshot;
+  if (!snap) return null;
+  const parsed = Date.parse(snap.occurredAt);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
 function newest(timestamps: readonly number[]): number | null {
   return timestamps.length > 0 ? Math.max(...timestamps) : null;
 }
@@ -147,14 +171,15 @@ export function useEditorLiveStatus({
     }
 
     const standTimes: number[] = [];
-    if (control.mode === 'pausiert') {
-      // Während der Pause zählt der gemeinsame Analysezeitpunkt, nicht der Live-Fortschritt.
-    } else {
-      for (const time of eventTimes) standTimes.push(time);
-      if (queryClient && organizationId && userId) {
-        for (const tile of tiles) {
-          const entry = getCatalogEntry(tile.catalogId);
-          if (!entry || !isActiveEntry(entry) || entry.source.layer !== 'crm') continue;
+    if (control.mode !== 'pausiert') {
+      for (const tile of tiles) {
+        const entry = getCatalogEntry(tile.catalogId);
+        if (!entry || !isActiveEntry(entry)) continue;
+
+        if (entry.source.layer === 'live' && configured) {
+          const time = liveTileStandTime(tile, store);
+          if (time !== null) standTimes.push(time);
+        } else if (entry.source.layer === 'crm' && queryClient && organizationId && userId) {
           const key = dashboardQueryKeys.crmOverview(
             organizationId,
             userId,
