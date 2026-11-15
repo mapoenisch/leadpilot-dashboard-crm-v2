@@ -159,7 +159,7 @@ describe('useTimeControlledData', () => {
 
   it('schließt Erstinitialisierung von Live-Kacheln ab, sobald nach Pausenbeginn der erste Snapshot eintrifft', () => {
     let emitSnapshot: ((snap: boolean) => void) | null = null;
-    const initialLiveSource: TileDataHook = (t) => {
+    const useInitialLiveSource: TileDataHook = (t) => {
       const [hasSnap, setHasSnap] = useState(false);
       emitSnapshot = setHasSnap;
       if (!hasSnap) {
@@ -181,7 +181,7 @@ describe('useTimeControlledData', () => {
     };
 
     function LiveHarness() {
-      const data = useTimeControlledSource(initialLiveSource, tile, undefined, {});
+      const data = useTimeControlledSource(useInitialLiveSource, tile, undefined, {});
       return (
         <span data-testid="live-init-val">
           {data.state === 'nicht_verfuegbar' ? '' : data.value}
