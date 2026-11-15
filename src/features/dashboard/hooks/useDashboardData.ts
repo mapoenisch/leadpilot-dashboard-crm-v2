@@ -27,6 +27,12 @@ export interface UseDashboardDataOptions {
   enabled?: boolean;
   store?: LiveKpiStreamStore;
   dealSource?: FunnelDealSource;
+  /**
+   * Auftrag 159: Anzeige eingefroren (gemeinsame Pause). Unterdrückt automatische CRM-Neuladungen
+   * bei Fensterfokus und Reconnect; der Erstaufruf und Filterwechsel laden weiterhin einmal.
+   * Fehlt die Option, ist das Verhalten unverändert.
+   */
+  frozen?: boolean;
 }
 
 function loadingTileData(
@@ -108,6 +114,9 @@ export function useDashboardData(
         dealSource,
       }),
     enabled: crmEnabled,
+    ...(options.frozen
+      ? { refetchOnWindowFocus: false as const, refetchOnReconnect: false as const }
+      : {}),
   });
 
   // Einzelne Live-KPI

@@ -2,6 +2,7 @@
 // Bisherige Executive-Zahlen, ARR-Verlauf, MRR-Paketmix, CRM-Pipelinewerte, 12 Live-IDs und
 // die bisherigen Übersichtskacheln. Rohwerte und Nachweise: docs/dashboard/KPI_CATALOG.md.
 import type { ActiveCatalogEntry, CatalogSource, DashboardCategory } from '../dashboardCatalog';
+import { HISTORY_FEST, HISTORY_KEINE, HISTORY_PUFFER } from '../historyCapability';
 import { LIVE_ACCESS, LIVE_ENTRIES, LIVE_SOURCE } from './liveEntries';
 
 export const BASELINE_ACCESS =
@@ -39,6 +40,7 @@ const baselineValue = (spec: BaselineValue): ActiveCatalogEntry => ({
   minSize: 'klein',
   groupings: [],
   filters: [],
+  history: HISTORY_FEST,
   access: BASELINE_ACCESS,
 });
 
@@ -156,6 +158,7 @@ const BASELINE_ENTRIES: ActiveCatalogEntry[] = [
     minSize: 'mittel',
     groupings: ['quartal'],
     filters: [],
+    history: HISTORY_FEST,
     detailRouteId: 's-highlights',
     access: BASELINE_ACCESS,
   },
@@ -182,6 +185,7 @@ const BASELINE_ENTRIES: ActiveCatalogEntry[] = [
     minSize: 'mittel',
     groupings: ['paket'],
     filters: [],
+    history: HISTORY_FEST,
     detailRouteId: 's-pricing',
     access: BASELINE_ACCESS,
   },
@@ -215,6 +219,7 @@ const crmValue = (
   minSize: 'klein',
   groupings: [],
   filters: ['pipeline'],
+  history: HISTORY_KEINE,
   detailRouteId: 's-deals',
   access: CRM_ACCESS,
 });
@@ -308,6 +313,7 @@ const overview = (
   minSize: 'mittel',
   groupings: [],
   filters: [],
+  history: spec.id === 'uebersicht.live_aktivitaet' ? HISTORY_PUFFER : HISTORY_FEST,
 });
 
 const OVERVIEW_ENTRIES: ActiveCatalogEntry[] = [

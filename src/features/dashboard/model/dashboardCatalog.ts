@@ -6,6 +6,7 @@ import { COMBINATION_ENTRIES } from './catalog/combinationEntries';
 import { EXTENDED_ENTRIES } from './catalog/extendedEntries';
 import { PREPARE_CATALOG_ENTRIES } from './catalog/inventoryEntries';
 import { UNSUITABLE_CATALOG_ENTRIES } from './catalog/unsuitableEntries';
+import type { HistoryCapability } from './historyCapability';
 
 export const DASHBOARD_CATEGORIES = {
   finanzen: 'Finanzen',
@@ -124,6 +125,8 @@ export interface ActiveCatalogEntry extends CatalogEntryBase {
   minSize: TileSize;
   groupings: readonly string[];
   filters: readonly CatalogFilter[];
+  /** Auftrag 159 (P10a): belegte Historienart; verhindert erfundene Zeitreihen. */
+  history: HistoryCapability;
   /** Route-ID aus `APP_ROUTES` für „Zur Fachübersicht“. */
   detailRouteId: string;
   /** Wer die Quelle lesen darf (nachgewiesen im Inventar). */

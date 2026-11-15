@@ -178,6 +178,55 @@ describe('DashboardEditorShellV2', () => {
     });
   });
 
+  it('pausiert die Anzeige, ohne den Entwurf zu verändern (kein Dirty, kein Undo)', () => {
+    render(
+      <DashboardEditorShellV2
+        initialConfig={MOCK_INITIAL_CONFIG}
+        useData={useEditorPreviewData}
+        onSave={vi.fn()}
+      />,
+    );
+
+    const pauseBtn = screen.getByTestId('live-pause-button');
+    expect(pauseBtn).toHaveAttribute('aria-pressed', 'false');
+    expect(pauseBtn).toHaveTextContent('Pausieren');
+    expect(screen.getByTestId('undo-button')).toBeDisabled();
+    expect(screen.getByTestId('save-button')).toBeDisabled();
+
+    fireEvent.click(pauseBtn);
+
+    // Pause ist reine Anzeigezeit-Steuerung: kein Verlaufseintrag, kein ungespeicherter Entwurf.
+    expect(pauseBtn).toHaveAttribute('aria-pressed', 'true');
+    expect(pauseBtn).toHaveTextContent('Fortsetzen');
+    expect(screen.queryByTestId('dirty-indicator')).not.toBeInTheDocument();
+    expect(screen.getByTestId('undo-button')).toBeDisabled();
+    expect(screen.getByTestId('save-button')).toBeDisabled();
+    expect(screen.getByTestId('data-timestamp')).toHaveTextContent('Angehalten');
+
+    fireEvent.click(pauseBtn);
+    expect(pauseBtn).toHaveAttribute('aria-pressed', 'false');
+    expect(pauseBtn).toHaveTextContent('Pausieren');
+    expect(screen.queryByTestId('dirty-indicator')).not.toBeInTheDocument();
+  });
+
+  it('zeigt ohne konfigurierten Live-Feed nie „Live“ in der Statusleiste', () => {
+    render(
+      <DashboardEditorShellV2
+        initialConfig={MOCK_INITIAL_CONFIG}
+        useData={useEditorPreviewData}
+        liveConfigured={false}
+        onSave={vi.fn()}
+      />,
+    );
+
+    const connection = screen.getByTestId('connection-status');
+    expect(connection).toHaveAttribute('data-connection', 'nicht_konfiguriert');
+    expect(connection).toHaveTextContent('Nicht konfiguriert');
+    expect(screen.getByTestId('editor-status-bar')).not.toHaveTextContent(/\bLive\b/);
+    expect(screen.getByTestId('live-last-event')).toHaveTextContent('Noch keine Daten empfangen');
+    expect(screen.getByTestId('data-timestamp')).toHaveTextContent('Kein aktueller Datenstand');
+  });
+
   it('führt Undo und Redo über Tastaturkürzel (Cmd+Z, Cmd+Shift+Z, Ctrl+Y) aus, ignoriert sie jedoch in Eingabefeldern', async () => {
     render(
       <DashboardEditorShellV2

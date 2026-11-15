@@ -53,10 +53,13 @@ export interface LiveKpiStreamStore {
    */
   getEntryVersion(kpiId: string): number;
   /**
-   * G34: feiner Feed-Verbindungszustand (nicht an die UI verdrahtet —
-   * `LiveKpiReadStatus` bleibt die einzige Komponenten-Schnittstelle).
+   * G34 + Auftrag 159: feiner Feed-Verbindungszustand. `LiveKpiReadStatus` bleibt die
+   * Komponenten-Schnittstelle für einzelne Kacheln; der Editor-Status nutzt zusätzlich
+   * `subscribeFeedConnection`.
    */
   getFeedConnectionState(): LiveKpiFeedConnectionState;
+  /** Auftrag 159: Abo auf Wechsel des Feed-Verbindungszustands (für die Statusleiste). */
+  subscribeFeedConnection(listener: () => void): () => void;
   subscribe(kpiId: string, listener: () => void): () => void;
   refresh(kpiId: string): Promise<void>;
   reset(): void;
@@ -119,6 +122,20 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
   let feedSubscription: LiveKpiSubscription | null = null;
   let feedRefCount = 0;
   let feedConnectionState: LiveKpiFeedConnectionState = 'offline';
+  const feedConnectionListeners = new Set<() => void>();
+
+  /** Auftrag 159: einziger Weg, den Feed-Zustand zu ändern und Abonnenten zu benachrichtigen. */
+  function setFeedConnectionState(next: LiveKpiFeedConnectionState): void {
+    if (feedConnectionState === next) return;
+    feedConnectionState = next;
+    for (const listener of feedConnectionListeners) {
+      try {
+        listener();
+      } catch (err) {
+        logger.warn('[LiveKpiStreamStore] Error in feed connection listener:', err);
+      }
+    }
+  }
 
   function notify(entry: StreamEntry) {
     for (const listener of entry.listeners) {
@@ -187,7 +204,7 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
    * einmalig pro Connect, nicht pro Tick).
    */
   function propagateStatus(feedState: LiveKpiFeedConnectionState): void {
-    feedConnectionState = feedState;
+    setFeedConnectionState(feedState);
     for (const entry of entries.values()) {
       if (entry.refCount <= 0) continue;
       const kpiId = entry.kpiId;
@@ -430,8 +447,11 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
       return entry ? entry.version : 0;
     },
 
-    getFeedConnectionState(): LiveKpiFeedConnectionState {
-      return feedConnectionState;
+    getFeedConnectionState: () => feedConnectionState,
+
+    subscribeFeedConnection(listener: () => void): () => void {
+      feedConnectionListeners.add(listener);
+      return () => feedConnectionListeners.delete(listener);
     },
 
     subscribe(kpiId: string, listener: () => void): () => void {
@@ -440,9 +460,7 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
       }
       const entry = getOrCreateEntry(kpiId);
       entry.listeners.add(listener);
-      return () => {
-        entry.listeners.delete(listener);
-      };
+      return () => entry.listeners.delete(listener);
     },
 
     async refresh(kpiId: string): Promise<void> {
@@ -468,7 +486,7 @@ export function createLiveKpiStreamStore(customAdapter?: LiveKpiStreamAdapter): 
         feedSubscription = null;
       }
       feedRefCount = 0;
-      feedConnectionState = 'offline';
+      setFeedConnectionState('offline');
 
       for (const [kpiId, entry] of Array.from(entries.entries())) {
         if (entry.retentionTimer !== null) {

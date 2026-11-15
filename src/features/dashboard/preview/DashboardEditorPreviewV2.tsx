@@ -14,6 +14,13 @@ import type {
 } from '../services/dashboardStorageV2Types';
 import { useEditorPreviewData } from './editorPreviewData';
 import { buildDerivedDashboardTitle } from '../model/dashboardTitles';
+import { useTimeControlledSource } from '../time/useTimeControlledData';
+import { createPreviewLiveStore, parsePreviewLiveScenario } from './previewLiveStore';
+import type { TileDataHook } from '../components/LazyDashboardTile';
+
+/** Vorschau-Daten mit derselben gemeinsamen Zeitsteuerung wie der echte V2-Pfad. */
+const usePreviewDataTimeControlled: TileDataHook = (tile, filters, options) =>
+  useTimeControlledSource(useEditorPreviewData, tile, filters, options);
 
 const INITIAL_PREVIEW_DASHBOARDS: PersonalDashboardListItemV2[] = [
   {
@@ -50,6 +57,14 @@ export function DashboardEditorPreviewV2() {
     INITIAL_PREVIEW_DASHBOARDS,
   );
   const [activeDashboardId, setActiveDashboardId] = useState<string>('preview_v2_dashboard');
+  const [liveScenario] = useState(() => {
+    const value =
+      typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).get('live')
+        : null;
+    return parsePreviewLiveScenario(value);
+  });
+  const [liveStore] = useState(() => createPreviewLiveStore(liveScenario));
 
   const [config, setConfig] = useState<DashboardConfigV2>(() => {
     const base = migrateV1ToV2(DEFAULT_DASHBOARD_CONFIG, {
@@ -234,18 +249,20 @@ export function DashboardEditorPreviewV2() {
         )}
       </div>
 
-      {/* Die 4-Zonen-Shell */}
-      <div className="flex-1 overflow-hidden">
+      {/* Die 4-Zonen-Shell; Höhe minus Vorschau-Banner, damit die Statusleiste sichtbar bleibt. */}
+      <div className="h-[calc(100vh-1.75rem)] overflow-hidden">
         <DashboardEditorShellV2
+          className="h-full"
           initialConfig={config}
-          useData={useEditorPreviewData}
+          useData={usePreviewDataTimeControlled}
           onSave={handleSave}
           onCancel={() => {
             if (typeof window !== 'undefined') {
               window.location.search = '';
             }
           }}
-          connectionStatus="connected"
+          liveStore={liveStore}
+          liveConfigured={liveScenario !== 'nicht_konfiguriert'}
           dashboards={dashboards}
           currentStoredDashboard={currentStored}
           onOpenDashboard={handleOpenDashboard}

@@ -1,7 +1,8 @@
 // Executive Dashboard, Teilauftrag 7 (Auftrag 077) & Auftrag 150 (P07): persönliche Ansicht unter `/dashboard`.
 // V2 nutzt den persistenten Speicheradapter useDashboardV2Storage mit Revisionshistorie,
 // optimistischer Konflikterkennung und deterministischer V1->V2-Kopiermigration.
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useOrganization } from '@/auth/organizationContext';
 import { DashboardWorkspace } from '../components/DashboardWorkspace';
 import { DashboardEditorShellV2 } from '../components/editor/DashboardEditorShellV2';
@@ -16,6 +17,8 @@ import {
   isDashboardEditorV2Enabled,
   setDashboardEditorV2Override,
 } from '../model/dashboardRollout';
+import { invalidateCrmOverviewQueries } from '../time/resumeCrmRefresh';
+import { useTimeControlledData } from '../time/useTimeControlledData';
 
 import { DashboardDeletedDialogV2 } from '../components/editor/DashboardDeletedDialogV2';
 
@@ -31,6 +34,14 @@ function PersonalExecutiveDashboardV2Container({
   preferredDashboardId?: string;
 }) {
   const v2Storage = useDashboardV2Storage({ preferredDashboardId });
+  const queryClient = useQueryClient();
+  const { session } = useOrganization();
+  const organizationId = session?.organizationId;
+  const userId = session?.userId ?? (organizationId ? 'anonymous' : undefined);
+  const handleResume = useCallback(() => {
+    if (!organizationId || !userId) return;
+    void invalidateCrmOverviewQueries(queryClient, organizationId, userId);
+  }, [queryClient, organizationId, userId]);
   const [showConflictDialog, setShowConflictDialog] = useState(false);
   const [conflictDraft, setConflictDraft] = useState<DashboardConfigV2 | null>(null);
   const [conflictDialogError, setConflictDialogError] = useState<string | null>(null);
@@ -121,8 +132,9 @@ function PersonalExecutiveDashboardV2Container({
       <DashboardEditorShellV2
         key={`${v2Storage.dashboard.id}_${v2Storage.dashboard.revision}`}
         initialConfig={v2Storage.dashboard.config}
-        useData={useDashboardData}
+        useData={useTimeControlledData}
         onSave={handleSave}
+        onResume={handleResume}
         onCancel={() => {
           setDashboardEditorV2Override(false);
           window.location.reload();

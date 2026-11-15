@@ -9,6 +9,7 @@ import type {
   DashboardView,
 } from '../dashboardCatalog';
 import { BASELINE_ACCESS } from './activeEntries';
+import { HISTORY_FEST } from '../historyCapability';
 
 const D = (file: string) => `src/domain/${file}.ts`;
 const STAND_2025 = 'Stand 31.12.2025';
@@ -55,6 +56,7 @@ const series = (spec: SeriesSpec): ActiveCatalogEntry => ({
   minSize: 'mittel',
   groupings: [spec.grouping],
   filters: [],
+  history: HISTORY_FEST,
   detailRouteId: spec.detailRouteId,
   access: BASELINE_ACCESS,
 });
@@ -262,6 +264,7 @@ export const EXTENDED_ENTRIES: readonly ActiveCatalogEntry[] = [
     minSize: 'mittel',
     groupings: [],
     filters: [],
+    history: HISTORY_FEST,
     detailRouteId: 's-historie',
     access: BASELINE_ACCESS,
   },

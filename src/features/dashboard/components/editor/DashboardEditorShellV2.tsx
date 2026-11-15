@@ -8,6 +8,9 @@ import { cn } from '@/lib/utils';
 import { SetGlobalFilterCommand, UpdateDashboardMetaCommand } from '../../core/editorCommands';
 import { useDashboardEditorV2 } from '../../hooks/useDashboardEditorV2';
 import type { DashboardConfigV2 } from '../../model/dashboardConfigV2';
+import { TimeControlProvider, useTimeControl } from '../../time/TimeControlProvider';
+import { useEditorLiveStatus, type EditorLiveStatus } from '../../time/useEditorLiveStatus';
+import type { LiveKpiStreamStore } from '@/services/liveKpi/liveKpiStreamStore';
 import type { TileDataHook } from '../LazyDashboardTile';
 import { UnsavedChangesDialog } from '../UnsavedChangesDialog';
 import { SectionedCanvasV2 } from './sections/SectionedCanvasV2';
@@ -27,8 +30,12 @@ export interface DashboardEditorShellV2Props {
   onCancel?: () => void;
   onShowDetails?: (tileId: string) => void;
   onOpenPanelEditor?: (tileId: string) => void;
-  connectionStatus?: 'connected' | 'paused' | 'offline';
-  dataTimestamp?: string;
+  /** Auftrag 159: einmaliges Neuladen der sichtbaren CRM-Abfragen nach „Fortsetzen“. */
+  onResume?: () => void;
+  /** Nur Vorschau/Harness: simulierter Live-Store und Konfiguration. */
+  liveStore?: LiveKpiStreamStore;
+  liveConfigured?: boolean;
+  liveStatusOverrides?: Partial<EditorLiveStatus>;
   className?: string;
   // Auftrag 158: Dashboard-Auswahl
   dashboards?: import('../../services/dashboardStorageV2Types').PersonalDashboardListItemV2[];
@@ -46,15 +53,25 @@ export interface DashboardEditorShellV2Props {
   listError?: import('../../services/dashboardStorageV2Types').DashboardV2StorageError | null;
 }
 
-export function DashboardEditorShellV2({
+export function DashboardEditorShellV2(props: DashboardEditorShellV2Props) {
+  return (
+    <TimeControlProvider>
+      <DashboardEditorShellBody {...props} />
+    </TimeControlProvider>
+  );
+}
+
+function DashboardEditorShellBody({
   initialConfig,
   useData,
   onSave,
   onCancel,
   onShowDetails,
   onOpenPanelEditor,
-  connectionStatus = 'connected',
-  dataTimestamp,
+  onResume,
+  liveStore,
+  liveConfigured,
+  liveStatusOverrides,
   className,
   dashboards,
   currentStoredDashboard,
@@ -69,7 +86,8 @@ export function DashboardEditorShellV2({
   const [isLibraryOpen, setIsLibraryOpen] = useState(isDesktop);
   const [isInspectorOpen, setIsInspectorOpen] = useState(isDesktop);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
-  const [isLivePaused, setIsLivePaused] = useState(false);
+  const timeControl = useTimeControl();
+  const isLivePaused = timeControl.state.mode === 'pausiert';
   const [isSaving, setIsSaving] = useState(false);
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
 
@@ -158,6 +176,36 @@ export function DashboardEditorShellV2({
     return config.tiles.length - inactive;
   }, [config.sections, config.tiles.length, sectionActions]);
 
+  // Auftrag 159: sichtbare Kacheln (eingeklappte Sektionen liefern keine Daten).
+  const visibleTiles = useMemo(
+    () =>
+      config.tiles.filter(
+        (tile) =>
+          !config.sections?.some(
+            (section) => section.collapsed && section.tileIds.includes(tile.id),
+          ),
+      ),
+    [config.sections, config.tiles],
+  );
+
+  const liveStatus = useEditorLiveStatus({
+    tiles: visibleTiles,
+    defaultPipeline: config.globalPipeline,
+    ...(liveStore ? { store: liveStore } : {}),
+    ...(liveConfigured !== undefined ? { configured: liveConfigured } : {}),
+    ...(liveStatusOverrides ? { overrides: liveStatusOverrides } : {}),
+  });
+
+  // Auftrag 159: Pause friert nur die Anzeige ein; Fortsetzen lädt die CRM-Übersichten einmal neu.
+  const handleToggleLivePause = useCallback(() => {
+    if (timeControl.state.mode === 'pausiert') {
+      timeControl.resume();
+      onResume?.();
+    } else {
+      timeControl.pause();
+    }
+  }, [timeControl, onResume]);
+
   // Dashboard-Titel ändern
   const handleDashboardTitleChange = useCallback(
     (newTitle: string) => {
@@ -225,7 +273,7 @@ export function DashboardEditorShellV2({
         onTitleChange={handleDashboardTitleChange}
         onGlobalFilterChange={handleGlobalFilterChange}
         isLivePaused={isLivePaused}
-        onToggleLivePause={() => setIsLivePaused((prev) => !prev)}
+        onToggleLivePause={handleToggleLivePause}
         isPreviewMode={isPreviewMode}
         onTogglePreviewMode={() => {
           setIsPreviewMode((prev) => !prev);
@@ -317,8 +365,7 @@ export function DashboardEditorShellV2({
 
       {/* ZONE 5: STATUSLEISTE (UNTEN) */}
       <EditorStatusBarV2
-        connectionStatus={isLivePaused ? 'paused' : connectionStatus}
-        dataTimestamp={dataTimestamp}
+        liveStatus={liveStatus}
         tileCount={config.tiles.length}
         activeTileCount={activeTileCount}
         maxTiles={24}

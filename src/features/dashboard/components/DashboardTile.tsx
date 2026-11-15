@@ -27,6 +27,7 @@ import {
   TimeReference,
 } from './TileStatus';
 import { formatAsOf, NO_DATA, SOURCE_LABEL, timeLabel } from './tileFormat';
+import { TileStandLine } from '../time/TileStandLine';
 
 export interface DashboardTileProps {
   tile: DashboardTileConfig;
@@ -205,6 +206,7 @@ export function DashboardTile({
                 }
               />
             </div>
+            <TileStandLine data={data} entry={entry} />
             <CombinationFormula entry={entry} />
           </div>
           <TileStateBadge data={data} />
