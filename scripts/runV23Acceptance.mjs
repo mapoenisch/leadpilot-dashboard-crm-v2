@@ -45,6 +45,7 @@ export const E2E_DASHBOARD = [
   'e2e/personal-dashboard-acceptance.spec.ts',
   'e2e/dashboard-config-states.spec.ts',
   'e2e/personal-dashboard-sections.spec.ts',
+  'e2e/personal-dashboard-selection.spec.ts',
 ];
 export const E2E_SEQUENTIAL = [
   'e2e/persistence-multisession.spec.ts',

@@ -141,19 +141,19 @@ Bei Bedarf außerhalb dieser Liste: stoppen und im PR begründen (`CLAUDE.md` §
 
 Reihenfolge je Block: Tests zuerst, dann Umsetzung.
 
-- [ ] **T0 Einstieg:** Branch auf aktuellen `main` rebasen, `<BASELINE>` notieren (`ba603db8`). Masterplan P09/§3.1, `SPEICHERSTRUKTUR_REVISIONEN_P07.md`, `SEKTIONEN_P09A.md`, `EDITOR_UX_FACHVERTRAEGE_145.md` §2.1/§5 und diesen Auftrag lesen. Prüfen, ob generierte Supabase-Typen für RPCs genutzt werden (2.1 Nr. 9). Schutzbereichs-Diff leer.
-- [ ] **T1 Rot-Nachweise:** §3 Nr. 8 (a)–(e). Ergebnisse im BUILD_LOG.
-- [ ] **T2 Server:** Migration, pgTAP-Test, `verifyMigrationUpgrade` grün.
-- [ ] **T3 Vorlagen:** `dashboardTemplatesV2.ts`, Fixtures, Paritätslauf gegen den Server.
-- [ ] **T4 Adapter und In-Memory:** neue Aufrufe, Fehlerarten, Nachbildung.
-- [ ] **T5 Hook und Container:** Liste und Aktionen, Zustand „gelöscht“ (2.3 Nr. 16), `buildDerivedDashboardTitle` in allen automatischen Titeln (2.1 Nr. 6).
-- [ ] **T6 Top-Bar entlasten:** Teilkomponente auslagern ohne Verhaltensänderung (bestehende Tests grün), danach `EditorTopBarV2.tsx` ≤ 400 Zeilen.
-- [ ] **T7 Switcher und Dialoge:** Menü, Neu, Duplizieren, Löschen, deaktivierte Aktionen mit Grund, Vorschau-Modus.
-- [ ] **T8 Ungespeicherte Änderungen, Fokus, Ansagen, Mobil.**
-- [ ] **T9 E2E, a11y, Screenshots:** Playwright-Ablauf; a11y-Ergänzung; Harness (Editor ohne geöffnetes Menü = Vorher; Menü offen mit drei Dashboards; Neu-Dialog; Lösch-Bestätigung; jeweils 1440/768/375), SHA-256 unterschiedlich, 0 px Overflow.
-- [ ] **T10 Leistung:** Zähltest und Bundle-Größe aus 2.5 im BUILD_LOG.
-- [ ] **T11 Doku:** Spezifikation und Nachträge (2.6).
-- [ ] **T12 Abschluss:** Pflicht-Verifikation (§7), Schutzbereichs-Diff, BUILD_LOG-Builder-Eintrag, PR öffnen, Review anfordern.
+- [x] **T0 Einstieg:** Branch auf aktuellen `main` rebasen, `<BASELINE>` notieren (`ba603db8`). Masterplan P09/§3.1, `SPEICHERSTRUKTUR_REVISIONEN_P07.md`, `SEKTIONEN_P09A.md`, `EDITOR_UX_FACHVERTRAEGE_145.md` §2.1/§5 und diesen Auftrag lesen. Prüfen, ob generierte Supabase-Typen für RPCs genutzt werden (2.1 Nr. 9). Schutzbereichs-Diff leer.
+- [x] **T1 Rot-Nachweise:** §3 Nr. 8 (a)–(e). Ergebnisse im BUILD_LOG.
+- [x] **T2 Server:** Migration, pgTAP-Test, `verifyMigrationUpgrade` grün.
+- [x] **T3 Vorlagen:** `dashboardTemplatesV2.ts`, Fixtures, Paritätslauf gegen den Server.
+- [x] **T4 Adapter und In-Memory:** neue Aufrufe, Fehlerarten, Nachbildung.
+- [x] **T5 Hook und Container:** Liste und Aktionen, Zustand „gelöscht“ (2.3 Nr. 16), `buildDerivedDashboardTitle` in allen automatischen Titeln (2.1 Nr. 6).
+- [x] **T6 Top-Bar entlasten:** Teilkomponente auslagern ohne Verhaltensänderung (bestehende Tests grün), danach `EditorTopBarV2.tsx` ≤ 400 Zeilen.
+- [x] **T7 Switcher und Dialoge:** Menü, Neu, Duplizieren, Löschen, deaktivierte Aktionen mit Grund, Vorschau-Modus.
+- [x] **T8 Ungespeicherte Änderungen, Fokus, Ansagen, Mobil.**
+- [x] **T9 E2E, a11y, Screenshots:** Playwright-Ablauf; a11y-Ergänzung; Harness (Editor ohne geöffnetes Menü = Vorher; Menü offen mit drei Dashboards; Neu-Dialog; Lösch-Bestätigung; jeweils 1440/768/375), SHA-256 unterschiedlich, 0 px Overflow.
+- [x] **T10 Leistung:** Zähltest und Bundle-Größe aus 2.5 im BUILD_LOG.
+- [x] **T11 Doku:** Spezifikation und Nachträge (2.6).
+- [x] **T12 Abschluss:** Pflicht-Verifikation (§7), Schutzbereichs-Diff, BUILD_LOG-Builder-Eintrag, PR öffnen, Review anfordern.
 
 ## 6. Abnahme
 

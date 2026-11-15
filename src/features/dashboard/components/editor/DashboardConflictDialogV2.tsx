@@ -9,6 +9,7 @@ import { useEscapeToClose } from '../UnsavedChangesDialog';
 export interface DashboardConflictDialogV2Props {
   open: boolean;
   isSaving: boolean;
+  error?: string | null;
   onReload: () => void;
   onSaveAsCopy: () => void;
   onStay: () => void;
@@ -17,6 +18,7 @@ export interface DashboardConflictDialogV2Props {
 export function DashboardConflictDialogV2({
   open,
   isSaving,
+  error,
   onReload,
   onSaveAsCopy,
   onStay,
@@ -52,6 +54,15 @@ export function DashboardConflictDialogV2({
       }
     >
       <div className="flex flex-col gap-3 text-sm text-[var(--color-text-soft,#e6f3f1)]">
+        {error && (
+          <div
+            role="alert"
+            data-testid="conflict-dialog-error"
+            className="rounded border border-error/40 bg-error/10 p-2.5 text-xs text-error"
+          >
+            {error}
+          </div>
+        )}
         <p>
           Dieses Dashboard wurde in einem anderen Tab oder Browserfenster bereits mit einer neueren
           Revision gespeichert.

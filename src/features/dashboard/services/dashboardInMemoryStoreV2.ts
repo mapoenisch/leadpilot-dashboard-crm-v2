@@ -10,8 +10,17 @@ export interface InMemoryEntry {
 
 export const inMemoryStore = new Map<string, InMemoryEntry>();
 
+let lastTimestamp = 0;
+
+export function nextMonotonicIsoDate(): string {
+  const now = Date.now();
+  lastTimestamp = Math.max(now, lastTimestamp + 1);
+  return new Date(lastTimestamp).toISOString();
+}
+
 export function resetInMemoryDashboardV2Storage(): void {
   inMemoryStore.clear();
+  lastTimestamp = 0;
 }
 
 export function getInMemoryDashboard(preferredId?: string): StoredDashboardV2Row | null {

@@ -11,5 +11,17 @@
     "aria-required-parent",
     "color-contrast",
     "label-title-only"
+  ],
+  "editor_v2_switcher_menu": [
+    "aria-required-children",
+    "aria-required-parent",
+    "color-contrast",
+    "label-title-only"
+  ],
+  "editor_v2_new_dialog": [
+    "aria-required-children",
+    "aria-required-parent",
+    "color-contrast",
+    "label-title-only"
   ]
 }

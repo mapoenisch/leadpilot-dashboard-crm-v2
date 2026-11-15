@@ -9,6 +9,7 @@ import { prepareConfigForStorage } from './dashboardLayoutIntegrity';
 import {
   type DashboardV2RevisionRow,
   type DashboardV2StorageError,
+  type PersonalDashboardListItemV2,
   type SavedDashboardV2Result,
   type StorageResult,
   type StoredDashboardV2Row,
@@ -20,6 +21,7 @@ import {
 export type {
   DashboardV2RevisionRow,
   DashboardV2StorageError,
+  PersonalDashboardListItemV2,
   SavedDashboardV2Result,
   StorageResult,
   StoredDashboardV2Row,
@@ -34,6 +36,7 @@ function failTechnically<T>(cause: unknown): StorageResult<T> {
 import {
   getInMemoryDashboard,
   inMemoryStore,
+  nextMonotonicIsoDate,
   resetInMemoryDashboardV2Storage,
 } from './dashboardInMemoryStoreV2';
 export { resetInMemoryDashboardV2Storage };
@@ -198,14 +201,27 @@ export async function createDashboardV2(params: {
   }
 
   if (!isSupabaseConfigured || !supabase) {
-    const id = config.id || 'dash_mock_' + Date.now();
-    const now = new Date().toISOString();
+    const trimmedTitle = (params.title ?? '').trim();
+    if (trimmedTitle.length < 1 || trimmedTitle.length > 80) {
+      return {
+        ok: false,
+        error: { kind: 'ungueltig', detail: 'Titel muss zwischen 1 und 80 Zeichen lang sein' },
+      };
+    }
+    if (inMemoryStore.size >= 20) {
+      return { ok: false, error: { kind: 'obergrenze_erreicht' } };
+    }
+    const id =
+      config.id && !inMemoryStore.has(config.id)
+        ? config.id
+        : 'dash_mock_' + Math.random().toString(36).slice(2, 10);
+    const now = nextMonotonicIsoDate();
     const stored: StoredDashboardV2Row = {
       id,
-      title: params.title,
+      title: trimmedTitle,
       scope: params.scope ?? 'personal',
       revision: 1,
-      config: { ...config, id },
+      config: { ...config, id, title: trimmedTitle },
       updatedAt: now,
     };
     inMemoryStore.set(id, {
@@ -213,7 +229,7 @@ export async function createDashboardV2(params: {
       revisions: [
         {
           revision: 1,
-          title: params.title,
+          title: trimmedTitle,
           createdByUserId: config.ownerUserId || 'mock_user',
           createdAt: now,
           changeSummary: 'Dashboard initial erstellt',
@@ -302,7 +318,7 @@ export async function saveDashboardV2(params: {
     }
 
     const nextRev = existing.row.revision + 1;
-    const now = new Date().toISOString();
+    const now = nextMonotonicIsoDate();
     existing.row = {
       ...existing.row,
       title: params.title,

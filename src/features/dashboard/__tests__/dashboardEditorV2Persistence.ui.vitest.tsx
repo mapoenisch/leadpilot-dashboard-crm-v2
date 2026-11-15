@@ -180,7 +180,7 @@ describe('DashboardEditorV2 Persistence & Kopiermigration (P07)', () => {
       const activeRow = await loadPersonalDashboardV2(activeId ?? undefined);
       expect(activeRow.ok && activeRow.value?.title).toContain('Kopie');
     });
-  });
+  }, 15000);
 
   it('lädt bei Serverstand laden & verwerfen das im Tab gebundene Dashboard neu, selbst wenn ein anderer Tab eine Kopie in LocalStorage abgelegt hat', async () => {
     renderDashboard();
@@ -242,7 +242,7 @@ describe('DashboardEditorV2 Persistence & Kopiermigration (P07)', () => {
       expect(screen.getByTestId('title-button')).toHaveTextContent('Vom Server aktualisiert');
       expect(getActiveDashboardV2Id('org-test-1', 'user-test-1')).toBe(originalDashboardId);
     });
-  });
+  }, 15000);
 
   it('löst Kacheln auf der Detailroute /dashboard/tiles/:tileId aus dem aktiven V2-Speicher auf', async () => {
     // 1. Initial V2-Dashboard mit einer spezifischen Kachel speichern

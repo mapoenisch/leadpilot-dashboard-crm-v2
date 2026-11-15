@@ -10,6 +10,8 @@ export type DashboardV2StorageError =
   | { kind: 'nicht_gefunden' }
   | { kind: 'keine_mitgliedschaft' }
   | { kind: 'sitzung_abgelaufen' }
+  | { kind: 'letztes_dashboard' }
+  | { kind: 'obergrenze_erreicht' }
   | { kind: 'nicht_konfiguriert' }
   | { kind: 'technisch' };
 
@@ -23,6 +25,27 @@ export interface StoredDashboardV2Row {
   revision: number;
   config: DashboardConfigV2;
   updatedAt: string;
+}
+
+export interface PersonalDashboardListItemV2 {
+  id: string;
+  title: string;
+  scope: 'personal';
+  revision: number;
+  tileCount: number;
+  sectionCount: number;
+  updatedAt: string;
+}
+
+export interface DeleteDashboardV2Result {
+  deletedId: string;
+  nextDashboardId: string | null;
+}
+
+export interface DuplicateDashboardV2Result {
+  dashboardId: string;
+  revision: number;
+  createdAt: string;
 }
 
 export interface DashboardV2RevisionRow {
@@ -52,6 +75,12 @@ export function classifyDashboardV2Error(
   status?: number,
 ): DashboardV2StorageError {
   const message = error?.message ?? '';
+  if (message.includes('LP_LAST_DASHBOARD')) {
+    return { kind: 'letztes_dashboard' };
+  }
+  if (message.includes('LP_DASHBOARD_LIMIT')) {
+    return { kind: 'obergrenze_erreicht' };
+  }
   if (message.includes('LP_DASHBOARD_CONFLICT')) {
     return { kind: 'konflikt', detail: error?.details ?? undefined };
   }
@@ -111,4 +140,27 @@ export function setActiveDashboardV2Id(
   } catch {
     // Fehler bei Quota/Sicherheit im Browser tolerieren
   }
+}
+
+export type SaveV2Result =
+  { ok: true; value: SavedDashboardV2Result } | { ok: false; error: DashboardV2StorageError };
+
+export type DeleteV2Result =
+  { ok: true; nextDashboardId: string | null } | { ok: false; error: DashboardV2StorageError };
+
+export interface UseDashboardV2StorageResult {
+  status: 'laden' | 'bereit' | 'fehler';
+  dashboard: StoredDashboardV2Row | null;
+  dashboards: PersonalDashboardListItemV2[];
+  error: DashboardV2StorageError | null;
+  listError: DashboardV2StorageError | null;
+  isSaving: boolean;
+  save: (config: DashboardConfigV2, changeSummary?: string) => Promise<SaveV2Result>;
+  reload: (explicitDashboardId?: string) => Promise<void>;
+  refreshList: () => Promise<void>;
+  openDashboard: (id: string) => Promise<boolean>;
+  createFromTemplate: (templateId: string, title?: string) => Promise<SaveV2Result>;
+  duplicateCurrent: (title?: string) => Promise<SaveV2Result>;
+  deleteDashboard: (id: string) => Promise<DeleteV2Result>;
+  saveAsNewPersonalCopy: (config: DashboardConfigV2, title?: string) => Promise<SaveV2Result>;
 }
