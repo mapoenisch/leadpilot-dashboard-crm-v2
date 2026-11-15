@@ -1,6 +1,8 @@
 // Auftrag 159 (P10a): drei getrennte Live-Angaben, keine erfundenen Werte, Drossel.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { dashboardQueryKeys } from '../data/dashboardQueryKeys';
 import type { DashboardTileConfigV2 } from '../model/dashboardConfigV2';
 import type { LiveKpiStreamState, LiveKpiStreamStore } from '@/services/liveKpi/liveKpiStreamStore';
 import { createPreviewLiveStore } from '../preview/previewLiveStore';
@@ -11,6 +13,13 @@ import {
   type TimeControlValue,
 } from '../time/TimeControlProvider';
 import { useEditorLiveStatus } from '../time/useEditorLiveStatus';
+
+vi.mock('@/auth/organizationContext', () => ({
+  useOrganization: () => ({
+    session: { organizationId: 'org-test', userId: 'user-test', role: 'admin' },
+    isLoading: false,
+  }),
+}));
 
 function tile(catalogId: string): DashboardTileConfigV2 {
   return {
@@ -26,6 +35,7 @@ function StatusProbe(props: {
   tiles: DashboardTileConfigV2[];
   store: LiveKpiStreamStore;
   configured?: boolean;
+  defaultPipeline?: string;
 }) {
   // Der Testlauf hat keine Supabase-Umgebung; für Live-Szenarien wird die Konfiguration
   // deshalb explizit gesetzt.
@@ -287,5 +297,40 @@ describe('TimeControlProvider Context Hooks', () => {
     expect(screen.getByTestId('data-as-of')).toHaveTextContent('2026-11-15T15:00:00.000Z');
     // lastEventAt entspricht ebenfalls dem neuesten Event
     expect(screen.getByTestId('last-event')).toHaveTextContent('2026-11-15T15:00:00.000Z');
+  });
+
+  it('verwendet bei CRM-Kacheln mit ererbter Pipeline denselben Pipeline-Schlüssel wie der Datenpfad', () => {
+    const queryClient = new QueryClient();
+    const crmTile: DashboardTileConfigV2 = {
+      id: 'tile-crm-pipeline',
+      catalogId: 'crm.pipeline_volumen',
+      title: 'Pipeline Volumen',
+      presentation: 'zahl',
+      layouts: { desktop: { x: 0, y: 0, w: 3, h: 3 } },
+      query: { metricId: 'crm.pipeline_volumen', pipelineId: null },
+    };
+
+    const targetKey = dashboardQueryKeys.crmOverview('org-test', 'user-test', 'pipe-enterprise');
+    queryClient.setQueryData(
+      targetKey,
+      { kpis: {} },
+      { updatedAt: Date.parse('2026-11-15T14:45:00.000Z') },
+    );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <TimeControlProvider>
+          <StatusProbe
+            tiles={[crmTile]}
+            store={createPreviewLiveStore('verbunden')}
+            configured={true}
+            defaultPipeline="pipe-enterprise"
+          />
+        </TimeControlProvider>
+      </QueryClientProvider>,
+    );
+
+    // Liest den Stand der übergeordneten Pipeline aus dem React-Query-Cache
+    expect(screen.getByTestId('data-as-of')).toHaveTextContent('2026-11-15T14:45:00.000Z');
   });
 });

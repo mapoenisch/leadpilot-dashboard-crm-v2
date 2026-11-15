@@ -12,9 +12,10 @@ import {
 import { LIVE_KPI_DEFINITIONS } from '@/services/liveKpi/liveKpiDefinitions';
 import { liveKpiStreamStore, type LiveKpiStreamStore } from '@/services/liveKpi/liveKpiStreamStore';
 import { dashboardQueryKeys } from '../data/dashboardQueryKeys';
-import { getCatalogEntry, isActiveEntry } from '../model/dashboardCatalog';
+import { getCatalogEntry, isActiveEntry, type ActiveCatalogEntry } from '../model/dashboardCatalog';
 import type { DashboardTileConfigV2 } from '../model/dashboardConfigV2';
-import { normalizeTileQuery } from '../model/tileQuery';
+import { convertV2TileToV1 } from '../components/editor/canvas/CanvasTileCard';
+import { resolveEffectiveFilter } from '../model/dashboardFilters';
 import { useTimeControl } from './TimeControlProvider';
 
 export type EditorLiveConnection =
@@ -37,11 +38,17 @@ export interface EditorLiveStatus {
 
 const ALL_LIVE_IDS = LIVE_KPI_DEFINITIONS.map((definition) => definition.id);
 
-function pipelineFor(tile: DashboardTileConfigV2, defaultPipeline?: string): string | null {
-  const query = normalizeTileQuery(tile);
-  if (query.pipelineId === null) return null;
-  if (typeof query.pipelineId === 'string') return query.pipelineId;
-  return tile.pipelineOverride ?? defaultPipeline ?? null;
+function effectivePipelineFor(
+  tile: DashboardTileConfigV2,
+  entry: ActiveCatalogEntry,
+  defaultPipeline?: string,
+): string | null {
+  const v1 = convertV2TileToV1(tile, '', defaultPipeline);
+  const filter = resolveEffectiveFilter(v1, entry, {
+    period: undefined,
+    pipeline: defaultPipeline,
+  });
+  return filter.pipeline;
 }
 
 /** Live-KPI-IDs, die diese Kachel für ihren Wert liest. */
@@ -183,7 +190,7 @@ export function useEditorLiveStatus({
           const key = dashboardQueryKeys.crmOverview(
             organizationId,
             userId,
-            pipelineFor(tile, defaultPipeline),
+            effectivePipelineFor(tile, entry, defaultPipeline),
           );
           const state = queryClient.getQueryState(key);
           if (state?.dataUpdatedAt) standTimes.push(state.dataUpdatedAt);
