@@ -2,7 +2,7 @@
 // Menü, Tastatur, Dialoge, Schutz ungespeicherter Änderungen, Ansagen und Zähltest.
 
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
 import {
   DashboardSwitcherV2,
   type DashboardSwitcherV2Props,
@@ -14,7 +14,6 @@ import type {
 import { MAX_PERSONAL_DASHBOARDS } from '../model/dashboardTitles';
 import * as dashboardSelectionV2 from '../services/dashboardSelectionV2';
 import { useDashboardV2Storage } from '../hooks/useDashboardV2Storage';
-import { renderHook } from '@testing-library/react';
 
 vi.mock('@/auth/organizationContext', () => ({
   useOrganization: () => ({
@@ -24,10 +23,7 @@ vi.mock('@/auth/organizationContext', () => ({
 }));
 
 vi.mock('../hooks/useDashboardPreferences', () => ({
-  useDashboardPreferences: () => ({
-    state: null,
-    isLoading: false,
-  }),
+  useDashboardPreferences: () => ({ state: null, isLoading: false }),
 }));
 
 function createMockDashboard(id: string, title: string, revision = 1): StoredDashboardV2Row {
@@ -140,10 +136,11 @@ describe('DashboardSwitcherV2 UI-Tests', () => {
 
   it('unterstützt Tastaturnavigation mit Pfeiltasten, Home und End', () => {
     renderSwitcher();
-    fireEvent.click(screen.getByTestId('dashboard-switcher-button'));
+    const trigger = screen.getByTestId('dashboard-switcher-button');
+    fireEvent.click(trigger);
     const menu = screen.getByTestId('dashboard-switcher-menu');
 
-    fireEvent.keyDown(menu, { key: 'ArrowDown' });
+    // Fokus wird beim Öffnen direkt auf das aktive Dashboard übertragen (Codex P2)
     expect(document.activeElement).toBe(screen.getByTestId('dashboard-item-dash-1'));
 
     fireEvent.keyDown(menu, { key: 'ArrowDown' });
@@ -153,6 +150,13 @@ describe('DashboardSwitcherV2 UI-Tests', () => {
     expect(document.activeElement).toBe(screen.getByTestId('delete-dashboard-menu-item'));
 
     fireEvent.keyDown(menu, { key: 'Home' });
+    expect(document.activeElement).toBe(screen.getByTestId('dashboard-item-dash-1'));
+
+    // Pfeiltasten am Auswahlknopf öffnen und navigieren (Codex P2)
+    fireEvent.keyDown(window, { key: 'Escape' });
+    trigger.focus();
+    fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+    expect(screen.getByTestId('dashboard-switcher-menu')).toBeInTheDocument();
     expect(document.activeElement).toBe(screen.getByTestId('dashboard-item-dash-1'));
   });
 
@@ -301,9 +305,7 @@ describe('DashboardSwitcherV2 UI-Tests', () => {
     expect(screen.getByTestId('delete-dashboard-dialog')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }));
     expect(screen.queryByTestId('delete-dashboard-dialog')).not.toBeInTheDocument();
-    await waitFor(() => {
-      expect(trigger).toHaveFocus();
-    });
+    await waitFor(() => expect(trigger).toHaveFocus());
 
     // Neu-Dialog abbrechen
     fireEvent.click(trigger);
@@ -311,9 +313,7 @@ describe('DashboardSwitcherV2 UI-Tests', () => {
     expect(screen.getByTestId('new-dashboard-dialog')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }));
     expect(screen.queryByTestId('new-dashboard-dialog')).not.toBeInTheDocument();
-    await waitFor(() => {
-      expect(trigger).toHaveFocus();
-    });
+    await waitFor(() => expect(trigger).toHaveFocus());
 
     // Duplizieren-Dialog abbrechen
     fireEvent.click(trigger);
@@ -321,9 +321,7 @@ describe('DashboardSwitcherV2 UI-Tests', () => {
     expect(screen.getByTestId('duplicate-dashboard-dialog')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }));
     expect(screen.queryByTestId('duplicate-dashboard-dialog')).not.toBeInTheDocument();
-    await waitFor(() => {
-      expect(trigger).toHaveFocus();
-    });
+    await waitFor(() => expect(trigger).toHaveFocus());
   });
 
   it('blendet Aktionen im Vorschau-Modus aus', () => {

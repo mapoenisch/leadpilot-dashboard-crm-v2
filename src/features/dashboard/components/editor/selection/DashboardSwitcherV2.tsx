@@ -101,6 +101,24 @@ export function DashboardSwitcherV2({
   } = selection;
 
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const wasOpenRef = useRef(false);
+
+  // Beim Öffnen des Menüs Fokus auf das aktive Dashboard oder ersten Eintrag übertragen (Codex P2)
+  useEffect(() => {
+    if (isOpen && !wasOpenRef.current) {
+      const currentIdx = dashboards.findIndex((d) => d.id === currentDashboard.id);
+      const activeEl = currentIdx >= 0 ? itemRefs.current[currentIdx] : null;
+      if (activeEl && !activeEl.disabled) {
+        activeEl.focus();
+      } else {
+        const firstEnabled = itemRefs.current.find(
+          (el): el is HTMLButtonElement => el !== null && !el.disabled,
+        );
+        firstEnabled?.focus();
+      }
+    }
+    wasOpenRef.current = isOpen;
+  }, [isOpen, currentDashboard.id, dashboards]);
 
   // Beim Öffnen des Menüs Liste vom Server aktualisieren (Codex P2 / Auftrag 158 §2.5 Nr. 29)
   useEffect(() => {
@@ -196,6 +214,15 @@ export function DashboardSwitcherV2({
         onClick={() => {
           if (isSaving) return;
           setIsOpen((prev) => !prev);
+        }}
+        onKeyDown={(e) => {
+          if (isSaving) return;
+          if (!isOpen && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+            e.preventDefault();
+            setIsOpen(true);
+          } else if (isOpen) {
+            handleKeyDown(e);
+          }
         }}
         className={cn(
           'flex h-9 items-center gap-2 rounded-md border border-[var(--color-border,#1b3d39)] bg-black/30 px-2.5 py-1 text-xs font-medium text-white transition-all hover:border-primary/50 hover:bg-black/50 focus:outline-none focus:ring-1 focus:ring-primary',
