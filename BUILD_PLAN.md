@@ -1,8 +1,10 @@
 # LeadPilot Dashboard-CRM — Bauplan
 
-**Stand:** 14.11.2026
+**Stand:** 15.11.2026
 
-**Aktueller Auftrag:** Auftrag 158 – Dashboard-Editor: V2-Vorlagen und Dashboard-Auswahl (P09b; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_158_VORLAGEN_DASHBOARD_AUSWAHL.md`; Branch `auftrag-158-vorlagen-dashboard-auswahl`; Baseline `ba603db8`; Builder Antigravity, Prüfer Codex; Status: gebaut und verifiziert, PR bereit). Mit 158 ist P09 vollständig abgenommen, danach P10 (Gemeinsame Zeitsteuerung & Historie). Zuletzt: 157 Sektionen und einklappbare Gruppen (P09a; PR #185 gemergt), 156 CRM-Repository-Vollbestand und Paginierung (PR #184 gemergt).
+**Aktueller Auftrag:** Auftrag 159 – Dashboard-Editor: Historienmatrix, flüchtige gemeinsame Zeitsteuerung, echte Pause und ehrlicher Live-Status (P10a; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_159_ZEITSTEUERUNG_LIVE_STATUS.md`; Branch `auftrag-159-zeitsteuerung-live-status`; Baseline `12d03991`; Builder Antigravity, Prüfer Codex; Status: gebaut und verifiziert, PR #187 bereit). Mit 159 ist P10a vollständig abgenommen, danach P10b (Server-Zeitreihen, Historienbeginn, Time-Travel; Auftrag 160). Zuletzt: 158 V2-Vorlagen und Dashboard-Auswahl (P09b; PR #188 gemergt), 157 Sektionen und einklappbare Gruppen (P09a; PR #185 gemergt).
+
+**Betriebsregel Live-Feed:** Am 14.11.2026 durch Marc aufgehoben (Edge Function und Migrationen seit 14.11.2026 online; echte Kennzahlen dürfen über den mandantengebundenen Feed eingespeist werden).
 **Offen nach dem v3.1.0-Rollout (10./11.11.2026):**
 
 - **Netlify-Deploy ist manuell** (Drag-&-Drop von `dist/` auf die Site `leadpilot-dashboard-crm`; **WICHTIG (F-03):** Ausschliesslich die Ausgabe von `npm run build:production` verwenden, niemals unvalidierte `npm run build`-Artefakte). Für künftige Releases entweder erneut manuell droppen oder die Site auf GitHub-Import umstellen (dann deployed jeder Merge auf `main` automatisch; Env-Vars `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` dann in den Netlify-Einstellungen hinterlegen).

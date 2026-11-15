@@ -503,3 +503,13 @@ Damit ist das Paket P02 abgeschlossen und bereit für das unabhängige Review du
 - **Katalogumfang:** Es sind exakt 48 aktive Katalog-IDs freigegeben (nicht mehr die theoretische Maximalzahl von 144).
 - **Filter- & Gruppierungsregeln:** Dürfen ausschließlich laut Fähigkeitsmatrix des Katalogeintrags konfiguriert werden (`queryCapabilities.ts`). Unzulässige Optionen werden im Inspector gesperrt und mit Gründen versehen.
 - **Kanonische Abfrage:** Im V2-Speichermodell werden keine Legacy-Overrides (`timeframeOverride`, `pipelineOverride`, `aggregationOverride`) mehr geschrieben, sondern ausschließlich das strukturierte `query`-Objekt laut `ABFRAGEVERTRAG_P08A.md`.
+
+---
+
+### Nachtrag 15.11.2026 (Auftrag 159 / P10a): Zeitsteuerung, echte Pause und ehrlicher Live-Status umgesetzt
+
+- **Pause-Wirkung:** Der Pause-Knopf in der Top-Bar wirkt auf alle drei Quellschichten (Live-Streams, CRM-Abfragen, Stammdaten). Das Pausieren friert den Analysezeitpunkt ein; CRM-Abfragen unterdrücken das Neuladen bei Fensterfokus/Reconnect; Live-Kacheln behalten ihr Store-Abo bei, frieren jedoch den angezeigten Wert ein.
+- **Entwurfsneutralität:** Pause und Fortsetzen verändern weder den Entwurf noch `isDirty` und erzeugen keinen Eintrag im Undo-/Redo-Verlauf.
+- **Ehrlicher Live-Status:** Die Statusleiste zeigt drei getrennte Angaben (Verbindung, letzte neue Daten, Datenstand). Ohne konfiguriertes Supabase oder ohne sichtbare Live-Kacheln wird kein „Live“ mehr vorgetäuscht.
+- **Kachel-Standzeile:** Jede Kachel im V2-Editor weist ihren Datenstand bzw. ihre Historienart aus (`fest`, `keine`, `puffer`); Kacheln, die nach Pausenbeginn hinzugefügt oder per Filter geändert werden, weisen ihren abweichenden Stand sichtbar aus.
+- **Spezifikation:** Vollständig dokumentiert in [`docs/dashboard/ZEITSTEUERUNG_P10A.md`](./ZEITSTEUERUNG_P10A.md).

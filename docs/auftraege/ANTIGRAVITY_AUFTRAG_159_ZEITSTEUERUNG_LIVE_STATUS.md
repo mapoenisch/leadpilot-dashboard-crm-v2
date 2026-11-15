@@ -5,11 +5,10 @@
 **Masterplan:** [Dashboard-Editor-Masterplan](../dashboard/DASHBOARD_EDITOR_MASTERPLAN.md), P10 (§6), §4.C (Live- und Zeitsteuerung), §3.1 (Top-Bar: „Live/Pause“). **Plananpassung (Teil dieses Auftrags, T11):** P10 wird geteilt: 159 = P10a (dieser Auftrag, ohne Migration), 160 = P10b (belegte Server-Historie, Rolling Windows, Time-Travel, Crosshair). Die P10-Abnahme gilt erst mit 160.
 **Fachgrundlage:** [KPI_FAEHIGKEITEN_144.md](../dashboard/KPI_FAEHIGKEITEN_144.md) (Fähigkeitsmatrix, Bestands-/Flussregeln, Live-Puffer), [EDITOR_UX_FACHVERTRAEGE_145.md](../dashboard/EDITOR_UX_FACHVERTRAEGE_145.md) §2.1 (Live/Pause-Schalter), [ABFRAGEVERTRAG_P08A.md](../dashboard/ABFRAGEVERTRAG_P08A.md) §1 (`timeframe`: `fest`/`aktuell`/`live`) und §5 (Cache-Schlüssel), [EDITOR_KERN_P04.md](../dashboard/EDITOR_KERN_P04.md) (Undo-Grenzen).
 **Vorgelagert:** 158 (P09b Vorlagen und Dashboard-Auswahl). 159 startet erst, wenn 158 gemergt ist.
-**Nachgelagert:** 160 (P10b belegte Historie und Time-Travel), danach P11.
-**Baseline:** `<BASELINE>` = Merge-Commit von Auftrag 158 in `main` (Builder trägt den Hash in T0 ein).
+**Baseline:** `12d03991` (Merge-Commit von Auftrag 158 in `main`).
 **Branch:** `auftrag-159-zeitsteuerung-live-status`.
 **Builder:** Antigravity. **Prüfer:** Codex auf GitHub (oder ein anderer Agent, der nicht gebaut hat) gemäß `CLAUDE.md` §4.1. **Merge:** Marc.
-**Status:** GEPLANT.
+**Status:** GEBAUT UND VERIFIZIERT.
 
 ---
 
@@ -169,19 +168,19 @@ Bei Bedarf außerhalb dieser Liste: stoppen und im PR begründen (`CLAUDE.md` §
 
 Reihenfolge je Block: Tests zuerst, dann Umsetzung.
 
-- [ ] **T0 Einstieg:** Nach dem Merge von 158 Branch von aktuellem `main` anlegen, `<BASELINE>` eintragen. Masterplan P10/§4.C, `KPI_FAEHIGKEITEN_144.md`, `ABFRAGEVERTRAG_P08A.md` §1/§5, `EDITOR_UX_FACHVERTRAEGE_145.md` §2.1 und diesen Auftrag lesen. Ist-Tabelle §1 gegen den Stand nach 158 prüfen. Schutzbereichs-Diff leer.
-- [ ] **T1 Rot-Nachweise:** §3 Nr. 10 (a)–(d). Ergebnisse im BUILD_LOG.
-- [ ] **T2 Historienmatrix:** Typ, Zuordnung aller aktiven Einträge, Belegprüfung für etwaige `ereignisse`-Einträge bei CRM (2.1 Nr. 2), Integritätstest, erzeugte Tabelle.
-- [ ] **T3 Zeitsteuerung:** `timeControl.ts`, Provider, Einbindung in der Shell; Pause ohne `isDirty` und ohne Undo-Eintrag.
-- [ ] **T4 Einfrieren im Datenpfad:** `useTimeControlledData`, ggf. Option in `useDashboardData`; Live, CRM, Stammdaten, Kombination; Kachel nach Pausenbeginn; gewählte Variante für Filterwechsel (2.3 Nr. 10).
-- [ ] **T5 Fortsetzen:** gezieltes Invalidieren, Live-Übernahme, Zähltests (2.3 Nr. 11, 2.6 Nr. 20).
-- [ ] **T6 Live-Status:** Store-Abo, `useEditorLiveStatus`, Statusleiste, Vorschau ohne erfundenen Status, Drossel, Ansagen.
-- [ ] **T7 Kennzeichnung:** Datenstand je Kachel, Historientext in Inspector und Bibliothek; Kachelgrößen unverändert.
-- [ ] **T8 E2E, a11y, Screenshots:** Playwright-Ablauf; a11y-Ergänzung; Harness (Vorher: Statusleiste „Live“ ohne Feed; Nachher: live/verbunden, pausiert, offline, nicht konfiguriert; Kachel mit Abweichungskennzeichnung; jeweils 1440/768/375, hell und dunkel), SHA-256 unterschiedlich, 0 px Overflow.
-- [ ] **T9 Leistung:** Zähltests und Bundle-Größe aus 2.6 im BUILD_LOG.
-- [ ] **T10 V1-Gegenprobe:** V1-Editor und Kachel-Detailseite unverändert (bestehende Tests grün, Diff der V1-Dateien leer).
-- [ ] **T11 Doku:** Spezifikation, Nachträge, Plananpassung P10a/P10b und Vorgabe für 160 (2.7); Aufhebung der Live-Feed-Betriebsregel in `BUILD_PLAN.md` vermerken (§8).
-- [ ] **T12 Abschluss:** Pflicht-Verifikation (§7), Schutzbereichs-Diff, BUILD_LOG-Builder-Eintrag, PR öffnen, Review anfordern.
+- [x] **T0 Einstieg:** Nach dem Merge von 158 Branch von aktuellem `main` anlegen, `12d03991` eintragen. Masterplan P10/§4.C, `KPI_FAEHIGKEITEN_144.md`, `ABFRAGEVERTRAG_P08A.md` §1/§5, `EDITOR_UX_FACHVERTRAEGE_145.md` §2.1 und diesen Auftrag lesen. Ist-Tabelle §1 gegen den Stand nach 158 prüfen. Schutzbereichs-Diff leer.
+- [x] **T1 Rot-Nachweise:** §3 Nr. 10 (a)–(d). Ergebnisse im BUILD_LOG.
+- [x] **T2 Historienmatrix:** Typ, Zuordnung aller aktiven Einträge, Belegprüfung für etwaige `ereignisse`-Einträge bei CRM (2.1 Nr. 2), Integritätstest, erzeugte Tabelle.
+- [x] **T3 Zeitsteuerung:** `timeControl.ts`, Provider, Einbindung in der Shell; Pause ohne `isDirty` und ohne Undo-Eintrag.
+- [x] **T4 Einfrieren im Datenpfad:** `useTimeControlledData`, ggf. Option in `useDashboardData`; Live, CRM, Stammdaten, Kombination; Kachel nach Pausenbeginn; gewählte Variante für Filterwechsel (2.3 Nr. 10).
+- [x] **T5 Fortsetzen:** gezieltes Invalidieren, Live-Übernahme, Zähltests (2.3 Nr. 11, 2.6 Nr. 20).
+- [x] **T6 Live-Status:** Store-Abo, `useEditorLiveStatus`, Statusleiste, Vorschau ohne erfundenen Status, Drossel, Ansagen.
+- [x] **T7 Kennzeichnung:** Datenstand je Kachel, Historientext in Inspector und Bibliothek; Kachelgrößen unverändert.
+- [x] **T8 E2E, a11y, Screenshots:** Playwright-Ablauf; a11y-Ergänzung; Harness (Vorher: Statusleiste „Live“ ohne Feed; Nachher: live/verbunden, pausiert, offline, nicht konfiguriert; Kachel mit Abweichungskennzeichnung; jeweils 1440/768/375, hell und dunkel), SHA-256 unterschiedlich, 0 px Overflow.
+- [x] **T9 Leistung:** Zähltests und Bundle-Größe aus 2.6 im BUILD_LOG.
+- [x] **T10 V1-Gegenprobe:** V1-Editor und Kachel-Detailseite unverändert (bestehende Tests grün, Diff der V1-Dateien leer).
+- [x] **T11 Doku:** Spezifikation, Nachträge, Plananpassung P10a/P10b und Vorgabe für 160 (2.7); Aufhebung der Live-Feed-Betriebsregel in `BUILD_PLAN.md` vermerken (§8).
+- [x] **T12 Abschluss:** Pflicht-Verifikation (§7), Schutzbereichs-Diff, BUILD_LOG-Builder-Eintrag, PR öffnen, Review anfordern.
 
 ## 6. Abnahme
 
@@ -205,9 +204,9 @@ npm run verify
 npm run build
 npm run build:production      # mit gültiger Beispielkonfiguration
 npm run size-limit
-git diff <BASELINE> -- src/simulation src/types src/context src/services/data src/features/resources   # muss leer sein
-git diff <BASELINE> -- supabase src/services/db/crmRepository.ts src/domain src/features/dashboard/data src/features/dashboard/model/dashboardPresets.ts   # muss leer sein
-git diff <BASELINE> -- src/services/liveKpi/liveKpiReadAdapter.ts src/services/liveKpi/liveKpiTenantScope.ts src/services/liveKpi/liveKpiStreamHistory.ts supabase/functions   # muss leer sein
+git diff 12d03991 -- src/simulation src/types src/context src/services/data src/features/resources   # muss leer sein
+git diff 12d03991 -- supabase src/services/db/crmRepository.ts src/domain src/features/dashboard/data src/features/dashboard/model/dashboardPresets.ts   # muss leer sein
+git diff 12d03991 -- src/services/liveKpi/liveKpiReadAdapter.ts src/services/liveKpi/liveKpiTenantScope.ts src/services/liveKpi/liveKpiStreamHistory.ts supabase/functions   # muss leer sein
 ```
 
 Zusätzlich: Playwright `e2e/editor-time-control.spec.ts` und `e2e/a11y.spec.ts` lokal, CI-Checks `lint`, `typecheck`, `test`, `build`, `livekpi-verifiers`, `size-limit`, `e2e` grün.

@@ -21405,3 +21405,88 @@ Folgende Schritte sind zur Aktivierung auf der gehosteten Supabase-Instanz auszu
    - Sicherstellen, dass `authenticated` EXECUTE-Rechte besitzt.
 3. Eintrag in `supabase_migrations.schema_migrations` sicherstellen:
    `INSERT INTO supabase_migrations.schema_migrations(version) VALUES ('20261118_dashboard_selection') ON CONFLICT DO NOTHING;`
+
+---
+
+## 2026-11-15 — Auftrag 159: Dashboard-Editor: Zeitsteuerung, echte Pause, Live-Status, Historienmatrix (P10a)
+
+**Rolle:** Antigravity (Builder)  
+**Branch:** `auftrag-159-zeitsteuerung-live-status`  
+**Baseline:** `12d03991` (Merge PR #188 nach `main`)  
+**Pull Request:** [#187](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/pull/187)  
+**Status:** Gebaut, verifiziert, Pflichtchecks grün  
+
+### 1. Zusammenfassung
+
+Umsetzung von Auftrag 159 (P10a):
+1. **Historienmatrix im Katalog:**
+   - Maschinenlesbare `HistoryCapability` für alle 48 aktiven Katalogeinträge (29 fest, 13 puffer, 6 keine, 0 ereignisse).
+   - Streng typisiert (`HistoryKind`, `HistoryCapability`), keine erfundenen Werte.
+   - Integritätstest `catalogHistory.vitest.ts` prüft Typ, Begründung, Ausschluss von rekonstruierbaren Beständen und Snapshot-Konsistenz.
+2. **Gemeinsame Zeitsteuerung (flüchtig):**
+   - Zustandsverwaltung `timeControl.ts` & `TimeControlProvider.tsx`.
+   - Reine Anzeigezeit-Steuerung: `isDirty`, Entwurf und Undo-/Redo-Verlauf bleiben vollkommen unberührt.
+   - Nach Neuladen oder Dashboard-Wechsel startet der Editor live.
+3. **Echtes Einfrieren über alle drei Quellschichten:**
+   - `useTimeControlledData`: friert Live-Streams, CRM-Abfragen (`frozen`) und Stammdaten synchron ein.
+   - Kacheln, die nach Pausenbeginn hinzugefügt oder per Filter geändert werden, laden einmalig und weisen ihren abweichenden Stand sichtbar aus.
+4. **Fortsetzen & Performance:**
+   - Gezielte Invalidierung der organisations- und nutzerspezifischen CRM-Caches (`resumeCrmRefresh.ts`).
+   - 24 Kacheln über 3 Pipelines erzeugen beim Fortsetzen exakt 3 CRM-Abrufe (Zähltest `resumeCrmRefresh.ui.vitest.tsx`).
+   - 10 Pausenzyklen erzeugen keine verwaisten Abos und keinen zusätzlichen Feed-Kanal (Zähltest `pauseCycles.ui.vitest.tsx`).
+5. **Ehrlicher Live-Status:**
+   - `subscribeFeedConnection` im Live-Store (`liveKpiStreamStore.ts`) ergänzt.
+   - Hook `useEditorLiveStatus.ts` leitet 3 getrennte Angaben ab (Verbindung, letzte neue Daten, Datenstand) ohne erfundene Werte.
+   - Drossel: Statusleiste rendert bei neuen Events höchstens 1× pro Sekunde neu.
+   - Statusleiste `EditorStatusBarV2.tsx` überarbeitet; Prop `connectionStatus` mit Standard `"connected"` entfernt.
+6. **Datenstand-Kennzeichnung & Historientext:**
+   - `TileStandLine.tsx`: Kennzeichnung des Datenstands je Kachel inklusive Historienart und etwaiger Abweichungen.
+   - Historientext in Inspector (`InspectorTabs.tsx`) und Widget-Bibliothek (`WidgetLibraryV2.tsx`).
+7. **Betriebsregel Live-Feed (Marc 14.11.2026):**
+   - Aufhebung der Live-Feed-Betriebsregel aus 153 vermerkt (Edge Function und Migrationen seit 14.11.2026 online).
+
+### 2. Rot-Nachweise (T1)
+
+| Prüfung | Erwartung (Rot) | Beobachtung & Test |
+|---|---|---|
+| (a) Live-Event während Pause | Wert ändert sich trotz Pause | Behoben: `useTimeControlledData.ui.vitest.tsx` belegt, dass Live-Events im Store ankommen, die Kachel aber auf dem Stand der Pause eingefroren bleibt. |
+| (b) Statusleiste ohne Supabase | Behauptet fest verdrahtet „Live“ | Behoben: `useEditorLiveStatus.ui.vitest.tsx` zeigt verlässlich „Nicht konfiguriert“ (keine erfundenen Werte). |
+| (c) Katalogeintrag ohne `history` | Fehlendes Feld fällt nicht auf | Behoben: `catalogHistory.vitest.ts` scheitert sofort bei fehlendem oder unvollständigem `history`-Eintrag. |
+| (d) CRM-Refetch bei Pause & Fokus | Refetch überschreibt Pausenanzeige | Behoben: `useTimeControlledData.ui.vitest.tsx` belegt Unterdrückung via `frozen`. |
+
+### 3. Leistungs- und Zählnachweise (T9)
+
+- **CRM-Refresh bei Fortsetzen:** 24 Kacheln über 3 Pipelines lösen exakt 3 `fetch`-Aufrufe aus (`resumeCrmRefresh.ui.vitest.tsx`).
+- **Abo-Dichtheit:** 10 Pausen-/Fortsetzen-Zyklen hinterlassen 0 verwaiste Abos und halten die Kanalanzahl konstant bei 1 (`pauseCycles.ui.vitest.tsx`).
+- **Render-Drossel:** Bei 100 schnellen Live-Updates innerhalb 1 Sekunde aktualisiert die Statusleiste genau einmal (`useEditorLiveStatus.ui.vitest.tsx`).
+- **Bundle-Größe (`size-limit`):**
+  - Vor Auftrag 159 (Auftrag 158): 178.79 kB
+  - Nach Auftrag 159: 178.77 kB (Budget: $\le 180$ kB) — **GRÜN**
+
+### 4. Schutzbereichs-Prüfung (Diff gegen Baseline `12d03991`)
+
+```bash
+git diff 12d03991 -- src/simulation src/types src/context src/services/data src/features/resources
+--> LEER (0 Zeilen Diff)
+
+git diff 12d03991 -- supabase src/services/db/crmRepository.ts src/domain src/features/dashboard/data src/features/dashboard/model/dashboardPresets.ts
+--> LEER (0 Zeilen Diff)
+
+git diff 12d03991 -- src/services/liveKpi/liveKpiReadAdapter.ts src/services/liveKpi/liveKpiTenantScope.ts src/services/liveKpi/liveKpiStreamHistory.ts supabase/functions
+--> LEER (0 Zeilen Diff)
+```
+
+Keine Migrationen, keine Tabellenänderungen, keine neuen Abhängigkeiten. V1-Editor-Dateien unverändert (0 Zeilen Diff).
+
+### 5. Pflicht-Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run format:check`: 100% Prettier-konform
+- `npm test`: 397/397 Testdateien bestanden (2.943 Tests grün)
+- `npm run verify`: Alle 25 Integrity-Suiten bestanden
+- `npm run build`: Erfolgreich
+- `npm run build:production`: Erfolgreich
+- `npx size-limit`: 178.77 kB / 180 kB (Grün)
+- Screenshot-Gate (`scripts/captureAuftrag159GateScreenshots.mjs`): 30 Screenshots über 1440/768/375, dunkel/hell mit jeweils **0 px horizontalem Überlauf**.
+- Dateilängen: Alle neu erstellten und modifizierten Dateien liegen strikt $\le 400$ Zeilen (`DashboardEditorShellV2.tsx`: 392 Zeilen, `EditorTopBarV2.tsx`: 393 Zeilen).
