@@ -108,3 +108,64 @@ test('a11y editor_v2 mit geöffnetem Neu-Dialog — keine neuen critical/serious
   }
   expect(fresh.length).toBe(0);
 });
+
+// Auftrag 159 (P10a §2.4/§5 T8): Pause-Zustand und Statusleiste „offline“.
+async function addPreviewLiveTile(page: import('@playwright/test').Page) {
+  if (!(await page.getByTestId('widget-library').isVisible())) {
+    await page.getByTestId('toggle-library-button').click();
+  }
+  await page.getByTestId('library-tab-live').click();
+  await page.locator('[data-testid^="add-tile-btn-live."]').first().click();
+}
+
+async function expectNoFreshViolations(
+  page: import('@playwright/test').Page,
+  key: string,
+  label: string,
+) {
+  const results = await new AxeBuilder({ page }).analyze();
+  const blocking = results.violations.filter(
+    (v) => v.impact === 'critical' || v.impact === 'serious',
+  );
+  const accepted: string[] = baseline[key] ?? [];
+  const fresh = blocking.filter((v) => !accepted.includes(v.id));
+  if (fresh.length > 0) {
+    const summary = fresh
+      .map(
+        (v) =>
+          `- [${v.impact}] ${v.id}: ${v.help} (${v.nodes.length} Knoten)\n${v.nodes
+            .map((n) => `    · ${n.target.join(' ')}`)
+            .join('\n')}`,
+      )
+      .join('\n');
+    expect(fresh.length, `${label}: NEUE Axe-Verstöße:\n${summary}`).toBe(0);
+  }
+  expect(fresh.length).toBe(0);
+}
+
+test('a11y editor_v2 im Pause-Zustand — keine neuen critical/serious-Verstöße', async ({
+  page,
+}) => {
+  await page.goto('/dashboard-vorschau.html?bereich=editor_v2', { waitUntil: 'networkidle' });
+  await page.evaluate(() => document.fonts.ready);
+  await addPreviewLiveTile(page);
+  await page.getByTestId('live-pause-button').click();
+  await expect(page.getByTestId('live-pause-button')).toHaveAttribute('aria-pressed', 'true');
+  await page.waitForTimeout(500);
+
+  await expectNoFreshViolations(page, 'editor_v2_paused', 'editor_v2_paused');
+});
+
+test('a11y editor_v2 mit Statusleiste „offline“ — keine neuen critical/serious-Verstöße', async ({
+  page,
+}) => {
+  await page.goto('/dashboard-vorschau.html?bereich=editor_v2&live=offline', {
+    waitUntil: 'networkidle',
+  });
+  await page.evaluate(() => document.fonts.ready);
+  await addPreviewLiveTile(page);
+  await expect(page.getByTestId('connection-status')).toHaveAttribute('data-connection', 'offline');
+  await page.waitForTimeout(500);
+
+  await expectNoFreshViolations(page, 'editor_v2_offline', 'editor_v2_offline');
+});

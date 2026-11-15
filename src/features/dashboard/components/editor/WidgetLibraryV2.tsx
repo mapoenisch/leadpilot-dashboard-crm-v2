@@ -27,6 +27,7 @@ import {
   type DashboardView,
   type SourceLayer,
 } from '../../model/dashboardCatalog';
+import { historyText } from '../../model/historyCapability';
 
 export interface WidgetLibraryV2Props {
   onAddTile: (catalogId: string) => void;
@@ -259,6 +260,13 @@ export function WidgetLibraryV2({
                     </h4>
                     <p className="m-0 mt-0.5 line-clamp-2 text-[10.5px] leading-tight text-[var(--color-text-muted)]">
                       {entry.definition}
+                    </p>
+                    <p
+                      data-testid={`library-history-${entry.id}`}
+                      title={entry.history.note}
+                      className="m-0 mt-0.5 truncate text-[9.5px] leading-tight text-[var(--color-text-muted)]/80"
+                    >
+                      {historyText(entry.history)}
                     </p>
                   </div>
                   <Badge

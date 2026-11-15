@@ -2,6 +2,7 @@
 // Messwerte und Zeitstempel liefert der zentrale Live-Stream (`liveKpiStreamStore`);
 // `LIVE_KPI_DEFINITIONS` liefert nur Metadaten (Label, Einheit, Format).
 import type { ActiveCatalogEntry } from '../dashboardCatalog';
+import { HISTORY_PUFFER } from '../historyCapability';
 
 export const LIVE_ACCESS =
   'Projektion live_kpi_public_feed: SELECT nur für aktive Mitglieder der jeweiligen Organisation (mandantengebunden, Auftrag 153).';
@@ -43,6 +44,7 @@ const liveValue = (
   minSize: 'klein',
   groupings: [],
   filters: [],
+  history: HISTORY_PUFFER,
   detailRouteId: 's-exec',
   access: LIVE_ACCESS,
 });

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import React, { useState } from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, focusManager } from '@tanstack/react-query';
 import { useDashboardData, type UseDashboardDataOptions } from '../hooks/useDashboardData';
 import type { DashboardFilters, DashboardTileConfig } from '../model/dashboardConfig';
 import { useOrganization } from '@/auth/organizationContext';
@@ -299,6 +299,50 @@ describe('useDashboardData', () => {
       expect(screen.getByTestId('state').textContent).toBe('bereit');
       // Höchstens 10 Einträge
       expect(screen.getByTestId('overview-count').textContent).toBe('10');
+    });
+  });
+
+  describe('Pause (Auftrag 159): frozen unterdrückt automatische Neuladungen', () => {
+    it('lädt bei Fensterfokus während der Pause nicht neu, nach dem Fortsetzen schon', async () => {
+      const fetchSpy = vi.fn(async () => [
+        { id: '1', dealName: 'A', stage: 'Lead', amount: 100, closeDate: '', pipeline: 'p1' },
+      ]);
+      const fakeSource: FunnelDealSource = { getImportedFunnelDeals: fetchSpy };
+      const qc = createTestQueryClient();
+
+      const view = render(
+        <TestProvider queryClient={qc}>
+          <TileConsumer tile={crmTile('t1')} options={{ dealSource: fakeSource, frozen: true }} />
+        </TestProvider>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('state').textContent).toBe('bereit');
+      });
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        focusManager.setFocused(false);
+        focusManager.setFocused(true);
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+      view.rerender(
+        <TestProvider queryClient={qc}>
+          <TileConsumer tile={crmTile('t1')} options={{ dealSource: fakeSource, frozen: false }} />
+        </TestProvider>,
+      );
+
+      act(() => {
+        focusManager.setFocused(false);
+        focusManager.setFocused(true);
+      });
+      await waitFor(() => {
+        expect(fetchSpy).toHaveBeenCalledTimes(2);
+      });
     });
   });
 

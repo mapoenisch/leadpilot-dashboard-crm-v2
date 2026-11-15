@@ -2,6 +2,7 @@
 // Je Regel ein aktiver Eintrag mit der Zeitbasis seiner Operanden. Fehlt ein Operand im aktiven
 // Katalog, entsteht kein Eintrag (ein Test erzwingt, dass alle Regeln einen Eintrag ergeben).
 import type { ActiveCatalogEntry } from '../dashboardCatalog';
+import { deriveCombinationHistory } from '../historyCapability';
 import { ACTIVE_CATALOG_ENTRIES, BASELINE_ACCESS } from './activeEntries';
 import { COMBINATION_RULES, type CombinationRule } from './combinationRules';
 
@@ -16,6 +17,10 @@ export function combinationFormula(rule: CombinationRule): string {
 function toEntry(rule: CombinationRule): ActiveCatalogEntry | null {
   const numerator = ACTIVE_CATALOG_ENTRIES.find((entry) => entry.id === rule.numerator.catalogId);
   if (!numerator) return null;
+  const denominator = ACTIVE_CATALOG_ENTRIES.find(
+    (entry) => entry.id === rule.denominator.catalogId,
+  );
+  if (!denominator) return null;
   const share = rule.operation === 'anteil';
   return {
     id: rule.id,
@@ -35,6 +40,7 @@ function toEntry(rule: CombinationRule): ActiveCatalogEntry | null {
     minSize: 'klein',
     groupings: [],
     filters: [],
+    history: deriveCombinationHistory([numerator.history, denominator.history]),
     detailRouteId: rule.detailRouteId,
     access: BASELINE_ACCESS,
     ...(numerator.mayBeNegative ? { mayBeNegative: true as const } : {}),

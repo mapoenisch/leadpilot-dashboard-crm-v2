@@ -23,5 +23,17 @@
     "aria-required-parent",
     "color-contrast",
     "label-title-only"
+  ],
+  "editor_v2_paused": [
+    "aria-required-children",
+    "aria-required-parent",
+    "color-contrast",
+    "label-title-only"
+  ],
+  "editor_v2_offline": [
+    "aria-required-children",
+    "aria-required-parent",
+    "color-contrast",
+    "label-title-only"
   ]
 }

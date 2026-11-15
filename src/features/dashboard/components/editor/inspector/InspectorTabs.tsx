@@ -7,6 +7,7 @@ import type { ActiveCatalogEntry, DashboardView } from '../../../model/dashboard
 import type { DashboardTileConfigV2, TileThresholdRule } from '../../../model/dashboardConfigV2';
 import { getQueryCapabilities } from '../../../model/queryCapabilities';
 import { normalizeTileQuery } from '../../../model/tileQuery';
+import { historyText } from '../../../model/historyCapability';
 
 export const AVAILABLE_VIEWS: Array<{ id: DashboardView; label: string }> = [
   { id: 'zahl', label: 'Zahl' },
@@ -54,8 +55,14 @@ export function InspectorPresentationTab({
     <div data-testid="tab-content-darstellung" className="space-y-4">
       {/* Titel bearbeiten */}
       <div className="space-y-1.5">
-        <label className="text-xs font-medium text-[var(--color-text-muted)]">Kacheltitel</label>
+        <label
+          htmlFor="inspector-title-input"
+          className="text-xs font-medium text-[var(--color-text-muted)]"
+        >
+          Kacheltitel
+        </label>
         <input
+          id="inspector-title-input"
           data-testid="inspector-title-input"
           type="text"
           value={titleInput}
@@ -183,6 +190,19 @@ export function InspectorDataTab({
             <span className="text-white font-medium">{catalogEntry.unit}</span>
             <span className="text-[var(--color-text-muted)] ml-2">Quelle:</span>
             <span className="text-white font-medium capitalize">{catalogEntry.source.layer}</span>
+          </div>
+          <div
+            data-testid="inspector-history"
+            className="border-t border-white/5 pt-1.5 text-[10px]"
+            title={catalogEntry.history.note}
+          >
+            <span className="text-[var(--color-text-muted)]">Historie: </span>
+            <span className="text-white font-medium">
+              {historyText(catalogEntry.history).replace(/^Historie: /, '')}
+            </span>
+            <p className="m-0 mt-0.5 text-[10px] leading-tight text-[var(--color-text-muted)]">
+              {catalogEntry.history.note}
+            </p>
           </div>
         </div>
       )}

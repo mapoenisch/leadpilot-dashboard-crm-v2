@@ -297,6 +297,7 @@ export function EditorTopBarV2({
         <button
           type="button"
           data-testid="live-pause-button"
+          aria-pressed={isLivePaused}
           onClick={onToggleLivePause}
           className={cn(
             'flex h-8 items-center gap-1.5 rounded border px-2.5 text-xs font-medium transition-colors',
@@ -308,13 +309,13 @@ export function EditorTopBarV2({
         >
           {isLivePaused ? (
             <>
-              <Play className="h-3 w-3" />
+              <Play className="h-3 w-3" aria-hidden="true" />
               <span>Fortsetzen</span>
             </>
           ) : (
             <>
-              <Pause className="h-3 w-3" />
-              <span>Pause</span>
+              <Pause className="h-3 w-3" aria-hidden="true" />
+              <span>Pausieren</span>
             </>
           )}
         </button>

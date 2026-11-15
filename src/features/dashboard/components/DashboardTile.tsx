@@ -27,6 +27,7 @@ import {
   TimeReference,
 } from './TileStatus';
 import { formatAsOf, NO_DATA, SOURCE_LABEL, timeLabel } from './tileFormat';
+import { TileStandLine } from '../time/TileStandLine';
 
 export interface DashboardTileProps {
   tile: DashboardTileConfig;
@@ -205,6 +206,7 @@ export function DashboardTile({
                 }
               />
             </div>
+            <TileStandLine data={data} entry={entry} />
             <CombinationFormula entry={entry} />
           </div>
           <TileStateBadge data={data} />
@@ -339,17 +341,20 @@ function TileBody({
   if (BLOCKING_STATES.has(data.state)) {
     const text = blockingText(data);
     const testId = data.state === 'keine_daten' ? 'tile-no-data' : 'tile-blocked';
+    const blockedContent = (
+      <>
+        <InlineStateBadge data={data} />
+        <p data-testid={testId} className="m-0 text-[13px] text-[var(--color-text-muted)]">
+          {text}
+        </p>
+      </>
+    );
     if (chartView) {
       return (
         <div className="relative">
           <ChartLayoutReserve {...reserveFor(chartView, [])} />
           <TableToggleReserve />
-          <div className={cn(OVERLAY, 'items-start')}>
-            <InlineStateBadge data={data} />
-            <p data-testid={testId} className="m-0 text-[13px] text-[var(--color-text-muted)]">
-              {text}
-            </p>
-          </div>
+          <div className={cn(OVERLAY, 'items-start')}>{blockedContent}</div>
         </div>
       );
     }
@@ -357,15 +362,24 @@ function TileBody({
       <div
         className={cn('flex flex-col items-start justify-center gap-[6px]', MIN_HEIGHT[tile.view])}
       >
-        <InlineStateBadge data={data} />
-        <p data-testid={testId} className="m-0 text-[13px] text-[var(--color-text-muted)]">
-          {text}
-        </p>
+        {blockedContent}
       </div>
     );
   }
 
   if (data.state === 'nicht_verfuegbar') return null;
+  const chartElement = (
+    <DashboardChart
+      view={tile.view}
+      entry={entry}
+      data={data}
+      title={title}
+      period={period}
+      idPrefix={idPrefix}
+      onRetryChartLoad={onRetryChartLoad}
+      loaders={chartLoaders}
+    />
+  );
   if (SCROLLING_VIEWS.includes(tile.view)) {
     return (
       <div
@@ -377,31 +391,9 @@ function TileBody({
           MIN_HEIGHT[tile.view],
         )}
       >
-        <DashboardChart
-          view={tile.view}
-          entry={entry}
-          data={data}
-          title={title}
-          period={period}
-          idPrefix={idPrefix}
-          onRetryChartLoad={onRetryChartLoad}
-          loaders={chartLoaders}
-        />
+        {chartElement}
       </div>
     );
   }
-  return (
-    <div className={MIN_HEIGHT[tile.view]}>
-      <DashboardChart
-        view={tile.view}
-        entry={entry}
-        data={data}
-        title={title}
-        period={period}
-        idPrefix={idPrefix}
-        onRetryChartLoad={onRetryChartLoad}
-        loaders={chartLoaders}
-      />
-    </div>
-  );
+  return <div className={MIN_HEIGHT[tile.view]}>{chartElement}</div>;
 }

@@ -20,6 +20,7 @@ import { resolveBaseline } from '../data/resolveBaseline';
 import { resolveCombination } from '../data/resolveCombination';
 import { resolveCrmFromOverview } from '../data/resolveCrm';
 import { resolveLive } from '../data/resolveLive';
+import { attachCrmQueryMeta } from '../time/useTimeControlledData';
 
 const LIVE_IDS = LIVE_KPI_DEFINITIONS.map((def) => def.id);
 
@@ -27,6 +28,12 @@ export interface UseDashboardDataOptions {
   enabled?: boolean;
   store?: LiveKpiStreamStore;
   dealSource?: FunnelDealSource;
+  /**
+   * Auftrag 159: Anzeige eingefroren (gemeinsame Pause). Unterdrückt automatische CRM-Neuladungen
+   * bei Fensterfokus und Reconnect; der Erstaufruf und Filterwechsel laden weiterhin einmal.
+   * Fehlt die Option, ist das Verhalten unverändert.
+   */
+  frozen?: boolean;
 }
 
 function loadingTileData(
@@ -108,6 +115,9 @@ export function useDashboardData(
         dealSource,
       }),
     enabled: crmEnabled,
+    ...(options.frozen
+      ? { refetchOnWindowFocus: false as const, refetchOnReconnect: false as const }
+      : {}),
   });
 
   // Einzelne Live-KPI
@@ -215,7 +225,11 @@ export function useDashboardData(
     if (crmQuery.isLoading || !crmQuery.data) {
       return loadingTileData(catalogEntry, effectiveFilter);
     }
-    return resolveCrmFromOverview(catalogEntry, crmQuery.data, effectiveFilter);
+    const resolved = resolveCrmFromOverview(catalogEntry, crmQuery.data, effectiveFilter);
+    return attachCrmQueryMeta(resolved, {
+      fetchedAt: crmQuery.dataUpdatedAt,
+      isFetching: crmQuery.isFetching,
+    });
   }
 
   // 5. Live (Einzelwert oder Live-Aktivität)
