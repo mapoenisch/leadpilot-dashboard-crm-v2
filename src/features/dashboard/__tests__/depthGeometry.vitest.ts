@@ -214,6 +214,32 @@ describe('linePoints, linePath, areaPath', () => {
     expect(areaPath(points, 220)).toBe('M 10 220 L 210 120 L 410 20 L 410 220 L 10 220 Z');
     expect(areaPath([], 220)).toBe('');
   });
+
+  it('unterbricht Linie und Fläche bei Lücken (null) in getrennte Segmente', () => {
+    const points = linePoints(
+      [
+        { label: 'p1', value: 20 },
+        { label: 'p2', value: 40 },
+        { label: 'gap', value: null, status: 'luecke' },
+        { label: 'p4', value: 60 },
+        { label: 'p5', value: 80 },
+      ],
+      AREA,
+      100,
+    );
+    expect(points[2]?.value).toBeNull();
+    expect(points[2]?.status).toBe('luecke');
+
+    // linePath unterbricht an null und erzeugt zwei M-Segmente
+    const path = linePath(points);
+    expect(path).toBe('M 10 180 L 110 140 M 310 100 L 410 60');
+
+    // areaPath erzeugt zwei getrennte geschlossene Polygone
+    const aPath = areaPath(points, 220);
+    expect(aPath).toBe(
+      'M 10 180 L 110 140 L 110 220 L 10 220 Z M 310 100 L 410 60 L 410 220 L 310 220 Z',
+    );
+  });
 });
 
 describe('Beispieldaten', () => {

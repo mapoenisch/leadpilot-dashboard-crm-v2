@@ -29,7 +29,7 @@ export interface ValidationIssue {
   message: string;
 }
 
-const ID_PATTERN = /^(baseline|crm|live|uebersicht|kombination)\.[a-z0-9_]+$/;
+const ID_PATTERN = /^(baseline|crm|live|uebersicht|kombination)(\.[a-z0-9_]+)+$/;
 const TILE_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 const MIN_REASON_LENGTH = 15;
 

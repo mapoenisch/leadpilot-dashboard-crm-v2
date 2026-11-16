@@ -49,6 +49,29 @@ export interface ResolvedTileData {
   message?: string; // verständlicher Hinweis, keine technische Fehlermeldung
   /** Nur Kombinationen (Auftrag 076): Formel in Worten und beide Operanden mit Zeitbasis. */
   combination?: TileCombination;
+  /** Auftrag 160 (P10b-1): Belegte Zeitreihe vom Server. */
+  timeSeries?: TileTimeSeriesData;
+}
+
+export type TimeSeriesResolution = 'stunde' | 'tag' | 'woche' | 'monat';
+export type TimeSeriesPointStatus = 'belegt' | 'luecke' | 'vor_historienbeginn';
+
+export interface TimeSeriesPoint {
+  readonly at: string;
+  readonly value: number | null;
+  readonly status: TimeSeriesPointStatus;
+  readonly measuredAt: string | null;
+}
+
+export interface TileTimeSeriesData {
+  source: 'deal_stage_events' | 'live_kpi_events';
+  resolution: TimeSeriesResolution;
+  from: string;
+  to: string;
+  historyStartAt: string | null;
+  points: readonly TimeSeriesPoint[];
+  pipelineBasis?: 'aktuelle_pipeline_des_deals';
+  generatedAt?: string | null;
 }
 
 export interface TileCombination {

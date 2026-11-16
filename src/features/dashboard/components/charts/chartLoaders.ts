@@ -3,6 +3,7 @@
 // und Ring. Zahl, Tabelle und Übersicht laden kein Diagrammmodul.
 import React from 'react';
 import type { DashboardView } from '../../model/dashboardCatalog';
+
 import type { DepthChartProps } from './chartTypes';
 
 export type ChartView = Extract<
@@ -41,8 +42,14 @@ export const MODULE_BY_VIEW: Record<ChartView, ChartModuleId> = {
 export const DEFAULT_CHART_LOADERS: ChartLoaders = {
   balken: () => import('./Depth3dBarChart').then((m) => ({ default: m.Depth3dBarChart })),
   ring: () => import('./Depth3dDonutChart').then((m) => ({ default: m.Depth3dDonutChart })),
-  linie: () => import('./DepthLineChart').then((m) => ({ default: m.DepthLineChart })),
-  flaeche: () => import('./DepthAreaChart').then((m) => ({ default: m.DepthAreaChart })),
+  linie: () =>
+    import('./DepthLineChart').then((m) => ({
+      default: m.DepthLineChart as unknown as React.ComponentType<DepthChartProps>,
+    })),
+  flaeche: () =>
+    import('./DepthAreaChart').then((m) => ({
+      default: m.DepthAreaChart as unknown as React.ComponentType<DepthChartProps>,
+    })),
   gauge: () => import('./DepthGaugeChart').then((m) => ({ default: m.DepthGaugeChart })),
   sparkline: () =>
     import('./DepthSparklineChart').then((m) => ({ default: m.DepthSparklineChart })),

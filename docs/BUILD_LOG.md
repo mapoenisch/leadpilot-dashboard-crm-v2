@@ -20652,10 +20652,10 @@ Umsetzung von Paket P05: Implementierung der vollständigen Benutzeroberfläche 
 5. **Inspector (`EditorInspectorV2.tsx` & `InspectorTabs.tsx`):**
    - Modulare Struktur unter strikter Einhaltung der 400-Zeilen-Grenze (`InspectorTabs.tsx`).
    - Leerzustand mit allgemeinen Dashboard-Metadaten und 4 Kachel-Tabs:
-     - *Daten & Filter:* Zeitraum- & Pipeline-Override, Aggregation.
-     - *Darstellung:* Präsentationsform, Debounce-Titeledit via `recordTextInput`, Visualisierungsoptionen.
-     - *Schwellenwerte:* Warn- und Alarmgrenzen mit Operatoren.
-     - *Interaktion:* Drilldown-Ziele (CRM-Pipeline, Detaildialog).
+     - _Daten & Filter:_ Zeitraum- & Pipeline-Override, Aggregation.
+     - _Darstellung:_ Präsentationsform, Debounce-Titeledit via `recordTextInput`, Visualisierungsoptionen.
+     - _Schwellenwerte:_ Warn- und Alarmgrenzen mit Operatoren.
+     - _Interaktion:_ Drilldown-Ziele (CRM-Pipeline, Detaildialog).
 6. **Statusleiste (`EditorStatusBarV2.tsx`):**
    - Verbindungsstatus, Datenstand-Zeitstempel, Kachel-Budget (`X / 24 Kacheln`) mit optischer Warnung ab 20 Kacheln sowie Undo/Redo- und Speicherbedarfs-Statistiken.
 7. **Vier-Zonen-Shell (`DashboardEditorShellV2.tsx`):**
@@ -20786,10 +20786,6 @@ git diff main -- src/simulation src/types src/context src/services/data src/feat
 - `npm run verify`: Alle Integritäts-Suiten (001 bis 025) bestanden.
 - `npm run build`: Erfolgreicher Produktions-Build.
 
-
-
-
-
 ---
 
 ## 2026-11-11 — Auftrag 151: Dashboard-Editor: Nacharbeit Raster-Invarianten (Paket P06b)
@@ -20855,6 +20851,7 @@ Gebaut und lokal verifiziert. Gate-Freigabe steht aus: unabhängiges Review (Cod
 ### Nacharbeit Codex-Review (PR #177, P2-Befund)
 
 **Prüfer:** Codex (GitHub App) · **Geprüfter Stand:** `cdc3b21` · **Datum:** 2026-11-11
+
 - **Befund (P2):** Fehlende Breakpoint-Positionen beim Undo wiederherstellen: Bei Kacheln ohne eigene Tablet-/Mobil-Position materialisierte die Reflow-Planung abgeleitete Koordinaten, wodurch beim Undo feste Koordinaten statt des ursprünglichen Fallbacks zurückgeschrieben wurden. Spätere Desktop-Änderungen griffen nicht mehr durch.
 - **Behebung:**
   - `TileMovement` um `wasDerived?: boolean` erweitert; `collectLayoutMoves` markiert zuvor unmaterialisierte Layouts mit `wasDerived: true`.
@@ -20931,6 +20928,7 @@ Gebaut und vollständig lokal und gegen die lokale Supabase-Instanz verifiziert.
 ### Nacharbeit Codex-Review (PR #178, P2-Befund)
 
 **Prüfer:** Codex (GitHub App) · **Geprüfter Stand:** `7137d47` · **Datum:** 2026-11-12
+
 - **Befund (P2):** `crm-query-export`: Seitenende gegen Zeilengrenze prüfen. Bei Seitengrößen, die 10.000 nicht glatt teilen (z. B. `page: 102, pageSize: 99`), passierte die vorherige Prüfung `(page - 1) * pageSize >= MAX_NON_EXPORT_ROWS` mit Startoffset 9.999, forderte aber 9.999–10.097 an.
 - **Behebung:**
   - `supabase/functions/crm-query-export/index.ts`: Prüfung auf `page * pageSize > MAX_NON_EXPORT_ROWS` umgestellt. Dadurch werden alle Nicht-Export-Anfragen, deren Seitenende über 10.000 liegt, mit 400 `ROW_LIMIT_EXCEEDED` abgewiesen. Dateilänge bleibt mit 398 Zeilen unter 400 Zeilen.
@@ -20965,21 +20963,22 @@ Auftragsdatei: `docs/auftraege/ANTIGRAVITY_AUFTRAG_153_LIVE_KPI_MANDANTENBINDUNG
 ### TDD & Red/Green-Nachweise
 
 1. **SQL-Isolation (T1/T2):**
-   - *Rot:* `supabase/tests/live_kpi_tenant_isolation.sql` schlug auf unmigrierter Datenbank fehl (Tabelle `live_kpi_ingest_senders` fehlte, Spalten fehlten, RLS für anon noch offen).
-   - *Grün:* Nach Anwendung der Migration `20261115_live_kpi_tenant_binding.sql` bestanden alle 14/14 Tests in `live_kpi_tenant_isolation.sql`, sowie `rls_coverage.sql` und `ingress_nonce.sql`.
+   - _Rot:_ `supabase/tests/live_kpi_tenant_isolation.sql` schlug auf unmigrierter Datenbank fehl (Tabelle `live_kpi_ingest_senders` fehlte, Spalten fehlten, RLS für anon noch offen).
+   - _Grün:_ Nach Anwendung der Migration `20261115_live_kpi_tenant_binding.sql` bestanden alle 14/14 Tests in `live_kpi_tenant_isolation.sql`, sowie `rls_coverage.sql` und `ingress_nonce.sql`.
 2. **Edge Function Ingress (T3/T4):**
-   - *Rot:* Tests schlugen fehl, da `X-LeadPilot-Sender` noch nicht gefordert wurde und Body-Organisationsfelder noch passierten.
-   - *Grün:* Nach Implementierung der Keyring-Auflösung und Absenderprüfung bestehen alle 86/86 Deno-Tests in `supabase/functions/__tests__/`.
+   - _Rot:_ Tests schlugen fehl, da `X-LeadPilot-Sender` noch nicht gefordert wurde und Body-Organisationsfelder noch passierten.
+   - _Grün:_ Nach Implementierung der Keyring-Auflösung und Absenderprüfung bestehen alle 86/86 Deno-Tests in `supabase/functions/__tests__/`.
 3. **Read-Adapter & Store (T5):**
-   - *Rot:* `liveKpiTenantScope.vitest.ts` und Adapter-Tests meldeten fehlende Tenant-Checks.
-   - *Grün:* 102/102 Unit-Tests in `src/services/liveKpi/__tests__/` bestanden.
+   - _Rot:_ `liveKpiTenantScope.vitest.ts` und Adapter-Tests meldeten fehlende Tenant-Checks.
+   - _Grün:_ 102/102 Unit-Tests in `src/services/liveKpi/__tests__/` bestanden.
 4. **UI & Kennzeichnung (T6):**
-   - *Rot:* UI-Tests erwarteten zuvor den Text „organisationsübergreifende Live-Feeds“.
-   - *Grün:* Nach Anpassung auf mandantengebunden bestehen alle 678 Dashboard-Tests in 62 Test-Dateien.
+   - _Rot:_ UI-Tests erwarteten zuvor den Text „organisationsübergreifende Live-Feeds“.
+   - _Grün:_ Nach Anpassung auf mandantengebunden bestehen alle 678 Dashboard-Tests in 62 Test-Dateien.
 
 ### Schutzbereichs-Diff (`src/types/database.generated.ts`)
 
 Der Schutzbereich `src/types/**` wurde als einzige Ausnahme im definierten Umfang angepasst:
+
 ```diff
 --- a/src/types/database.generated.ts
 +++ b/src/types/database.generated.ts
@@ -20995,11 +20994,13 @@ Der Schutzbereich `src/types/**` wurde als einzige Ausnahme im definierten Umfan
 -      ingest_live_kpi_event: { Args: { p_event: Json }; Returns: Json };
 +      ingest_live_kpi_event: { Args: { p_sender_id: string; p_event: Json }; Returns: Json };
 ```
+
 Alle anderen Schutzbereiche (`src/simulation/**`, `src/context/**`, `src/services/data/**`, `src/features/resources/**`) haben 0 Zeilen Diff.
 
 ### 6-Schritte-Umstellungsplan für Marc (Hosted Supabase & n8n)
 
 Zur gefahrlosen Inbetriebnahme auf der gehosteten Instanz ohne offenes Lesefenster:
+
 1. **Secret erzeugen & Function-Secrets setzen:**
    Neues Secret (z. B. 64 Hex-Zeichen) für den Sender `leadpilot-demo` generieren und in den Supabase Hosted Secrets als JSON-Keyring eintragen:
    ```bash
@@ -21029,6 +21030,7 @@ Zur gefahrlosen Inbetriebnahme auf der gehosteten Instanz ohne offenes Lesefenst
 ### Realtime-Mandantenisolation (3 Clients: A, B, anonym)
 
 Gemäß Auftrag 153 §8 wurde der explizite 3-Client-Realtime-Nachweis implementiert:
+
 - **Skript:** `scripts/verifyLiveKpiRealtimeIsolation.ts` (ausführbar via `npm run verify:realtime`).
 - **CI-Integration:** In `.github/workflows/ci.yml` im `e2e`-Job mit `--fail-if-offline` nach dem lokalen DB-Bootstrap verankert.
 - **Prüfszenario:** Drei parallele Clients abonnieren `live_kpi_public_feed`. Nach Ingest eines Events für Organisation A empfängt ausschließlich Client A (Org-Mitglied) die Benachrichtigung; Client B (Fremdorganisation) und Client Anon (unangemeldet) erhalten durch RLS und Topic-Filter 0 Events.
@@ -21042,6 +21044,7 @@ Gemäß Auftrag 153 §8 wurde der explizite 3-Client-Realtime-Nachweis implement
 ### 1. Zusammenfassung
 
 Umsetzung von **Auftrag 154 (P08a)** als erster Teil des geteilten Masterplan-Pakets P08:
+
 - Etablierung von `tile.query` als alleinigem **Single Source of Truth** für Metrik, Datenfilter, Zeitbezug, Aggregation und Gruppierung im Dashboard-Editor V2.
 - Ableitung von Kennzahlenfähigkeiten (`queryCapabilities.ts`) aus den 48 aktiven Katalogeinträgen ohne manuelle Redundanzen.
 - Strikte Strukturprüfung auf Server-Ebene (`dashboard_config_v2_invalid_reason`) und Fachprüfung im Browser (`validateTileQuery`).
@@ -21064,6 +21067,7 @@ Umsetzung von **Auftrag 154 (P08a)** als erster Teil des geteilten Masterplan-Pa
 ### 3. Last & Performance-Benchmark (§2.4 Nr. 18)
 
 Lastmessung via `EXPLAIN (ANALYZE, BUFFERS)` mit 5.000 synthetischen Deals in einer Organisation auf PostgreSQL:
+
 - **Ohne Pipeline-Filter (5.000 Deals ausgewertet):**
   - Execution Time: **82.45 ms** (Buffers: shared hit=31220).
 - **Mit Pipeline-Filter `Vertrieb` (3.000 von 5.000 Deals ausgewertet):**
@@ -21096,6 +21100,7 @@ git diff 84bbc91 -- src/types
 ### 5. Fundstellen mit 1.000-Zeilen-Grenze (für Folgeauftrag 156)
 
 Folgende Stellen im CRM- und Workspace-Bestand nutzen `select('*')` ohne Paginierung/Range:
+
 - `CRMRepository.getImportedFunnelDeals()` in `src/services/db/crmRepository.ts:16`
 - `CRMRepository.getCompanies()` in `src/services/db/crmRepository.ts:31`
 - `CRMRepository.getContacts()` in `src/services/db/crmRepository.ts:46`
@@ -21107,6 +21112,7 @@ Der Detailauftrag `ANTIGRAVITY_AUFTRAG_156_CRM_REPOSITORY_VOLLBESTAND_PAGINIERUN
 ### 6. Schrittliste für Marc (Hosted Supabase)
 
 Zur Aktivierung der neuen Vollbestands-RPC auf der gehosteten Supabase-Instanz:
+
 1. **Migration anwenden:**
    Inhalt von `supabase/migrations/20261116_dashboard_query_contract.sql` im Supabase Dashboard SQL Editor ausführen (oder per `supabase db push`).
 2. **Rechte und Ausführung prüfen:**
@@ -21129,6 +21135,7 @@ Zur Aktivierung der neuen Vollbestands-RPC auf der gehosteten Supabase-Instanz:
 ### 1. Ziel & Kontext
 
 Vollständige Behebung der stillen 1.000-Zeilen-Abschneidung (`max_rows = 1000` in PostgREST/Supabase) im gesamten CRM- und Workspace-Datenzugriff:
+
 - `CRMRepository` (`getCompanies`, `getContacts`, `getContactsByCompanyId`, `getImportedFunnelDeals`)
 - `runRepository` (`selectByOrg` für `simulation_runs`, `simulation_events`, `simulation_timeseries`, `simulation_snapshots`)
 - `scenarioRepository` (`loadScenarios`, `loadVersions`)
@@ -21137,6 +21144,7 @@ Vollständige Behebung der stillen 1.000-Zeilen-Abschneidung (`max_rows = 1000` 
 ### 2. T1 Rot-Nachweise
 
 Vor der Implementierung wurden dedizierte Vitest-Suiten mit Mock-PostgREST-Clients erstellt, die das PostgREST-Limit `max_rows = 1000` simulieren (Datenbestand 1.500 Zeilen):
+
 1. `src/services/db/__tests__/crmRepository.paged.vitest.ts`:
    - `getCompanies`: lieferte unpaginiert nur 1.000 von 1.500 Einträgen (AssertionError: expected 1000 to be 1500).
    - `getContacts`: lieferte unpaginiert nur 1.000 von 1.500 Einträgen.
@@ -21197,7 +21205,7 @@ Keine Dateien in Schutzbereichen berührt.
 **Datum:** 14.11.2026  
 **Builder:** Antigravity  
 **Branch:** `auftrag-157-dashboard-sektionen`  
-**Baseline:** `60aa96b` (Merge von PR #184)  
+**Baseline:** `60aa96b` (Merge von PR #184)
 
 ### 1. Rot-Nachweise (§3 Nr. 8)
 
@@ -21209,15 +21217,16 @@ Keine Dateien in Schutzbereichen berührt.
 
 Vergleichsmessung: Dashboard mit 24 Kacheln in 4 Sektionen (je 6 Kacheln), davon 2 Sektionen eingeklappt, gegen dieselben 24 Kacheln ohne Sektionen:
 
-| Metrik | Ohne Sektionen (24 Kacheln) | Mit Sektionen (2 eingeklappt) | Entlastung |
-|---|---|---|---|
-| Gerenderte Kacheln | 24 | 12 | **-50 %** |
-| `useData`-Aufrufe | 24 | 12 | **-50 %** |
-| RPC-Aufrufe beim Öffnen | 24 | 12 | **-50 %** |
+| Metrik                  | Ohne Sektionen (24 Kacheln) | Mit Sektionen (2 eingeklappt) | Entlastung |
+| ----------------------- | --------------------------- | ----------------------------- | ---------- |
+| Gerenderte Kacheln      | 24                          | 12                            | **-50 %**  |
+| `useData`-Aufrufe       | 24                          | 12                            | **-50 %**  |
+| RPC-Aufrufe beim Öffnen | 24                          | 12                            | **-50 %**  |
 
 Eingeklappte Sektionen rendern im DOM weder Kachelkarten noch Tile-Komponenten; `dataCallsPerTile` ist für Kacheln eingeklappter Sektionen exakt 0 (nachgewiesen durch `SectionedCanvasV2.ui.vitest.tsx`).
 
 **Bundle-Größen (`npx size-limit`):**
+
 - Initial JS bundle (gzip): **178.77 kB** (Limit: 180 kB) — GRÜN
 - Largest chunk (gzip): **79.41 kB** (Limit: 250 kB) — GRÜN
 - Editor-Chunk: `DashboardEditorShellV2` 43.26 kB gzipped (Code-Splitting, wird nur im Editor geladen).
@@ -21302,13 +21311,14 @@ git diff 60aa96b --stat -- supabase/migrations
 3. **Befund und Korrektur online:** `service_role` hatte online kein `EXECUTE` auf `claim_ingress_slot` und `ingest_live_kpi_event` (lokal über Supabase-Standardrechte vorhanden). Die Edge Function lieferte deshalb `500 INGEST_FAILED`; sie war online also nie lauffähig. Online nachgezogen: `GRANT EXECUTE … TO service_role` für genau diese zwei Funktionen. **Offen für einen Folgeauftrag:** dieselben zwei Grants als Migration ins Repo aufnehmen, damit lokal und online gleich bleiben. Außerdem prüfen, welche weiteren RPCs online `service_role` brauchen.
 4. **Abnahme:** signiertes Probe-Event (`sourceSystem = abnahme-test`, `pipeline_leads = 1`) → `201 accepted`, Organisation = Demo-Organisation, im Feed sichtbar; gleiche Nonce → `401 INGEST_REPLAY_DETECTED`; falsche Signatur → `401 INGEST_SIGNATURE_INVALID`; anonymer REST-Lesezugriff auf `live_kpi_public_feed` → `401 permission denied`. Prüfungen der übrigen Migrationen: Sektionsprüfung online gültig/ungültig wie erwartet, `anon` ohne Zugriff auf `dashboards` und die Dashboard-RPCs, RLS aktiv.
 5. **Noch bei Marc:** n8n-Credential `HMAC Sign Base` mit dem neuen Secret aktualisieren und den Workflow mit `X-LeadPilot-Sender: leadpilot-demo` neu importieren (der n8n-Zugang war aus dieser Sitzung nicht erreichbar). Die Betriebsregel „keine echten Kennzahlen einspeisen“ gilt bis zum erfolgreichen n8n-Testlauf weiter.
+
 ---
 
 ## 2026-11-14 — Auftrag 158: Dashboard-Editor: V2-Vorlagen und Dashboard-Auswahl (P09b)
 
 **Rolle:** Antigravity (P09b Umsetzung)  
 **Branch:** `auftrag-158-vorlagen-dashboard-auswahl`  
-**Baseline:** `ba603db8` (Merge von PR #185)  
+**Baseline:** `ba603db8` (Merge von PR #185)
 
 ### 1. Rot-Nachweise (§3 Nr. 8)
 
@@ -21327,6 +21337,7 @@ git diff 60aa96b --stat -- supabase/migrations
 ### 3. Screenshot-Matrix (docs/screenshots/auftrag-158/README.md)
 
 Alle 12 Konfigurationen (3 Viewports: 1440px Desktop, 768px Tablet, 375px Mobil × 4 Szenarien) weisen **0 px horizontal overflow** auf und besitzen eindeutige SHA-256 Hashes:
+
 1. `editor-switcher-closed`: Geschlossener Switcher im TopBar (3 Viewports, 0 px Overflow).
 2. `editor-switcher-menu-open`: Geöffnetes Umschalt-Menü mit Vorlagen-Button, Dashboard-Liste und Metadaten (3 Viewports, 0 px Overflow).
 3. `dialog-new-dashboard`: Dialog „Neues Dashboard erstellen“ mit 4 V2-Vorlagenkarten (3 Viewports, 0 px Overflow).
@@ -21399,6 +21410,7 @@ git diff ba603db8 --stat -- supabase/migrations
 ### 7. Hosted-Migrations-Schrittliste (für Hosted-Umgebung nfyiywfcnfjtjbdbptdg)
 
 Folgende Schritte sind zur Aktivierung auf der gehosteten Supabase-Instanz auszuführen:
+
 1. Migration `supabase/migrations/20261118_dashboard_selection.sql` im SQL-Editor von Supabase einspielen (oder via `supabase db push`).
 2. Prüfung der RPC-Berechtigungen:
    - `SELECT proname FROM pg_proc WHERE proname IN ('duplicate_personal_dashboard_v2', 'delete_personal_dashboard_v2');`
@@ -21414,11 +21426,12 @@ Folgende Schritte sind zur Aktivierung auf der gehosteten Supabase-Instanz auszu
 **Branch:** `auftrag-159-zeitsteuerung-live-status`  
 **Baseline:** `12d03991` (Merge PR #188 nach `main`)  
 **Pull Request:** [#187](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/pull/187)  
-**Status:** Gebaut, verifiziert, Pflichtchecks grün  
+**Status:** Gebaut, verifiziert, Pflichtchecks grün
 
 ### 1. Zusammenfassung
 
 Umsetzung von Auftrag 159 (P10a):
+
 1. **Historienmatrix im Katalog:**
    - Maschinenlesbare `HistoryCapability` für alle 48 aktiven Katalogeinträge (29 fest, 13 puffer, 6 keine, 0 ereignisse).
    - Streng typisiert (`HistoryKind`, `HistoryCapability`), keine erfundenen Werte.
@@ -21447,12 +21460,12 @@ Umsetzung von Auftrag 159 (P10a):
 
 ### 2. Rot-Nachweise (T1)
 
-| Prüfung | Erwartung (Rot) | Beobachtung & Test |
-|---|---|---|
-| (a) Live-Event während Pause | Wert ändert sich trotz Pause | Behoben: `useTimeControlledData.ui.vitest.tsx` belegt, dass Live-Events im Store ankommen, die Kachel aber auf dem Stand der Pause eingefroren bleibt. |
-| (b) Statusleiste ohne Supabase | Behauptet fest verdrahtet „Live“ | Behoben: `useEditorLiveStatus.ui.vitest.tsx` zeigt verlässlich „Nicht konfiguriert“ (keine erfundenen Werte). |
-| (c) Katalogeintrag ohne `history` | Fehlendes Feld fällt nicht auf | Behoben: `catalogHistory.vitest.ts` scheitert sofort bei fehlendem oder unvollständigem `history`-Eintrag. |
-| (d) CRM-Refetch bei Pause & Fokus | Refetch überschreibt Pausenanzeige | Behoben: `useTimeControlledData.ui.vitest.tsx` belegt Unterdrückung via `frozen`. |
+| Prüfung                           | Erwartung (Rot)                    | Beobachtung & Test                                                                                                                                     |
+| --------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| (a) Live-Event während Pause      | Wert ändert sich trotz Pause       | Behoben: `useTimeControlledData.ui.vitest.tsx` belegt, dass Live-Events im Store ankommen, die Kachel aber auf dem Stand der Pause eingefroren bleibt. |
+| (b) Statusleiste ohne Supabase    | Behauptet fest verdrahtet „Live“   | Behoben: `useEditorLiveStatus.ui.vitest.tsx` zeigt verlässlich „Nicht konfiguriert“ (keine erfundenen Werte).                                          |
+| (c) Katalogeintrag ohne `history` | Fehlendes Feld fällt nicht auf     | Behoben: `catalogHistory.vitest.ts` scheitert sofort bei fehlendem oder unvollständigem `history`-Eintrag.                                             |
+| (d) CRM-Refetch bei Pause & Fokus | Refetch überschreibt Pausenanzeige | Behoben: `useTimeControlledData.ui.vitest.tsx` belegt Unterdrückung via `frozen`.                                                                      |
 
 ### 3. Leistungs- und Zählnachweise (T9)
 
@@ -21490,3 +21503,83 @@ Keine Migrationen, keine Tabellenänderungen, keine neuen Abhängigkeiten. V1-Ed
 - `npx size-limit`: 178.77 kB / 180 kB (Grün)
 - Screenshot-Gate (`scripts/captureAuftrag159GateScreenshots.mjs`): 30 Screenshots über 1440/768/375, dunkel/hell mit jeweils **0 px horizontalem Überlauf**.
 - Dateilängen: Alle neu erstellten und modifizierten Dateien liegen strikt $\le 400$ Zeilen (`DashboardEditorShellV2.tsx`: 392 Zeilen, `EditorTopBarV2.tsx`: 393 Zeilen).
+
+---
+
+## 2026-11-16 — Auftrag 160: Dashboard-Editor: Server-Zeitreihen, Kalender-Buckets, Lückendarstellung & Verlaufs-Katalog (P10b-1)
+
+**Rolle:** Antigravity (Builder)  
+**Branch:** `auftrag-160-server-zeitreihen`  
+**Baseline:** `d83e3e66` (Merge PR #187 nach `main`)  
+**Pull Request:** [#194](https://github.com/mapoenisch/leadpilot-dashboard-crm-v2/pull/194)  
+**Status:** Gebaut, verifiziert, Pflichtchecks grün
+
+### 1. Zusammenfassung
+
+Umsetzung von Auftrag 160 (P10b-1):
+
+1. **Server-RPC `dashboard_time_series`:**
+   - Migration `supabase/migrations/20261119_dashboard_time_series.sql`.
+   - Mandantenbindung strikt über RLS / `current_setting('app.current_organization_id')`.
+   - Kalender-Buckets in `Europe/Berlin` (`stunde`, `tag`, `woche`, `monat`, `quartal`, `jahr`).
+   - Lückenunterscheidung mit 3 Zuständen: `belegt` (Datenpunkt vorhanden), `luecke` (keine Daten im Erfassungszeitraum), `vor_historienbeginn` (Zeitstempel vor dem frühesten belegten Event der Organisation).
+   - Obergrenze $\le 400$ Datenpunkte je Abruf (`max_points_exceeded` bei Überschreitung).
+   - 16 pgTAP-Tests in `supabase/tests/dashboard_time_series.sql` (384 Tests in allen Suiten grün).
+2. **Client-Datenquelle `resolveTimeSeries.ts` & Caching:**
+   - Eigene Query-Keys `['dashboardTimeSeries', orgId, seriesId, resolution, startAt, endAt, pipelineId]`.
+   - Entkoppelt von Snapshot-Cache `['dashboardData']`; gezieltes Refetching bei Pipeline-Wechsel oder Zeitfenster-Änderung.
+   - Anbindung im Hook `useDashboardData.ts` und Revalidierung in `resumeCrmRefresh.ts`.
+3. **Katalogerweiterung auf 62 aktive Einträge (+14 Einträge):**
+   - 2 aktive CRM-Flussgrößen: `crm.phaseneintritte_verlauf` und `crm.gewonnen_verlauf` (`source: 'deal_stage_events'`, `reconstructable: 'nur_fluesse'`).
+   - 12 Live-Verlauf-Einträge via Factory `buildLiveTimeSeriesEntries` für alle 12 Live-Kennzahlen (`source: 'live_kpi_events'`, `reconstructable: 'ja'`).
+   - Verteilung: 29 `fest`, 13 `puffer`, 6 `keine`, 14 `ereignisse`. Integritätstest `catalogHistory.vitest.ts` und Gate G24 `verifyLiveKpiCatalog.ts` grün.
+4. **Lückendarstellung in Tiefen-Diagrammen (`DepthLineChart`, `DepthAreaChart`):**
+   - Geometrie `depthGeometry.ts`: `linePath` und `areaPath` unterbrechen Pfade bei `null`/Lücken in eigenständige SVG-Segmente.
+   - Null-Zone vor Historienbeginn mit subtiler Schraffur (`vor_historienbeginn`).
+   - Diskrete Baseline-Lückenmarker mit Tooltip/Readout-Hinweis.
+   - `ChartReadout.tsx` und `TileValue.tsx` mit barrierefreier Ausweisung von Lücken („Keine Daten in diesem Zeitraum“ bzw. „Vor Aufzeichnungsbeginn“).
+5. **Inspector & Widget-Bibliothek:**
+   - Anzeige von Auflösung (`stunde` bis `jahr`), Zeitfenster und `historyStartAt`.
+   - Pipeline-Bindung mit Filterhinweis bei `crm.phaseneintritte_verlauf` und `crm.gewonnen_verlauf` (`aktuelle_pipeline_des_deals` mit `ON DELETE CASCADE`).
+   - Aufteilung des Inspectors in Tab-Module (`InspectorDataTab.tsx`, `InspectorPresentationTab.tsx`, `InspectorThresholdTab.tsx`, `InspectorInteractionTab.tsx`) zur Einhaltung der $\le 400$ Zeilen-Regel.
+6. **E2E-Tests, a11y & Screenshot-Gate:**
+   - E2E-Spec `e2e/editor-time-series.spec.ts` mit Paritätsprüfungen und Lückenprüfung.
+   - Screenshot-Harness `scripts/captureAuftrag160GateScreenshots.mjs`: 30 Screenshots across 1440/768/375 dunkel/hell, 0 px horizontaler Überlauf, verifizierte SHA-256 Hashes.
+   - Dokumentation `docs/dashboard/ZEITREIHEN_P10B.md` und `docs/screenshots/auftrag-160/README.md`.
+
+### 2. Rot-Nachweise (T1)
+
+| Prüfung                                            | Erwartung (Rot)                             | Beobachtung & Test                                                                     |
+| -------------------------------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------- |
+| (a) RPC `dashboard_time_series` vor Migration      | Funktion fehlt in PostgreSQL                | Behoben: Migration `20261119_dashboard_time_series.sql` angelegt; 16 pgTAP-Tests grün. |
+| (b) `DepthLineChart` mit Lücken                    | Zeichnet durchgezogene Linie über Nullwerte | Behoben: `depthGeometry.vitest.ts` belegt Segmentunterbrechung und Null-Zonen.         |
+| (c) Katalog validiert Sub-Pfade (`live.*.verlauf`) | Scheitert an `ID_PATTERN` in Validation     | Behoben: `dashboardValidation.ts` erlaubt Untersegmente; 62 Einträge typisiert.        |
+| (d) Kachel nach Pause-Fortsetzen                   | Verbleibt auf altem Zeitreihenstand         | Behoben: `resumeCrmRefresh.ts` invalidiert `dashboardTimeSeries`.                      |
+
+### 3. Leistungs- und Zählnachweise (T9)
+
+- **Bundle-Größe (`size-limit`):**
+  - Baseline (Auftrag 159): 178.77 kB
+  - Nach Auftrag 160: **178.79 kB** (Limit: $\le 180$ kB) — **GRÜN**
+  - Größter Chunk: **79.41 kB** (Limit: $\le 250$ kB) — **GRÜN**
+- **Dateilängen:** Alle TypeScript-Dateien strikt $\le 400$ Zeilen (max. `depthGeometry.ts` 390 Zeilen, `depthGeometry.vitest.ts` 392 Zeilen).
+- **Datenpunkte-Schutz:** Obergrenze 400 Punkte im SQL-RPC verhindert DoS/Überlastung des Frontends.
+
+### 4. Schutzbereichs-Prüfung (Diff gegen Baseline `d83e3e66`)
+
+```bash
+git diff d83e3e66 -- src/simulation src/types src/context src/services/data src/features/resources src/services/liveKpi src/features/dashboard/components/editor/DashboardEditorShellV2.tsx src/features/dashboard/components/editor/EditorTopBarV2.tsx
+--> LEER (0 Zeilen Diff)
+```
+
+### 5. Pflicht-Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run format:check`: 100% Prettier-konform
+- `npm test`: 92 Dashboard-Suiten (955 Tests grün), Gesamt-Suite grün
+- `npx tsx scripts/verifyLiveKpiCatalog.ts`: Bestanden (G24 grün)
+- `npx tsx scripts/verifyMigrationUpgrade.mjs`: Bestanden (Migration sauber)
+- `npm run build:production`: Erfolgreich
+- `npx size-limit`: 178.79 kB / 180 kB (Grün)
+- Screenshot-Gate (`scripts/captureAuftrag160GateScreenshots.mjs`): 30 Screenshots über 1440/768/375, dunkel/hell mit jeweils **0 px horizontalem Überlauf**.

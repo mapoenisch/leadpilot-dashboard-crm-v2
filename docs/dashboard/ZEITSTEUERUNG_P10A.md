@@ -37,13 +37,13 @@ export interface HistoryCapability {
 
 ### 2.2 Zuordnungsregeln
 
-| Katalogeintrag | Art | Begründung |
-|---|---|---|
-| `baseline.*`, `uebersicht.*` ohne Live-Bezug | `fest` | Feste Referenzreihe im App-Bundle; kein Zeitwechsel möglich. |
-| `crm.*` | `keine` | Nur der aktuelle Stand; keine gespeicherte Historie. Bestände (Pipeline-Volumen, Deals, gewonnenes Volumen) sind aus heutigen Datensätzen nicht rekonstruierbar, weil Beträge nachträglich geändert werden. |
-| `crm.*` mit reinen Phaseneintritten | `ereignisse`, `source: 'deal_stage_events'`, `reconstructable: 'nur_fluesse'` | Nur zulässig, wenn der Wert vollständig aus `deal_stage_events` folgt. In 159 gibt es keinen solchen aktiven Eintrag; ereignisbasierte Flusskennzahlen folgen in 160. |
-| `live.*`, `uebersicht.live_aktivitaet` | `puffer` | Flüchtiger Browser-Puffer (initial 30 Minuten Abruf, danach FIFO mit höchstens 30 Punkten). Die serverseitige Historie aus `live_kpi_events` wird erst in P10b freigeschaltet. |
-| Kombinationen | `fest`, wenn alle Operanden `fest` sind, sonst `keine` | Reine Funktion `deriveCombinationHistory`; keine Rangfolge der Arten. |
+| Katalogeintrag                               | Art                                                                           | Begründung                                                                                                                                                                                                  |
+| -------------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `baseline.*`, `uebersicht.*` ohne Live-Bezug | `fest`                                                                        | Feste Referenzreihe im App-Bundle; kein Zeitwechsel möglich.                                                                                                                                                |
+| `crm.*`                                      | `keine`                                                                       | Nur der aktuelle Stand; keine gespeicherte Historie. Bestände (Pipeline-Volumen, Deals, gewonnenes Volumen) sind aus heutigen Datensätzen nicht rekonstruierbar, weil Beträge nachträglich geändert werden. |
+| `crm.*` mit reinen Phaseneintritten          | `ereignisse`, `source: 'deal_stage_events'`, `reconstructable: 'nur_fluesse'` | Nur zulässig, wenn der Wert vollständig aus `deal_stage_events` folgt. In 159 gibt es keinen solchen aktiven Eintrag; ereignisbasierte Flusskennzahlen folgen in 160.                                       |
+| `live.*`, `uebersicht.live_aktivitaet`       | `puffer`                                                                      | Flüchtiger Browser-Puffer (initial 30 Minuten Abruf, danach FIFO mit höchstens 30 Punkten). Die serverseitige Historie aus `live_kpi_events` wird erst in P10b freigeschaltet.                              |
+| Kombinationen                                | `fest`, wenn alle Operanden `fest` sind, sonst `keine`                        | Reine Funktion `deriveCombinationHistory`; keine Rangfolge der Arten.                                                                                                                                       |
 
 Invarianten (Test `catalogHistory.vitest.ts`):
 
@@ -67,7 +67,7 @@ export type TimeControlMode = 'live' | 'pausiert';
 export interface TimeControlState {
   mode: TimeControlMode;
   analysisAt: string | null; // ISO-Zeitpunkt der Pause, null im Live-Modus
-  resumeToken: number;       // steigt bei jeder Wiederaufnahme
+  resumeToken: number; // steigt bei jeder Wiederaufnahme
 }
 ```
 
@@ -82,11 +82,11 @@ Der Zustand liegt im Feature-Kontext `src/features/dashboard/time/` (nicht in `s
 
 ## 4. Verhalten je Quellschicht
 
-| Schicht | Live-Modus | Pause | Fortsetzen |
-|---|---|---|---|
-| Stammdaten (`baseline`, `kombination`) | referenzierter Wert | zuletzt gelieferter Wert bleibt stehen | unverändert |
-| CRM (`crm`) | React-Query-Abruf; Fensterfokus/Reconnect laden bei Bedarf neu | kein automatisches Neuladen (`frozen`), Anzeige eingefroren | einmalige Invalidierung der eigenen CRM-Übersichten (Organisation + Nutzer) |
-| Live (`live.*`, `uebersicht.live_aktivitaet`) | Store-Abo, aktuelle Werte | Abo bleibt bestehen (Puffer läuft weiter), Anzeige friert ein | aktueller Store-Stand wird übernommen |
+| Schicht                                       | Live-Modus                                                     | Pause                                                         | Fortsetzen                                                                  |
+| --------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| Stammdaten (`baseline`, `kombination`)        | referenzierter Wert                                            | zuletzt gelieferter Wert bleibt stehen                        | unverändert                                                                 |
+| CRM (`crm`)                                   | React-Query-Abruf; Fensterfokus/Reconnect laden bei Bedarf neu | kein automatisches Neuladen (`frozen`), Anzeige eingefroren   | einmalige Invalidierung der eigenen CRM-Übersichten (Organisation + Nutzer) |
+| Live (`live.*`, `uebersicht.live_aktivitaet`) | Store-Abo, aktuelle Werte                                      | Abo bleibt bestehen (Puffer läuft weiter), Anzeige friert ein | aktueller Store-Stand wird übernommen                                       |
 
 Zusätzlich:
 
@@ -104,11 +104,11 @@ Fortsetzen invalidiert ausschließlich Cache-Schlüssel der eigenen Organisation
 
 Die Statusleiste zeigt drei getrennte Angaben. Alle stammen aus echten Quellen; Ping-, Latenz- und Durchsatzwerte gibt es nicht, weil es dafür keine Messung gibt.
 
-| Angabe | Quelle | Werte |
-|---|---|---|
-| **Verbindung** | `isLiveKpiReadConfigured()`, Anzahl sichtbarer Live-Kacheln, `getFeedConnectionState()` | `nicht_konfiguriert`, `kein_live_inhalt`, `verbindet`, `verbunden`, `wiederverbinden`, `offline` |
-| **Letzte neue Daten** | jüngstes `occurredAt` der Snapshots sichtbarer Live-Kacheln | Uhrzeit oder „Noch keine Daten empfangen“ |
-| **Datenstand** | Live: ältester `asOf` bzw. CRM-`dataUpdatedAt` der sichtbaren Kacheln mit aktuellem Bezug; Pause: Analysezeitpunkt | Uhrzeit, „Angehalten seit HH:MM“ oder „Kein aktueller Datenstand“ |
+| Angabe                | Quelle                                                                                                             | Werte                                                                                            |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| **Verbindung**        | `isLiveKpiReadConfigured()`, Anzahl sichtbarer Live-Kacheln, `getFeedConnectionState()`                            | `nicht_konfiguriert`, `kein_live_inhalt`, `verbindet`, `verbunden`, `wiederverbinden`, `offline` |
+| **Letzte neue Daten** | jüngstes `occurredAt` der Snapshots sichtbarer Live-Kacheln                                                        | Uhrzeit oder „Noch keine Daten empfangen“                                                        |
+| **Datenstand**        | Live: ältester `asOf` bzw. CRM-`dataUpdatedAt` der sichtbaren Kacheln mit aktuellem Bezug; Pause: Analysezeitpunkt | Uhrzeit, „Angehalten seit HH:MM“ oder „Kein aktueller Datenstand“                                |
 
 Regeln:
 
@@ -124,13 +124,13 @@ Regeln:
 
 Jede Kachel im V2-Editor und in der V2-Vorschau zeigt eine kurze Standzeile, abgeleitet aus `history.kind` und dem tatsächlichen Stand:
 
-| Art | Text |
-|---|---|
-| `fest` | „Referenzwert, Stand <timeBasis>“ |
-| `keine` (CRM) | „Aktueller Stand, abgerufen <Uhrzeit>“ |
-| `puffer` (Live) | „Live, zuletzt <Uhrzeit>“ oder „noch keine Live-Daten“ |
-| `ereignisse` | „Ereignisse ab Aufzeichnungsbeginn“ (Auswertung folgt in P10b) |
-| Pause | zusätzlich „Angehalten seit <Uhrzeit>“ oder „Stand <Uhrzeit> (nach Pausenbeginn geladen)“ |
+| Art             | Text                                                                                      |
+| --------------- | ----------------------------------------------------------------------------------------- |
+| `fest`          | „Referenzwert, Stand <timeBasis>“                                                         |
+| `keine` (CRM)   | „Aktueller Stand, abgerufen <Uhrzeit>“                                                    |
+| `puffer` (Live) | „Live, zuletzt <Uhrzeit>“ oder „noch keine Live-Daten“                                    |
+| `ereignisse`    | „Ereignisse ab Aufzeichnungsbeginn“ (Auswertung folgt in P10b)                            |
+| Pause           | zusätzlich „Angehalten seit <Uhrzeit>“ oder „Stand <Uhrzeit> (nach Pausenbeginn geladen)“ |
 
 Inspector (Abschnitt Daten) und Bibliothek zeigen zusätzlich den Historientext je Art. Kachelgrößen ändern sich dadurch nicht.
 
@@ -157,3 +157,9 @@ Inspector (Abschnitt Daten) und Bibliothek zeigen zusätzlich den Historientext 
 - `resumeCrmRefresh.ui.vitest.tsx` — genau drei eigene CRM-Abrufe, fremde Organisation unberührt.
 - `e2e/editor-time-control.spec.ts` — Pause, Abweichungskennzeichnung, Fortsetzen, Neuladen, offline/nicht konfiguriert, Tastatur.
 - `scripts/captureAuftrag159GateScreenshots.mjs` — 5 Zustände × 3 Viewports × 2 Themes, 0 px Überlauf, Statuszustände mit unterschiedlichen Hashes.
+
+---
+
+### Nachtrag 16.11.2026 (Auftrag 160 / P10b-1): Integration mit Server-Zeitreihen
+
+Mit Auftrag 160 (P10b-1) wurde `resumeCrmRefresh.ts` so erweitert, dass beim Fortsetzen aus der Pause neben `['dashboardData']` auch `['dashboardTimeSeries']` für die aktive Organisation gezielt invalidiert wird. Zeitreihen-Kacheln frieren bei Pause den aktuellen Stand ein und zeigen die Datenstandzeile gemäß `TileStandLine.tsx`.

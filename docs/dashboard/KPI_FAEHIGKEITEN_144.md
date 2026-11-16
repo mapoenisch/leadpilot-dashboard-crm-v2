@@ -179,53 +179,81 @@ In Auftrag 159 (P10a) wurde jedem aktiven Katalogeintrag ein typisiertes `histor
 - **`keine` (6 Einträge):** Nur aktueller CRM-Stand. Bestände aus heutigen Datensätzen sind nie rekonstruierbar.
 - **`ereignisse` (0 Einträge):** Dauerhafte Server-Ereignisse folgen in P10b (Auftrag 160).
 
-| Katalog-ID | Historienart | Begründung & Rekonstruierbarkeit |
-|---|---|---|
-| `baseline.aktivierungsrate` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.arpa` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.arr` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.arr_nach_segment` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.arr_verlauf` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.ebitda` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.erloesmix` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.fully_loaded_cac` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.gesellschafter` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.headcount` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.headcount_verlauf` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.kanal_cac` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.kanal_mix` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.ki_scoring_nutzung` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.kunden_aktiv` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.kunden_nach_region` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.leads_quartal` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.marketing_cac` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.mrr_paketmix` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.neukunden_quartal` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `baseline.umsatz` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `crm.pipeline_deals` | `keine` | Nur aktueller Stand. Bestand aus heutigen Datensätzen nicht rekonstruierbar (`reconstructable: 'nein'`) |
-| `crm.pipeline_gewonnen` | `keine` | Nur aktueller Stand. Kumulatives Volumen, keine disjunkten Perioden (`reconstructable: 'nein'`) |
-| `crm.pipeline_offen` | `keine` | Nur aktueller Stand. Bestand aus heutigen Datensätzen nicht rekonstruierbar (`reconstructable: 'nein'`) |
-| `crm.pipeline_stufen_anzahl` | `keine` | Nur aktueller Stand. Deal-Anzahlen je Stufe als Momentaufnahme (`reconstructable: 'nein'`) |
-| `crm.pipeline_stufen_volumen` | `keine` | Nur aktueller Stand. Stufenvolumen als Momentaufnahme (`reconstructable: 'nein'`) |
-| `crm.pipeline_volumen` | `keine` | Nur aktueller Stand. Gesamtvolumen aller Deals als Momentaufnahme (`reconstructable: 'nein'`) |
-| `kombination.cac_aufschlag` | `fest` | Feste Referenzreihe (alle Operanden fest; `reconstructable: 'nein'`) |
-| `kombination.ebitda_marge` | `fest` | Feste Referenzreihe (alle Operanden fest; `reconstructable: 'nein'`) |
-| `kombination.mrr_anteil_growth` | `fest` | Feste Referenzreihe (alle Operanden fest; `reconstructable: 'nein'`) |
-| `kombination.mrr_anteil_pro` | `fest` | Feste Referenzreihe (alle Operanden fest; `reconstructable: 'nein'`) |
-| `kombination.mrr_anteil_starter` | `fest` | Feste Referenzreihe (alle Operanden fest; `reconstructable: 'nein'`) |
-| `live.arr` | `puffer` | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`) |
-| `live.arr_direct` | `puffer` | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`) |
-| `live.arr_other` | `puffer` | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`) |
-| `live.arr_outbound` | `puffer` | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`) |
-| `live.arr_partner` | `puffer` | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`) |
-| `live.mrr` | `puffer` | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`) |
-| `live.pipeline_coverage` | `puffer` | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`) |
-| `live.pipeline_leads` | `puffer` | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`) |
-| `live.pipeline_mql` | `puffer` | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`) |
-| `live.pipeline_offers` | `puffer` | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`) |
-| `live.pipeline_sql` | `puffer` | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`) |
-| `live.pipeline_won` | `puffer` | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`) |
-| `uebersicht.live_aktivitaet` | `puffer` | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`) |
-| `uebersicht.meilensteine` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `uebersicht.roadmap` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
-| `uebersicht.team_hr` | `fest` | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`) |
+| Katalog-ID                       | Historienart | Begründung & Rekonstruierbarkeit                                                                        |
+| -------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------- |
+| `baseline.aktivierungsrate`      | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.arpa`                  | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.arr`                   | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.arr_nach_segment`      | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.arr_verlauf`           | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.ebitda`                | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.erloesmix`             | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.fully_loaded_cac`      | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.gesellschafter`        | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.headcount`             | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.headcount_verlauf`     | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.kanal_cac`             | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.kanal_mix`             | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.ki_scoring_nutzung`    | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.kunden_aktiv`          | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.kunden_nach_region`    | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.leads_quartal`         | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.marketing_cac`         | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.mrr_paketmix`          | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.neukunden_quartal`     | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `baseline.umsatz`                | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `crm.pipeline_deals`             | `keine`      | Nur aktueller Stand. Bestand aus heutigen Datensätzen nicht rekonstruierbar (`reconstructable: 'nein'`) |
+| `crm.pipeline_gewonnen`          | `keine`      | Nur aktueller Stand. Kumulatives Volumen, keine disjunkten Perioden (`reconstructable: 'nein'`)         |
+| `crm.pipeline_offen`             | `keine`      | Nur aktueller Stand. Bestand aus heutigen Datensätzen nicht rekonstruierbar (`reconstructable: 'nein'`) |
+| `crm.pipeline_stufen_anzahl`     | `keine`      | Nur aktueller Stand. Deal-Anzahlen je Stufe als Momentaufnahme (`reconstructable: 'nein'`)              |
+| `crm.pipeline_stufen_volumen`    | `keine`      | Nur aktueller Stand. Stufenvolumen als Momentaufnahme (`reconstructable: 'nein'`)                       |
+| `crm.pipeline_volumen`           | `keine`      | Nur aktueller Stand. Gesamtvolumen aller Deals als Momentaufnahme (`reconstructable: 'nein'`)           |
+| `kombination.cac_aufschlag`      | `fest`       | Feste Referenzreihe (alle Operanden fest; `reconstructable: 'nein'`)                                    |
+| `kombination.ebitda_marge`       | `fest`       | Feste Referenzreihe (alle Operanden fest; `reconstructable: 'nein'`)                                    |
+| `kombination.mrr_anteil_growth`  | `fest`       | Feste Referenzreihe (alle Operanden fest; `reconstructable: 'nein'`)                                    |
+| `kombination.mrr_anteil_pro`     | `fest`       | Feste Referenzreihe (alle Operanden fest; `reconstructable: 'nein'`)                                    |
+| `kombination.mrr_anteil_starter` | `fest`       | Feste Referenzreihe (alle Operanden fest; `reconstructable: 'nein'`)                                    |
+| `live.arr`                       | `puffer`     | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`)                                   |
+| `live.arr_direct`                | `puffer`     | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`)                                   |
+| `live.arr_other`                 | `puffer`     | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`)                                   |
+| `live.arr_outbound`              | `puffer`     | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`)                                   |
+| `live.arr_partner`               | `puffer`     | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`)                                   |
+| `live.mrr`                       | `puffer`     | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`)                                   |
+| `live.pipeline_coverage`         | `puffer`     | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`)                                   |
+| `live.pipeline_leads`            | `puffer`     | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`)                                   |
+| `live.pipeline_mql`              | `puffer`     | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`)                                   |
+| `live.pipeline_offers`           | `puffer`     | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`)                                   |
+| `live.pipeline_sql`              | `puffer`     | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`)                                   |
+| `live.pipeline_won`              | `puffer`     | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`)                                   |
+| `uebersicht.live_aktivitaet`     | `puffer`     | Flüchtiger Browser-Puffer (max. 30 Punkte; `reconstructable: 'nein'`)                                   |
+| `uebersicht.meilensteine`        | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `uebersicht.roadmap`             | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+| `uebersicht.team_hr`             | `fest`       | Feste Referenzreihe im Bundle; kein Zeitwechsel möglich (`reconstructable: 'nein'`)                     |
+
+---
+
+### Nachtrag 16.11.2026 (Auftrag 160 / P10b-1): Server-Zeitreihen & Historienmatrix (62 Einträge)
+
+In Auftrag 160 (P10b-1) wurde der Katalog um 14 aktive Zeitreihen-Einträge mit echter Server-Historie erweitert:
+
+- **`fest` (29 Einträge):** Feste Referenzreihen im Bundle (Stammdaten).
+- **`puffer` (13 Einträge):** Flüchtiger Live-Puffer im Browser (initial 30 min Abruf, danach max. 30 Punkte).
+- **`keine` (6 Einträge):** Nur aktueller CRM-Stand. Bestände aus heutigen Datensätzen sind nie rekonstruierbar.
+- **`ereignisse` (14 Einträge):** Echte Server-Historie via RPC `dashboard_time_series` über `deal_stage_events` und `live_kpi_events` (`reconstructable: 'nur_fluesse'` bzw. `reconstructable: 'ja'`).
+
+| Katalog-ID                       | Historienart | Begründung & Rekonstruierbarkeit                                                                                                                                                        |
+| -------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `crm.phaseneintritte_verlauf`    | `ereignisse` | Echte Server-Historie aus `deal_stage_events`. Nur Flussgrößen (Eintritte je Periode), keine Bestände rekonstruierbar (`reconstructable: 'nur_fluesse'`, `source: 'deal_stage_events'`) |
+| `crm.gewonnen_verlauf`           | `ereignisse` | Echte Server-Historie aus `deal_stage_events` (Gewonnen-Events). Nur Flussgrößen je Periode (`reconstructable: 'nur_fluesse'`, `source: 'deal_stage_events'`)                           |
+| `live.arr.verlauf`               | `ereignisse` | Echte Server-Historie aus `live_kpi_events` (`reconstructable: 'ja'`, `source: 'live_kpi_events'`)                                                                                      |
+| `live.arr_direct.verlauf`        | `ereignisse` | Echte Server-Historie aus `live_kpi_events` (`reconstructable: 'ja'`, `source: 'live_kpi_events'`)                                                                                      |
+| `live.arr_other.verlauf`         | `ereignisse` | Echte Server-Historie aus `live_kpi_events` (`reconstructable: 'ja'`, `source: 'live_kpi_events'`)                                                                                      |
+| `live.arr_outbound.verlauf`      | `ereignisse` | Echte Server-Historie aus `live_kpi_events` (`reconstructable: 'ja'`, `source: 'live_kpi_events'`)                                                                                      |
+| `live.arr_partner.verlauf`       | `ereignisse` | Echte Server-Historie aus `live_kpi_events` (`reconstructable: 'ja'`, `source: 'live_kpi_events'`)                                                                                      |
+| `live.mrr.verlauf`               | `ereignisse` | Echte Server-Historie aus `live_kpi_events` (`reconstructable: 'ja'`, `source: 'live_kpi_events'`)                                                                                      |
+| `live.pipeline_coverage.verlauf` | `ereignisse` | Echte Server-Historie aus `live_kpi_events` (`reconstructable: 'ja'`, `source: 'live_kpi_events'`)                                                                                      |
+| `live.pipeline_leads.verlauf`    | `ereignisse` | Echte Server-Historie aus `live_kpi_events` (`reconstructable: 'ja'`, `source: 'live_kpi_events'`)                                                                                      |
+| `live.pipeline_mql.verlauf`      | `ereignisse` | Echte Server-Historie aus `live_kpi_events` (`reconstructable: 'ja'`, `source: 'live_kpi_events'`)                                                                                      |
+| `live.pipeline_offers.verlauf`   | `ereignisse` | Echte Server-Historie aus `live_kpi_events` (`reconstructable: 'ja'`, `source: 'live_kpi_events'`)                                                                                      |
+| `live.pipeline_sql.verlauf`      | `ereignisse` | Echte Server-Historie aus `live_kpi_events` (`reconstructable: 'ja'`, `source: 'live_kpi_events'`)                                                                                      |
+| `live.pipeline_won.verlauf`      | `ereignisse` | Echte Server-Historie aus `live_kpi_events` (`reconstructable: 'ja'`, `source: 'live_kpi_events'`)                                                                                      |

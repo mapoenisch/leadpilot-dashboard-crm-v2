@@ -31,6 +31,29 @@ describe('Historienmatrix im Katalog', () => {
     for (const entry of activeEntries()) {
       if (entry.history.kind !== 'ereignisse') {
         expect(entry.history.source, `${entry.id}: source ohne ereignisse`).toBeUndefined();
+        expect(
+          entry.history.defaultWindow,
+          `${entry.id}: defaultWindow ohne ereignisse`,
+        ).toBeUndefined();
+      } else {
+        expect(entry.history.source, `${entry.id}: ereignisse ohne source`).toBeTruthy();
+        expect(
+          entry.history.defaultWindow,
+          `${entry.id}: ereignisse ohne defaultWindow`,
+        ).toBeTruthy();
+        expect(entry.history.defaultWindow!.count, `${entry.id}: count <= 400`).toBeLessThanOrEqual(
+          400,
+        );
+        expect(entry.history.defaultWindow!.count, `${entry.id}: count > 0`).toBeGreaterThan(0);
+        expect(['stunde', 'tag', 'woche', 'monat'], `${entry.id}: ungültige Auflösung`).toContain(
+          entry.history.defaultWindow!.resolution,
+        );
+        expect(entry.aggregation, `${entry.id}: kein ereignisse mit aggregation bestand`).not.toBe(
+          'bestand',
+        );
+        if (entry.source.layer === 'crm') {
+          expect(entry.aggregation, `${entry.id}: CRM-Ereignisse müssen Fluss sein`).toBe('fluss');
+        }
       }
       if (entry.aggregation === 'bestand') {
         expect(entry.history.reconstructable, `${entry.id}: Bestand als Fluss`).toBe('nein');

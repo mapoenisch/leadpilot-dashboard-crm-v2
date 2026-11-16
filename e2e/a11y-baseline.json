@@ -35,5 +35,11 @@
     "aria-required-parent",
     "color-contrast",
     "label-title-only"
+  ],
+  "editor_v2_time_series": [
+    "aria-required-children",
+    "aria-required-parent",
+    "color-contrast",
+    "label-title-only"
   ]
 }

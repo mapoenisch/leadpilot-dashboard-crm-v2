@@ -12,17 +12,18 @@ import {
   useActiveDatum,
 } from './ChartReadout';
 import { CHART_VIEWBOX, type DepthChartProps } from './chartTypes';
-import {
-  areaPath,
-  formatDe,
-  linePath,
-  niceSignedScale,
-  summarizeSeries,
-  type LinePoint,
-} from './depthGeometry';
+import { areaPath, formatDe, linePath, niceSignedScale, summarizeSeries } from './depthGeometry';
 
 const THEME = MANAGEMENT_CHART_THEME.colors;
 const AREA = { left: 50, top: 44, width: 460, height: 160 };
+
+interface SparklinePoint {
+  x: number;
+  y: number;
+  value: number;
+  label: string;
+  index: number;
+}
 
 export function DepthSparklineChart({
   idPrefix,
@@ -44,7 +45,7 @@ export function DepthSparklineChart({
   const span = scale.max - scale.min > 0 ? scale.max - scale.min : 1;
   const baseline = AREA.top + AREA.height;
 
-  const points = useMemo<LinePoint[]>(() => {
+  const points = useMemo<SparklinePoint[]>(() => {
     if (data.length === 0) return [];
     if (data.length === 1) {
       const y = AREA.top + AREA.height / 2;
