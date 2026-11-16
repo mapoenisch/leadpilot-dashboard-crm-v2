@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22.18.0
+          node-version: 22.23.5
           cache: npm
       - run: npm ci
       - name: ESLint (Baseline-Ratsche)
@@ -60,7 +60,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22.18.0
+          node-version: 22.23.5
           cache: npm
       - run: npm ci
       - name: TypeScript (Baseline-Ratsche)
@@ -75,7 +75,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22.18.0
+          node-version: 22.23.5
           cache: npm
       - run: npm ci
       - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
@@ -83,8 +83,12 @@ jobs:
           deno-version: v2.9.6
       - name: Deno Edge Functions typecheck
         run: deno check --config supabase/functions/deno.json --lock supabase/functions/deno.lock --frozen-lockfile --node-modules-dir=none supabase/functions/*/index.ts
+        env:
+          DENO_NO_PACKAGE_JSON: '1'
       - name: Deno Edge Functions tests
         run: deno test --config supabase/functions/deno.json --lock supabase/functions/deno.lock --frozen-lockfile --node-modules-dir=none --allow-env --allow-net --allow-read supabase/functions/
+        env:
+          DENO_NO_PACKAGE_JSON: '1'
       - name: Vitest mit Coverage
         run: npm run test:coverage
       - name: Legacy-Harness (Parallelbetrieb bis Schritt d)
@@ -112,7 +116,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22.18.0
+          node-version: 22.23.5
           cache: npm
       - run: npm ci
       # Auftrag 152 (F-03): checkProductionConfig bricht fail-closed ab, wenn Konfiguration fehlt
@@ -139,7 +143,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22.18.0
+          node-version: 22.23.5
           cache: npm
       - run: npm ci
       # Auftrag 141: Die dedizierte Live-Performance-Surface (src/components/liveKpi)
@@ -153,7 +157,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22.18.0
+          node-version: 22.23.5
           cache: npm
       - run: npm ci
       - run: npx vite build
@@ -167,7 +171,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22.18.0
+          node-version: 22.23.5
           cache: npm
       - run: npm ci
       - name: Setup Supabase CLI
