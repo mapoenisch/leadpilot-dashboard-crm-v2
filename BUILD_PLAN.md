@@ -2,7 +2,7 @@
 
 **Stand:** 16.11.2026
 
-**Aktueller Auftrag:** Auftrag 160 – Dashboard-Editor: Server-Zeitreihen aus `deal_stage_events` und `live_kpi_events`, Historienbeginn je Organisation, Kalender-Buckets (Europe/Berlin), Lückendarstellung in Tiefen-Liniendiagrammen und Verlaufs-Katalog (P10b-1; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_160_SERVER_ZEITREIHEN.md`; Branch `auftrag-160-server-zeitreihen`; Baseline `d83e3e66`; Builder Antigravity, Prüfer Codex; Status: gebaut und verifiziert, PR #194 bereit). Zuletzt: 159 Historienmatrix, gemeinsame Zeitsteuerung & echter Live-Status (P10a; PR #187 gemergt), 158 V2-Vorlagen und Dashboard-Auswahl (P09b; PR #188 gemergt), 157 Sektionen und einklappbare Gruppen (P09a; PR #185 gemergt).
+**Aktueller Auftrag:** Auftrag 161 – Dashboard-Editor: Analysezeitpunkt (`mode: 'zeitpunkt'`), Zeitfenster je Kachel (`tile.query.window`) und gemeinsames Fadenkreuz (P10b-2, schließt P10 ab; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_161_ZEITPUNKT_FENSTER_CROSSHAIR.md`; Branch `auftrag-161-zeitpunkt-fenster-crosshair`; Builder Antigravity, Prüfer Codex; Status: OFFEN). Vorher: separater Auftrag `ANTIGRAVITY_AUFTRAG_DEPS_DEPENDABOT_CI.md` (Dependabot-PRs #189–#193, PR #195). Zuletzt: 160 Server-Zeitreihen (P10b-1; PR #194 gemergt), 159 Historienmatrix & Zeitsteuerung (P10a; PR #187 gemergt), 158 V2-Vorlagen (P09b; PR #188 gemergt).
 
 **Betriebsregel Live-Feed:** Am 14.11.2026 durch Marc aufgehoben (Edge Function und Migrationen seit 14.11.2026 online; echte Kennzahlen dürfen über den mandantengebundenen Feed eingespeist werden).
 **Offen nach dem v3.1.0-Rollout (10./11.11.2026):**
