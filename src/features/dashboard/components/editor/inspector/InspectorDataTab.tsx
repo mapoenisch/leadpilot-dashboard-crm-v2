@@ -12,6 +12,7 @@ import {
   formatResolutionText,
   formatTimeframeText,
 } from '../../../model/historyCapability';
+import { useOptionalTimeControl } from '../../../time/TimeControlProvider';
 import { useDashboardData } from '../../../hooks/useDashboardData';
 
 export function InspectorDataTab({
@@ -54,6 +55,9 @@ export function InspectorDataTab({
   };
 
   const isTimeSeries = catalogEntry?.history.kind === 'ereignisse';
+  const timeControl = useOptionalTimeControl();
+  const isPaused = timeControl?.state.mode === 'pausiert';
+
   const tileConfig: DashboardTileConfig = {
     tileId: selectedTile.id,
     catalogId: selectedTile.catalogId,
@@ -63,7 +67,10 @@ export function InspectorDataTab({
     pipeline: normQuery.pipelineId ?? undefined,
   };
 
-  const tileData = useDashboardData(tileConfig, undefined, { enabled: isTimeSeries });
+  const tileData = useDashboardData(tileConfig, undefined, {
+    enabled: isTimeSeries,
+    frozen: isPaused,
+  });
   const historyStartAt =
     tileData.state === 'bereit' && tileData.timeSeries
       ? tileData.timeSeries.historyStartAt

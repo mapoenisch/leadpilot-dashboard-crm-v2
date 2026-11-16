@@ -2,9 +2,10 @@
 // damit sie im hellen Modus lesbar sind. Codex PR #74: Werte innerhalb einer Säule und die Summe in
 // der (immer dunklen) Ringaussparung bleiben weiß.
 import { describe, expect, it } from 'vitest';
-import { render } from '@testing-library/react';
+import { act, render, renderHook } from '@testing-library/react';
 import { Depth3dBarChart, valueLabelClass } from '../components/charts/Depth3dBarChart';
 import { Depth3dDonutChart } from '../components/charts/Depth3dDonutChart';
+import { useActiveDatum } from '../components/charts/ChartReadout';
 
 const DATA = [
   { label: 'Q1', value: 10 },
@@ -56,3 +57,28 @@ describe('Diagrammwerte: Textton außen, Weiß innen', () => {
     expect(sum?.getAttribute('fill')).toBe('#ffffff');
   });
 });
+
+describe('useActiveDatum: Stabile Auswahl bei Zeitumstellung (Codex Review Finding)', () => {
+  it('unterscheidet zwei Punkte mit identischem formatiertem Label anhand von at', () => {
+    const points = [
+      { label: '02:00', value: 10, at: '2026-10-25T00:00:00Z' },
+      { label: '02:00', value: 20, at: '2026-10-25T01:00:00Z' },
+    ];
+    const { result } = renderHook(() => useActiveDatum(points));
+    expect(result.current[0]).toBeNull();
+
+    // Wähle zweiten Punkt (Index 1)
+    act(() => {
+      result.current[1](1);
+    });
+    // Muss stabil auf Index 1 bleiben und darf nicht auf 0 zurückspringen
+    expect(result.current[0]).toBe(1);
+
+    // Wähle ersten Punkt (Index 0)
+    act(() => {
+      result.current[1](0);
+    });
+    expect(result.current[0]).toBe(0);
+  });
+});
+

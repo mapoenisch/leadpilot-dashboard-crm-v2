@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useOrganization } from '@/auth/organizationContext';
@@ -111,8 +111,16 @@ export function useDashboardData(
   const isTimeSeries = Boolean(activeEntry && activeEntry.history.kind === 'ereignisse');
   const timeSeriesEnabled = isEnabled && isTimeSeries && Boolean(organizationId && userId);
 
-  // Abschnittswechsel-Timer für Live-Modus (Codex Review Finding)
+  // Abschnittswechsel-Timer für Live-Modus und sofortige Neuberechnung beim Fortsetzen (Codex Review)
   const [windowTick, setWindowTick] = useState(0);
+  const wasFrozenRef = useRef(options.frozen);
+
+  useEffect(() => {
+    if (wasFrozenRef.current && !options.frozen) {
+      setWindowTick((t) => t + 1);
+    }
+    wasFrozenRef.current = options.frozen;
+  }, [options.frozen]);
 
   useEffect(() => {
     if (!isTimeSeries || !activeEntry || options.frozen) return;

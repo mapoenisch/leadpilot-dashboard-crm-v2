@@ -32,31 +32,22 @@ export interface FetchTimeSeriesOptions {
   isConfigured?: boolean;
 }
 
-/** Formatiert ein Datum in der Zeitzone Europe/Berlin als ISO-8601-String mit Zeitzonenoffset. */
-export function formatBerlinIso(date: Date | string | number): string {
-  const d = new Date(date);
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Europe/Berlin',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-    timeZoneName: 'longOffset',
-  });
-  const parts = Object.fromEntries(formatter.formatToParts(d).map((p) => [p.type, p.value]));
-  const offset = parts.timeZoneName ? parts.timeZoneName.replace('GMT', '') : '+01:00';
-  const hour = parts.hour === '24' ? '00' : parts.hour;
-  return `${parts.year}-${parts.month}-${parts.day}T${hour}:${parts.minute}:${parts.second}${offset}`;
+function pad2(n: number): string {
+  return String(n).padStart(2, '0');
 }
 
-/** Rundet ein Datum in Europe/Berlin auf den Beginn des jeweiligen Zeitabschnitts ab. */
-export function truncateBerlin(
-  date: Date | string | number,
-  resolution: TimeSeriesResolution,
-): Date {
+interface BerlinParts {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+  weekday: string;
+  offset: string;
+}
+
+function getBerlinParts(date: Date | string | number): BerlinParts {
   const d = new Date(date);
   const formatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Europe/Berlin',
@@ -72,62 +63,99 @@ export function truncateBerlin(
   });
   const parts = Object.fromEntries(formatter.formatToParts(d).map((p) => [p.type, p.value]));
   const offset = parts.timeZoneName ? parts.timeZoneName.replace('GMT', '') : '+01:00';
-  const year = parts.year;
-  const month = parts.month;
-  const day = parts.day;
-  const hour = parts.hour === '24' ? '00' : parts.hour;
-  const weekday = parts.weekday;
-
-  if (resolution === 'stunde') {
-    return new Date(`${year}-${month}-${day}T${hour}:00:00${offset}`);
-  }
-  if (resolution === 'tag') {
-    return new Date(`${year}-${month}-${day}T00:00:00${offset}`);
-  }
-  if (resolution === 'woche') {
-    const dayMap: Record<string, number> = {
-      Mon: 0,
-      Tue: 1,
-      Wed: 2,
-      Thu: 3,
-      Fri: 4,
-      Sat: 5,
-      Sun: 6,
-    };
-
-    const diff: number = weekday && weekday in dayMap ? (dayMap[weekday] ?? 0) : 0;
-    const dayDate = new Date(`${year}-${month}-${day}T00:00:00${offset}`);
-    dayDate.setDate(dayDate.getDate() - diff);
-
-    const mParts = Object.fromEntries(
-      formatter.formatToParts(dayDate).map((p) => [p.type, p.value]),
-    );
-    const mOffset = mParts.timeZoneName ? mParts.timeZoneName.replace('GMT', '') : '+01:00';
-    return new Date(`${mParts.year}-${mParts.month}-${mParts.day}T00:00:00${mOffset}`);
-  }
-  if (resolution === 'monat') {
-    return new Date(`${year}-${month}-01T00:00:00${offset}`);
-  }
-  return d;
+  const hour = parts.hour === '24' ? 0 : Number(parts.hour);
+  return {
+    year: Number(parts.year),
+    month: Number(parts.month),
+    day: Number(parts.day),
+    hour,
+    minute: Number(parts.minute),
+    second: Number(parts.second),
+    weekday: parts.weekday ?? '',
+    offset,
+  };
 }
 
-/** Zieht in Europe/Berlin n Abschnitte von einem Datum ab. */
+function getBerlinOffsetForDay(year: number, month: number, day: number): string {
+  const noonUtc = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Europe/Berlin',
+      timeZoneName: 'longOffset',
+    })
+      .formatToParts(noonUtc)
+      .map((p) => [p.type, p.value]),
+  );
+  return parts.timeZoneName ? parts.timeZoneName.replace('GMT', '') : '+01:00';
+}
+
+function makeBerlinDate(year: number, month: number, day: number): Date {
+  return new Date(
+    `${pad2(year)}-${pad2(month)}-${pad2(day)}T00:00:00${getBerlinOffsetForDay(year, month, day)}`,
+  );
+}
+
+/** Formatiert ein Datum in der Zeitzone Europe/Berlin als ISO-8601-String mit Zeitzonenoffset. */
+export function formatBerlinIso(date: Date | string | number): string {
+  const p = getBerlinParts(date);
+  return `${pad2(p.year)}-${pad2(p.month)}-${pad2(p.day)}T${pad2(p.hour)}:${pad2(p.minute)}:${pad2(p.second)}${p.offset}`;
+}
+
+const WEEKDAY_OFFSET_MAP: Record<string, number> = {
+  Mon: 0,
+  Tue: 1,
+  Wed: 2,
+  Thu: 3,
+  Fri: 4,
+  Sat: 5,
+  Sun: 6,
+};
+
+/** Rundet ein Datum in Europe/Berlin auf den Beginn des jeweiligen Zeitabschnitts ab. */
+export function truncateBerlin(
+  date: Date | string | number,
+  resolution: TimeSeriesResolution,
+): Date {
+  const p = getBerlinParts(date);
+  if (resolution === 'stunde') {
+    return new Date(
+      `${pad2(p.year)}-${pad2(p.month)}-${pad2(p.day)}T${pad2(p.hour)}:00:00${p.offset}`,
+    );
+  }
+  if (resolution === 'tag') return makeBerlinDate(p.year, p.month, p.day);
+  if (resolution === 'woche') {
+    const diff = WEEKDAY_OFFSET_MAP[p.weekday] ?? 0;
+    const u = new Date(Date.UTC(p.year, p.month - 1, p.day - diff));
+    return makeBerlinDate(u.getUTCFullYear(), u.getUTCMonth() + 1, u.getUTCDate());
+  }
+  if (resolution === 'monat') return makeBerlinDate(p.year, p.month, 1);
+  return new Date(date);
+}
+
+/** Zieht in Europe/Berlin n Abschnitte von einem Datum ab (unabhängig von Browser-Zeitzone). */
 export function subtractBerlin(
   date: Date | string | number,
   count: number,
   resolution: TimeSeriesResolution,
 ): Date {
-  const d = new Date(date);
+  const p = getBerlinParts(date);
   if (resolution === 'stunde') {
-    d.setHours(d.getHours() - count);
-  } else if (resolution === 'tag') {
-    d.setDate(d.getDate() - count);
-  } else if (resolution === 'woche') {
-    d.setDate(d.getDate() - count * 7);
-  } else if (resolution === 'monat') {
-    d.setMonth(d.getMonth() - count);
+    return truncateBerlin(new Date(new Date(date).getTime() - count * 3600_000), 'stunde');
   }
-  return truncateBerlin(d, resolution);
+  if (resolution === 'tag') {
+    const u = new Date(Date.UTC(p.year, p.month - 1, p.day - count));
+    return makeBerlinDate(u.getUTCFullYear(), u.getUTCMonth() + 1, u.getUTCDate());
+  }
+  if (resolution === 'woche') {
+    const diff = WEEKDAY_OFFSET_MAP[p.weekday] ?? 0;
+    const u = new Date(Date.UTC(p.year, p.month - 1, p.day - diff - count * 7));
+    return makeBerlinDate(u.getUTCFullYear(), u.getUTCMonth() + 1, u.getUTCDate());
+  }
+  if (resolution === 'monat') {
+    const u = new Date(Date.UTC(p.year, p.month - 1 - count, 1));
+    return makeBerlinDate(u.getUTCFullYear(), u.getUTCMonth() + 1, 1);
+  }
+  return new Date(date);
 }
 
 /**

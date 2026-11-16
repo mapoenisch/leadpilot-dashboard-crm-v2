@@ -7,24 +7,33 @@ import { cn } from '@/lib/utils';
 import { formatDe } from './depthGeometry';
 import type { DatumInput, TimeDatumInput } from './depthGeometry';
 
+function getDatumKey(entry: DatumInput | TimeDatumInput): string {
+  if ('at' in entry && typeof entry.at === 'string' && entry.at.length > 0) {
+    return entry.at;
+  }
+  return entry.label;
+}
+
 /**
- * Auswahl eines Datenpunkts, gespeichert über sein Label statt über den Index: Sortiert ein
- * Filterwechsel oder Refresh die Reihe neu, bleibt dieselbe Kategorie gewählt; fällt sie weg,
- * wird die Auswahl dauerhaft gelöscht und lebt nicht wieder auf, wenn die Kategorie zurückkehrt.
+ * Auswahl eines Datenpunkts, gespeichert über einen stabilen Schlüssel (Zeitstempel `at` für
+ * Verlaufspunkte, Label für Kategorien) statt über den Index: Sortiert ein Filterwechsel
+ * oder Refresh die Reihe neu, bleibt dieselbe Kategorie bzw. derselbe Zeitpunkt gewählt.
+ * Behebt zudem doppelte Labels bei der Winterzeitumstellung (Codex Review).
  */
 export function useActiveDatum(
   data: readonly (DatumInput | TimeDatumInput)[],
 ): [number | null, (next: SetStateAction<number | null>) => void] {
-  const [label, setLabel] = useState<string | null>(null);
-  const index = label === null ? -1 : data.findIndex((entry) => entry.label === label);
+  const [key, setKey] = useState<string | null>(null);
+  const index = key === null ? -1 : data.findIndex((entry) => getDatumKey(entry) === key);
   const active = index >= 0 ? index : null;
-  const missing = label !== null && index < 0;
+  const missing = key !== null && index < 0;
   useEffect(() => {
-    if (missing) setLabel(null);
+    if (missing) setKey(null);
   }, [missing]);
   const setActive = (next: SetStateAction<number | null>) => {
     const value = typeof next === 'function' ? next(active) : next;
-    setLabel(value === null ? null : (data[value]?.label ?? null));
+    const item = value === null ? undefined : data[value];
+    setKey(item ? getDatumKey(item) : null);
   };
   return [active, setActive];
 }

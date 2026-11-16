@@ -30,9 +30,11 @@ test.describe('Dashboard-Editor V2: Zeitreihen-Kacheln (Auftrag 160 / P10b-1)', 
 
     // 2. CRM-Verlaufskachel hinzufügen
     await crmAddBtn.click();
-    const crmTile = page.locator('[data-testid^="canvas-tile-"]').last();
-    await crmTile.scrollIntoViewIfNeeded();
-    await expect(crmTile).toBeVisible();
+    const crmTileInitial = page.locator('[data-testid^="canvas-tile-"]').last();
+    await crmTileInitial.scrollIntoViewIfNeeded();
+    await expect(crmTileInitial).toBeVisible();
+    const crmTestId = await crmTileInitial.getAttribute('data-testid');
+    const crmTile = page.locator(`[data-testid="${crmTestId}"]`);
 
     // CRM-Kachel hat "vor Aufzeichnungsbeginn"-Zone
     await expect(crmTile.getByTestId('depth-history-zone')).toBeVisible();
@@ -46,9 +48,11 @@ test.describe('Dashboard-Editor V2: Zeitreihen-Kacheln (Auftrag 160 / P10b-1)', 
     await expect(liveAddBtn).toBeVisible();
     await liveAddBtn.click();
 
-    const liveTile = page.locator('[data-testid^="canvas-tile-"]').last();
-    await liveTile.scrollIntoViewIfNeeded();
-    await expect(liveTile).toBeVisible();
+    const liveTileInitial = page.locator('[data-testid^="canvas-tile-"]').last();
+    await liveTileInitial.scrollIntoViewIfNeeded();
+    await expect(liveTileInitial).toBeVisible();
+    const liveTestId = await liveTileInitial.getAttribute('data-testid');
+    const liveTile = page.locator(`[data-testid="${liveTestId}"]`);
 
     // Live-Kachel hat Datenpunkte
     await expect(liveTile.getByTestId('depth-line-point').first()).toBeVisible();
@@ -58,7 +62,9 @@ test.describe('Dashboard-Editor V2: Zeitreihen-Kacheln (Auftrag 160 / P10b-1)', 
     await expect(page.getByTestId('editor-inspector')).toBeVisible();
 
     // Daten-Tab öffnen
-    const dataTabBtn = page.locator('[data-testid="inspector-tab-daten"], button:has-text("Daten")').first();
+    const dataTabBtn = page
+      .locator('[data-testid="inspector-tab-daten"], button:has-text("Daten")')
+      .first();
     if (await dataTabBtn.isVisible()) {
       await dataTabBtn.click();
     }
@@ -72,7 +78,9 @@ test.describe('Dashboard-Editor V2: Zeitreihen-Kacheln (Auftrag 160 / P10b-1)', 
     await expect(pipelineHint).toContainText('ON DELETE CASCADE');
 
     // 5. Ansicht auf Tabelle wechseln
-    const darstellungTabBtn = page.locator('[data-testid="inspector-tab-darstellung"], button:has-text("Darstellung")').first();
+    const darstellungTabBtn = page
+      .locator('[data-testid="inspector-tab-darstellung"], button:has-text("Darstellung")')
+      .first();
     if (await darstellungTabBtn.isVisible()) {
       await darstellungTabBtn.click();
     }

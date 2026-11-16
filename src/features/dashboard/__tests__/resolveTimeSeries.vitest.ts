@@ -347,4 +347,40 @@ describe('resolveTimeSeriesTile', () => {
     // Montag derselben Woche ist der 12.10.2026 00:00:00 in Berlin
     expect(formatBerlinIso(truncated)).toBe('2026-10-12T00:00:00+02:00');
   });
+
+  it('berechnet 12-Wochen-Fenster über die März-Zeitumstellung exakt (Codex Review Finding)', () => {
+    const entry: ActiveCatalogEntry = {
+      id: 'crm.phaseneintritte_verlauf',
+      name: 'Phaseneintritte je Woche',
+      category: 'vertrieb_crm',
+      kind: 'kpi',
+      status: 'aktiv',
+      definition: '',
+      unit: 'Eintritte',
+      shape: 'zeitreihe',
+      aggregation: 'fluss',
+      timeMode: 'fest',
+      timeBasis: 'Letzte 12 Wochen',
+      views: ['linie'],
+      defaultView: 'linie',
+      minSize: 'mittel',
+      groupings: [],
+      filters: ['pipeline'],
+      detailRouteId: '',
+      access: 'alle',
+      source: { layer: 'crm', module: 'crm', exportName: 'deals' },
+      history: {
+        kind: 'ereignisse',
+        source: 'deal_stage_events',
+        reconstructable: 'nur_fluesse',
+        note: '',
+        defaultWindow: { resolution: 'woche', count: 12 },
+      },
+    };
+
+    const win = timeSeriesWindow(entry, '2026-04-06T14:00:00+02:00');
+    expect(win.to).toBe('2026-04-06T00:00:00+02:00');
+    expect(win.from).toBe('2026-01-12T00:00:00+01:00');
+    expect(win.count).toBe(12);
+  });
 });
