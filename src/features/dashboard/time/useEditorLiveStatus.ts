@@ -12,6 +12,7 @@ import {
 import { LIVE_KPI_DEFINITIONS } from '@/services/liveKpi/liveKpiDefinitions';
 import { liveKpiStreamStore, type LiveKpiStreamStore } from '@/services/liveKpi/liveKpiStreamStore';
 import { dashboardQueryKeys } from '../data/dashboardQueryKeys';
+import { timeSeriesWindow } from '../data/resolveTimeSeries';
 import { getCatalogEntry, isActiveEntry, type ActiveCatalogEntry } from '../model/dashboardCatalog';
 import type { DashboardTileConfigV2 } from '../model/dashboardConfigV2';
 import { convertV2TileToV1 } from '../components/editor/canvas/CanvasTileCard';
@@ -195,20 +196,23 @@ export function useEditorLiveStatus({
                 ? 'Deal gewonnen'
                 : '*'
               : (entry.source.liveKpiId ?? '');
-          const queries = queryClient.getQueryCache().findAll({
-            predicate: (q) =>
-              Array.isArray(q.queryKey) &&
-              q.queryKey[0] === 'dashboard' &&
-              q.queryKey[1] === organizationId &&
-              q.queryKey[3] === 'timeSeries' &&
-              q.queryKey[4] === userId &&
-              q.queryKey[5] === timeSeriesSource &&
-              q.queryKey[6] === timeSeriesMetric,
-          });
-          const newestUpdate = newest(
-            queries.map((q) => q.state.dataUpdatedAt).filter((t) => t > 0),
+          const tsWindow = timeSeriesWindow(entry);
+          const pipeline =
+            entry.source.layer === 'crm'
+              ? effectivePipelineFor(tile, entry, defaultPipeline)
+              : undefined;
+          const key = dashboardQueryKeys.timeSeries(
+            organizationId,
+            userId,
+            timeSeriesSource,
+            timeSeriesMetric,
+            tsWindow.resolution,
+            tsWindow.from,
+            tsWindow.to,
+            pipeline,
           );
-          if (newestUpdate !== null) standTimes.push(newestUpdate);
+          const state = queryClient.getQueryState(key);
+          if (state?.dataUpdatedAt) standTimes.push(state.dataUpdatedAt);
         } else if (entry.source.layer === 'live' && configured) {
           const time = liveTileStandTime(tile, store);
           if (time !== null) standTimes.push(time);

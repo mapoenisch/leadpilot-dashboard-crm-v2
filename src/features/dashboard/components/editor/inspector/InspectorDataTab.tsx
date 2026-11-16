@@ -1,7 +1,8 @@
 // Executive Dashboard V2 (Auftrag 148 / P05, Auftrag 160 / P10b-1):
 // Daten- & Filter-Tab des Kachel-Inspectors.
 
-import type { ChangeEvent } from 'react';
+import { useContext, type ChangeEvent } from 'react';
+import { QueryClientContext } from '@tanstack/react-query';
 import type { ActiveCatalogEntry, DashboardView } from '../../../model/dashboardCatalog';
 import type { DashboardTileConfig } from '../../../model/dashboardConfig';
 import type { DashboardTileConfigV2 } from '../../../model/dashboardConfigV2';
@@ -67,19 +68,6 @@ export function InspectorDataTab({
     pipeline: normQuery.pipelineId ?? undefined,
   };
 
-  const tileData = useDashboardData(tileConfig, undefined, {
-    enabled: isTimeSeries,
-    frozen: isPaused,
-  });
-  const historyStartAt =
-    tileData.state === 'bereit' && tileData.timeSeries
-      ? tileData.timeSeries.historyStartAt
-      : undefined;
-
-  const historyDisplay = catalogEntry
-    ? formatHistoryLabel(catalogEntry.history, historyStartAt)
-    : '';
-
   const pipelineReason =
     catalogEntry?.source.layer === 'live'
       ? 'Live-Feed, kein Pipeline-Filter'
@@ -107,9 +95,11 @@ export function InspectorDataTab({
             className="border-t border-white/5 pt-1.5 text-[10px]"
             title={catalogEntry.history.note}
           >
-            <div data-testid="inspector-history-label" className="text-white font-medium">
-              {historyDisplay}
-            </div>
+            <InspectorHistoryLabel
+              catalogEntry={catalogEntry}
+              tileConfig={tileConfig}
+              isPaused={isPaused}
+            />
 
             {isTimeSeries && catalogEntry.history.defaultWindow && (
               <div
@@ -221,6 +211,60 @@ export function InspectorDataTab({
           Zeitfenster folgen in P10.
         </p>
       </div>
+    </div>
+  );
+}
+
+function InspectorHistoryLabel({
+  catalogEntry,
+  tileConfig,
+  isPaused,
+}: {
+  catalogEntry: ActiveCatalogEntry;
+  tileConfig: DashboardTileConfig;
+  isPaused: boolean;
+}) {
+  const queryClient = useContext(QueryClientContext);
+  const isTimeSeries = catalogEntry.history.kind === 'ereignisse';
+
+  if (!queryClient || !isTimeSeries) {
+    return (
+      <div data-testid="inspector-history-label" className="text-white font-medium">
+        {formatHistoryLabel(catalogEntry.history)}
+      </div>
+    );
+  }
+
+  return (
+    <InspectorHistoryWithQuery
+      catalogEntry={catalogEntry}
+      tileConfig={tileConfig}
+      isPaused={isPaused}
+    />
+  );
+}
+
+function InspectorHistoryWithQuery({
+  catalogEntry,
+  tileConfig,
+  isPaused,
+}: {
+  catalogEntry: ActiveCatalogEntry;
+  tileConfig: DashboardTileConfig;
+  isPaused: boolean;
+}) {
+  const tileData = useDashboardData(tileConfig, undefined, {
+    enabled: true,
+    frozen: isPaused,
+  });
+  const historyStartAt =
+    tileData.state === 'bereit' && tileData.timeSeries
+      ? tileData.timeSeries.historyStartAt
+      : undefined;
+
+  return (
+    <div data-testid="inspector-history-label" className="text-white font-medium">
+      {formatHistoryLabel(catalogEntry.history, historyStartAt)}
     </div>
   );
 }

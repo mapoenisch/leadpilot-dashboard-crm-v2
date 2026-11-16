@@ -32,9 +32,7 @@ export interface FetchTimeSeriesOptions {
   isConfigured?: boolean;
 }
 
-function pad2(n: number): string {
-  return String(n).padStart(2, '0');
-}
+const pad2 = (n: number): string => String(n).padStart(2, '0');
 
 interface BerlinParts {
   year: number;
@@ -76,14 +74,17 @@ function getBerlinParts(date: Date | string | number): BerlinParts {
   };
 }
 
-function getBerlinOffsetForDay(year: number, month: number, day: number): string {
-  const noonUtc = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+function getBerlinMidnightOffset(year: number, month: number, day: number): string {
+  // Berlin ist UTC+1 (Winter) oder UTC+2 (Sommer). Zeitumstellungen erfolgen frühestens um 02:00.
+  // 23:30 UTC des Vortags liegt in Berlin immer zwischen 00:30 und 01:30 des Zieltages und damit
+  // vor jedem DST-Sprung im exakten Zeitzonen-Offset von Mitternacht.
+  const midnightUtc = new Date(Date.UTC(year, month - 1, day - 1, 23, 30, 0));
   const parts = Object.fromEntries(
     new Intl.DateTimeFormat('en-CA', {
       timeZone: 'Europe/Berlin',
       timeZoneName: 'longOffset',
     })
-      .formatToParts(noonUtc)
+      .formatToParts(midnightUtc)
       .map((p) => [p.type, p.value]),
   );
   return parts.timeZoneName ? parts.timeZoneName.replace('GMT', '') : '+01:00';
@@ -91,7 +92,7 @@ function getBerlinOffsetForDay(year: number, month: number, day: number): string
 
 function makeBerlinDate(year: number, month: number, day: number): Date {
   return new Date(
-    `${pad2(year)}-${pad2(month)}-${pad2(day)}T00:00:00${getBerlinOffsetForDay(year, month, day)}`,
+    `${pad2(year)}-${pad2(month)}-${pad2(day)}T00:00:00${getBerlinMidnightOffset(year, month, day)}`,
   );
 }
 

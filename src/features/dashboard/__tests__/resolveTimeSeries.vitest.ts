@@ -13,6 +13,36 @@ import {
 import type { ActiveCatalogEntry } from '../model/dashboardCatalog';
 import type { EffectiveTileFilter } from '../model/dashboardFilters';
 
+const makeTestEntry = (patch: Partial<ActiveCatalogEntry> = {}): ActiveCatalogEntry => ({
+  id: 'crm.gewonnen_verlauf',
+  name: 'Gewonnene Deals je Woche (Anzahl)',
+  category: 'vertrieb_crm',
+  kind: 'kpi',
+  status: 'aktiv',
+  definition: '',
+  unit: 'Deals',
+  shape: 'zeitreihe',
+  aggregation: 'fluss',
+  timeMode: 'fest',
+  timeBasis: 'Letzte 12 Wochen',
+  views: ['linie', 'saeulen', 'tabelle'],
+  defaultView: 'linie',
+  minSize: 'mittel',
+  groupings: [],
+  filters: ['pipeline'],
+  detailRouteId: '',
+  access: 'alle',
+  history: {
+    kind: 'ereignisse',
+    source: 'deal_stage_events',
+    reconstructable: 'nur_fluesse',
+    note: '',
+    defaultWindow: { resolution: 'woche', count: 12 },
+  },
+  source: { layer: 'crm', module: 'crm', exportName: 'deals' },
+  ...patch,
+});
+
 describe('parseTimeSeriesResponse', () => {
   it('parst eine gültige CRM-Zeitreihenantwort und mappt bucketStart auf at', () => {
     const raw = {
@@ -163,39 +193,7 @@ describe('Zeitzone und Zeitfenster', () => {
   });
 
   it('berechnet Standardfenster für 12 Wochen und 24 Stunden', () => {
-    const fakeCrmEntry: ActiveCatalogEntry = {
-      id: 'crm.gewonnen_verlauf',
-      name: 'Gewonnene Deals je Woche (Anzahl)',
-      category: 'vertrieb_crm',
-      kind: 'kpi',
-      status: 'aktiv',
-      definition: '',
-      unit: 'Deals',
-      shape: 'zeitreihe',
-      aggregation: 'fluss',
-      timeMode: 'fest',
-      timeBasis: 'Letzte 12 Wochen',
-      views: ['linie', 'saeulen', 'tabelle'],
-      defaultView: 'linie',
-      minSize: 'mittel',
-      groupings: [],
-      filters: ['pipeline'],
-      detailRouteId: '',
-      access: 'alle',
-      history: {
-        kind: 'ereignisse',
-        source: 'deal_stage_events',
-        reconstructable: 'nur_fluesse',
-        note: '',
-        defaultWindow: { resolution: 'woche', count: 12 },
-      },
-      source: {
-        layer: 'crm',
-        module: 'crm',
-        exportName: 'deals',
-      },
-    };
-
+    const fakeCrmEntry = makeTestEntry();
     const window = timeSeriesWindow(fakeCrmEntry, '2026-11-18T14:00:00+01:00');
     expect(window.resolution).toBe('woche');
     expect(window.count).toBe(12);
@@ -204,25 +202,7 @@ describe('Zeitzone und Zeitfenster', () => {
   });
 
   it('wirft RangeError bei Überschreitung der 400-Punkte-Grenze', () => {
-    const tooManyPointsEntry: ActiveCatalogEntry = {
-      id: 'crm.too_many',
-      name: 'Zu viele Punkte',
-      category: 'vertrieb_crm',
-      kind: 'kpi',
-      status: 'aktiv',
-      definition: '',
-      unit: 'Deals',
-      shape: 'zeitreihe',
-      aggregation: 'fluss',
-      timeMode: 'fest',
-      timeBasis: '',
-      views: ['linie'],
-      defaultView: 'linie',
-      minSize: 'mittel',
-      groupings: [],
-      filters: [],
-      detailRouteId: '',
-      access: 'alle',
+    const tooManyPointsEntry = makeTestEntry({
       history: {
         kind: 'ereignisse',
         source: 'deal_stage_events',
@@ -230,8 +210,7 @@ describe('Zeitzone und Zeitfenster', () => {
         note: '',
         defaultWindow: { resolution: 'tag', count: 401 },
       },
-      source: { layer: 'crm', module: 'crm', exportName: 'deals' },
-    };
+    });
 
     expect(() => timeSeriesWindow(tooManyPointsEntry)).toThrow(/zu_viele_punkte/);
   });
@@ -349,38 +328,22 @@ describe('resolveTimeSeriesTile', () => {
   });
 
   it('berechnet 12-Wochen-Fenster über die März-Zeitumstellung exakt (Codex Review Finding)', () => {
-    const entry: ActiveCatalogEntry = {
-      id: 'crm.phaseneintritte_verlauf',
-      name: 'Phaseneintritte je Woche',
-      category: 'vertrieb_crm',
-      kind: 'kpi',
-      status: 'aktiv',
-      definition: '',
-      unit: 'Eintritte',
-      shape: 'zeitreihe',
-      aggregation: 'fluss',
-      timeMode: 'fest',
-      timeBasis: 'Letzte 12 Wochen',
-      views: ['linie'],
-      defaultView: 'linie',
-      minSize: 'mittel',
-      groupings: [],
-      filters: ['pipeline'],
-      detailRouteId: '',
-      access: 'alle',
-      source: { layer: 'crm', module: 'crm', exportName: 'deals' },
-      history: {
-        kind: 'ereignisse',
-        source: 'deal_stage_events',
-        reconstructable: 'nur_fluesse',
-        note: '',
-        defaultWindow: { resolution: 'woche', count: 12 },
-      },
-    };
-
+    const entry = makeTestEntry();
     const win = timeSeriesWindow(entry, '2026-04-06T14:00:00+02:00');
     expect(win.to).toBe('2026-04-06T00:00:00+02:00');
     expect(win.from).toBe('2026-01-12T00:00:00+01:00');
     expect(win.count).toBe(12);
+  });
+
+  it('ermittelt den Berliner Offset um Mitternacht exakt an DST-Umschalttagen (Codex Review Finding)', () => {
+    // 29.03.2026: DST-Sprung um 02:00 Uhr von +01:00 auf +02:00.
+    // Um Mitternacht (00:00:00) gilt noch Winterzeit (+01:00).
+    const marchDst = truncateBerlin('2026-03-29T15:00:00+02:00', 'tag');
+    expect(formatBerlinIso(marchDst)).toBe('2026-03-29T00:00:00+01:00');
+
+    // 25.10.2026: DST-Rücksprung um 03:00 Uhr von +02:00 auf +01:00.
+    // Um Mitternacht (00:00:00) gilt noch Sommerzeit (+02:00).
+    const octDst = truncateBerlin('2026-10-25T15:00:00+01:00', 'tag');
+    expect(formatBerlinIso(octDst)).toBe('2026-10-25T00:00:00+02:00');
   });
 });

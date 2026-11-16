@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { dashboardQueryKeys } from '../data/dashboardQueryKeys';
+import { timeSeriesWindow } from '../data/resolveTimeSeries';
+import { getCatalogEntry, type ActiveCatalogEntry } from '../model/dashboardCatalog';
 import type { DashboardTileConfigV2 } from '../model/dashboardConfigV2';
 import type { LiveKpiStreamState, LiveKpiStreamStore } from '@/services/liveKpi/liveKpiStreamStore';
 import { createPreviewLiveStore } from '../preview/previewLiveStore';
@@ -345,17 +347,18 @@ describe('TimeControlProvider Context Hooks', () => {
       query: { metricId: 'live.arr.verlauf' },
     };
 
-    const targetKey = [
-      ...dashboardQueryKeys.crm('org-test'),
-      'timeSeries',
+    const entry = getCatalogEntry(liveHistoryTile.catalogId)! as ActiveCatalogEntry;
+    const tsWin = timeSeriesWindow(entry);
+    const targetKey = dashboardQueryKeys.timeSeries(
+      'org-test',
       'user-test',
       'live_kpi',
       'arr',
-      'stunde',
-      '2026-11-15T00:00:00+01:00',
-      '2026-11-16T00:00:00+01:00',
+      tsWin.resolution,
+      tsWin.from,
+      tsWin.to,
       null,
-    ] as const;
+    );
 
     queryClient.setQueryData(
       targetKey,
