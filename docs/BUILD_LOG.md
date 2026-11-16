@@ -21583,3 +21583,79 @@ git diff d83e3e66 -- src/simulation src/types src/context src/services/data src/
 - `npm run build:production`: Erfolgreich
 - `npx size-limit`: 178.79 kB / 180 kB (Grün)
 - Screenshot-Gate (`scripts/captureAuftrag160GateScreenshots.mjs`): 30 Screenshots über 1440/768/375, dunkel/hell mit jeweils **0 px horizontalem Überlauf**.
+
+---
+
+## 2026-11-16 — Auftrag DEPS_DEPENDABOT_CI: Dependabot-PRs #189–#193 reparieren und CI dauerhaft robust machen
+
+**Rolle:** Antigravity (Builder)  
+**Branch:** `deps-dependabot-ci-reparatur`  
+**Baseline:** `5f9a4b75` (Merge von PR #194, Auftrag 160)  
+**Status:** Gebaut, verifiziert, Pflichtchecks grün
+
+### 1. Zusammenfassung & Befunde (U1–U5)
+
+- **U1 (Deno-Lockfile spiegelt Root-`package.json`):** `DENO_NO_PACKAGE_JSON: '1'` als Umgebungsvariable an den Schritten `deno check` und `deno test` in `.github/workflows/ci.yml` hinterlegt. `supabase/functions/deno.lock` bereinigt neu erzeugt: Der `workspace.packageJson`-Block ist vollständig entfallen, das Deno-Lockfile bindet nur noch `jsr:@std/assert@1` für die Edge-Function-Tests.
+- **U2 & U3 (size-limit Paarung & Node-Version):** `size-limit` und `@size-limit/file` gemeinsam auf `^14.3.0` aktualisiert. `node-version: 22.23.5` in `.github/workflows/ci.yml` (7×) und `.github/workflows/update-visual-baselines.yml` (1×) gesetzt; `engines.node` in `package.json` auf `">=22.19.0 <23"` angehoben. `agent-review.yml` verbleibt unberührt auf Node 20 (reine Prüfskripte ohne `npm ci`).
+- **U4 (Lockfile-Abweichung proxy-agent):** Durch die Aktualisierung von `@lhci/cli` auf `^0.16.1` (verlangt `proxy-agent ^8.0.2`) ist die vormals gespaltene Versionslinie (6.5.0 vs. 8.0.2) bereinigt. `npm ls proxy-agent` listet einheitlich `proxy-agent@8.0.3`.
+- **U5 (ESLint 10 noch nicht unterstützt):** Major-Update von ESLint gesperrt, da `eslint-plugin-react` (7.37.5) und `eslint-plugin-import` (2.32.0) ESLint 10 noch nicht unterstützen. In `.github/dependabot.yml` eine `ignore`-Regel für `eslint` und `@eslint/js` (`version-update:semver-major`) hinterlegt.
+- **Aktualisierte Pakete (#189, #191, #190/#192):**
+  - Dev: `@lhci/cli` 0.16.1, `@playwright/test` 1.65.0, `@testing-library/user-event` 14.6.10, `fake-indexeddb` 6.2.8, `prettier` 3.10.1, `typescript-eslint` 8.72.2, `size-limit` 14.3.0, `@size-limit/file` 14.3.0.
+  - Prod: `@supabase/supabase-js` 2.119.0, `@tanstack/react-query` 5.107.1, `zustand` 5.1.0.
+
+### 2. Rot- & Grün-Nachweise
+
+- **T1 Rot-Nachweis (U1):** Vor der Entkopplung führte eine Änderung an einer Dependency-Version in `package.json` bei `deno check ... --frozen-lockfile` unmittelbar zum CI-Fehler:
+  ```
+  error: The lockfile is out of date. Run `deno install --frozen=false`, or rerun with `--frozen=false` to update it.
+  ```
+- **T2 Grün-Nachweis (U1):** Nach Setzen von `DENO_NO_PACKAGE_JSON=1` und Neuerzeugung von `supabase/functions/deno.lock` bleibt `deno check` und `deno test` mit `--frozen-lockfile` auch bei geänderter `package.json` vollständig grün (86/86 Deno-Tests bestanden).
+
+### 3. Versions- und Umgebungsnachweis (T0, T3, T4, T5)
+
+- **Lokal:** Node `v22.23.4`, npm `10.9.9`, Deno `2.9.8`.
+- **CI-Workflows:** Node `22.23.5` (7× in `ci.yml`, 1× in `update-visual-baselines.yml`).
+- **`package.json` engines:** `"node": ">=22.19.0 <23"`, `"npm": ">=10.0.0"`.
+- **Dependabot-Syntax-Quelle:** Offizielle GitHub-Dokumentation (https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file):
+  - `groups` mit `patterns: ["size-limit", "@size-limit/*"]` vor `dev-minor-patch`/`prod-minor-patch` platziert.
+  - `ignore` mit `dependency-name: "eslint"` / `"@eslint/js"` und `update-types: ["version-update:semver-major"]`.
+- **Lockfile-Integrität:** `npm ci --dry-run` erfolgreich (0 Fehler), `npm ls proxy-agent` einheitlich 8.0.3, `npm ls size-limit @size-limit/file` 14.3.0.
+
+### 4. Bundle-Werte vorher / nachher (`size-limit`)
+
+- **Initial JS bundle (gzip):**
+  - Baseline (Auftrag 160): **178.79 kB**
+  - Nach Updates: **178.94 kB** (Budget: $\le 180$ kB) — **GRÜN**
+- **Largest chunk (gzip):**
+  - Baseline (Auftrag 160): **79.41 kB**
+  - Nach Updates: **79.41 kB** (Budget: $\le 250$ kB) — **GRÜN**
+
+### 5. Schutzbereichs-Prüfung (Diff gegen Baseline `5f9a4b75`)
+
+```bash
+git diff 5f9a4b75 -- src/simulation src/types src/context src/services/data src/features/resources
+--> LEER (0 Zeilen Diff)
+
+git diff --stat 5f9a4b75 -- src supabase/migrations supabase/functions/*/index.ts
+--> LEER (0 Zeilen Diff)
+```
+
+Reine Konfigurations-, Abhängigkeits- und Lockfile-Änderungen. 0 Zeilen Anwendungscode berührt.
+
+### 6. Offene Frage an Marc
+
+- **Root-`deno.lock`:** Existiert seit Commit `4392154e` im Root-Verzeichnis, wird aber von keinem GitHub Actions Workflow referenziert (`ci.yml` nutzt ausschließlich `supabase/functions/deno.lock`). Frage an Marc: Soll das Root-`deno.lock` behalten oder gelöscht werden?
+
+### 7. Pflicht-Verifikation (§6)
+
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run lint`: 0 Fehler, 0 Warnungen
+- `npm run format:check`: 100% Prettier-konform
+- `npm test`: 403 Testdateien bestanden (3.006 Tests grün)
+- `npm run verify`: Alle 25 Integrity-Suiten bestanden
+- `npm run build`: Erfolgreich (3.30s)
+- `npx size-limit`: 178.94 kB / 180 kB, 79.41 kB / 250 kB (Grün)
+- `npx tsx scripts/verifyLiveKpiCatalog.ts`: Bestanden (G24 grün)
+- `DENO_NO_PACKAGE_JSON=1 deno check`: 0 Fehler
+- `DENO_NO_PACKAGE_JSON=1 deno test`: 86/86 Tests bestanden
+- `npx playwright test`: Playwright 1.65.1 lokal verifiziert

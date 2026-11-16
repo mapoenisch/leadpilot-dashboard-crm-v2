@@ -105,13 +105,13 @@ Das Root-`deno.lock` (seit `4392154e`, von keinem Workflow genutzt) bleibt unang
 
 ## 5. Tasks
 
-- [ ] **T0 Einstieg:** Branch von `main` `5f9a4b75`. Node 22.23.5 lokal aktivieren (`node -v`, `npm -v` im BUILD_LOG notieren).
-- [ ] **T1 Rot-Nachweis U1:** Auf `main` eine beliebige Versionsnummer in `package.json` testweise ändern, `deno check --config supabase/functions/deno.json --lock supabase/functions/deno.lock --frozen-lockfile --node-modules-dir=none supabase/functions/*/index.ts` → rot. Änderung verwerfen. Ergebnis im BUILD_LOG.
-- [ ] **T2 Deno entkoppeln:** `DENO_NO_PACKAGE_JSON: '1'` in `ci.yml`, Lockfile neu erzeugen: `rm supabase/functions/deno.lock && DENO_NO_PACKAGE_JSON=1 deno check --config supabase/functions/deno.json --lock supabase/functions/deno.lock --node-modules-dir=none supabase/functions/*/index.ts`, danach `deno test` mit `--frozen-lockfile` grün (67/67 laut letztem Stand; tatsächliche Zahl eintragen). Grün-Nachweis: T1 erneut → bleibt grün.
-- [ ] **T3 Node anheben:** Workflows und `engines` (2.2).
-- [ ] **T4 Updates:** Versionen in `package.json` setzen, `npm install` mit npm aus Node 22.23.5. Danach `npm ci --dry-run` grün; `npm ls proxy-agent` zeigt nur noch Version 8.x; `npm ls size-limit @size-limit/file` zeigt 14.3.0.
-- [ ] **T5 Dependabot-Konfiguration:** 2.4, Quelle der Syntax im BUILD_LOG.
-- [ ] **T6 Verifikation:** §6 vollständig.
+- [x] **T0 Einstieg:** Branch von `main` `5f9a4b75`. Node 22.23.5 lokal aktivieren (`node -v`, `npm -v` im BUILD_LOG notieren).
+- [x] **T1 Rot-Nachweis U1:** Auf `main` eine beliebige Versionsnummer in `package.json` testweise ändern, `deno check --config supabase/functions/deno.json --lock supabase/functions/deno.lock --frozen-lockfile --node-modules-dir=none supabase/functions/*/index.ts` → rot. Änderung verwerfen. Ergebnis im BUILD_LOG.
+- [x] **T2 Deno entkoppeln:** `DENO_NO_PACKAGE_JSON: '1'` in `ci.yml`, Lockfile neu erzeugen: `rm supabase/functions/deno.lock && DENO_NO_PACKAGE_JSON=1 deno check --config supabase/functions/deno.json --lock supabase/functions/deno.lock --node-modules-dir=none supabase/functions/*/index.ts`, danach `deno test` mit `--frozen-lockfile` grün (86/86 bestanden). Grün-Nachweis: T1 erneut → bleibt grün.
+- [x] **T3 Node anheben:** Workflows und `engines` (2.2).
+- [x] **T4 Updates:** Versionen in `package.json` setzen, `npm install` mit npm aus Node 22.23.5. Danach `npm ci --dry-run` grün; `npm ls proxy-agent` zeigt nur noch Version 8.x; `npm ls size-limit @size-limit/file` zeigt 14.3.0.
+- [x] **T5 Dependabot-Konfiguration:** 2.4, Quelle der Syntax im BUILD_LOG.
+- [x] **T6 Verifikation:** §6 vollständig.
 - [ ] **T7 Abschluss:** BUILD_LOG-Builder-Eintrag (Befund U1–U5, Bundle-Werte vorher/nachher, Schutzbereichs-Diff, offene Frage Root-`deno.lock`), PR öffnen. Nach Review: Prüfnachweis nachtragen. Nach Merge durch Marc: 2.5.
 
 ## 6. Pflicht-Verifikation

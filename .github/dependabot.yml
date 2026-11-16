@@ -14,12 +14,23 @@ updates:
       timezone: "Europe/Berlin"
     open-pull-requests-limit: 5
     groups:
+      size-limit:
+        patterns:
+          - "size-limit"
+          - "@size-limit/*"
       dev-minor-patch:
         dependency-type: "development"
         update-types: ["minor", "patch"]
       prod-minor-patch:
         dependency-type: "production"
         update-types: ["minor", "patch"]
+    # U5 (ANTIGRAVITY_AUFTRAG_DEPS_DEPENDABOT_CI.md): ESLint 10 wird von eslint-plugin-react
+    # und eslint-plugin-import noch nicht unterstützt. Major-Updates vorerst sperren.
+    ignore:
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
     labels: ["dependencies"]
 
   - package-ecosystem: "github-actions"
