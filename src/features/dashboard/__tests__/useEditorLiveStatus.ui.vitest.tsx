@@ -333,4 +333,51 @@ describe('TimeControlProvider Context Hooks', () => {
     // Liest den Stand der übergeordneten Pipeline aus dem React-Query-Cache
     expect(screen.getByTestId('data-as-of')).toHaveTextContent('2026-11-15T14:45:00.000Z');
   });
+
+  it('leitet den Datenstand von Live-Verlaufskacheln aus dem Server-Cache ab und meldet kein_live_inhalt (Codex Review)', () => {
+    const queryClient = new QueryClient();
+    const liveHistoryTile: DashboardTileConfigV2 = {
+      id: 'tile-live-arr-history',
+      catalogId: 'live.arr.verlauf',
+      title: 'ARR Verlauf',
+      presentation: 'linie',
+      layouts: { desktop: { x: 0, y: 0, w: 6, h: 4 } },
+      query: { metricId: 'live.arr.verlauf' },
+    };
+
+    const targetKey = [
+      ...dashboardQueryKeys.crm('org-test'),
+      'timeSeries',
+      'user-test',
+      'live_kpi',
+      'arr',
+      'stunde',
+      '2026-11-15T00:00:00+01:00',
+      '2026-11-16T00:00:00+01:00',
+      null,
+    ] as const;
+
+    queryClient.setQueryData(
+      targetKey,
+      { points: [] },
+      { updatedAt: Date.parse('2026-11-16T11:30:00.000Z') },
+    );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <TimeControlProvider>
+          <StatusProbe
+            tiles={[liveHistoryTile]}
+            store={createPreviewLiveStore('offline')}
+            configured={true}
+          />
+        </TimeControlProvider>
+      </QueryClientProvider>,
+    );
+
+    // Live-Verlaufskacheln sind Server-Zeitreihen: kein Stream-Abo, daher kein_live_inhalt
+    expect(screen.getByTestId('connection')).toHaveTextContent('kein_live_inhalt');
+    // Stand wird aus der Zeitreihen-Query gelesen
+    expect(screen.getByTestId('data-as-of')).toHaveTextContent('2026-11-16T11:30:00.000Z');
+  });
 });

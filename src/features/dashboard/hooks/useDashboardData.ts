@@ -24,7 +24,9 @@ import { resolveLive } from '../data/resolveLive';
 import {
   fetchTimeSeries,
   resolveTimeSeriesTile,
+  subtractBerlin,
   timeSeriesWindow,
+  truncateBerlin,
 } from '../data/resolveTimeSeries';
 import { attachCrmQueryMeta } from '../time/useTimeControlledData';
 
@@ -131,17 +133,13 @@ export function useDashboardData(
 
     let msUntilNext = 60_000;
     if (resolution === 'stunde') {
-      msUntilNext = Math.max(
-        1000,
-        (60 - now.getMinutes()) * 60_000 - now.getSeconds() * 1000 + 500,
-      );
-    } else if (resolution === 'tag') {
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 500);
-      msUntilNext = Math.max(1000, tomorrow.getTime() - now.getTime());
-    } else if (resolution === 'woche') {
-      msUntilNext = Math.max(1000, (60 - now.getMinutes()) * 60_000);
+      const msIntoCurrentHour =
+        (now.getUTCMinutes() * 60 + now.getUTCSeconds()) * 1000 + now.getUTCMilliseconds();
+      msUntilNext = Math.max(1000, 3600_000 - msIntoCurrentHour + 500);
+    } else {
+      const currentStart = truncateBerlin(now, resolution);
+      const nextStart = subtractBerlin(currentStart, -1, resolution);
+      msUntilNext = Math.max(1000, nextStart.getTime() - now.getTime() + 500);
     }
 
     const timer = setTimeout(() => {

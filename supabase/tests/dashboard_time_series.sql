@@ -3,7 +3,7 @@
 
 BEGIN;
 
-SELECT plan(28);
+SELECT plan(29);
 
 -- ---------------------------------------------------------------- Setup --
 DELETE FROM public.deal_stage_events WHERE deal_id LIKE 'd160-%';
@@ -473,6 +473,27 @@ SELECT is(
   ))->>'historyStartAt',
   '2026-10-19T12:00:00+02:00',
   'historyStartAt von Org B ist das eigene früheste Ereignis (2026-10-19)'
+);
+
+-- 29. Halboffenes Fenster: Ereignisse vor p_from werden nicht mitgezählt (Codex Review)
+SELECT set_config('request.jwt.claims', '{"sub":"91600000-0000-0000-0000-000000000001","role":"authenticated"}', true);
+SET ROLE authenticated;
+
+SELECT is(
+  (
+    SELECT (jsonb_path_query_first(
+      public.dashboard_time_series(
+        'deal_stage_events',
+        'Deal gewonnen',
+        'woche',
+        '2026-10-07 00:00:00+02'::timestamptz,
+        '2026-10-19 00:00:00+02'::timestamptz
+      ),
+      '$.points[*] ? (@.bucketStart == "2026-10-05T00:00:00+02:00").value'
+    )::text)::int
+  ),
+  0,
+  'Ereignisse am 05.10. liegen vor p_from (07.10.) und werden nicht gezählt'
 );
 
 SELECT finish();

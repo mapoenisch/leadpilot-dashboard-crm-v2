@@ -55,6 +55,8 @@ function effectivePipelineFor(
 function liveIdsFor(tile: DashboardTileConfigV2): readonly string[] {
   const entry = getCatalogEntry(tile.catalogId);
   if (!entry || !isActiveEntry(entry) || entry.source.layer !== 'live') return [];
+  // Server-Zeitreihen abonnieren keinen Live-Stream (Auftrag 160 / Codex Review)
+  if (entry.history.kind === 'ereignisse') return [];
   if (entry.id === 'uebersicht.live_aktivitaet') return ALL_LIVE_IDS;
   return entry.source.liveKpiId ? [entry.source.liveKpiId] : [];
 }
@@ -183,7 +185,31 @@ export function useEditorLiveStatus({
         const entry = getCatalogEntry(tile.catalogId);
         if (!entry || !isActiveEntry(entry)) continue;
 
-        if (entry.source.layer === 'live' && configured) {
+        const isTimeSeries = entry.history.kind === 'ereignisse';
+        if (isTimeSeries && queryClient && organizationId && userId) {
+          const timeSeriesSource =
+            entry.history.source === 'live_kpi_events' ? 'live_kpi' : 'deal_stage_events';
+          const timeSeriesMetric =
+            entry.source.layer === 'crm'
+              ? entry.id === 'crm.gewonnen_verlauf'
+                ? 'Deal gewonnen'
+                : '*'
+              : (entry.source.liveKpiId ?? '');
+          const queries = queryClient.getQueryCache().findAll({
+            predicate: (q) =>
+              Array.isArray(q.queryKey) &&
+              q.queryKey[0] === 'dashboard' &&
+              q.queryKey[1] === organizationId &&
+              q.queryKey[3] === 'timeSeries' &&
+              q.queryKey[4] === userId &&
+              q.queryKey[5] === timeSeriesSource &&
+              q.queryKey[6] === timeSeriesMetric,
+          });
+          const newestUpdate = newest(
+            queries.map((q) => q.state.dataUpdatedAt).filter((t) => t > 0),
+          );
+          if (newestUpdate !== null) standTimes.push(newestUpdate);
+        } else if (entry.source.layer === 'live' && configured) {
           const time = liveTileStandTime(tile, store);
           if (time !== null) standTimes.push(time);
         } else if (entry.source.layer === 'crm' && queryClient && organizationId && userId) {

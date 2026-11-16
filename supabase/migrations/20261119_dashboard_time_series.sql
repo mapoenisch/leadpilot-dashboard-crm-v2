@@ -158,7 +158,7 @@ BEGIN
         count(*)::INT AS cnt
       FROM public.deal_stage_events e
       WHERE e.organization_id = v_org_id
-        AND e.occurred_at >= v_from_aligned
+        AND e.occurred_at >= p_from
         AND e.occurred_at < p_to
         AND (v_normalized_metric = '*' OR public.normalize_deal_stage(e.to_stage) = v_normalized_metric)
         AND (
@@ -212,7 +212,7 @@ BEGIN
       FROM public.live_kpi_public_feed f
       WHERE f.organization_id = v_org_id
         AND f.kpi_id = trim(p_metric)
-        AND f.occurred_at >= v_from_aligned
+        AND f.occurred_at >= p_from
         AND f.occurred_at < p_to
     ),
     latest_feed AS (

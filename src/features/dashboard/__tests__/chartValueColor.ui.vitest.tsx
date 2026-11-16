@@ -81,4 +81,3 @@ describe('useActiveDatum: Stabile Auswahl bei Zeitumstellung (Codex Review Findi
     expect(result.current[0]).toBe(0);
   });
 });
-
