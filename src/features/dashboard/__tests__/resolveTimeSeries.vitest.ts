@@ -324,14 +324,17 @@ describe('resolveTimeSeriesTile', () => {
   });
 
   it('unterscheidet doppelte Stunden bei Winterzeitumstellung durch Zeitzonenoffset (Codex Review Finding)', () => {
-    // 25.10.2026 um 02:00 UhrMESZ (+02:00) vs 02:00 Uhr MEZ (+01:00)
+    // 25.10.2026 um 02:00 Uhr MESZ (+02:00) vs 02:00 Uhr MEZ (+01:00)
     const labelMesz = formatPointLabel('2026-10-25T00:00:00Z', 'stunde');
     const labelMez = formatPointLabel('2026-10-25T01:00:00Z', 'stunde');
-    expect(labelMesz).toContain('25.10.2026, 02:00–03:00 Uhr');
-    expect(labelMez).toContain('25.10.2026, 02:00–03:00 Uhr');
-    expect(labelMesz).not.toBe(labelMez);
-    expect(labelMesz).toContain('MESZ');
-    expect(labelMez).toContain('MEZ');
+    expect(labelMesz).toBe('25.10.2026, 02:00 Uhr (MESZ)–02:00 Uhr (MEZ)');
+    expect(labelMez).toBe('25.10.2026, 02:00–03:00 Uhr (MEZ)');
+  });
+
+  it('formatiert übersprungene Stunde bei Sommerzeitumstellung im März korrekt (Codex Review Finding)', () => {
+    // 29.03.2026 um 01:00 Uhr MEZ (+01:00) springt nach 1h auf 03:00 Uhr MESZ (+02:00)
+    const labelSpring = formatPointLabel('2026-03-29T00:00:00Z', 'stunde');
+    expect(labelSpring).toBe('29.03.2026, 01:00 Uhr (MEZ)–03:00 Uhr (MESZ)');
   });
 
   it('rundet Samstag bei Wochenauflösung korrekt auf Montag ab (Codex Review Finding)', () => {

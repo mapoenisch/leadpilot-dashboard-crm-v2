@@ -68,7 +68,7 @@ export function formatAxisTickLabel(label: string): string {
   if (weekMatch) return `${weekMatch[1]}.`;
   const dateMatch = label.match(/^(\d{2}\.\d{2})\.\d{4}$/);
   if (dateMatch) return `${dateMatch[1]}.`;
-  const hourIntervalMatch = label.match(/(\d{2}:\d{2})–\d{2}:\d{2}/);
+  const hourIntervalMatch = label.match(/(\d{2}:\d{2})(?: Uhr[^\u2013-]*)?[–-](\d{2}:\d{2})/);
   if (hourIntervalMatch?.[1]) return hourIntervalMatch[1];
   return label;
 }

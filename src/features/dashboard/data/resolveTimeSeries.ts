@@ -325,22 +325,25 @@ export function formatPointLabel(at: string, resolution: TimeSeriesResolution): 
     return `Woche ${new Intl.DateTimeFormat('de-DE', { ...tz, day: '2-digit', month: '2-digit', year: 'numeric' }).format(d)}`;
   }
   if (resolution === 'stunde') {
-    const day = new Intl.DateTimeFormat('de-DE', {
+    const endD = new Date(d.getTime() + 3_600_000);
+    const dayFmt = new Intl.DateTimeFormat('de-DE', {
       ...tz,
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
-    }).format(d);
-    const h = new Intl.DateTimeFormat('de-DE', {
-      ...tz,
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(d);
-    const nextH = `${String((Number(h.slice(0, 2)) + 1) % 24).padStart(2, '0')}:00`;
-    const zName = new Intl.DateTimeFormat('de-DE', { ...tz, timeZoneName: 'short' })
-      .formatToParts(d)
-      .find((p) => p.type === 'timeZoneName')?.value;
-    return `${day}, ${h}–${nextH} Uhr${zName ? ` (${zName})` : ''}`;
+    });
+    const timeFmt = new Intl.DateTimeFormat('de-DE', { ...tz, hour: '2-digit', minute: '2-digit' });
+    const tzFmt = new Intl.DateTimeFormat('de-DE', { ...tz, timeZoneName: 'short' });
+    const day = dayFmt.format(d);
+    const startH = timeFmt.format(d);
+    const endH = timeFmt.format(endD);
+    const startZ = tzFmt.formatToParts(d).find((p) => p.type === 'timeZoneName')?.value;
+    const endZ = tzFmt.formatToParts(endD).find((p) => p.type === 'timeZoneName')?.value;
+
+    if (startZ && endZ && startZ !== endZ) {
+      return `${day}, ${startH} Uhr (${startZ})–${endH} Uhr (${endZ})`;
+    }
+    return `${day}, ${startH}–${endH} Uhr${startZ ? ` (${startZ})` : ''}`;
   }
   if (resolution === 'tag') {
     return new Intl.DateTimeFormat('de-DE', {

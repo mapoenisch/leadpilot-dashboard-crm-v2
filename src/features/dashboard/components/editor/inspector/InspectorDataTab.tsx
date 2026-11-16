@@ -4,7 +4,7 @@
 import { useContext, type ChangeEvent } from 'react';
 import { QueryClientContext } from '@tanstack/react-query';
 import type { ActiveCatalogEntry, DashboardView } from '../../../model/dashboardCatalog';
-import type { DashboardTileConfig } from '../../../model/dashboardConfig';
+import type { DashboardFilters, DashboardTileConfig } from '../../../model/dashboardConfig';
 import type { DashboardTileConfigV2 } from '../../../model/dashboardConfigV2';
 import { getQueryCapabilities } from '../../../model/queryCapabilities';
 import { normalizeTileQuery } from '../../../model/tileQuery';
@@ -21,15 +21,26 @@ export function InspectorDataTab({
   catalogEntry,
   onTileOverrideChange,
   isCollapsed = false,
+  globalPipeline,
 }: {
   selectedTile: DashboardTileConfigV2;
   catalogEntry: ActiveCatalogEntry | undefined;
   onTileOverrideChange: (tileId: string, patch: Partial<DashboardTileConfigV2>) => void;
   isCollapsed?: boolean;
+  globalPipeline?: string;
 }) {
   const normQuery = normalizeTileQuery(selectedTile);
   const caps = catalogEntry ? getQueryCapabilities(catalogEntry) : undefined;
   const supportsPipeline = caps?.supportsPipelineFilter ?? false;
+
+  let effectivePipeline: string | undefined;
+  if (normQuery.pipelineId === null) {
+    effectivePipeline = undefined;
+  } else if (typeof normQuery.pipelineId === 'string') {
+    effectivePipeline = normQuery.pipelineId;
+  } else {
+    effectivePipeline = selectedTile.pipelineOverride ?? globalPipeline;
+  }
 
   let pipelineValue = '';
   if (normQuery.pipelineId === null) {
@@ -67,8 +78,10 @@ export function InspectorDataTab({
     view: (selectedTile.presentation as DashboardView) || 'linie',
     size: 'mittel',
     filterMode: 'dashboard',
-    pipeline: normQuery.pipelineId ?? undefined,
+    pipeline: effectivePipeline,
   };
+
+  const filters: DashboardFilters = { pipeline: globalPipeline };
 
   const pipelineReason =
     catalogEntry?.source.layer === 'live'
@@ -100,6 +113,7 @@ export function InspectorDataTab({
             <InspectorHistoryLabel
               catalogEntry={catalogEntry}
               tileConfig={tileConfig}
+              filters={filters}
               isPaused={isPaused}
               isCollapsed={isCollapsed}
             />
@@ -221,11 +235,13 @@ export function InspectorDataTab({
 function InspectorHistoryLabel({
   catalogEntry,
   tileConfig,
+  filters,
   isPaused,
   isCollapsed = false,
 }: {
   catalogEntry: ActiveCatalogEntry;
   tileConfig: DashboardTileConfig;
+  filters?: DashboardFilters;
   isPaused: boolean;
   isCollapsed?: boolean;
 }) {
@@ -244,6 +260,7 @@ function InspectorHistoryLabel({
     <InspectorHistoryWithQuery
       catalogEntry={catalogEntry}
       tileConfig={tileConfig}
+      filters={filters}
       isPaused={isPaused}
       enabled={!isCollapsed}
     />
@@ -253,15 +270,17 @@ function InspectorHistoryLabel({
 function InspectorHistoryWithQuery({
   catalogEntry,
   tileConfig,
+  filters,
   isPaused,
   enabled = true,
 }: {
   catalogEntry: ActiveCatalogEntry;
   tileConfig: DashboardTileConfig;
+  filters?: DashboardFilters;
   isPaused: boolean;
   enabled?: boolean;
 }) {
-  const tileData = useDashboardData(tileConfig, undefined, {
+  const tileData = useDashboardData(tileConfig, filters, {
     enabled,
     frozen: isPaused,
   });

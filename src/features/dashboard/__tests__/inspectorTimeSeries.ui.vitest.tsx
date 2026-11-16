@@ -165,4 +165,41 @@ describe('Inspector & Bibliothek Zeitreihen-Texte (Auftrag 160 §2.4 Nr. 25)', (
     // Dennoch Fallback-Label vorhanden
     expect(screen.getByTestId('inspector-history-label')).toBeInTheDocument();
   });
+
+  it('übernimmt die globale Dashboard-Pipeline im Inspector, wenn die Kachel erbt (Codex Review Finding)', async () => {
+    const queryClient = createTestQueryClient();
+    const fetchSpy = vi.spyOn(resolveTimeSeriesModule, 'fetchTimeSeries');
+    fetchSpy.mockClear();
+
+    const rawEntry = getCatalogEntry('crm.phaseneintritte_verlauf');
+    const entry = rawEntry && isActiveEntry(rawEntry) ? rawEntry : undefined;
+    expect(entry).toBeDefined();
+
+    const selectedTile: DashboardTileConfigV2 = {
+      id: 'tile-crm-verlauf-inherit',
+      catalogId: 'crm.phaseneintritte_verlauf',
+      title: 'Phaseneintritte je Woche',
+      presentation: 'linie',
+      layouts: { desktop: { x: 0, y: 0, w: 6, h: 4 } },
+      // Keine pipelineId gesetzt -> erbt vom Dashboard
+      query: {},
+    };
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <InspectorDataTab
+          selectedTile={selectedTile}
+          catalogEntry={entry}
+          onTileOverrideChange={vi.fn()}
+          globalPipeline="enterprise_deals"
+        />
+      </QueryClientProvider>,
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pipeline: 'enterprise_deals',
+      }),
+    );
+  });
 });

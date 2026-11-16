@@ -323,6 +323,7 @@ export function EditorInspectorV2({
                 catalogEntry={catalogEntry}
                 onTileOverrideChange={onTileOverrideChange}
                 isCollapsed={isCollapsed}
+                globalPipeline={config.globalPipeline}
               />
             )}
             {activeTab === 'schwellenwerte' && (

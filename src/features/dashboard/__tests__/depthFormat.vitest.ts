@@ -32,6 +32,8 @@ describe('formatDe & formatAxis', () => {
     expect(formatAxisTickLabel('05.10.2026')).toBe('05.10.');
     expect(formatAxisTickLabel('14:00')).toBe('14:00');
     expect(formatAxisTickLabel('05.10.2026, 14:00–15:00 Uhr (MESZ)')).toBe('14:00');
+    expect(formatAxisTickLabel('25.10.2026, 02:00 Uhr (MESZ)–02:00 Uhr (MEZ)')).toBe('02:00');
+    expect(formatAxisTickLabel('29.03.2026, 01:00 Uhr (MEZ)–03:00 Uhr (MESZ)')).toBe('01:00');
     expect(formatAxisTickLabel('Kategorie A')).toBe('Kategorie A');
   });
 });
