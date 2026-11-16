@@ -40,7 +40,11 @@ export const MODULE_BY_VIEW: Record<ChartView, ChartModuleId> = {
 };
 
 export const DEFAULT_CHART_LOADERS: ChartLoaders = {
-  balken: () => import('./Depth3dBarChart').then((m) => ({ default: m.Depth3dBarChart })),
+  balken: () =>
+    import('./Depth3dBarChart').then((m) => ({
+      default: m.Depth3dBarChart as unknown as React.ComponentType<DepthChartProps>,
+    })),
+
   ring: () => import('./Depth3dDonutChart').then((m) => ({ default: m.Depth3dDonutChart })),
   linie: () =>
     import('./DepthLineChart').then((m) => ({

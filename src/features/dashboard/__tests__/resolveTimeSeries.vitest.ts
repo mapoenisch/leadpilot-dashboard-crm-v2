@@ -339,4 +339,12 @@ describe('resolveTimeSeriesTile', () => {
     expect(formatPointLabel('2026-10-05T14:00:00+02:00', 'stunde')).toBe('14:00');
     expect(formatPointLabel('2026-10-05T00:00:00+02:00', 'tag')).toBe('05.10.2026');
   });
+
+  it('rundet Samstag bei Wochenauflösung korrekt auf Montag ab (Codex Review Finding)', () => {
+    // 2026-10-17 ist ein Samstag
+    const saturday = new Date('2026-10-17T15:30:00+02:00');
+    const truncated = truncateBerlin(saturday, 'woche');
+    // Montag derselben Woche ist der 12.10.2026 00:00:00 in Berlin
+    expect(formatBerlinIso(truncated)).toBe('2026-10-12T00:00:00+02:00');
+  });
 });

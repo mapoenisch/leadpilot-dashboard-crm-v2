@@ -91,8 +91,10 @@ export function truncateBerlin(
       Wed: 2,
       Thu: 3,
       Fri: 4,
+      Sat: 5,
       Sun: 6,
     };
+
     const diff: number = weekday && weekday in dayMap ? (dayMap[weekday] ?? 0) : 0;
     const dayDate = new Date(`${year}-${month}-${day}T00:00:00${offset}`);
     dayDate.setDate(dayDate.getDate() - diff);

@@ -26,10 +26,12 @@ export function barDepth(width: number): number {
   return Math.min(8, Math.max(3, Math.round(width * 0.16)));
 }
 
-/** Nur endliche Werte sind darstellbar (Säulen/Balken, auch negativ). */
-export function assertFinite(values: readonly number[]): void {
+/** Nur endliche Werte sind darstellbar (Säulen/Balken, auch negativ; null für Lücken zulässig). */
+export function assertFinite(values: readonly (number | null)[]): void {
   for (const value of values) {
-    if (!Number.isFinite(value)) throw new RangeError(`Wert nicht darstellbar: ${String(value)}`);
+    if (value !== null && !Number.isFinite(value)) {
+      throw new RangeError(`Wert nicht darstellbar: ${String(value)}`);
+    }
   }
 }
 
@@ -119,7 +121,7 @@ function extent(value: number, domain: ValueDomain, size: number): number {
 export interface BarRect {
   index: number;
   label: string;
-  value: number;
+  value: number | null;
   x: number;
   /** Oberkante der Vorderfläche. */
   y: number;
@@ -133,10 +135,10 @@ export interface BarRect {
 
 /**
  * Säulen auf gleichmäßigen Plätzen. Positive Werte wachsen von der Nullachse nach oben, negative
- * nach unten; 0-Werte behalten eine Position, aber keine Höhe.
+ * nach unten; 0- und null-Werte behalten eine Position, aber keine Höhe.
  */
 export function layoutBars(
-  data: readonly DatumInput[],
+  data: readonly (DatumInput | TimeDatumInput)[],
   area: Bounds,
   scale: number | ValueDomain,
 ): BarRect[] {
@@ -148,12 +150,13 @@ export function layoutBars(
   const slot = area.width / data.length;
   const width = Math.min(slot * 0.62, 96);
   return data.map((entry, index) => {
-    const height = extent(entry.value, domain, area.height);
-    const negative = entry.value < 0;
+    const val = entry.value;
+    const height = val !== null ? extent(val, domain, area.height) : 0;
+    const negative = val !== null && val < 0;
     return {
       index,
       label: entry.label,
-      value: entry.value,
+      value: val,
       x: area.left + slot * index + (slot - width) / 2,
       y: negative ? zero : zero - height,
       width,
@@ -168,11 +171,11 @@ export function layoutBars(
 export interface HBarRect {
   index: number;
   label: string;
-  value: number;
+  value: number | null;
   /** Linke Kante der Vorderfläche. */
   x: number;
   y: number;
-  /** Länge der Vorderfläche; 0 für Nullwerte. */
+  /** Länge der Vorderfläche; 0 für Null- und Fehlwerte. */
   length: number;
   /** Gesamte Dicke inklusive Tiefe. */
   thickness: number;
@@ -184,7 +187,7 @@ export interface HBarRect {
 
 /** Horizontale Balken; negative Werte reichen von der Nullachse nach links. */
 export function layoutHBars(
-  data: readonly DatumInput[],
+  data: readonly (DatumInput | TimeDatumInput)[],
   area: Bounds,
   scale: number | ValueDomain,
 ): HBarRect[] {
@@ -196,12 +199,13 @@ export function layoutHBars(
   const slot = area.height / data.length;
   const thickness = Math.min(slot * 0.62, 40);
   return data.map((entry, index) => {
-    const length = extent(entry.value, domain, area.width);
-    const negative = entry.value < 0;
+    const val = entry.value;
+    const length = val !== null ? extent(val, domain, area.width) : 0;
+    const negative = val !== null && val < 0;
     return {
       index,
       label: entry.label,
-      value: entry.value,
+      value: val,
       x: negative ? zero - length : zero,
       y: area.top + slot * index + (slot - thickness) / 2,
       length,

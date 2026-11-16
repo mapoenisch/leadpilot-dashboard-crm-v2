@@ -308,7 +308,7 @@ function LazyChart({
           >
             <Chart
               idPrefix={idPrefix}
-              data={rows as readonly DatumInput[]}
+              data={rows as unknown as readonly DatumInput[]}
               unit={data.unit}
 
               period={period}

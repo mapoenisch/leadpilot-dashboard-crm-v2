@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+
 import { useOrganization } from '@/auth/organizationContext';
 import { CRMRepository } from '@/services/db/crmRepository';
 import { type FunnelDealSource } from '@/domain/executiveCockpitData';
@@ -110,10 +111,46 @@ export function useDashboardData(
   const isTimeSeries = Boolean(activeEntry && activeEntry.history.kind === 'ereignisse');
   const timeSeriesEnabled = isEnabled && isTimeSeries && Boolean(organizationId && userId);
 
-  const tsWindow =
-    isTimeSeries && activeEntry
-      ? timeSeriesWindow(activeEntry)
-      : { from: '', to: '', resolution: 'stunde' as const, count: 24 };
+  // Abschnittswechsel-Timer für Live-Modus (Codex Review Finding)
+  const [windowTick, setWindowTick] = useState(0);
+
+  useEffect(() => {
+    if (!isTimeSeries || !activeEntry || options.frozen) return;
+    const now = new Date();
+    const resolution =
+      activeEntry.history.defaultWindow?.resolution ??
+      (activeEntry.source.layer === 'crm' ? 'woche' : 'stunde');
+
+    let msUntilNext = 60_000;
+    if (resolution === 'stunde') {
+      msUntilNext = Math.max(
+        1000,
+        (60 - now.getMinutes()) * 60_000 - now.getSeconds() * 1000 + 500,
+      );
+    } else if (resolution === 'tag') {
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 500);
+      msUntilNext = Math.max(1000, tomorrow.getTime() - now.getTime());
+    } else if (resolution === 'woche') {
+      msUntilNext = Math.max(1000, (60 - now.getMinutes()) * 60_000);
+    }
+
+    const timer = setTimeout(() => {
+      setWindowTick((t) => t + 1);
+    }, msUntilNext);
+
+    return () => clearTimeout(timer);
+  }, [isTimeSeries, activeEntry, options.frozen, windowTick]);
+
+  const tsWindow = useMemo(() => {
+    // windowTick sorgt für Neuberechnung beim nächsten Abschnittswechsel
+    void windowTick;
+    if (!isTimeSeries || !activeEntry) {
+      return { from: '', to: '', resolution: 'stunde' as const, count: 24 };
+    }
+    return timeSeriesWindow(activeEntry);
+  }, [isTimeSeries, activeEntry, windowTick]);
 
   const timeSeriesMetric =
     isTimeSeries && activeEntry

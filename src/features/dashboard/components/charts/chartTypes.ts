@@ -28,6 +28,8 @@ export interface TimeDepthChartProps extends Omit<DepthChartProps, 'data'> {
   data: readonly (DatumInput | TimeDatumInput)[];
 }
 
+export type DepthBarChartProps = TimeDepthChartProps;
+
 /**
  * Anteilsfarben für Ring, Kreis und Legende: eine Türkis-Abstufung wie die Säulen (Entscheidung Marc,
  * 02.10.2026). Der größte Anteil ist am hellsten; auch der dunkelste Ton hält mindestens 3:1 zur Karte.
