@@ -123,7 +123,7 @@ npm run format:check      # Prettier 3.10.1 kann Formatierung ändern: nur reine
 npm test
 npm run verify
 npm run build
-npm run size-limit        # Werte vorher/nachher
+npx size-limit        # Werte vorher/nachher
 npx tsx scripts/verifyLiveKpiCatalog.ts
 DENO_NO_PACKAGE_JSON=1 deno check --config supabase/functions/deno.json --lock supabase/functions/deno.lock --frozen-lockfile --node-modules-dir=none supabase/functions/*/index.ts
 DENO_NO_PACKAGE_JSON=1 deno test --config supabase/functions/deno.json --lock supabase/functions/deno.lock --frozen-lockfile --node-modules-dir=none --allow-env --allow-net --allow-read supabase/functions/
@@ -144,5 +144,5 @@ Zusätzlich alle sieben Pflicht-Checks in CI grün (`lint`, `typecheck`, `test`,
 ## 8. Offene Punkte
 
 - **ESLint 10:** Eigener späterer Auftrag, sobald `eslint-plugin-react` und `eslint-plugin-import` ESLint 10 unterstützen, oder nach Freigabe von Ersatz-Plugins durch Marc.
-- **Root-`deno.lock`:** Marc entscheidet über Löschen.
+- **Root-`deno.lock`:** Am 16.11.2026 nach Entscheidung von Marc gelöscht (wurde von keinem Workflow genutzt).
 - **Dependabot-npm-Version:** Falls ein künftiger Dependabot-PR erneut `Missing: … from lock file` zeigt, das Lockfile auf dem Dependabot-Branch mit dem CI-npm neu erzeugen (`npm install --package-lock-only`) und pushen. Danach rebased Dependabot diesen PR nicht mehr automatisch; das ist hinnehmbar.

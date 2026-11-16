@@ -21642,9 +21642,10 @@ git diff --stat 5f9a4b75 -- src supabase/migrations supabase/functions/*/index.t
 
 Reine Konfigurations-, Abhängigkeits- und Lockfile-Änderungen. 0 Zeilen Anwendungscode berührt.
 
-### 6. Offene Frage an Marc
+### 6. Entscheidung Marc & Review-Nacharbeit
 
-- **Root-`deno.lock`:** Existiert seit Commit `4392154e` im Root-Verzeichnis, wird aber von keinem GitHub Actions Workflow referenziert (`ci.yml` nutzt ausschließlich `supabase/functions/deno.lock`). Frage an Marc: Soll das Root-`deno.lock` behalten oder gelöscht werden?
+- **Root-`deno.lock`:** Nach Marcs Entscheidung am 16.11.2026 aus dem Repository gelöscht (`git rm deno.lock`). Es wurde von keinem GitHub Actions Workflow referenziert (CI nutzt ausschließlich `supabase/functions/deno.lock`).
+- **Codex-Befund P2:** Im Pflicht-Gate (§6) von `ANTIGRAVITY_AUFTRAG_DEPS_DEPENDABOT_CI.md` wurde der Aufruf von `npm run size-limit` auf `npx size-limit` korrigiert (analog zu Job `size-limit` in `.github/workflows/ci.yml`), da in `package.json` kein eigenes Skript `size-limit` definiert ist.
 
 ### 7. Pflicht-Verifikation (§6)
 
