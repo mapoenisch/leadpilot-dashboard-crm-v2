@@ -317,7 +317,9 @@ describe('resolveTimeSeriesTile', () => {
 
   it('formatiert Labels je nach Auflösung in Berliner Zeit mit Datum und Intervall für Stunden', () => {
     expect(formatPointLabel('2026-10-05T00:00:00+02:00', 'woche')).toContain('Woche');
-    expect(formatPointLabel('2026-10-05T14:00:00+02:00', 'stunde')).toBe('05.10.2026, 14:00–15:00 Uhr (MESZ)');
+    expect(formatPointLabel('2026-10-05T14:00:00+02:00', 'stunde')).toBe(
+      '05.10.2026, 14:00–15:00 Uhr (MESZ)',
+    );
     expect(formatPointLabel('2026-10-05T00:00:00+02:00', 'tag')).toBe('05.10.2026');
   });
 

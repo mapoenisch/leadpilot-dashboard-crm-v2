@@ -130,4 +130,39 @@ describe('Inspector & Bibliothek Zeitreihen-Texte (Auftrag 160 §2.4 Nr. 25)', (
     expect(liveHistory.textContent).toContain('je Stunde');
     expect(liveHistory.textContent).toContain('Letzte 24 Stunden');
   });
+
+  it('unterdrückt Zeitreihen-Abfragen im Inspector wenn die Kachel in einer eingeklappten Sektion liegt (Codex Review Finding)', () => {
+    const queryClient = createTestQueryClient();
+    const fetchSpy = vi.spyOn(resolveTimeSeriesModule, 'fetchTimeSeries');
+    fetchSpy.mockClear();
+
+    const rawEntry = getCatalogEntry('crm.phaseneintritte_verlauf');
+    const entry = rawEntry && isActiveEntry(rawEntry) ? rawEntry : undefined;
+    expect(entry).toBeDefined();
+
+    const selectedTile: DashboardTileConfigV2 = {
+      id: 'tile-crm-verlauf-collapsed',
+      catalogId: 'crm.phaseneintritte_verlauf',
+      title: 'Phaseneintritte je Woche',
+      presentation: 'linie',
+      layouts: { desktop: { x: 0, y: 0, w: 6, h: 4 } },
+      query: { pipelineId: 'vertrieb_q4' },
+    };
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <InspectorDataTab
+          selectedTile={selectedTile}
+          catalogEntry={entry}
+          onTileOverrideChange={vi.fn()}
+          isCollapsed={true}
+        />
+      </QueryClientProvider>,
+    );
+
+    // Observer muss deaktiviert sein (enabled: false), kein fetchTimeSeries
+    expect(fetchSpy).not.toHaveBeenCalled();
+    // Dennoch Fallback-Label vorhanden
+    expect(screen.getByTestId('inspector-history-label')).toBeInTheDocument();
+  });
 });

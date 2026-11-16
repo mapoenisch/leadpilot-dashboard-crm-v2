@@ -140,4 +140,32 @@ describe('EditorInspectorV2', () => {
     fireEvent.click(screen.getByTestId('inspector-deselect-btn'));
     expect(onDeselect).toHaveBeenCalledTimes(1);
   });
+
+  it('erkennt eingeklappte Sektion und zeigt Warnhinweis', () => {
+    const configWithSection: DashboardConfigV2 = {
+      ...MOCK_CONFIG,
+      sections: [{ id: 'sec-1', title: 'Vertrieb', collapsed: true, tileIds: [MOCK_TILE.id] }],
+    };
+
+    render(
+      <EditorInspectorV2
+        selectedTile={MOCK_TILE}
+        config={configWithSection}
+        onDeselect={vi.fn()}
+        onTileTitleChange={vi.fn()}
+        onTileViewChange={vi.fn()}
+        onTileOverrideChange={vi.fn()}
+        onTileThresholdChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId('inspector-tile-collapsed-warning')).toBeInTheDocument();
+    expect(
+      screen.getByText(/Kachel liegt in eingeklappter Sektion „Vertrieb“/),
+    ).toBeInTheDocument();
+
+    // Tab 'Daten' kann sicher geöffnet werden
+    fireEvent.click(screen.getByTestId('inspector-tab-daten'));
+    expect(screen.getByTestId('tab-content-daten')).toBeInTheDocument();
+  });
 });

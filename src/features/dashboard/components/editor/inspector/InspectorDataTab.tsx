@@ -20,10 +20,12 @@ export function InspectorDataTab({
   selectedTile,
   catalogEntry,
   onTileOverrideChange,
+  isCollapsed = false,
 }: {
   selectedTile: DashboardTileConfigV2;
   catalogEntry: ActiveCatalogEntry | undefined;
   onTileOverrideChange: (tileId: string, patch: Partial<DashboardTileConfigV2>) => void;
+  isCollapsed?: boolean;
 }) {
   const normQuery = normalizeTileQuery(selectedTile);
   const caps = catalogEntry ? getQueryCapabilities(catalogEntry) : undefined;
@@ -99,6 +101,7 @@ export function InspectorDataTab({
               catalogEntry={catalogEntry}
               tileConfig={tileConfig}
               isPaused={isPaused}
+              isCollapsed={isCollapsed}
             />
 
             {isTimeSeries && catalogEntry.history.defaultWindow && (
@@ -219,10 +222,12 @@ function InspectorHistoryLabel({
   catalogEntry,
   tileConfig,
   isPaused,
+  isCollapsed = false,
 }: {
   catalogEntry: ActiveCatalogEntry;
   tileConfig: DashboardTileConfig;
   isPaused: boolean;
+  isCollapsed?: boolean;
 }) {
   const queryClient = useContext(QueryClientContext);
   const isTimeSeries = catalogEntry.history.kind === 'ereignisse';
@@ -240,6 +245,7 @@ function InspectorHistoryLabel({
       catalogEntry={catalogEntry}
       tileConfig={tileConfig}
       isPaused={isPaused}
+      enabled={!isCollapsed}
     />
   );
 }
@@ -248,13 +254,15 @@ function InspectorHistoryWithQuery({
   catalogEntry,
   tileConfig,
   isPaused,
+  enabled = true,
 }: {
   catalogEntry: ActiveCatalogEntry;
   tileConfig: DashboardTileConfig;
   isPaused: boolean;
+  enabled?: boolean;
 }) {
   const tileData = useDashboardData(tileConfig, undefined, {
-    enabled: true,
+    enabled,
     frozen: isPaused,
   });
   const historyStartAt =
