@@ -10,12 +10,42 @@ async function ensureLibraryOpen(page: Page) {
   await expect(page.getByTestId('widget-library')).toBeVisible();
 }
 
+async function ensureLibraryClosed(page: Page) {
+  if (await page.getByTestId('widget-library').isVisible()) {
+    const closeBtn = page.getByTestId('close-library-button');
+    if (await closeBtn.isVisible()) {
+      await closeBtn.click();
+    } else {
+      const toggleBtn = page.getByTestId('toggle-library-button');
+      if (await toggleBtn.isVisible()) {
+        await toggleBtn.click();
+      }
+    }
+    await expect(page.getByTestId('widget-library')).toHaveCount(0);
+  }
+}
+
 async function ensureInspectorOpen(page: Page) {
   if (await page.getByTestId('editor-inspector').isVisible()) return;
   const toggleBtn = page.getByTestId('toggle-inspector-button');
   if (await toggleBtn.isVisible()) {
     await toggleBtn.click();
     await expect(page.getByTestId('editor-inspector')).toBeVisible();
+  }
+}
+
+async function ensureInspectorClosed(page: Page) {
+  if (await page.getByTestId('editor-inspector').isVisible()) {
+    const closeBtn = page.getByTestId('close-inspector-button');
+    if (await closeBtn.isVisible()) {
+      await closeBtn.click();
+    } else {
+      const toggleBtn = page.getByTestId('toggle-inspector-button');
+      if (await toggleBtn.isVisible()) {
+        await toggleBtn.click();
+      }
+    }
+    await expect(page.getByTestId('editor-inspector')).toHaveCount(0);
   }
 }
 
@@ -66,9 +96,12 @@ test.describe('Dashboard-Editor V2: Zeitreihen-Kacheln (Auftrag 160 / P10b-1)', 
     // Live-Kachel hat Datenpunkte
     await expect(liveTile.getByTestId('depth-line-point').first()).toBeVisible();
 
+    // Bibliothek schließen, damit der Arbeitsbereich auf mobilen Viewports volle Breite hat
+    await ensureLibraryClosed(page);
+
     // 4. Inspector für CRM-Kachel öffnen und prüfen
     await crmTile.scrollIntoViewIfNeeded();
-    await crmTile.click({ position: { x: 20, y: 20 } });
+    await crmTile.getByTestId('tile-stand-line').click();
     await ensureInspectorOpen(page);
     await expect(page.getByTestId('editor-inspector')).toBeVisible();
 
@@ -99,10 +132,7 @@ test.describe('Dashboard-Editor V2: Zeitreihen-Kacheln (Auftrag 160 / P10b-1)', 
     if (await tableViewBtn.isVisible()) {
       await tableViewBtn.click();
       if (page.viewportSize() && page.viewportSize()!.width < 1024) {
-        const toggleInspectorBtn = page.getByTestId('toggle-inspector-button');
-        if (await toggleInspectorBtn.isVisible()) {
-          await toggleInspectorBtn.click();
-        }
+        await ensureInspectorClosed(page);
       }
       await crmTile.scrollIntoViewIfNeeded();
       await expect(crmTile.getByTestId('tile-table')).toBeVisible();
