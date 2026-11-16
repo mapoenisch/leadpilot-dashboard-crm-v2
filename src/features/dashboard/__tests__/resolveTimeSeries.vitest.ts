@@ -315,10 +315,21 @@ describe('resolveTimeSeriesTile', () => {
     expect(resolved.timeSeries).toBe(timeSeries);
   });
 
-  it('formatiert Labels je nach Auflösung in Berliner Zeit', () => {
+  it('formatiert Labels je nach Auflösung in Berliner Zeit mit Datum und Intervall für Stunden', () => {
     expect(formatPointLabel('2026-10-05T00:00:00+02:00', 'woche')).toContain('Woche');
-    expect(formatPointLabel('2026-10-05T14:00:00+02:00', 'stunde')).toBe('14:00');
+    expect(formatPointLabel('2026-10-05T14:00:00+02:00', 'stunde')).toBe('05.10.2026, 14:00–15:00 Uhr (MESZ)');
     expect(formatPointLabel('2026-10-05T00:00:00+02:00', 'tag')).toBe('05.10.2026');
+  });
+
+  it('unterscheidet doppelte Stunden bei Winterzeitumstellung durch Zeitzonenoffset (Codex Review Finding)', () => {
+    // 25.10.2026 um 02:00 UhrMESZ (+02:00) vs 02:00 Uhr MEZ (+01:00)
+    const labelMesz = formatPointLabel('2026-10-25T00:00:00Z', 'stunde');
+    const labelMez = formatPointLabel('2026-10-25T01:00:00Z', 'stunde');
+    expect(labelMesz).toContain('25.10.2026, 02:00–03:00 Uhr');
+    expect(labelMez).toContain('25.10.2026, 02:00–03:00 Uhr');
+    expect(labelMesz).not.toBe(labelMez);
+    expect(labelMesz).toContain('MESZ');
+    expect(labelMez).toContain('MEZ');
   });
 
   it('rundet Samstag bei Wochenauflösung korrekt auf Montag ab (Codex Review Finding)', () => {

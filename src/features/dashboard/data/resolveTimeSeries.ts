@@ -318,39 +318,23 @@ export async function fetchTimeSeries(
   return parsed.data;
 }
 
-/** Formatiert einen Zeitreihenpunkt für die Tabellen- und Diagrammansicht. */
 export function formatPointLabel(at: string, resolution: TimeSeriesResolution): string {
   const d = new Date(at);
+  const tz = { timeZone: 'Europe/Berlin' } as const;
   if (resolution === 'woche') {
-    // Ermittle Kalenderwoche nach ISO
-    const parts = new Intl.DateTimeFormat('de-DE', {
-      timeZone: 'Europe/Berlin',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    }).format(d);
-    return `Woche ${parts}`;
+    return `Woche ${new Intl.DateTimeFormat('de-DE', { ...tz, day: '2-digit', month: '2-digit', year: 'numeric' }).format(d)}`;
   }
   if (resolution === 'stunde') {
-    return new Intl.DateTimeFormat('de-DE', {
-      timeZone: 'Europe/Berlin',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(d);
+    const day = new Intl.DateTimeFormat('de-DE', { ...tz, day: '2-digit', month: '2-digit', year: 'numeric' }).format(d);
+    const h = new Intl.DateTimeFormat('de-DE', { ...tz, hour: '2-digit', minute: '2-digit' }).format(d);
+    const nextH = `${String((Number(h.slice(0, 2)) + 1) % 24).padStart(2, '0')}:00`;
+    const zName = new Intl.DateTimeFormat('de-DE', { ...tz, timeZoneName: 'short' }).formatToParts(d).find((p) => p.type === 'timeZoneName')?.value;
+    return `${day}, ${h}–${nextH} Uhr${zName ? ` (${zName})` : ''}`;
   }
   if (resolution === 'tag') {
-    return new Intl.DateTimeFormat('de-DE', {
-      timeZone: 'Europe/Berlin',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    }).format(d);
+    return new Intl.DateTimeFormat('de-DE', { ...tz, day: '2-digit', month: '2-digit', year: 'numeric' }).format(d);
   }
-  return new Intl.DateTimeFormat('de-DE', {
-    timeZone: 'Europe/Berlin',
-    month: '2-digit',
-    year: '2-digit',
-  }).format(d);
+  return new Intl.DateTimeFormat('de-DE', { ...tz, month: '2-digit', year: '2-digit' }).format(d);
 }
 
 /**

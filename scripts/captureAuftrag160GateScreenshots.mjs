@@ -225,6 +225,12 @@ async function main() {
             return Math.max(0, scrollWidth - clientWidth);
           });
 
+          if (overflowPx > 0) {
+            throw new Error(
+              `[Screenshot-Gate 160] Horizontaler Überlauf (${overflowPx} px) in Szenario "${sc.id}" (${vp.name}/${theme}) verletzt das 0-px-Kriterium.`,
+            );
+          }
+
           const filename = `${sc.id}-${vp.name}-${theme}.png`;
           const filepath = path.join(OUT_DIR, filename);
           await page.screenshot({ path: filepath, fullPage: false });
@@ -295,7 +301,7 @@ ${records
 
 ## Zusammenfassung
 - Gesamt-Screenshots: ${records.length} (5 Szenarien × 3 Viewports × 2 Farbschemata)
-- Horizontaler Überlauf: **0 px** über alle Durchläufe eingehalten.
+- Horizontaler Überlauf: **${Math.max(0, ...records.map((r) => r.overflowPx))} px** über alle Durchläufe (Kriterium 0 px: ${records.every((r) => r.overflowPx === 0) ? 'eingehalten' : 'verletzt'}).
 - Prüfsummen-Eindeutigkeit: **vollständig eindeutig** je Viewport und Thema nachgewiesen.
 `;
 
