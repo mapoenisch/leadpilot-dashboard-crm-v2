@@ -81,3 +81,29 @@ describe('useActiveDatum: Stabile Auswahl bei Zeitumstellung (Codex Review Findi
     expect(result.current[0]).toBe(0);
   });
 });
+
+describe('Depth3dBarChart: Zeitreihen-Vollständigkeit (Codex Review Finding)', () => {
+  it('erhält alle Zeitabschnitte einer 12-Wochen-Zeitreihe ohne Kürzung auf 10', () => {
+    const twelveWeeks = Array.from({ length: 12 }, (_, i) => ({
+      label: `Woche ${String(i + 1).padStart(2, '0')}`,
+      value: i * 5,
+      at: `2026-0${Math.floor(i / 4) + 1}-01T00:00:00Z`,
+      status: 'belegt' as const,
+    }));
+
+    const { container } = render(
+      <Depth3dBarChart
+        idPrefix="time-series-bars"
+        data={twelveWeeks}
+        unit="Deals"
+        period="Letzte 12 Wochen"
+        title="CRM Zeitreihe"
+        reducedMotion
+      />,
+    );
+
+    // Es müssen alle 12 Säulen gerendert werden, nicht nur 10
+    const bars = container.querySelectorAll('[data-testid="depth-bar"]');
+    expect(bars).toHaveLength(12);
+  });
+});

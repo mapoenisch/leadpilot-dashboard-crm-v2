@@ -72,7 +72,9 @@ async function pause(page) {
   const btn = page.getByTestId('live-pause-button');
   await btn.click();
   await page.waitForFunction(
-    () => document.querySelector('[data-testid="live-pause-button"]')?.getAttribute('aria-pressed') === 'true',
+    () =>
+      document.querySelector('[data-testid="live-pause-button"]')?.getAttribute('aria-pressed') ===
+      'true',
     { timeout: 5000 },
   );
 }
@@ -206,7 +208,9 @@ async function main() {
 
           await page.goto(`${BASE_URL}${sc.path}`, { waitUntil: 'networkidle' });
           await page.evaluate((th) => {
-            if (th === 'hell') {
+            const targetTheme = th === 'hell' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', targetTheme);
+            if (targetTheme === 'light') {
               document.documentElement.classList.remove('dark');
               document.documentElement.classList.add('light');
             } else {
@@ -214,6 +218,14 @@ async function main() {
               document.documentElement.classList.add('dark');
             }
           }, theme);
+          const activeThemeAttr = await page.evaluate(() =>
+            document.documentElement.getAttribute('data-theme'),
+          );
+          if (activeThemeAttr !== (theme === 'hell' ? 'light' : 'dark')) {
+            throw new Error(
+              `[Screenshot-Gate 160] Theme-Attribut data-theme="${activeThemeAttr}" entspricht nicht dem geforderten Theme "${theme}".`,
+            );
+          }
           await page.evaluate(() => document.fonts.ready);
           await sc.prepare(page, vp);
 
@@ -306,7 +318,9 @@ ${records
 `;
 
     fs.writeFileSync(path.join(OUT_DIR, 'README.md'), markdown, 'utf8');
-    console.log(`[Harness 160] Erfolgreich! README geschrieben nach docs/screenshots/auftrag-160/README.md`);
+    console.log(
+      `[Harness 160] Erfolgreich! README geschrieben nach docs/screenshots/auftrag-160/README.md`,
+    );
   } finally {
     stopServer();
   }

@@ -78,14 +78,16 @@ export function Depth3dBarChart({
   const horizontal = orientation === 'horizontal';
   // Dashboard-Kacheln (formatValue gesetzt): kompakte Achsenwerte; die Testkachel bleibt unverändert.
   const axisLabel = formatValue ? formatAxis : formatDe;
+  const isTimeSeries = useMemo(
+    () => allData.some((d) => d.value === null || 'status' in d || 'at' in d),
+    [allData],
+  );
   const limit = horizontal ? MAX_HORIZONTAL : MAX_VERTICAL;
-  // Mehr als `limit` Kategorien: die größten nach dem dargestellten Wert, nicht nach Quellreihenfolge.
+  // Mehr als `limit` Kategorien: bei gewöhnlichen Kategorien die größten nach Wert, bei Zeitreihen vollständiges Fenster.
   const data = useMemo(() => {
-    if (allData.length <= limit) return allData;
-    const isTimeSeries = allData.some((d) => d.value === null || 'status' in d || 'at' in d);
-    if (isTimeSeries) return allData.slice(-limit);
+    if (isTimeSeries || allData.length <= limit) return allData;
     return [...allData].sort((a, b) => (b.value ?? 0) - (a.value ?? 0)).slice(0, limit);
-  }, [allData, limit]);
+  }, [allData, limit, isTimeSeries]);
   const omitted = allData.length - data.length;
   // Spaltenbreite bestimmt, wie viele Zeichen eine senkrechte Kategorie fassen darf (6 px je Zeichen).
   const columnLabelMax = Math.max(4, Math.floor(AREA.width / Math.max(data.length, 1) / 6));
@@ -107,8 +109,8 @@ export function Depth3dBarChart({
   const glow = `${idPrefix}-glow`;
   const summaryId = `${idPrefix}-summary`;
   const summary = useMemo(
-    () => summarizeSeries(allData, unit, period, 'ranking', formatValue),
-    [allData, unit, period, formatValue],
+    () => summarizeSeries(allData, unit, period, isTimeSeries ? 'trend' : 'ranking', formatValue),
+    [allData, unit, period, isTimeSeries, formatValue],
   );
   const transition = reducedMotion ? '' : 'transition-opacity duration-150';
 
