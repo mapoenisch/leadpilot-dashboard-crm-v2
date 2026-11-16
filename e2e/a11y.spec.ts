@@ -183,6 +183,12 @@ test('a11y editor_v2 mit Zeitreihen-Kachel — keine neuen critical/serious-Vers
   await page.getByTestId('add-tile-btn-crm.phaseneintritte_verlauf').click();
   await page.waitForTimeout(500);
 
+  // Kachel aktivieren, damit Fokus-/Aktivierungszustand und Inspector im Scan abgedeckt sind
+  const tile = page.locator('[data-testid^="canvas-tile-"]').last();
+  await tile.scrollIntoViewIfNeeded();
+  await tile.click();
+  await page.waitForTimeout(500);
+
   await expectNoFreshViolations(page, 'editor_v2_time_series', 'editor_v2_time_series');
 });
 

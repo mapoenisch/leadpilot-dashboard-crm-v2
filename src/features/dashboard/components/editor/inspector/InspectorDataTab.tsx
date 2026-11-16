@@ -152,6 +152,7 @@ export function InspectorDataTab({
         </label>
         <select
           data-testid="inspector-pipeline-override"
+          aria-label="Pipeline-Zuordnung"
           disabled={!supportsPipeline}
           value={supportsPipeline ? pipelineValue : ''}
           onChange={handlePipelineChange}
@@ -206,6 +207,7 @@ export function InspectorDataTab({
         <label className="text-xs font-medium text-[var(--color-text-muted)]">Zeitraum</label>
         <select
           data-testid="inspector-timeframe-override"
+          aria-label="Zeitraum"
           disabled
           value={caps?.allowedTimeframes[0] ?? 'fest'}
           className="h-8 w-full rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-2 text-xs text-white outline-none focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
