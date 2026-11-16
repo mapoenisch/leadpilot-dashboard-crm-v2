@@ -323,7 +323,12 @@ export function useDashboardData(
     }
     if (timeSeriesQuery.isError) {
       const err = timeSeriesQuery.error as { message?: string; code?: string } | null;
-      const isMissingRpc = err?.message?.includes('does not exist') || err?.code === '42883';
+      const isMissingRpc =
+        err?.code === '42883' ||
+        err?.code === 'PGRST202' ||
+        err?.message?.includes('does not exist') ||
+        err?.message?.includes('schema cache') ||
+        err?.message === 'Verlauf auf dem Server noch nicht verfügbar';
       return {
         ...loadingTileData(catalogEntry, effectiveFilter),
         state: 'fehler',

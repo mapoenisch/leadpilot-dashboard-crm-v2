@@ -262,7 +262,6 @@ export function parseTimeSeriesResponse(raw: unknown): ParseTimeSeriesResult {
     obj.pipelineBasis === 'aktuelle_pipeline_des_deals'
       ? ('aktuelle_pipeline_des_deals' as const)
       : undefined;
-
   const generatedAt = typeof obj.generatedAt === 'string' ? obj.generatedAt : null;
 
   return {
@@ -280,9 +279,7 @@ export function parseTimeSeriesResponse(raw: unknown): ParseTimeSeriesResult {
   };
 }
 
-/**
- * Ruft die RPC public.dashboard_time_series über Supabase ab (Auftrag 160 §2.3 Nr. 17).
- */
+/** Ruft die RPC public.dashboard_time_series über Supabase ab (Auftrag 160 §2.3 Nr. 17). */
 export async function fetchTimeSeries(
   params: FetchTimeSeriesParams,
   options: FetchTimeSeriesOptions = {},
@@ -304,9 +301,12 @@ export async function fetchTimeSeries(
   });
 
   if (error) {
-    if (error.code === '42883' || error.message?.includes('does not exist')) {
-      throw new Error('Verlauf auf dem Server noch nicht verfügbar');
-    }
+    const isMissing =
+      error.code === '42883' ||
+      error.code === 'PGRST202' ||
+      error.message?.includes('does not exist') ||
+      error.message?.includes('schema cache');
+    if (isMissing) throw new Error('Verlauf auf dem Server noch nicht verfügbar');
     throw error;
   }
 

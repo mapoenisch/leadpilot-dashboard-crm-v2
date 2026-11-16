@@ -217,30 +217,32 @@ describe('Zeitzone und Zeitfenster', () => {
 });
 
 describe('fetchTimeSeries', () => {
-  it('ruft Supabase-RPC auf und übersetzt fehlende Funktion in verständliche Meldung', async () => {
-    const mockClient = {
-      rpc: vi.fn().mockResolvedValue({
-        data: null,
-        error: { code: '42883', message: 'function public.dashboard_time_series does not exist' },
-      }),
-    };
-
-    await expect(
-      fetchTimeSeries(
-        {
-          source: 'deal_stage_events',
-          metric: 'Deal gewonnen',
-          resolution: 'woche',
-          from: '2026-10-05T00:00:00+02:00',
-          to: '2026-10-19T00:00:00+02:00',
-        },
-        {
-          supabaseClient:
-            mockClient as unknown as typeof import('@/services/db/supabaseClient').supabase,
-          isConfigured: true,
-        },
-      ),
-    ).rejects.toThrow('Verlauf auf dem Server noch nicht verfügbar');
+  it('ruft Supabase-RPC auf und übersetzt fehlende Funktion (PostgreSQL 42883 und PostgREST PGRST202)', async () => {
+    for (const error of [
+      { code: '42883', message: 'function public.dashboard_time_series does not exist' },
+      {
+        code: 'PGRST202',
+        message: 'Could not find the function public.dashboard_time_series in the schema cache',
+      },
+    ]) {
+      const mockClient = { rpc: vi.fn().mockResolvedValue({ data: null, error }) };
+      await expect(
+        fetchTimeSeries(
+          {
+            source: 'deal_stage_events',
+            metric: 'Deal gewonnen',
+            resolution: 'woche',
+            from: '2026-10-05T00:00:00+02:00',
+            to: '2026-10-19T00:00:00+02:00',
+          },
+          {
+            supabaseClient:
+              mockClient as unknown as typeof import('@/services/db/supabaseClient').supabase,
+            isConfigured: true,
+          },
+        ),
+      ).rejects.toThrow('Verlauf auf dem Server noch nicht verfügbar');
+    }
   });
 });
 

@@ -361,7 +361,7 @@ export function Depth3dBarChart({
                         fill={THEME.neutral}
                       >
                         <title>{bar.label}</title>
-                        {formatAxisTickLabel(shortenLabel(bar.label, columnLabelMax))}
+                        {shortenLabel(formatAxisTickLabel(bar.label), columnLabelMax)}
                       </text>
                     ) : null}
                   </g>
