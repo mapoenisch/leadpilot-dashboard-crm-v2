@@ -11,6 +11,11 @@ export type HistoryKind =
 
 export type HistorySource = 'deal_stage_events' | 'live_kpi_events';
 
+export interface TimeSeriesWindowDef {
+  resolution: 'stunde' | 'tag' | 'woche' | 'monat';
+  count: number;
+}
+
 export interface HistoryCapability {
   kind: HistoryKind;
   /** Nur bei `ereignisse`: die Tabelle, aus der die Belege stammen. */
@@ -19,6 +24,8 @@ export interface HistoryCapability {
   reconstructable: 'nein' | 'nur_fluesse';
   /** Kurzer Satz für Inspector und Bibliothek. */
   note: string;
+  /** Auftrag 160: Standardfenster und Auflösung für Verlaufseinträge. */
+  defaultWindow?: TimeSeriesWindowDef;
 }
 
 /** Feste Referenzreihe aus den Stammdaten (Ebene A). */
@@ -47,11 +54,69 @@ export const HISTORY_KIND_TEXT: Readonly<Record<HistoryKind, string>> = {
   keine: 'Historie: nur aktueller Stand',
   fest: 'Historie: feste Referenzwerte',
   puffer: 'Historie: flüchtig im Browser, letzte 30 Punkte',
-  ereignisse: 'Historie: Ereignisse ab Aufzeichnungsbeginn (Auswertung folgt)',
+  ereignisse: 'Historie: Ereignisse ab Aufzeichnungsbeginn',
 };
 
 export function historyText(history: HistoryCapability): string {
   return HISTORY_KIND_TEXT[history.kind];
+}
+
+export function formatResolutionText(resolution?: 'stunde' | 'tag' | 'woche' | 'monat'): string {
+  switch (resolution) {
+    case 'stunde':
+      return 'je Stunde';
+    case 'tag':
+      return 'je Tag';
+    case 'woche':
+      return 'je Woche';
+    case 'monat':
+      return 'je Monat';
+    default:
+      return '';
+  }
+}
+
+export function formatTimeframeText(window?: TimeSeriesWindowDef): string {
+  if (!window) return '';
+  switch (window.resolution) {
+    case 'woche':
+      return `Letzte ${window.count} Wochen`;
+    case 'stunde':
+      return `Letzte ${window.count} Stunden`;
+    case 'tag':
+      return `Letzte ${window.count} Tage`;
+    case 'monat':
+      return `Letzte ${window.count} Monate`;
+    default:
+      return '';
+  }
+}
+
+export function formatHistoryLabel(
+  history: HistoryCapability,
+  historyStartAt?: string | null,
+): string {
+  if (history.kind !== 'ereignisse') {
+    return HISTORY_KIND_TEXT[history.kind];
+  }
+  if (historyStartAt === null) {
+    return 'Historie: Noch keine Historie aufgezeichnet';
+  }
+  if (historyStartAt) {
+    try {
+      const d = new Date(historyStartAt);
+      const formattedDate = new Intl.DateTimeFormat('de-DE', {
+        timeZone: 'Europe/Berlin',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      }).format(d);
+      return `Historie: Ereignisse ab ${formattedDate}`;
+    } catch {
+      return `Historie: Ereignisse ab ${historyStartAt}`;
+    }
+  }
+  return 'Historie: Ereignisse ab Aufzeichnungsbeginn';
 }
 
 /**

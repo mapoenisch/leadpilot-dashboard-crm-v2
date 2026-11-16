@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { dashboardQueryKeys } from '../data/dashboardQueryKeys';
+import { timeSeriesWindow } from '../data/resolveTimeSeries';
+import { getCatalogEntry, type ActiveCatalogEntry } from '../model/dashboardCatalog';
 import type { DashboardTileConfigV2 } from '../model/dashboardConfigV2';
 import type { LiveKpiStreamState, LiveKpiStreamStore } from '@/services/liveKpi/liveKpiStreamStore';
 import { createPreviewLiveStore } from '../preview/previewLiveStore';
@@ -332,5 +334,53 @@ describe('TimeControlProvider Context Hooks', () => {
 
     // Liest den Stand der übergeordneten Pipeline aus dem React-Query-Cache
     expect(screen.getByTestId('data-as-of')).toHaveTextContent('2026-11-15T14:45:00.000Z');
+  });
+
+  it('leitet den Datenstand von Live-Verlaufskacheln aus dem Server-Cache ab und meldet kein_live_inhalt (Codex Review)', () => {
+    const queryClient = new QueryClient();
+    const liveHistoryTile: DashboardTileConfigV2 = {
+      id: 'tile-live-arr-history',
+      catalogId: 'live.arr.verlauf',
+      title: 'ARR Verlauf',
+      presentation: 'linie',
+      layouts: { desktop: { x: 0, y: 0, w: 6, h: 4 } },
+      query: { metricId: 'live.arr.verlauf' },
+    };
+
+    const entry = getCatalogEntry(liveHistoryTile.catalogId)! as ActiveCatalogEntry;
+    const tsWin = timeSeriesWindow(entry);
+    const targetKey = dashboardQueryKeys.timeSeries(
+      'org-test',
+      'user-test',
+      'live_kpi',
+      'arr',
+      tsWin.resolution,
+      tsWin.from,
+      tsWin.to,
+      null,
+    );
+
+    queryClient.setQueryData(
+      targetKey,
+      { points: [] },
+      { updatedAt: Date.parse('2026-11-16T11:30:00.000Z') },
+    );
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <TimeControlProvider>
+          <StatusProbe
+            tiles={[liveHistoryTile]}
+            store={createPreviewLiveStore('offline')}
+            configured={true}
+          />
+        </TimeControlProvider>
+      </QueryClientProvider>,
+    );
+
+    // Live-Verlaufskacheln sind Server-Zeitreihen: kein Stream-Abo, daher kein_live_inhalt
+    expect(screen.getByTestId('connection')).toHaveTextContent('kein_live_inhalt');
+    // Stand wird aus der Zeitreihen-Query gelesen
+    expect(screen.getByTestId('data-as-of')).toHaveTextContent('2026-11-16T11:30:00.000Z');
   });
 });

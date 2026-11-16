@@ -5,26 +5,35 @@
 import { useEffect, useState, type ReactNode, type SetStateAction } from 'react';
 import { cn } from '@/lib/utils';
 import { formatDe } from './depthGeometry';
-import type { DatumInput } from './depthGeometry';
+import type { DatumInput, TimeDatumInput } from './depthGeometry';
+
+function getDatumKey(entry: DatumInput | TimeDatumInput): string {
+  if ('at' in entry && typeof entry.at === 'string' && entry.at.length > 0) {
+    return entry.at;
+  }
+  return entry.label;
+}
 
 /**
- * Auswahl eines Datenpunkts, gespeichert über sein Label statt über den Index: Sortiert ein
- * Filterwechsel oder Refresh die Reihe neu, bleibt dieselbe Kategorie gewählt; fällt sie weg,
- * wird die Auswahl dauerhaft gelöscht und lebt nicht wieder auf, wenn die Kategorie zurückkehrt.
+ * Auswahl eines Datenpunkts, gespeichert über einen stabilen Schlüssel (Zeitstempel `at` für
+ * Verlaufspunkte, Label für Kategorien) statt über den Index: Sortiert ein Filterwechsel
+ * oder Refresh die Reihe neu, bleibt dieselbe Kategorie bzw. derselbe Zeitpunkt gewählt.
+ * Behebt zudem doppelte Labels bei der Winterzeitumstellung (Codex Review).
  */
 export function useActiveDatum(
-  data: readonly DatumInput[],
+  data: readonly (DatumInput | TimeDatumInput)[],
 ): [number | null, (next: SetStateAction<number | null>) => void] {
-  const [label, setLabel] = useState<string | null>(null);
-  const index = label === null ? -1 : data.findIndex((entry) => entry.label === label);
+  const [key, setKey] = useState<string | null>(null);
+  const index = key === null ? -1 : data.findIndex((entry) => getDatumKey(entry) === key);
   const active = index >= 0 ? index : null;
-  const missing = label !== null && index < 0;
+  const missing = key !== null && index < 0;
   useEffect(() => {
-    if (missing) setLabel(null);
+    if (missing) setKey(null);
   }, [missing]);
   const setActive = (next: SetStateAction<number | null>) => {
     const value = typeof next === 'function' ? next(active) : next;
-    setLabel(value === null ? null : (data[value]?.label ?? null));
+    const item = value === null ? undefined : data[value];
+    setKey(item ? getDatumKey(item) : null);
   };
   return [active, setActive];
 }
@@ -57,7 +66,7 @@ export function ChartSummary({ id, text }: { id: string; text: string }) {
 }
 
 export interface ReadoutProps {
-  entry: DatumInput | null;
+  entry: DatumInput | TimeDatumInput | null;
   unit: string;
   period: string;
   /** Anteile werden mit Prozentzeichen ohne Leerzeichen dargestellt. */
@@ -81,6 +90,21 @@ export function ChartReadout({
   extra,
   stableHeight = false,
 }: ReadoutProps) {
+  const timeEntry = entry as TimeDatumInput | null;
+  const isNull = entry ? entry.value === null : false;
+  const gapText = isNull
+    ? timeEntry?.status === 'vor_historienbeginn'
+      ? 'vor Aufzeichnungsbeginn'
+      : 'keine Messung'
+    : null;
+  const measuredText = timeEntry?.measuredAt
+    ? ` · gemessen ${new Intl.DateTimeFormat('de-DE', {
+        timeZone: 'Europe/Berlin',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(new Date(timeEntry.measuredAt))} Uhr`
+    : '';
+
   return (
     <p
       role="status"
@@ -98,12 +122,19 @@ export function ChartReadout({
         <>
           <span className="font-semibold text-[var(--color-text-primary,#fff)]">{entry.label}</span>
           {' · '}
-          <span className="font-mono text-primary">
-            {formatValue ? formatValue(entry.value) : `${formatDe(entry.value)} ${unit}`.trim()}
-          </span>
+          {isNull ? (
+            <span className="font-medium text-[var(--color-text-muted)]">{gapText}</span>
+          ) : (
+            <span className="font-mono text-primary">
+              {formatValue
+                ? formatValue(entry.value as number)
+                : `${formatDe(entry.value as number)} ${unit}`.trim()}
+            </span>
+          )}
           {extra ? ` · ${extra}` : ''}
           {' · '}
           {period}
+          {measuredText}
         </>
       ) : (
         (idleText ?? 'Datenpunkt wählen oder darüberfahren')
@@ -113,7 +144,7 @@ export function ChartReadout({
 }
 
 export interface LegendButtonsProps {
-  data: readonly DatumInput[];
+  data: readonly (DatumInput | TimeDatumInput)[];
   activeIndex: number | null;
   onSelect: (index: number | null) => void;
   /** Farben je Eintrag; ohne Angabe erscheint nur der Text. */

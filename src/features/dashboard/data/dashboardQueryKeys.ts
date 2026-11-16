@@ -8,4 +8,25 @@ export const dashboardQueryKeys = {
     [...dashboardQueryKeys.crm(organizationId), 'pipelineOverview', pipeline ?? null] as const,
   crmOverview: (organizationId: string, userId: string, pipeline?: string | null) =>
     [...dashboardQueryKeys.crm(organizationId), 'crmOverview', userId, pipeline ?? null] as const,
+  timeSeries: (
+    organizationId: string,
+    userId: string,
+    source: string,
+    metric: string,
+    resolution: string,
+    from: string,
+    to: string,
+    pipeline?: string | null,
+  ) =>
+    [
+      ...dashboardQueryKeys.crm(organizationId),
+      'timeSeries',
+      userId,
+      source,
+      metric,
+      resolution,
+      from,
+      to,
+      pipeline ?? null,
+    ] as const,
 };

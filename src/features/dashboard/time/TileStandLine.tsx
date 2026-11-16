@@ -26,6 +26,12 @@ function formatStand(iso: string | null): string | null {
 
 function baseText(data: ResolvedTileData, entry: ActiveCatalogEntry): string {
   const history = entry.history;
+  if (data.timeSeries) {
+    const stand = formatStand(
+      data.timeSeries.generatedAt ?? data.asOf ?? readTileStand(data)?.observedAt ?? null,
+    );
+    return stand ? `Verlauf ${data.timeBasis}, Stand ${stand}` : `Verlauf ${data.timeBasis}`;
+  }
   if (history.kind === 'fest') return `Referenzwert, Stand ${data.timeBasis}`;
   if (history.kind === 'puffer') {
     const stand = formatStand(data.asOf);

@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+
 import { useOrganization } from '@/auth/organizationContext';
 import { CRMRepository } from '@/services/db/crmRepository';
 import { type FunnelDealSource } from '@/domain/executiveCockpitData';
@@ -20,6 +21,13 @@ import { resolveBaseline } from '../data/resolveBaseline';
 import { resolveCombination } from '../data/resolveCombination';
 import { resolveCrmFromOverview } from '../data/resolveCrm';
 import { resolveLive } from '../data/resolveLive';
+import {
+  fetchTimeSeries,
+  resolveTimeSeriesTile,
+  subtractBerlin,
+  timeSeriesWindow,
+  truncateBerlin,
+} from '../data/resolveTimeSeries';
 import { attachCrmQueryMeta } from '../time/useTimeControlledData';
 
 const LIVE_IDS = LIVE_KPI_DEFINITIONS.map((def) => def.id);
@@ -82,12 +90,14 @@ export function useDashboardData(
   const queryClient = useQueryClient();
   const identity = organizationId && userId ? `${organizationId}|${userId}` : null;
 
-  // Cache-Bereinigung bei Abmelden, Nutzerwechsel und Organisationswechsel (Auftrag 154 §2.4 Nr. 16)
+  // Cache-Bereinigung bei Abmelden, Nutzerwechsel und Organisationswechsel (Auftrag 154 §2.4 Nr. 16, Auftrag 160)
   useEffect(() => {
     queryClient.removeQueries({
       queryKey: [...dashboardQueryKeys.all],
       predicate: (query) => {
-        if (!query.queryKey.includes('crmOverview')) return false;
+        if (!query.queryKey.includes('crmOverview') && !query.queryKey.includes('timeSeries')) {
+          return false;
+        }
         return (
           !organizationId ||
           !userId ||
@@ -98,9 +108,104 @@ export function useDashboardData(
     });
   }, [queryClient, organizationId, userId, identity]);
 
-  // CRM-Bedingungen
+  // Zeitreihen (Auftrag 160 P10b-1)
+  const activeEntry = catalogEntry && isActiveEntry(catalogEntry) ? catalogEntry : null;
+  const isTimeSeries = Boolean(activeEntry && activeEntry.history.kind === 'ereignisse');
+  const timeSeriesEnabled = isEnabled && isTimeSeries && Boolean(organizationId && userId);
+
+  // Abschnittswechsel-Timer für Live-Modus und sofortige Neuberechnung beim Fortsetzen (Codex Review)
+  const [windowTick, setWindowTick] = useState(0);
+  const wasFrozenRef = useRef(options.frozen);
+
+  useEffect(() => {
+    if (wasFrozenRef.current && !options.frozen) {
+      setWindowTick((t) => t + 1);
+    }
+    wasFrozenRef.current = options.frozen;
+  }, [options.frozen]);
+
+  useEffect(() => {
+    if (!isTimeSeries || !activeEntry || options.frozen) return;
+    const now = new Date();
+    const resolution =
+      activeEntry.history.defaultWindow?.resolution ??
+      (activeEntry.source.layer === 'crm' ? 'woche' : 'stunde');
+
+    let msUntilNext = 60_000;
+    if (resolution === 'stunde') {
+      const msIntoCurrentHour =
+        (now.getUTCMinutes() * 60 + now.getUTCSeconds()) * 1000 + now.getUTCMilliseconds();
+      msUntilNext = Math.max(1000, 3600_000 - msIntoCurrentHour + 500);
+    } else {
+      const currentStart = truncateBerlin(now, resolution);
+      const nextStart = subtractBerlin(currentStart, -1, resolution);
+      msUntilNext = Math.max(1000, nextStart.getTime() - now.getTime() + 500);
+    }
+
+    const timer = setTimeout(() => {
+      setWindowTick((t) => t + 1);
+    }, msUntilNext);
+
+    return () => clearTimeout(timer);
+  }, [isTimeSeries, activeEntry, options.frozen, windowTick]);
+
+  const tsWindow = useMemo(() => {
+    // windowTick sorgt für Neuberechnung beim nächsten Abschnittswechsel
+    void windowTick;
+    if (!isTimeSeries || !activeEntry) {
+      return { from: '', to: '', resolution: 'stunde' as const, count: 24 };
+    }
+    return timeSeriesWindow(activeEntry);
+  }, [isTimeSeries, activeEntry, windowTick]);
+
+  const timeSeriesMetric =
+    isTimeSeries && activeEntry
+      ? activeEntry.source.layer === 'crm'
+        ? activeEntry.id === 'crm.gewonnen_verlauf'
+          ? 'Deal gewonnen'
+          : '*'
+        : (activeEntry.source.liveKpiId ?? '')
+      : '';
+
+  const timeSeriesSource =
+    activeEntry?.history.source === 'live_kpi_events' ? 'live_kpi' : 'deal_stage_events';
+
+  const timeSeriesQuery = useQuery({
+    queryKey:
+      organizationId && userId && isTimeSeries
+        ? dashboardQueryKeys.timeSeries(
+            organizationId,
+            userId,
+            timeSeriesSource,
+            timeSeriesMetric,
+            tsWindow.resolution,
+            tsWindow.from,
+            tsWindow.to,
+            effectiveFilter.pipeline,
+          )
+        : (['dashboard', 'timeSeries', 'disabled'] as const),
+    queryFn: () =>
+      fetchTimeSeries({
+        source: timeSeriesSource,
+        metric: timeSeriesMetric,
+        resolution: tsWindow.resolution,
+        from: tsWindow.from,
+        to: tsWindow.to,
+        pipeline: catalogEntry?.source.layer === 'crm' ? effectiveFilter.pipeline : undefined,
+      }),
+    enabled: timeSeriesEnabled,
+    staleTime: tsWindow.resolution === 'stunde' ? 3_600_000 : 7 * 86_400_000,
+    ...(options.frozen
+      ? { refetchOnWindowFocus: false as const, refetchOnReconnect: false as const }
+      : {}),
+  });
+
+  // CRM-Bedingungen (nur Nicht-Verlauf)
   const isCrm = Boolean(
-    catalogEntry && isActiveEntry(catalogEntry) && catalogEntry.source.layer === 'crm',
+    catalogEntry &&
+    isActiveEntry(catalogEntry) &&
+    catalogEntry.source.layer === 'crm' &&
+    catalogEntry.history.kind !== 'ereignisse',
   );
   const crmEnabled = isEnabled && isCrm && Boolean(organizationId && userId);
 
@@ -120,12 +225,13 @@ export function useDashboardData(
       : {}),
   });
 
-  // Einzelne Live-KPI
+  // Einzelne Live-KPI (nur Nicht-Verlauf)
   const isSingleLive = Boolean(
     catalogEntry &&
     isActiveEntry(catalogEntry) &&
     catalogEntry.source.layer === 'live' &&
-    catalogEntry.source.liveKpiId,
+    catalogEntry.source.liveKpiId &&
+    catalogEntry.history.kind !== 'ereignisse',
   );
   const singleLiveKpiId = isSingleLive && catalogEntry ? catalogEntry.source.liveKpiId : null;
   const singleLiveEnabled = isEnabled && isSingleLive && Boolean(singleLiveKpiId);
@@ -208,6 +314,37 @@ export function useDashboardData(
   // 3a. Kombinationen aus Stammdaten (synchron, Auftrag 076)
   if (catalogEntry.source.layer === 'kombination') {
     return resolveCombination(catalogEntry, effectiveFilter);
+  }
+
+  // 3b. Server-Zeitreihen (Auftrag 160 P10b-1)
+  if (isTimeSeries) {
+    if (!organizationId) {
+      return loadingTileData(catalogEntry, effectiveFilter);
+    }
+    if (timeSeriesQuery.isError) {
+      const err = timeSeriesQuery.error as { message?: string; code?: string } | null;
+      const isMissingRpc =
+        err?.code === '42883' ||
+        err?.code === 'PGRST202' ||
+        err?.message?.includes('does not exist') ||
+        err?.message?.includes('schema cache') ||
+        err?.message === 'Verlauf auf dem Server noch nicht verfügbar';
+      return {
+        ...loadingTileData(catalogEntry, effectiveFilter),
+        state: 'fehler',
+        message: isMissingRpc
+          ? 'Verlauf auf dem Server noch nicht verfügbar'
+          : err?.message || 'Zeitreihendaten konnten nicht geladen werden',
+      };
+    }
+    if (timeSeriesQuery.isLoading || !timeSeriesQuery.data) {
+      return loadingTileData(catalogEntry, effectiveFilter);
+    }
+    const resolved = resolveTimeSeriesTile(activeEntry!, timeSeriesQuery.data, effectiveFilter);
+    return attachCrmQueryMeta(resolved, {
+      fetchedAt: timeSeriesQuery.dataUpdatedAt,
+      isFetching: timeSeriesQuery.isFetching,
+    });
   }
 
   // 4. CRM

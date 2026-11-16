@@ -1,7 +1,6 @@
-// Designprobe Dashboard-Testkachel (Teilauftrag 0): Fläche = Linie mit ruhigem Verlauf.
 import { DepthLineChart } from './DepthLineChart';
-import type { DepthChartProps } from './chartTypes';
+import type { DepthLineChartProps } from './DepthLineChart';
 
-export function DepthAreaChart(props: DepthChartProps) {
+export function DepthAreaChart(props: DepthLineChartProps) {
   return <DepthLineChart {...props} filled />;
 }

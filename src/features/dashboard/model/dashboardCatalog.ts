@@ -4,7 +4,9 @@
 import { ACTIVE_CATALOG_ENTRIES } from './catalog/activeEntries';
 import { COMBINATION_ENTRIES } from './catalog/combinationEntries';
 import { EXTENDED_ENTRIES } from './catalog/extendedEntries';
+import { HISTORY_ENTRIES } from './catalog/historyEntries';
 import { PREPARE_CATALOG_ENTRIES } from './catalog/inventoryEntries';
+import { LIVE_HISTORY_ENTRIES } from './catalog/liveEntries';
 import { UNSUITABLE_CATALOG_ENTRIES } from './catalog/unsuitableEntries';
 import type { HistoryCapability } from './historyCapability';
 
@@ -203,6 +205,8 @@ export function minSizeFor(entry: ActiveCatalogEntry, view: DashboardView): Tile
 
 export const DASHBOARD_CATALOG: readonly CatalogEntry[] = [
   ...ACTIVE_CATALOG_ENTRIES,
+  ...HISTORY_ENTRIES,
+  ...LIVE_HISTORY_ENTRIES,
   ...EXTENDED_ENTRIES,
   ...COMBINATION_ENTRIES,
   ...PREPARE_CATALOG_ENTRIES,

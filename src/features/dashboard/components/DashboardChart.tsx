@@ -19,7 +19,8 @@ import {
   type ChartView,
 } from './charts/chartLoaders';
 import { ChartLayoutReserve } from './charts/ChartReadout';
-import type { DatumInput } from './charts/depthGeometry';
+import type { DatumInput, TimeDatumInput } from './charts/depthGeometry';
+import { formatPointLabel } from '../data/resolveTimeSeries';
 import { TileNumber, TileTable } from './TileValue';
 import { TileOverview } from './TileOverview';
 import { formatTileValue, NO_DATA } from './tileFormat';
@@ -53,9 +54,9 @@ export function reserveFor(view: ChartView, labels: readonly string[]): ChartRes
 }
 
 type Check =
-  | { kind: 'ok'; rows: readonly DatumInput[] }
+  | { kind: 'ok'; rows: readonly (DatumInput | TimeDatumInput)[] }
   | { kind: 'keine_daten' }
-  | { kind: 'hinweis'; text: string; rows: readonly DatumInput[] };
+  | { kind: 'hinweis'; text: string; rows: readonly (DatumInput | TimeDatumInput)[] };
 
 const SERIES_VIEWS: readonly DashboardView[] = [
   'saeulen',
@@ -76,8 +77,20 @@ export function checkTileValues(
   data: ResolvedTileData,
   title: string,
 ): Check {
-  const series = data.series ?? [];
-  if (series.some((row) => !Number.isFinite(row.value))) return { kind: 'keine_daten' };
+  const hasTimeSeries = Boolean(data.timeSeries && data.timeSeries.points.length > 0);
+  const series: readonly (DatumInput | TimeDatumInput)[] =
+    hasTimeSeries && data.timeSeries
+      ? data.timeSeries.points.map((p) => ({
+          label: formatPointLabel(p.at, data.timeSeries!.resolution),
+          value: p.value,
+          status: p.status,
+          measuredAt: p.measuredAt,
+          at: p.at,
+        }))
+      : (data.series ?? []);
+
+  if (!hasTimeSeries && series.some((row) => !Number.isFinite(row.value)))
+    return { kind: 'keine_daten' };
   if (entry && !entry.views.includes(view)) {
     return {
       kind: 'hinweis',
@@ -99,9 +112,9 @@ export function checkTileValues(
   }
   if (!SERIES_VIEWS.includes(view)) return { kind: 'ok', rows: [] };
   if (series.length === 0) return { kind: 'keine_daten' };
-  const negative = series.some((row) => row.value < 0);
+  const negative = series.some((row) => row.value !== null && row.value < 0);
   if (view === 'kreis' || view === 'ring') {
-    const total = series.reduce((sum, row) => sum + row.value, 0);
+    const total = series.reduce((sum, row) => sum + (row.value ?? 0), 0);
     if (negative || total <= 0) {
       return { kind: 'hinweis', text: 'Nicht als Anteil darstellbar.', rows: series };
     }
@@ -184,11 +197,15 @@ export function DashboardChart(props: DashboardChartProps) {
       hint
     );
   }
-  if (view === 'zahl' && check.rows[0]) {
-    return (
-      <TileNumber value={check.rows[0].value} unit={data.unit} comparison={entry?.comparison} />
+  if (view === 'zahl') {
+    const firstRow = check.rows[0];
+    return firstRow && firstRow.value !== null ? (
+      <TileNumber value={firstRow.value} unit={data.unit} comparison={entry?.comparison} />
+    ) : (
+      <NoData />
     );
   }
+
   if (!isChartView(view)) {
     return <TileTable rows={check.rows} unit={data.unit} caption={caption} />;
   }
@@ -245,7 +262,11 @@ function LazyChart({
   idPrefix,
   onRetryChartLoad,
   loaders = DEFAULT_CHART_LOADERS,
-}: DashboardChartProps & { view: ChartView; rows: readonly DatumInput[]; caption: string }) {
+}: DashboardChartProps & {
+  view: ChartView;
+  rows: readonly (DatumInput | TimeDatumInput)[];
+  caption: string;
+}) {
   const reducedMotion = useReducedMotion();
   const unit = data.unit;
   const formatValue = useMemo(
@@ -287,8 +308,9 @@ function LazyChart({
           >
             <Chart
               idPrefix={idPrefix}
-              data={rows}
+              data={rows as unknown as readonly DatumInput[]}
               unit={data.unit}
+
               period={period}
               title={title}
               reducedMotion={reducedMotion}

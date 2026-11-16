@@ -169,3 +169,26 @@ test('a11y editor_v2 mit Statusleiste „offline“ — keine neuen critical/ser
 
   await expectNoFreshViolations(page, 'editor_v2_offline', 'editor_v2_offline');
 });
+
+// Auftrag 160 (P10b-1 §5 T8): Zeitreihen-Kachel im Editor
+test('a11y editor_v2 mit Zeitreihen-Kachel — keine neuen critical/serious-Verstöße', async ({
+  page,
+}) => {
+  await page.goto('/dashboard-vorschau.html?bereich=editor_v2', { waitUntil: 'networkidle' });
+  await page.evaluate(() => document.fonts.ready);
+  if (!(await page.getByTestId('widget-library').isVisible())) {
+    await page.getByTestId('toggle-library-button').click();
+  }
+  await page.getByTestId('library-tab-crm').click();
+  await page.getByTestId('add-tile-btn-crm.phaseneintritte_verlauf').click();
+  await page.waitForTimeout(500);
+
+  // Kachel aktivieren, damit Fokus-/Aktivierungszustand und Inspector im Scan abgedeckt sind
+  const tile = page.locator('[data-testid^="canvas-tile-"]').last();
+  await tile.scrollIntoViewIfNeeded();
+  await tile.click();
+  await page.waitForTimeout(500);
+
+  await expectNoFreshViolations(page, 'editor_v2_time_series', 'editor_v2_time_series');
+});
+

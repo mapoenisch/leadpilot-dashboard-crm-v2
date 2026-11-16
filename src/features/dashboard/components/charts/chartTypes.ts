@@ -1,5 +1,5 @@
 // Gemeinsame Typen und Farben der Tiefen-Diagramme (Designprobe, Teilauftrag 0).
-import type { DatumInput } from './depthGeometry';
+import type { DatumInput, TimeDatumInput } from './depthGeometry';
 
 export interface DepthChartProps {
   /** Eindeutige ID je Kachel: SVG-Verläufe und Filter dürfen sich zwischen Kacheln nicht beeinflussen. */
@@ -23,6 +23,12 @@ export interface DepthChartProps {
   /** Dashboard-Kacheln: feste Legendenhöhe, damit Laden und fertige Darstellung gleich hoch sind. */
   stableLegend?: boolean;
 }
+
+export interface TimeDepthChartProps extends Omit<DepthChartProps, 'data'> {
+  data: readonly (DatumInput | TimeDatumInput)[];
+}
+
+export type DepthBarChartProps = TimeDepthChartProps;
 
 /**
  * Anteilsfarben für Ring, Kreis und Legende: eine Türkis-Abstufung wie die Säulen (Entscheidung Marc,

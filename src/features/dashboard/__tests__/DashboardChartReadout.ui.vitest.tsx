@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DashboardChart } from '../components/DashboardChart';
+import { ChartReadout } from '../components/charts/ChartReadout';
+import { DepthLineChart } from '../components/charts/DepthLineChart';
+import { TileTable } from '../components/TileValue';
 import { hValueLabel } from '../components/charts/Depth3dBarChart';
 import { getCatalogEntry, isActiveEntry, type DashboardView } from '../model/dashboardCatalog';
 import type { ResolvedTileData } from '../data/dashboardData';
@@ -178,5 +181,99 @@ describe('Diagramm-Ablesezeile und Grenzen', () => {
     );
     expect(xs.length).toBeGreaterThan(0);
     expect(Math.max(...xs)).toBeLessThanOrEqual(front + 0.001);
+  });
+
+  it('zeigt in der Ablesezeile vor Aufzeichnungsbeginn, keine Messung und gemessen <Uhrzeit>', () => {
+    const { rerender } = render(
+      <ChartReadout
+        entry={{
+          label: 'KW 40/2026',
+          value: null,
+          status: 'vor_historienbeginn',
+        }}
+        unit="Deals"
+        period="Letzte 12 Wochen"
+      />,
+    );
+    expect(screen.getByTestId('chart-readout').textContent).toContain('vor Aufzeichnungsbeginn');
+
+    rerender(
+      <ChartReadout
+        entry={{
+          label: '14:00',
+          value: null,
+          status: 'luecke',
+        }}
+        unit="EUR"
+        period="Letzte 24 Stunden"
+      />,
+    );
+    expect(screen.getByTestId('chart-readout').textContent).toContain('keine Messung');
+
+    rerender(
+      <ChartReadout
+        entry={{
+          label: '15:00',
+          value: 42000,
+          status: 'belegt',
+          measuredAt: '2026-11-16T15:23:00+01:00',
+        }}
+        unit="EUR"
+        period="Letzte 24 Stunden"
+      />,
+    );
+    expect(screen.getByTestId('chart-readout').textContent).toContain('gemessen 15:23 Uhr');
+  });
+
+  it('rendert DepthLineChart mit vor_historienbeginn-Zone und Lückenanzeige', async () => {
+    const user = userEvent.setup();
+    render(
+      <DepthLineChart
+        idPrefix="test-gap-chart"
+        data={[
+          { label: 'W1', value: null, status: 'vor_historienbeginn' },
+          { label: 'W2', value: 10, status: 'belegt' },
+          { label: 'W3', value: null, status: 'luecke' },
+          { label: 'W4', value: 20, status: 'belegt' },
+        ]}
+        unit="Deals"
+        period="Letzte 4 Wochen"
+        title="Phaseneintritte"
+        reducedMotion
+      />,
+    );
+
+    // Historienbeginn-Zone ist im DOM
+    expect(screen.getByTestId('depth-history-zone')).toBeDefined();
+    expect(screen.getByTestId('depth-history-zone').textContent).toContain(
+      'vor Aufzeichnungsbeginn',
+    );
+
+    // 2 belegte Punkte
+    const points = screen.getAllByTestId('depth-line-point');
+    expect(points).toHaveLength(2);
+
+    // Auf Lückenpunkt sliden / fokussieren
+    const slider = screen.getByRole('slider');
+    await user.click(slider);
+  });
+
+  it('zeigt in der Tabelle alle Abschnitte inklusive Lücken mit Text', () => {
+    render(
+      <TileTable
+        rows={[
+          { label: 'W1', value: null, status: 'vor_historienbeginn' },
+          { label: 'W2', value: 15, status: 'belegt' },
+          { label: 'W3', value: null, status: 'luecke' },
+        ]}
+        unit="Deals"
+        caption="Phaseneintritte Tabelle"
+      />,
+    );
+
+    const table = screen.getByTestId('tile-table');
+    expect(within(table).getByText('vor Aufzeichnungsbeginn')).toBeDefined();
+    expect(within(table).getByText('keine Messung')).toBeDefined();
+    expect(within(table).getByText('15 Deals')).toBeDefined();
   });
 });

@@ -1,6 +1,5 @@
-// Executive Dashboard, Teilauftrag 4 (Auftrag 073): Darstellungen Zahl und Tabelle.
-// Fehlende Werte zeigen „Keine Daten“, nie 0. Die Zahl ist kompakt, Tabelle und Screenreader exakt.
-import type { DatumInput } from './charts/depthGeometry';
+import { cn } from '@/lib/utils';
+import type { DatumInput, TimeDatumInput } from './charts/depthGeometry';
 import { formatTileValue } from './tileFormat';
 
 /** Trennt die Einheit ab, damit sie kleiner neben der Zahl steht (wie in der Testkachel). */
@@ -72,7 +71,7 @@ export function TileTable({
   unit,
   caption,
 }: {
-  rows: readonly DatumInput[];
+  rows: readonly (DatumInput | TimeDatumInput)[];
   unit: string;
   caption: string;
 }) {
@@ -93,22 +92,36 @@ export function TileTable({
         </tr>
       </thead>
       <tbody>
-        {rows.map((row, index) => (
-          <tr
-            key={`${row.label}-${index}`}
-            className="border-0 border-b border-solid border-[var(--color-border-glass,rgba(0,217,198,0.08))]"
-          >
-            <th
-              scope="row"
-              className="py-[8px] text-left font-normal text-[var(--color-text-soft,#e6f3f1)] [overflow-wrap:anywhere]"
+        {rows.map((row, index) => {
+          const isNull = row.value === null;
+          const status = 'status' in row ? row.status : undefined;
+          const displayText = isNull
+            ? status === 'vor_historienbeginn'
+              ? 'vor Aufzeichnungsbeginn'
+              : 'keine Messung'
+            : formatTileValue(row.value as number, unit, 'exakt');
+          return (
+            <tr
+              key={`${row.label}-${index}`}
+              className="border-0 border-b border-solid border-[var(--color-border-glass,rgba(0,217,198,0.08))]"
             >
-              {row.label}
-            </th>
-            <td className="whitespace-nowrap py-[8px] text-right font-mono text-primary">
-              {formatTileValue(row.value, unit, 'exakt')}
-            </td>
-          </tr>
-        ))}
+              <th
+                scope="row"
+                className="py-[8px] text-left font-normal text-[var(--color-text-soft,#e6f3f1)] [overflow-wrap:anywhere]"
+              >
+                {row.label}
+              </th>
+              <td
+                className={cn(
+                  'whitespace-nowrap py-[8px] text-right font-mono',
+                  isNull ? 'font-sans italic text-[var(--color-text-muted)]' : 'text-primary',
+                )}
+              >
+                {displayText}
+              </td>
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );

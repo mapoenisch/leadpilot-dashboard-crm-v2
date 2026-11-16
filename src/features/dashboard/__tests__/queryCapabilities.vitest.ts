@@ -5,11 +5,11 @@ import { getQueryCapabilities } from '../model/queryCapabilities';
 describe('queryCapabilities (Auftrag 154 §2.2 & Task T2)', () => {
   const activeEntries = getActiveEntries();
 
-  it('exakt 48 aktive Einträge im Katalog vorhanden', () => {
-    expect(activeEntries).toHaveLength(48);
+  it('exakt 62 aktive Einträge im Katalog vorhanden (Auftrag 160: 48 + 14 Verlaufseinträge)', () => {
+    expect(activeEntries).toHaveLength(62);
   });
 
-  it('Tabellentest über alle 48 aktiven Einträge: Fähigkeiten deterministisch abgeleitet', () => {
+  it('Tabellentest über alle 62 aktiven Einträge: Fähigkeiten deterministisch abgeleitet', () => {
     for (const entry of activeEntries) {
       const caps = getQueryCapabilities(entry);
 

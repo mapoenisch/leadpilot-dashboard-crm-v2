@@ -12,6 +12,7 @@ import {
 import { LIVE_KPI_DEFINITIONS } from '@/services/liveKpi/liveKpiDefinitions';
 import { liveKpiStreamStore, type LiveKpiStreamStore } from '@/services/liveKpi/liveKpiStreamStore';
 import { dashboardQueryKeys } from '../data/dashboardQueryKeys';
+import { timeSeriesWindow } from '../data/resolveTimeSeries';
 import { getCatalogEntry, isActiveEntry, type ActiveCatalogEntry } from '../model/dashboardCatalog';
 import type { DashboardTileConfigV2 } from '../model/dashboardConfigV2';
 import { convertV2TileToV1 } from '../components/editor/canvas/CanvasTileCard';
@@ -55,6 +56,8 @@ function effectivePipelineFor(
 function liveIdsFor(tile: DashboardTileConfigV2): readonly string[] {
   const entry = getCatalogEntry(tile.catalogId);
   if (!entry || !isActiveEntry(entry) || entry.source.layer !== 'live') return [];
+  // Server-Zeitreihen abonnieren keinen Live-Stream (Auftrag 160 / Codex Review)
+  if (entry.history.kind === 'ereignisse') return [];
   if (entry.id === 'uebersicht.live_aktivitaet') return ALL_LIVE_IDS;
   return entry.source.liveKpiId ? [entry.source.liveKpiId] : [];
 }
@@ -183,7 +186,34 @@ export function useEditorLiveStatus({
         const entry = getCatalogEntry(tile.catalogId);
         if (!entry || !isActiveEntry(entry)) continue;
 
-        if (entry.source.layer === 'live' && configured) {
+        const isTimeSeries = entry.history.kind === 'ereignisse';
+        if (isTimeSeries && queryClient && organizationId && userId) {
+          const timeSeriesSource =
+            entry.history.source === 'live_kpi_events' ? 'live_kpi' : 'deal_stage_events';
+          const timeSeriesMetric =
+            entry.source.layer === 'crm'
+              ? entry.id === 'crm.gewonnen_verlauf'
+                ? 'Deal gewonnen'
+                : '*'
+              : (entry.source.liveKpiId ?? '');
+          const tsWindow = timeSeriesWindow(entry);
+          const pipeline =
+            entry.source.layer === 'crm'
+              ? effectivePipelineFor(tile, entry, defaultPipeline)
+              : undefined;
+          const key = dashboardQueryKeys.timeSeries(
+            organizationId,
+            userId,
+            timeSeriesSource,
+            timeSeriesMetric,
+            tsWindow.resolution,
+            tsWindow.from,
+            tsWindow.to,
+            pipeline,
+          );
+          const state = queryClient.getQueryState(key);
+          if (state?.dataUpdatedAt) standTimes.push(state.dataUpdatedAt);
+        } else if (entry.source.layer === 'live' && configured) {
           const time = liveTileStandTime(tile, store);
           if (time !== null) standTimes.push(time);
         } else if (entry.source.layer === 'crm' && queryClient && organizationId && userId) {

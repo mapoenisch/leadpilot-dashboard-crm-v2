@@ -1,8 +1,8 @@
 # LeadPilot Dashboard-CRM — Bauplan
 
-**Stand:** 15.11.2026
+**Stand:** 16.11.2026
 
-**Aktueller Auftrag:** Auftrag 159 – Dashboard-Editor: Historienmatrix, flüchtige gemeinsame Zeitsteuerung, echte Pause und ehrlicher Live-Status (P10a; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_159_ZEITSTEUERUNG_LIVE_STATUS.md`; Branch `auftrag-159-zeitsteuerung-live-status`; Baseline `12d03991`; Builder Antigravity, Prüfer Codex; Status: gebaut und verifiziert, PR #187 bereit). Mit 159 ist P10a vollständig abgenommen, danach P10b (Server-Zeitreihen, Historienbeginn, Time-Travel; Auftrag 160). Zuletzt: 158 V2-Vorlagen und Dashboard-Auswahl (P09b; PR #188 gemergt), 157 Sektionen und einklappbare Gruppen (P09a; PR #185 gemergt).
+**Aktueller Auftrag:** Auftrag 160 – Dashboard-Editor: Server-Zeitreihen aus `deal_stage_events` und `live_kpi_events`, Historienbeginn je Organisation, Kalender-Buckets (Europe/Berlin), Lückendarstellung in Tiefen-Liniendiagrammen und Verlaufs-Katalog (P10b-1; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_160_SERVER_ZEITREIHEN.md`; Branch `auftrag-160-server-zeitreihen`; Baseline `d83e3e66`; Builder Antigravity, Prüfer Codex; Status: gebaut und verifiziert, PR #194 bereit). Zuletzt: 159 Historienmatrix, gemeinsame Zeitsteuerung & echter Live-Status (P10a; PR #187 gemergt), 158 V2-Vorlagen und Dashboard-Auswahl (P09b; PR #188 gemergt), 157 Sektionen und einklappbare Gruppen (P09a; PR #185 gemergt).
 
 **Betriebsregel Live-Feed:** Am 14.11.2026 durch Marc aufgehoben (Edge Function und Migrationen seit 14.11.2026 online; echte Kennzahlen dürfen über den mandantengebundenen Feed eingespeist werden).
 **Offen nach dem v3.1.0-Rollout (10./11.11.2026):**

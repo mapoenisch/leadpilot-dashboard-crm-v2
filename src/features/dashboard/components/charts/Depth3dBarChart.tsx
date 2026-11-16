@@ -14,9 +14,11 @@ import {
   useActiveDatum,
 } from './ChartReadout';
 import { CHART_VIEWBOX } from './chartTypes';
-import type { DepthChartProps } from './chartTypes';
+import type { DepthBarChartProps } from './chartTypes';
+
 import {
   formatAxis,
+  formatAxisTickLabel,
   formatDe,
   layoutBars,
   layoutHBars,
@@ -72,27 +74,33 @@ export function Depth3dBarChart({
   formatValue,
   stableLegend = false,
   orientation = 'vertical',
-}: DepthChartProps) {
+}: DepthBarChartProps) {
   const horizontal = orientation === 'horizontal';
   // Dashboard-Kacheln (formatValue gesetzt): kompakte Achsenwerte; die Testkachel bleibt unverändert.
   const axisLabel = formatValue ? formatAxis : formatDe;
-  const limit = horizontal ? MAX_HORIZONTAL : MAX_VERTICAL;
-  // Mehr als `limit` Kategorien: die größten nach dem dargestellten Wert, nicht nach Quellreihenfolge.
-  const data = useMemo(
-    () =>
-      allData.length > limit
-        ? [...allData].sort((a, b) => b.value - a.value).slice(0, limit)
-        : allData,
-    [allData, limit],
+  const isTimeSeries = useMemo(
+    () => allData.some((d) => d.value === null || 'status' in d || 'at' in d),
+    [allData],
   );
+  const limit = horizontal ? MAX_HORIZONTAL : MAX_VERTICAL;
+  // Mehr als `limit` Kategorien: bei gewöhnlichen Kategorien die größten nach Wert, bei Zeitreihen vollständiges Fenster.
+  const data = useMemo(() => {
+    if (isTimeSeries || allData.length <= limit) return allData;
+    return [...allData].sort((a, b) => (b.value ?? 0) - (a.value ?? 0)).slice(0, limit);
+  }, [allData, limit, isTimeSeries]);
   const omitted = allData.length - data.length;
   // Spaltenbreite bestimmt, wie viele Zeichen eine senkrechte Kategorie fassen darf (6 px je Zeichen).
   const columnLabelMax = Math.max(4, Math.floor(AREA.width / Math.max(data.length, 1) / 6));
   const [active, setActive] = useActiveDatum(data);
   const scale = useMemo(() => {
-    const values = data.map((d) => d.value);
-    return niceSignedScale(Math.min(...values, 0), Math.max(...values, 0));
+    const values = data
+      .map((d) => d.value)
+      .filter((v): v is number => v !== null && Number.isFinite(v));
+    const min = values.length > 0 ? Math.min(...values, 0) : 0;
+    const max = values.length > 0 ? Math.max(...values, 0) : 0;
+    return niceSignedScale(min, max);
   }, [data]);
+
   const bars = useMemo(() => layoutBars(data, AREA, scale), [data, scale]);
   const hBars = useMemo(() => layoutHBars(data, H_AREA, scale), [data, scale]);
   const span = scale.max - scale.min;
@@ -101,8 +109,8 @@ export function Depth3dBarChart({
   const glow = `${idPrefix}-glow`;
   const summaryId = `${idPrefix}-summary`;
   const summary = useMemo(
-    () => summarizeSeries(allData, unit, period, 'ranking', formatValue),
-    [allData, unit, period, formatValue],
+    () => summarizeSeries(allData, unit, period, isTimeSeries ? 'trend' : 'ranking', formatValue),
+    [allData, unit, period, isTimeSeries, formatValue],
   );
   const transition = reducedMotion ? '' : 'transition-opacity duration-150';
 
@@ -189,9 +197,10 @@ export function Depth3dBarChart({
                 const top = bar.y + bar.depth;
                 const right = bar.x + bar.length;
                 const cy = top + frontThickness / 2;
+                const valText = bar.value === null ? '–' : formatDe(bar.value);
                 const valueLabel = hValueLabel(
                   bar.negative ? bar.zero : right + bar.depth,
-                  formatDe(bar.value).length,
+                  valText.length,
                 );
                 return (
                   <g
@@ -240,8 +249,9 @@ export function Depth3dBarChart({
                         x2={bar.zero}
                         y1={top}
                         y2={top + frontThickness}
-                        stroke="#7cefe6"
+                        stroke={bar.value === null ? 'var(--color-border,#555)' : '#7cefe6'}
                         strokeWidth="2"
+                        strokeDasharray={bar.value === null ? '2 2' : undefined}
                       />
                     )}
                     <text
@@ -263,7 +273,7 @@ export function Depth3dBarChart({
                       className={valueLabelClass(valueLabel.anchor === 'end')}
                       fontFamily="var(--font-mono, monospace)"
                     >
-                      {formatDe(bar.value)}
+                      {valText}
                     </text>
                   </g>
                 );
@@ -272,7 +282,7 @@ export function Depth3dBarChart({
                 const frontWidth = bar.width - bar.depth;
                 const dimmed = active !== null && active !== bar.index;
                 const cx = bar.x + frontWidth / 2;
-                const hasArea = bar.height > 0;
+                const hasArea = bar.value !== null && bar.height > 0;
                 return (
                   <g
                     key={bar.label}
@@ -321,8 +331,9 @@ export function Depth3dBarChart({
                         x2={bar.x + frontWidth}
                         y1={bar.zero}
                         y2={bar.zero}
-                        stroke="#7cefe6"
+                        stroke={bar.value === null ? 'var(--color-border,#555)' : '#7cefe6'}
                         strokeWidth="2"
+                        strokeDasharray={bar.value === null ? '2 2' : undefined}
                       />
                     )}
                     <text
@@ -341,18 +352,20 @@ export function Depth3dBarChart({
                       )}
                       fontFamily="var(--font-mono, monospace)"
                     >
-                      {axisLabel(bar.value)}
+                      {bar.value === null ? '–' : axisLabel(bar.value)}
                     </text>
-                    <text
-                      x={cx}
-                      y={baseline + 18}
-                      textAnchor="middle"
-                      fontSize="10.5"
-                      fill={THEME.neutral}
-                    >
-                      <title>{bar.label}</title>
-                      {shortenLabel(bar.label, columnLabelMax)}
-                    </text>
+                    {bar.index % (bars.length > 16 ? 4 : bars.length > 7 ? 2 : 1) === 0 ? (
+                      <text
+                        x={cx}
+                        y={baseline + 18}
+                        textAnchor="middle"
+                        fontSize="10.5"
+                        fill={THEME.neutral}
+                      >
+                        <title>{bar.label}</title>
+                        {shortenLabel(formatAxisTickLabel(bar.label), columnLabelMax)}
+                      </text>
+                    ) : null}
                   </g>
                 );
               })}

@@ -84,3 +84,30 @@ export const LIVE_ENTRIES: readonly ActiveCatalogEntry[] = [
   ),
   liveValue('pipeline_won', 'Pipeline Won', 'Gewonnene Deals laut Live-Feed.', 'Anzahl'),
 ];
+
+export const LIVE_HISTORY_ENTRIES: readonly ActiveCatalogEntry[] = LIVE_ENTRIES.map((entry) => ({
+  ...entry,
+  id: `${entry.id}.verlauf`,
+  name: `${entry.name} – Verlauf 24 h`,
+  definition: `${entry.definition} Verlauf über 24 Stunden ab Aufzeichnungsbeginn vom Server.`,
+  shape: 'zeitreihe' as const,
+  aggregation: entry.aggregation === 'verhaeltnis' ? ('verhaeltnis' as const) : ('keine' as const),
+  timeBasis: 'Verlauf 24 Stunden (stündlich)',
+  views: ['linie', 'flaeche', 'tabelle'] as const,
+  defaultView: 'linie' as const,
+  minSize: 'mittel' as const,
+  history: {
+    kind: 'ereignisse' as const,
+    source: 'live_kpi_events' as const,
+    reconstructable: 'nein' as const,
+    note: 'Gemessene Werte ab Aufzeichnungsbeginn',
+    defaultWindow: { resolution: 'stunde' as const, count: 24 },
+  },
+  source: {
+    layer: 'live' as const,
+    module: 'src/features/dashboard/data/resolveTimeSeries.ts',
+    exportName: 'fetchTimeSeries',
+    liveKpiId: entry.source.liveKpiId,
+    metadata: LIVE_METADATA,
+  },
+}));

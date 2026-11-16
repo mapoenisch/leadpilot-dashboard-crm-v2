@@ -19,6 +19,7 @@ import {
   type ResolvedTileData,
   type TileData,
   type TileOverview,
+  type TileTimeSeriesData,
 } from '../data/dashboardData';
 import type { TileDataHook } from '../components/LazyDashboardTile';
 import { SAMPLE_SERIES, SAMPLE_SHARES, SAMPLE_STAGES } from './previewSampleData';
@@ -79,6 +80,80 @@ function combinationFor(
   return { state: 'bereit', value: result.value, series, combination };
 }
 
+function timeSeriesFor(entry: ActiveCatalogEntry): TileTimeSeriesData {
+  if (entry.source.layer === 'crm') {
+    const points = [
+      {
+        at: '2026-08-24T00:00:00+02:00',
+        value: null,
+        status: 'vor_historienbeginn' as const,
+        measuredAt: null,
+      },
+      {
+        at: '2026-08-31T00:00:00+02:00',
+        value: null,
+        status: 'vor_historienbeginn' as const,
+        measuredAt: null,
+      },
+      {
+        at: '2026-09-07T00:00:00+02:00',
+        value: null,
+        status: 'vor_historienbeginn' as const,
+        measuredAt: null,
+      },
+      {
+        at: '2026-09-14T00:00:00+02:00',
+        value: null,
+        status: 'vor_historienbeginn' as const,
+        measuredAt: null,
+      },
+      { at: '2026-09-21T00:00:00+02:00', value: 8, status: 'belegt' as const, measuredAt: null },
+      { at: '2026-09-28T00:00:00+02:00', value: 12, status: 'belegt' as const, measuredAt: null },
+      { at: '2026-10-05T00:00:00+02:00', value: 15, status: 'belegt' as const, measuredAt: null },
+      { at: '2026-10-12T00:00:00+02:00', value: 11, status: 'belegt' as const, measuredAt: null },
+      { at: '2026-10-19T00:00:00+02:00', value: 19, status: 'belegt' as const, measuredAt: null },
+      { at: '2026-10-26T00:00:00+01:00', value: 14, status: 'belegt' as const, measuredAt: null },
+      { at: '2026-11-02T00:00:00+01:00', value: 22, status: 'belegt' as const, measuredAt: null },
+      { at: '2026-11-09T00:00:00+01:00', value: 18, status: 'belegt' as const, measuredAt: null },
+    ];
+    return {
+      source: 'deal_stage_events',
+      resolution: 'woche',
+      from: '2026-08-24T00:00:00+02:00',
+      to: '2026-11-16T00:00:00+01:00',
+      historyStartAt: '2026-09-21T00:00:00+02:00',
+      points,
+      pipelineBasis: 'aktuelle_pipeline_des_deals',
+      generatedAt: '2026-11-16T10:00:00+01:00',
+    };
+  }
+
+  const points = Array.from({ length: 24 }, (_, i) => {
+    const hour = i.toString().padStart(2, '0');
+    const at = `2026-11-15T${hour}:00:00+01:00`;
+    if (i === 6 || i === 7) {
+      return { at, value: null, status: 'luecke' as const, measuredAt: null };
+    }
+    const val = 40 + Math.round(Math.sin(i / 3) * 15 + i * 0.8);
+    return {
+      at,
+      value: val,
+      status: 'belegt' as const,
+      measuredAt: `2026-11-15T${hour}:45:00+01:00`,
+    };
+  });
+
+  return {
+    source: 'live_kpi_events',
+    resolution: 'stunde',
+    from: '2026-11-15T00:00:00+01:00',
+    to: '2026-11-16T00:00:00+01:00',
+    historyStartAt: '2026-11-01T00:00:00+01:00',
+    points,
+    generatedAt: '2026-11-16T10:00:00+01:00',
+  };
+}
+
 export const useEditorPreviewData: TileDataHook = (
   tile: DashboardTileConfig,
   filters?: DashboardFilters,
@@ -108,6 +183,23 @@ export const useEditorPreviewData: TileDataHook = (
     return ready
       ? { ...base, ...combinationFor(catalogEntry) }
       : { ...base, state: 'laden', value: null, series: null };
+  }
+  if (catalogEntry.history.kind === 'ereignisse') {
+    const timeSeries = timeSeriesFor(catalogEntry);
+    const belegtPoints = timeSeries.points.filter((p) => p.status === 'belegt' && p.value !== null);
+    const series = belegtPoints.map((p) => ({
+      label: p.at.slice(11, 16) || p.at.slice(0, 10),
+      value: p.value as number,
+    }));
+    const lastPoint = belegtPoints[belegtPoints.length - 1];
+    return {
+      ...base,
+      state: ready ? 'bereit' : 'laden',
+      value: lastPoint ? lastPoint.value : null,
+      series,
+      timeSeries,
+      overview: null,
+    };
   }
   const isOverview = catalogEntry.shape === 'uebersicht';
   const series = ready && !isOverview ? seriesFor(catalogEntry) : null;

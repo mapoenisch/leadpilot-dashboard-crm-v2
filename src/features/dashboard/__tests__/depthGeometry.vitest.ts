@@ -4,7 +4,6 @@ import {
   areaPath,
   barDepth,
   donutSegments,
-  formatAxis,
   layoutBars,
   layoutHBars,
   linePath,
@@ -132,6 +131,25 @@ describe('layoutBars', () => {
   it('liefert für leere Reihen keine Säulen', () => {
     expect(layoutBars([], AREA, 10)).toEqual([]);
   });
+
+  it('akzeptiert Zeitreihen mit Lücken (null) unter Beibehaltung der x-Position', () => {
+    const bars = layoutBars(
+      [
+        { label: 'W1', value: null, status: 'vor_historienbeginn' },
+        { label: 'W2', value: 10, status: 'belegt' },
+        { label: 'W3', value: null, status: 'luecke' },
+      ],
+      AREA,
+      10,
+    );
+    expect(bars).toHaveLength(3);
+    expect(bars[0]).toMatchObject({ height: 0, value: null });
+    expect(bars[1]).toMatchObject({ height: 200, value: 10 });
+    expect(bars[2]).toMatchObject({ height: 0, value: null });
+    // Gleichmäßige x-Abstände bleiben erhalten
+    expect(bars[1]!.x).toBeGreaterThan(bars[0]!.x);
+    expect(bars[2]!.x).toBeGreaterThan(bars[1]!.x);
+  });
 });
 
 describe('layoutHBars', () => {
@@ -213,6 +231,32 @@ describe('linePoints, linePath, areaPath', () => {
     expect(linePath(points)).toBe('M 10 220 L 210 120 L 410 20');
     expect(areaPath(points, 220)).toBe('M 10 220 L 210 120 L 410 20 L 410 220 L 10 220 Z');
     expect(areaPath([], 220)).toBe('');
+  });
+
+  it('unterbricht Linie und Fläche bei Lücken (null) in getrennte Segmente', () => {
+    const points = linePoints(
+      [
+        { label: 'p1', value: 20 },
+        { label: 'p2', value: 40 },
+        { label: 'gap', value: null, status: 'luecke' },
+        { label: 'p4', value: 60 },
+        { label: 'p5', value: 80 },
+      ],
+      AREA,
+      100,
+    );
+    expect(points[2]?.value).toBeNull();
+    expect(points[2]?.status).toBe('luecke');
+
+    // linePath unterbricht an null und erzeugt zwei M-Segmente
+    const path = linePath(points);
+    expect(path).toBe('M 10 180 L 110 140 M 310 100 L 410 60');
+
+    // areaPath erzeugt zwei getrennte geschlossene Polygone
+    const aPath = areaPath(points, 220);
+    expect(aPath).toBe(
+      'M 10 180 L 110 140 L 110 220 L 10 220 Z M 310 100 L 410 60 L 410 220 L 310 220 Z',
+    );
   });
 });
 
@@ -325,41 +369,5 @@ describe('Anteilsfarben', () => {
     const many = shareColors([70, 60, 50, 40, 30, 20, 10]);
     expect(many.slice(4)).toEqual([SERIES_COLORS[4], SERIES_COLORS[4], SERIES_COLORS[4]]);
     expect(many).not.toContain(undefined);
-  });
-});
-
-describe('formatAxis', () => {
-  it('kürzt große Beträge kompakt und lässt kleine unverändert', () => {
-    expect(formatAxis(950)).toBe('950');
-    expect(formatAxis(2_500_000)).toBe('2,5 Mio.');
-    expect(formatAxis(10_000_000_000)).toBe('10 Mrd.');
-    expect(formatAxis(-3_000_000)).toBe('-3 Mio.');
-  });
-});
-
-describe('gaugeArcPath and summaries', () => {
-  it('erzeugt SVG-Bogenpfade für Tachometer', async () => {
-    const { gaugeArcPath, summarizeGauge, summarizeFunnel } =
-      await import('../components/charts/depthGeometry');
-    const path = gaugeArcPath(280, 160, 95, 225, 135);
-    expect(path).toMatch(/^M \d+(\.\d+)? \d+(\.\d+)? A 95 95 0 1 1/);
-    expect(gaugeArcPath(280, 160, 95, 0, 0)).toBe('');
-
-    const gSummary = summarizeGauge('EBITDA-Marge', 24, '%', 'FY 2025', 0, 100);
-    expect(gSummary).toContain('Tachometer für EBITDA-Marge: 24 %');
-    expect(gSummary).toContain('Skala von 0 % bis 100 %');
-
-    const fSummary = summarizeFunnel(
-      [
-        { label: 'Leads', value: 100 },
-        { label: 'Kunden', value: 20 },
-      ],
-      'Deals',
-      'Aktuell',
-    );
-    expect(fSummary).toBe(
-      'Trichter mit 2 Stufen von Leads (100 Deals) bis Kunden (20 Deals), Aktuell.',
-    );
-    expect(summarizeFunnel([], 'Deals', 'Aktuell')).toBe('Keine Trichterstufen für Aktuell.');
   });
 });

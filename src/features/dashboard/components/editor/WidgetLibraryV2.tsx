@@ -27,7 +27,11 @@ import {
   type DashboardView,
   type SourceLayer,
 } from '../../model/dashboardCatalog';
-import { historyText } from '../../model/historyCapability';
+import {
+  formatResolutionText,
+  formatTimeframeText,
+  historyText,
+} from '../../model/historyCapability';
 
 export interface WidgetLibraryV2Props {
   onAddTile: (catalogId: string) => void;
@@ -133,6 +137,15 @@ export function WidgetLibraryV2({
       if (activeCategory === 'finanzen' && entry.category !== 'finanzen') return false;
       if (activeCategory === 'live' && entry.source.layer !== 'live') return false;
       if (activeCategory === 'kombination' && entry.source.layer !== 'kombination') return false;
+
+      // Optionales Vorher-Szenario für Screenshot-Harness (Auftrag 160 T8)
+      if (
+        typeof window !== 'undefined' &&
+        new URLSearchParams(window.location.search).get('scenario') === 'vorher' &&
+        entry.history.kind === 'ereignisse'
+      ) {
+        return false;
+      }
 
       // 2. Suche
       if (!q) return true;
@@ -267,6 +280,14 @@ export function WidgetLibraryV2({
                       className="m-0 mt-0.5 truncate text-[9.5px] leading-tight text-[var(--color-text-muted)]/80"
                     >
                       {historyText(entry.history)}
+                      {entry.history.defaultWindow && (
+                        <>
+                          {' • '}
+                          {formatResolutionText(entry.history.defaultWindow.resolution)}
+                          {' • '}
+                          {formatTimeframeText(entry.history.defaultWindow)}
+                        </>
+                      )}
                     </p>
                   </div>
                   <Badge

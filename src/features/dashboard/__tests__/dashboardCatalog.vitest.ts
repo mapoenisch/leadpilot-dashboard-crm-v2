@@ -104,8 +104,8 @@ describe('Dashboard-Katalog', () => {
   it('aktiviert die erste Auswahl des Plans und den Katalogausbau (Auftrag 078)', () => {
     const count = (prefix: string) => active.filter((e) => e.id.startsWith(prefix)).length;
     expect(count('baseline.')).toBe(21);
-    expect(count('crm.')).toBe(6);
-    expect(count('live.')).toBe(12);
+    expect(count('crm.')).toBe(8);
+    expect(count('live.')).toBe(24);
     expect(active.filter((e) => e.kind === 'uebersicht').map((e) => e.id)).toEqual([
       'uebersicht.team_hr',
       'uebersicht.roadmap',
@@ -115,19 +115,37 @@ describe('Dashboard-Katalog', () => {
   });
 
   it('führt alle 12 Live-IDs und keine weiteren', () => {
-    const liveIds = active.filter((e) => e.kind === 'kpi' && e.source.layer === 'live');
+    const liveIds = active.filter(
+      (e) => e.kind === 'kpi' && e.source.layer === 'live' && e.history.kind === 'puffer',
+    );
     expect(liveIds.map((e) => e.source.liveKpiId).sort()).toEqual(
       LIVE_KPI_DEFINITIONS.map((definition) => definition.id).sort(),
     );
   });
 
   it('führt Live-Kacheln auf den Store als Wertquelle, die Definitionen nur als Metadaten', () => {
-    const live = active.filter((e) => e.kind === 'kpi' && e.source.layer === 'live');
+    const live = active.filter(
+      (e) => e.kind === 'kpi' && e.source.layer === 'live' && e.history.kind === 'puffer',
+    );
     for (const entry of live) {
       expect(entry.source.module, entry.id).toBe('src/services/liveKpi/liveKpiStreamStore.ts');
       expect(entry.source.exportName, entry.id).toBe('liveKpiStreamStore');
       expect(entry.source.metadata?.exportName, entry.id).toBe('LIVE_KPI_DEFINITIONS');
       expect(entry.timeBasis, entry.id).toContain('30 Minuten');
+    }
+  });
+
+  it('führt die 12 Server-Verlaufseinträge für Live auf resolveTimeSeries (Auftrag 160)', () => {
+    const liveHistory = active.filter(
+      (e) => e.kind === 'kpi' && e.source.layer === 'live' && e.history.kind === 'ereignisse',
+    );
+    expect(liveHistory).toHaveLength(12);
+    for (const entry of liveHistory) {
+      expect(entry.source.module, entry.id).toBe(
+        'src/features/dashboard/data/resolveTimeSeries.ts',
+      );
+      expect(entry.source.exportName, entry.id).toBe('fetchTimeSeries');
+      expect(entry.id).toMatch(/^live\..+\.verlauf$/);
     }
   });
 
@@ -211,12 +229,27 @@ describe('Dashboard-Katalog', () => {
         { id: 'd2', dealName: 'B', stage: 'Angebot', amount: 50, closeDate: '', pipeline: 'p' },
       ],
     });
-    for (const entry of active.filter((e) => e.source.layer === 'crm')) {
+    for (const entry of active.filter(
+      (e) => e.source.layer === 'crm' && e.history.kind !== 'ereignisse',
+    )) {
       expect(entry.source.exportName).toBe('getPipelineOverview');
       expect(resolvePath(overview, entry.source.path), entry.id).toBeDefined();
     }
     expect(overview.wonVolume).toBe(100);
     expect(overview.openVolume).toBe(50);
+  });
+
+  it('führt aktive CRM-Flussverläufe auf resolveTimeSeries (Auftrag 160)', () => {
+    const crmHistory = active.filter(
+      (e) => e.source.layer === 'crm' && e.history.kind === 'ereignisse',
+    );
+    expect(crmHistory).toHaveLength(2);
+    for (const entry of crmHistory) {
+      expect(entry.source.module, entry.id).toBe(
+        'src/features/dashboard/data/resolveTimeSeries.ts',
+      );
+      expect(entry.source.exportName, entry.id).toBe('fetchTimeSeries');
+    }
   });
 
   it('löst die Übersichtskacheln aus ihren Quellfunktionen auf', () => {

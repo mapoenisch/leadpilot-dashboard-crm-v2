@@ -6,6 +6,14 @@ export interface DatumInput {
   value: number;
 }
 
+export interface TimeDatumInput {
+  label: string;
+  value: number | null;
+  status?: 'belegt' | 'luecke' | 'vor_historienbeginn';
+  measuredAt?: string | null;
+  at?: string;
+}
+
 export interface Bounds {
   left: number;
   top: number;
@@ -18,10 +26,12 @@ export function barDepth(width: number): number {
   return Math.min(8, Math.max(3, Math.round(width * 0.16)));
 }
 
-/** Nur endliche Werte sind darstellbar (Säulen/Balken, auch negativ). */
-export function assertFinite(values: readonly number[]): void {
+/** Nur endliche Werte sind darstellbar (Säulen/Balken, auch negativ; null für Lücken zulässig). */
+export function assertFinite(values: readonly (number | null)[]): void {
   for (const value of values) {
-    if (!Number.isFinite(value)) throw new RangeError(`Wert nicht darstellbar: ${String(value)}`);
+    if (value !== null && !Number.isFinite(value)) {
+      throw new RangeError(`Wert nicht darstellbar: ${String(value)}`);
+    }
   }
 }
 
@@ -111,7 +121,7 @@ function extent(value: number, domain: ValueDomain, size: number): number {
 export interface BarRect {
   index: number;
   label: string;
-  value: number;
+  value: number | null;
   x: number;
   /** Oberkante der Vorderfläche. */
   y: number;
@@ -125,10 +135,10 @@ export interface BarRect {
 
 /**
  * Säulen auf gleichmäßigen Plätzen. Positive Werte wachsen von der Nullachse nach oben, negative
- * nach unten; 0-Werte behalten eine Position, aber keine Höhe.
+ * nach unten; 0- und null-Werte behalten eine Position, aber keine Höhe.
  */
 export function layoutBars(
-  data: readonly DatumInput[],
+  data: readonly (DatumInput | TimeDatumInput)[],
   area: Bounds,
   scale: number | ValueDomain,
 ): BarRect[] {
@@ -140,12 +150,13 @@ export function layoutBars(
   const slot = area.width / data.length;
   const width = Math.min(slot * 0.62, 96);
   return data.map((entry, index) => {
-    const height = extent(entry.value, domain, area.height);
-    const negative = entry.value < 0;
+    const val = entry.value;
+    const height = val !== null ? extent(val, domain, area.height) : 0;
+    const negative = val !== null && val < 0;
     return {
       index,
       label: entry.label,
-      value: entry.value,
+      value: val,
       x: area.left + slot * index + (slot - width) / 2,
       y: negative ? zero : zero - height,
       width,
@@ -160,11 +171,11 @@ export function layoutBars(
 export interface HBarRect {
   index: number;
   label: string;
-  value: number;
+  value: number | null;
   /** Linke Kante der Vorderfläche. */
   x: number;
   y: number;
-  /** Länge der Vorderfläche; 0 für Nullwerte. */
+  /** Länge der Vorderfläche; 0 für Null- und Fehlwerte. */
   length: number;
   /** Gesamte Dicke inklusive Tiefe. */
   thickness: number;
@@ -176,7 +187,7 @@ export interface HBarRect {
 
 /** Horizontale Balken; negative Werte reichen von der Nullachse nach links. */
 export function layoutHBars(
-  data: readonly DatumInput[],
+  data: readonly (DatumInput | TimeDatumInput)[],
   area: Bounds,
   scale: number | ValueDomain,
 ): HBarRect[] {
@@ -188,12 +199,13 @@ export function layoutHBars(
   const slot = area.height / data.length;
   const thickness = Math.min(slot * 0.62, 40);
   return data.map((entry, index) => {
-    const length = extent(entry.value, domain, area.width);
-    const negative = entry.value < 0;
+    const val = entry.value;
+    const length = val !== null ? extent(val, domain, area.width) : 0;
+    const negative = val !== null && val < 0;
     return {
       index,
       label: entry.label,
-      value: entry.value,
+      value: val,
       x: negative ? zero - length : zero,
       y: area.top + slot * index + (slot - thickness) / 2,
       length,
@@ -292,120 +304,91 @@ export function donutSegments(
 export interface LinePoint {
   index: number;
   label: string;
-  value: number;
+  value: number | null;
   x: number;
   y: number;
+  status?: 'belegt' | 'luecke' | 'vor_historienbeginn';
+  measuredAt?: string | null;
+  at?: string;
 }
 
 /** Punkte liegen exakt auf dem Wert; es gibt keine Tiefenverschiebung der Datenpunkte. */
 export function linePoints(
-  data: readonly DatumInput[],
+  data: readonly (DatumInput | TimeDatumInput)[],
   area: Bounds,
   scaleMax: number,
 ): LinePoint[] {
-  assertDrawable(data.map((entry) => entry.value));
+  assertDrawable(data.map((entry) => entry.value).filter((v): v is number => v !== null));
   const last = Math.max(1, data.length - 1);
   return data.map((entry, index) => ({
     index,
     label: entry.label,
     value: entry.value,
     x: area.left + (data.length === 1 ? area.width / 2 : (area.width * index) / last),
-    y: area.top + area.height - (scaleMax > 0 ? (entry.value / scaleMax) * area.height : 0),
+    y:
+      entry.value === null
+        ? area.top + area.height
+        : area.top + area.height - (scaleMax > 0 ? (entry.value / scaleMax) * area.height : 0),
+    status: 'status' in entry ? entry.status : undefined,
+    measuredAt: 'measuredAt' in entry ? entry.measuredAt : undefined,
+    at: 'at' in entry ? entry.at : undefined,
   }));
 }
 
 export function linePath(points: readonly LinePoint[]): string {
-  return points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${round(p.x)} ${round(p.y)}`).join(' ');
+  const segments: string[] = [];
+  let current: LinePoint[] = [];
+  for (const point of points) {
+    if (point.value !== null) {
+      current.push(point);
+    } else if (current.length > 0) {
+      segments.push(
+        current.map((p, i) => `${i === 0 ? 'M' : 'L'} ${round(p.x)} ${round(p.y)}`).join(' '),
+      );
+      current = [];
+    }
+  }
+  if (current.length > 0) {
+    segments.push(
+      current.map((p, i) => `${i === 0 ? 'M' : 'L'} ${round(p.x)} ${round(p.y)}`).join(' '),
+    );
+  }
+  return segments.join(' ');
 }
 
 export function areaPath(points: readonly LinePoint[], baseline: number): string {
-  const first = points[0];
-  const last = points[points.length - 1];
-  if (!first || !last) return '';
-  return `${linePath(points)} L ${round(last.x)} ${baseline} L ${round(first.x)} ${baseline} Z`;
-}
-
-const numberFormat = new Intl.NumberFormat('de-DE');
-
-export function formatDe(value: number): string {
-  return numberFormat.format(value);
-}
-
-/**
- * Achsenbeschriftung kompakt („10 Mrd.“, „2,5 Mio.“), damit sehr große Beträge in den festen
- * Rand passen. Exakte Werte stehen in Ablesezeile, Kurzfassung und Tabelle.
- */
-export function formatAxis(value: number): string {
-  const abs = Math.abs(value);
-  if (abs >= 1e9) return `${numberFormat.format(value / 1e9)} Mrd.`;
-  if (abs >= 1e6) return `${numberFormat.format(value / 1e6)} Mio.`;
-  return numberFormat.format(value);
-}
-
-export type SummaryKind = 'ranking' | 'share' | 'trend';
-
-/**
- * Kernaussage einer Datenreihe als Satz für Screenreader: Anzahl, Spannweite, Verlauf bzw. Anteile.
- * Leere Reihen und Summe 0 werden ehrlich benannt statt Anteile vorzutäuschen.
- */
-export function summarizeSeries(
-  data: readonly DatumInput[],
-  unit: string,
-  period: string,
-  kind: SummaryKind,
-  formatValue?: (value: number) => string,
-): string {
-  const first = data[0];
-  const last = data[data.length - 1];
-  if (!first || !last) return `Keine Werte für ${period}.`;
-  const withUnit = (value: number) => formatValue?.(value) ?? `${formatDe(value)} ${unit}`.trim();
-  const high = data.reduce((best, entry) => (entry.value > best.value ? entry : best), first);
-  const low = data.reduce((best, entry) => (entry.value < best.value ? entry : best), first);
-  const head = `${data.length} Werte, ${period}.`;
-  if (kind === 'share') {
-    const total = data.reduce((sum, entry) => sum + entry.value, 0);
-    if (total <= 0) return `${head} Summe 0, keine Anteile.`;
-    const share = Math.round((high.value / total) * 1000) / 10;
-    return `${head} Summe ${withUnit(total)}. Größter Anteil: ${high.label} mit ${withUnit(high.value)} (${formatDe(share)} Prozent).`;
+  const segments: LinePoint[][] = [];
+  let current: LinePoint[] = [];
+  for (const point of points) {
+    if (point.value !== null) {
+      current.push(point);
+    } else if (current.length > 0) {
+      segments.push(current);
+      current = [];
+    }
   }
-  if (kind === 'trend') {
-    const delta = last.value - first.value;
-    const direction = delta > 0 ? 'gestiegen' : delta < 0 ? 'gesunken' : 'unverändert';
-    const change = delta === 0 ? '' : ` um ${withUnit(Math.abs(delta))}`;
-    return `${head} Von ${first.label} (${withUnit(first.value)}) bis ${last.label} (${withUnit(last.value)}) ${direction}${change}. Höchster Wert: ${high.label}, ${withUnit(high.value)}. Niedrigster Wert: ${low.label}, ${withUnit(low.value)}.`;
-  }
-  return `${head} Höchster Wert: ${high.label}, ${withUnit(high.value)}. Niedrigster Wert: ${low.label}, ${withUnit(low.value)}.`;
+  if (current.length > 0) segments.push(current);
+  if (segments.length === 0) return '';
+  return segments
+    .map((seg) => {
+      const first = seg[0];
+      const last = seg[seg.length - 1];
+      if (!first || !last) return '';
+      const line = seg
+        .map((p, i) => `${i === 0 ? 'M' : 'L'} ${round(p.x)} ${round(p.y)}`)
+        .join(' ');
+      return `${line} L ${round(last.x)} ${baseline} L ${round(first.x)} ${baseline} Z`;
+    })
+    .join(' ');
 }
 
-/** Kürzt ein sichtbares SVG-Label auf `max` Zeichen; der Volltext gehört in ein `<title>`. */
-export function shortenLabel(label: string, max: number): string {
-  return label.length > max ? `${label.slice(0, max - 1).trimEnd()}…` : label;
-}
-
-/** Zusammenfassung für Tachometer / Skala für Screenreader. */
-export function summarizeGauge(
-  label: string,
-  value: number,
-  unit: string,
-  period: string,
-  min: number,
-  max: number,
-  formatValue?: (value: number) => string,
-): string {
-  const withUnit = (v: number) => formatValue?.(v) ?? `${formatDe(v)} ${unit}`.trim();
-  return `Tachometer für ${label}: ${withUnit(value)}. Skala von ${withUnit(min)} bis ${withUnit(max)}, ${period}.`;
-}
-
-/** Zusammenfassung für Trichterdiagramm für Screenreader. */
-export function summarizeFunnel(
-  data: readonly DatumInput[],
-  unit: string,
-  period: string,
-  formatValue?: (value: number) => string,
-): string {
-  if (data.length === 0) return `Keine Trichterstufen für ${period}.`;
-  const withUnit = (v: number) => formatValue?.(v) ?? `${formatDe(v)} ${unit}`.trim();
-  const first = data[0];
-  const last = data[data.length - 1];
-  return `Trichter mit ${data.length} Stufen von ${first?.label ?? ''} (${withUnit(first?.value ?? 0)}) bis ${last?.label ?? ''} (${withUnit(last?.value ?? 0)}), ${period}.`;
-}
+export {
+  formatDe,
+  formatAxis,
+  formatAxisTickLabel,
+  summarizeSeries,
+  shortenLabel,
+  summarizeGauge,
+  summarizeFunnel,
+} from './depthFormat';
+export type { SummaryKind } from './depthFormat';

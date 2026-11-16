@@ -11,13 +11,13 @@ export function invalidateCrmOverviewQueries(
   return queryClient.invalidateQueries({
     predicate: (query) => {
       const key = query.queryKey;
-      return (
+      const isMatch =
         key[0] === 'dashboard' &&
         key[1] === organizationId &&
         key[2] === 'crm' &&
-        key[3] === 'crmOverview' &&
-        key[4] === userId
-      );
+        (key[3] === 'crmOverview' || key[3] === 'timeSeries') &&
+        key[4] === userId;
+      return isMatch;
     },
   });
 }
