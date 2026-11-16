@@ -10,6 +10,15 @@ async function ensureLibraryOpen(page: Page) {
   await expect(page.getByTestId('widget-library')).toBeVisible();
 }
 
+async function ensureInspectorOpen(page: Page) {
+  if (await page.getByTestId('editor-inspector').isVisible()) return;
+  const toggleBtn = page.getByTestId('toggle-inspector-button');
+  if (await toggleBtn.isVisible()) {
+    await toggleBtn.click();
+    await expect(page.getByTestId('editor-inspector')).toBeVisible();
+  }
+}
+
 test.describe('Dashboard-Editor V2: Zeitreihen-Kacheln (Auftrag 160 / P10b-1)', () => {
   test('Verlaufskacheln aus Bibliothek hinzufügen, Lücken und Historienbeginn darstellen', async ({
     page,
@@ -58,7 +67,9 @@ test.describe('Dashboard-Editor V2: Zeitreihen-Kacheln (Auftrag 160 / P10b-1)', 
     await expect(liveTile.getByTestId('depth-line-point').first()).toBeVisible();
 
     // 4. Inspector für CRM-Kachel öffnen und prüfen
+    await crmTile.scrollIntoViewIfNeeded();
     await crmTile.click({ position: { x: 20, y: 20 } });
+    await ensureInspectorOpen(page);
     await expect(page.getByTestId('editor-inspector')).toBeVisible();
 
     // Daten-Tab öffnen
@@ -87,6 +98,13 @@ test.describe('Dashboard-Editor V2: Zeitreihen-Kacheln (Auftrag 160 / P10b-1)', 
     const tableViewBtn = page.getByTestId('view-option-tabelle');
     if (await tableViewBtn.isVisible()) {
       await tableViewBtn.click();
+      if (page.viewportSize() && page.viewportSize()!.width < 1024) {
+        const toggleInspectorBtn = page.getByTestId('toggle-inspector-button');
+        if (await toggleInspectorBtn.isVisible()) {
+          await toggleInspectorBtn.click();
+        }
+      }
+      await crmTile.scrollIntoViewIfNeeded();
       await expect(crmTile.getByTestId('tile-table')).toBeVisible();
       await expect(crmTile.getByText('vor Aufzeichnungsbeginn').first()).toBeVisible();
     }
