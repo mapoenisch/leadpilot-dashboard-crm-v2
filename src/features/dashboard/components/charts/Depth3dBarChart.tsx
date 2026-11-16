@@ -18,6 +18,7 @@ import type { DepthBarChartProps } from './chartTypes';
 
 import {
   formatAxis,
+  formatAxisTickLabel,
   formatDe,
   layoutBars,
   layoutHBars,
@@ -351,16 +352,18 @@ export function Depth3dBarChart({
                     >
                       {bar.value === null ? '–' : axisLabel(bar.value)}
                     </text>
-                    <text
-                      x={cx}
-                      y={baseline + 18}
-                      textAnchor="middle"
-                      fontSize="10.5"
-                      fill={THEME.neutral}
-                    >
-                      <title>{bar.label}</title>
-                      {shortenLabel(bar.label, columnLabelMax)}
-                    </text>
+                    {bar.index % (bars.length > 16 ? 4 : bars.length > 7 ? 2 : 1) === 0 ? (
+                      <text
+                        x={cx}
+                        y={baseline + 18}
+                        textAnchor="middle"
+                        fontSize="10.5"
+                        fill={THEME.neutral}
+                      >
+                        <title>{bar.label}</title>
+                        {formatAxisTickLabel(shortenLabel(bar.label, columnLabelMax))}
+                      </text>
+                    ) : null}
                   </g>
                 );
               })}

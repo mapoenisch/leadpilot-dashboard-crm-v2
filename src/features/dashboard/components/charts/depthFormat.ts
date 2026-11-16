@@ -59,6 +59,18 @@ export function shortenLabel(label: string, max: number): string {
   return label.length > max ? `${label.slice(0, max - 1).trimEnd()}…` : label;
 }
 
+/**
+ * Kürzt Datums- und Wochenbeschriftungen für Diagrammachsen, damit Ticks nicht überlappen.
+ * Ausführliche Texte („Woche 16.11.2026“) bleiben für Ablesezeile und Tabelle erhalten.
+ */
+export function formatAxisTickLabel(label: string): string {
+  const weekMatch = label.match(/^Woche\s+(\d{2}\.\d{2})\.\d{4}$/);
+  if (weekMatch) return `${weekMatch[1]}.`;
+  const dateMatch = label.match(/^(\d{2}\.\d{2})\.\d{4}$/);
+  if (dateMatch) return `${dateMatch[1]}.`;
+  return label;
+}
+
 /** Zusammenfassung für Tachometer / Skala für Screenreader. */
 export function summarizeGauge(
   label: string,

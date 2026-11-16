@@ -16,6 +16,7 @@ import type { TimeDepthChartProps } from './chartTypes';
 import {
   areaPath,
   formatAxis,
+  formatAxisTickLabel,
   formatDe,
   linePath,
   linePoints,
@@ -196,6 +197,8 @@ export function DepthLineChart({
           />
           {points.map((point) => {
             const isNull = point.value === null;
+            const tickStep = points.length > 16 ? 4 : points.length > 7 ? 2 : 1;
+            const showTick = point.index % tickStep === 0;
             return (
               <g
                 key={`${point.label}-${point.index}`}
@@ -226,15 +229,17 @@ export function DepthLineChart({
                     opacity={active === point.index ? 1 : 0.6}
                   />
                 )}
-                <text
-                  x={point.x}
-                  y={baseline + 18}
-                  textAnchor="middle"
-                  fontSize="10"
-                  fill={THEME.neutral}
-                >
-                  {point.label}
-                </text>
+                {showTick ? (
+                  <text
+                    x={point.x}
+                    y={baseline + 18}
+                    textAnchor="middle"
+                    fontSize="10"
+                    fill={THEME.neutral}
+                  >
+                    {formatAxisTickLabel(point.label)}
+                  </text>
+                ) : null}
                 <rect
                   x={point.x - slot / 2}
                   y={AREA.top}

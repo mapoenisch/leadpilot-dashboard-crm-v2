@@ -385,6 +385,7 @@ export function areaPath(points: readonly LinePoint[], baseline: number): string
 export {
   formatDe,
   formatAxis,
+  formatAxisTickLabel,
   summarizeSeries,
   shortenLabel,
   summarizeGauge,

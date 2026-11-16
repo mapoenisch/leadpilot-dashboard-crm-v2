@@ -194,7 +194,7 @@ export function useDashboardData(
         pipeline: catalogEntry?.source.layer === 'crm' ? effectiveFilter.pipeline : undefined,
       }),
     enabled: timeSeriesEnabled,
-    staleTime: tsWindow.resolution === 'stunde' ? 60_000 : 300_000,
+    staleTime: tsWindow.resolution === 'stunde' ? 3_600_000 : 7 * 86_400_000,
     ...(options.frozen
       ? { refetchOnWindowFocus: false as const, refetchOnReconnect: false as const }
       : {}),

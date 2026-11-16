@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   formatAxis,
+  formatAxisTickLabel,
   formatDe,
   shortenLabel,
   summarizeFunnel,
@@ -24,6 +25,13 @@ describe('formatDe & formatAxis', () => {
   it('kürzt Labels mit Auslassungspunkten', () => {
     expect(shortenLabel('Kurz', 10)).toBe('Kurz');
     expect(shortenLabel('SehrLangesLabelDasGekuerztWird', 8)).toBe('SehrLan…');
+  });
+
+  it('kürzt Wochen- und Datumsbeschriftungen für Diagrammachsen', () => {
+    expect(formatAxisTickLabel('Woche 16.11.2026')).toBe('16.11.');
+    expect(formatAxisTickLabel('05.10.2026')).toBe('05.10.');
+    expect(formatAxisTickLabel('14:00')).toBe('14:00');
+    expect(formatAxisTickLabel('Kategorie A')).toBe('Kategorie A');
   });
 });
 
