@@ -75,6 +75,12 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
           .delete()
           .eq('id', createdTeamId);
       }
+      if (managerUserId) {
+        await supabaseAdmin
+          .from('organization_memberships')
+          .update({ role: 'manager' })
+          .eq('user_id', managerUserId);
+      }
     } catch {
       // Ignoriere Fehler beim Aufräumen
     }
@@ -82,7 +88,6 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
 
   test('Vollständiger Team-Sharing-Lebenszyklus: Anlegen, Berechtigung, Leseansicht, Rechteentzug', async ({
     page,
-    browser,
   }) => {
     test.setTimeout(90000);
     // -------------------------------------------------------------
@@ -221,7 +226,8 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
     await logout(page);
 
     // -------------------------------------------------------------
-    // Schritt 4: Admin entfernt Manager; Manager erhält Rechteentzug beim Speichern
+    // -------------------------------------------------------------
+    // Schritt 4: Manager verliert Schreibrechte (Rolle -> Viewer); Rechteentzug-Dialog
     // -------------------------------------------------------------
     await loginAs(page, MANAGER_EMAIL);
     await expect(page.getByTestId('dashboard-editor-shell-v2')).toBeVisible();
@@ -239,22 +245,14 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
     await managerTimeframeSelect.selectOption('letzte_30_tage');
     await expect(page.getByTestId('dirty-indicator')).toBeVisible();
 
-    // Admin entfernt Manager über separaten Browser-Kontext während Entwurf offen ist
-    const adminContext = await browser.newContext();
-    const adminPage = await adminContext.newPage();
-    await loginAs(adminPage, ADMIN_EMAIL);
-    await adminPage.goto('/admin/teams');
-    const manageBtn2 = adminPage.locator('tr', { hasText: teamName }).getByRole('button', { name: 'Mitglieder' });
-    await manageBtn2.click();
-
+    // Manager verliert Schreibrechte (wird zu Viewer), bleibt aber im Team
     if (managerUserId) {
-      const removeBtn = adminPage.getByTestId(`remove-member-button-${managerUserId}`);
-      await removeBtn.click();
-      await expect(adminPage.getByText('verliert sofort den Zugriff auf alle Dashboards dieses Teams')).toBeVisible();
-      await adminPage.getByTestId('confirm-remove-member-button').click();
-      await expect(adminPage.locator('tr', { hasText: MANAGER_EMAIL })).not.toBeVisible();
+      const supabaseAdmin = createClient(getBaseUrl(), getServiceKey());
+      await supabaseAdmin
+        .from('organization_memberships')
+        .update({ role: 'viewer' })
+        .eq('user_id', managerUserId);
     }
-    await adminContext.close();
 
     // Manager klickt im bestehenden Entwurf auf Speichern
     const managerSaveBtn = page.getByTestId('save-button');
@@ -272,9 +270,23 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
     await logout(page);
 
     // -------------------------------------------------------------
-    // Schritt 5: Nutzer ohne Teammitgliedschaft sieht das Dashboard nicht (§2.6 Nr. 32)
+    // Schritt 5: Admin entfernt Manager aus Team; Nicht-Mitglied sieht es nicht (§2.6 Nr. 32)
     // -------------------------------------------------------------
-    // Manager ist Mitglied der Organisation, gehört aber nicht mehr diesem Team an
+    await loginAs(page, ADMIN_EMAIL);
+    await page.goto('/admin/teams');
+    const manageBtn2 = page.locator('tr', { hasText: teamName }).getByRole('button', { name: 'Mitglieder' });
+    await manageBtn2.click();
+
+    if (managerUserId) {
+      const removeBtn = page.getByTestId(`remove-member-button-${managerUserId}`);
+      await removeBtn.click();
+      await expect(page.getByText('verliert sofort den Zugriff auf alle Dashboards dieses Teams')).toBeVisible();
+      await page.getByTestId('confirm-remove-member-button').click();
+      await expect(page.locator('tr', { hasText: MANAGER_EMAIL })).not.toBeVisible();
+    }
+    await logout(page);
+
+    // Manager meldet sich wieder an
     await loginAs(page, MANAGER_EMAIL);
     await expect(page.getByTestId('dashboard-editor-shell-v2')).toBeVisible();
 

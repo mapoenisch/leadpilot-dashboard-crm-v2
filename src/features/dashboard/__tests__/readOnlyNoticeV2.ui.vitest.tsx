@@ -8,12 +8,7 @@ describe('ReadOnlyNoticeV2', () => {
     const user = userEvent.setup();
     const handleCopy = vi.fn();
 
-    render(
-      <ReadOnlyNoticeV2
-        teamName="Nord Vertrieb"
-        onSaveAsPersonalCopy={handleCopy}
-      />,
-    );
+    render(<ReadOnlyNoticeV2 teamName="Nord Vertrieb" onSaveAsPersonalCopy={handleCopy} />);
 
     expect(screen.getByTestId('readonly-notice-banner')).toBeInTheDocument();
     expect(screen.getByText(/Nord Vertrieb/)).toBeInTheDocument();

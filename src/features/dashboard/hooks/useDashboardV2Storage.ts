@@ -45,6 +45,7 @@ export function useDashboardV2Storage(options?: {
   const [dashboards, setDashboards] = useState<AccessibleDashboardListItemV2[]>([]);
   const [error, setError] = useState<DashboardV2StorageError | null>(null);
   const [listError, setListError] = useState<DashboardV2StorageError | null>(null);
+  const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const orgId = session?.organizationId ?? 'default-org';
@@ -92,6 +93,7 @@ export function useDashboardV2Storage(options?: {
       }
 
       setDashboard(res.value.dashboard);
+      setFallbackNotice(res.value.fallbackNotice ?? null);
       setStatus('bereit');
 
       await refreshList();
@@ -119,6 +121,7 @@ export function useDashboardV2Storage(options?: {
     async (id: string): Promise<boolean> => {
       setStatus('laden');
       setError(null);
+      setFallbackNotice(null);
       const res = await loadAndActivateAnyDashboardV2(id, orgId, userId, (loaded) => {
         const fromList = dashboards.find((item) => item.id === loaded.id);
         setDashboard({
@@ -305,6 +308,8 @@ export function useDashboardV2Storage(options?: {
     dashboards,
     error,
     listError,
+    fallbackNotice,
+    clearFallbackNotice: () => setFallbackNotice(null),
     isSaving,
     save,
     reload,

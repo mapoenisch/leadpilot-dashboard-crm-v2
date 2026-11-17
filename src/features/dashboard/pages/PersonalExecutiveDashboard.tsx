@@ -22,6 +22,7 @@ import { TimeControlProvider } from '../time/TimeControlProvider';
 import { invalidateCrmOverviewQueries } from '../time/resumeCrmRefresh';
 import { useTimeControlledData } from '../time/useTimeControlledData';
 
+import { Info } from 'lucide-react';
 import { DashboardDeletedDialogV2 } from '../components/editor/DashboardDeletedDialogV2';
 
 export const RETURN_ANNOUNCEMENT = 'Zurück im Dashboard. Die Filter deiner Sitzung gelten weiter.';
@@ -164,6 +165,26 @@ function PersonalExecutiveDashboardV2Container({
 
   return (
     <>
+      {v2Storage.fallbackNotice && (
+        <div
+          role="status"
+          data-testid="dashboard-fallback-notice"
+          className="flex items-center justify-between border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200"
+        >
+          <div className="flex items-center gap-2">
+            <Info className="h-4 w-4 shrink-0 text-amber-400" aria-hidden="true" />
+            <span>{v2Storage.fallbackNotice}</span>
+          </div>
+          <button
+            type="button"
+            data-testid="dismiss-fallback-notice"
+            onClick={v2Storage.clearFallbackNotice}
+            className="text-xs text-amber-300 hover:text-white"
+          >
+            Ausblenden
+          </button>
+        </div>
+      )}
       <TimeControlProvider key={v2Storage.dashboard.id}>
         <DashboardEditorShellV2
           key={`${v2Storage.dashboard.id}_${v2Storage.dashboard.revision}`}

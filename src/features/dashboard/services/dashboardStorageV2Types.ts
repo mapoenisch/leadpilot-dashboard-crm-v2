@@ -238,6 +238,8 @@ export interface UseDashboardV2StorageResult {
   dashboards: AccessibleDashboardListItemV2[];
   error: DashboardV2StorageError | null;
   listError: DashboardV2StorageError | null;
+  fallbackNotice?: string | null;
+  clearFallbackNotice?: () => void;
   isSaving: boolean;
   save: (config: DashboardConfigV2, changeSummary?: string) => Promise<SaveV2Result>;
   reload: (explicitDashboardId?: string) => Promise<void>;
