@@ -3,6 +3,8 @@ import {
   fetchAccessibleDashboards,
   resolveInitialOrActiveDashboard,
   mapPersonalToAccessible,
+  fetchDashboardById,
+  loadAndActivateAnyDashboardV2,
 } from '../hooks/dashboardV2Access';
 import * as dbClient from '@/services/db/supabaseClient';
 import * as sharingService from '../services/dashboardSharingV2';
@@ -156,5 +158,61 @@ describe('dashboardV2Access (Auftrag 163 T3)', () => {
         'Das zuletzt geöffnete Team-Dashboard ist nicht mehr verfügbar.',
       );
     }
+  });
+
+  describe('fetchDashboardById & loadAndActivateAnyDashboardV2', () => {
+    it('lädt Dashboard ohne Supabase oder bei server_funktion_fehlt über loadPersonalDashboardV2', async () => {
+      vi.spyOn(dbClient, 'isSupabaseConfigured', 'get').mockReturnValue(false);
+      vi.spyOn(storageService, 'loadPersonalDashboardV2').mockResolvedValue({
+        ok: true,
+        value: {
+          id: 'p-direct',
+          title: 'Direct Personal',
+          scope: 'personal',
+          revision: 1,
+          config: dummyConfig,
+          updatedAt: '2026-11-17T10:00:00Z',
+        },
+      });
+
+      const res = await fetchDashboardById('p-direct');
+      expect(res.ok).toBe(true);
+      if (res.ok) {
+        expect(res.value.canWrite).toBe(true);
+      }
+
+      // Bei Rückgabe null
+      vi.spyOn(storageService, 'loadPersonalDashboardV2').mockResolvedValue({
+        ok: true,
+        value: null as unknown as storageService.StoredDashboardV2Row,
+      });
+      const resNull = await fetchDashboardById('p-none');
+      expect(resNull.ok).toBe(false);
+    });
+
+    it('aktiviert Dashboard und setzt Zustand über loadAndActivateAnyDashboardV2', async () => {
+      vi.spyOn(dbClient, 'isSupabaseConfigured', 'get').mockReturnValue(true);
+      // @ts-expect-error Mock supabase
+      vi.spyOn(dbClient, 'supabase', 'get').mockReturnValue({});
+
+      vi.spyOn(sharingService, 'loadDashboardV2').mockResolvedValue({
+        ok: true,
+        value: {
+          id: 'd-active',
+          title: 'Active Dashboard',
+          scope: 'personal',
+          revision: 1,
+          config: dummyConfig,
+          updatedAt: '2026-11-17T10:00:00Z',
+          canWrite: true,
+          teamId: null,
+        },
+      });
+
+      const setDashboard = vi.fn();
+      const res = await loadAndActivateAnyDashboardV2('d-active', 'org1', 'u1', setDashboard);
+      expect(res.ok).toBe(true);
+      expect(setDashboard).toHaveBeenCalled();
+    });
   });
 });

@@ -1,11 +1,21 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ShareWithTeamDialogV2 } from '../components/editor/selection/ShareWithTeamDialogV2';
 import type { DashboardTeamV2, StoredDashboardV2Row } from '../services/dashboardStorageV2Types';
 import { getDashboardTeamErrorMessage } from '../model/dashboardTeamMessages';
 
+vi.mock('../services/dashboardTeamsV2', () => ({
+  listDashboardTeamsV2: vi.fn(),
+}));
+
+import { listDashboardTeamsV2 } from '../services/dashboardTeamsV2';
+
 describe('Auftrag 163 - ShareWithTeamDialogV2 & dashboardTeamMessages', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   const mockDashboard: StoredDashboardV2Row = {
     id: 'dash-pers-1',
     title: 'Mein Vertrieb',
@@ -93,6 +103,26 @@ describe('Auftrag 163 - ShareWithTeamDialogV2 & dashboardTeamMessages', () => {
     expect(submitBtn).toBeDisabled();
   });
 
+  it('lädt Teams automatisch wenn keine teams-Prop übergeben wurde', async () => {
+    vi.mocked(listDashboardTeamsV2).mockResolvedValue({
+      ok: true,
+      value: mockTeams,
+    });
+
+    render(
+      <ShareWithTeamDialogV2
+        open={true}
+        onClose={vi.fn()}
+        currentDashboard={mockDashboard}
+        onShare={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: 'Vertrieb Nord' })).toBeInTheDocument();
+    });
+  });
+
   it('übermittelt Zielteam und Titel beim Teilen', async () => {
     const onShare = vi.fn().mockResolvedValue({ ok: true });
     const onClose = vi.fn();
@@ -116,6 +146,27 @@ describe('Auftrag 163 - ShareWithTeamDialogV2 & dashboardTeamMessages', () => {
     await waitFor(() => {
       expect(onShare).toHaveBeenCalledWith('team-write', 'Vertrieb Q4 Team');
       expect(onClose).toHaveBeenCalled();
+    });
+  });
+
+  it('behandelt Fehlerantworten und boolesche Fehlschläge', async () => {
+    const onShare = vi.fn().mockResolvedValue(false);
+    const onClose = vi.fn();
+
+    render(
+      <ShareWithTeamDialogV2
+        open={true}
+        onClose={onClose}
+        currentDashboard={mockDashboard}
+        onShare={onShare}
+        teams={mockTeams}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId('share-with-team-confirm-button'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('share-with-team-error')).toBeInTheDocument();
     });
   });
 
