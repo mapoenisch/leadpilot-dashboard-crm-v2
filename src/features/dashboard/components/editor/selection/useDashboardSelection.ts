@@ -57,8 +57,9 @@ export function useDashboardSelection({
   const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const isLimitReached = dashboards.length >= MAX_PERSONAL_DASHBOARDS;
-  const isOnlyOneDashboard = dashboards.length <= 1;
+  const personalCount = dashboards.filter((d) => d.scope !== 'team').length;
+  const isLimitReached = personalCount >= MAX_PERSONAL_DASHBOARDS;
+  const isOnlyOneDashboard = personalCount <= 1;
 
   const returnFocusToTrigger = useCallback(() => {
     requestAnimationFrame(() => triggerButtonRef.current?.focus());

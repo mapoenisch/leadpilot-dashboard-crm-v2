@@ -77,7 +77,7 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
       }
       if (managerUserId) {
         await supabaseAdmin
-          .from('organization_memberships')
+          .from('organization_members')
           .update({ role: 'manager' })
           .eq('user_id', managerUserId);
       }
@@ -248,10 +248,13 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
     // Manager verliert Schreibrechte (wird zu Viewer), bleibt aber im Team
     if (managerUserId) {
       const supabaseAdmin = createClient(getBaseUrl(), getServiceKey());
-      await supabaseAdmin
-        .from('organization_memberships')
+      const { error: roleUpdateError, data: updatedMember } = await supabaseAdmin
+        .from('organization_members')
         .update({ role: 'viewer' })
-        .eq('user_id', managerUserId);
+        .eq('user_id', managerUserId)
+        .select('role');
+      expect(roleUpdateError).toBeNull();
+      expect(updatedMember?.[0]?.role).toBe('viewer');
     }
 
     // Manager klickt im bestehenden Entwurf auf Speichern

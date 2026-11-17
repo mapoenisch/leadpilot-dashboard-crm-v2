@@ -92,11 +92,27 @@ describe('Auftrag 163 - DashboardSwitcherMenuV2', () => {
     const onKeyDown = vi.fn();
     const itemRefs = { current: [] };
 
+    const twoPersonalDashboards: AccessibleDashboardListItemV2[] = [
+      ...dashboards,
+      {
+        id: 'd-2',
+        title: 'Zweites persönliches Dashboard',
+        scope: 'personal',
+        teamId: null,
+        teamName: null,
+        canWrite: true,
+        revision: 1,
+        tileCount: 1,
+        sectionCount: 1,
+        updatedAt: new Date().toISOString(),
+      },
+    ];
+
     render(
       <DashboardSwitcherMenuV2
         menuRef={{ current: null }}
         currentDashboard={currentDash}
-        dashboards={dashboards}
+        dashboards={twoPersonalDashboards}
         errorText={null}
         isPreviewMode={false}
         isLimitReached={false}
@@ -125,6 +141,27 @@ describe('Auftrag 163 - DashboardSwitcherMenuV2', () => {
       id: currentDash.id,
       title: currentDash.title,
     });
+  });
+
+  it('sperrt Löschen eines persönlichen Dashboards bei nur einem persönlichen Dashboard auch mit Team-Dashboards', () => {
+    render(
+      <DashboardSwitcherMenuV2
+        menuRef={{ current: null }}
+        currentDashboard={currentDash}
+        dashboards={dashboards}
+        errorText={null}
+        isPreviewMode={false}
+        isLimitReached={false}
+        onOpenAction={vi.fn()}
+        onOpenDuplicateDialog={vi.fn()}
+        onKeyDown={vi.fn()}
+        itemRefs={{ current: [] }}
+      />,
+    );
+
+    const deleteBtn = screen.getByTestId('delete-dashboard-menu-item');
+    expect(deleteBtn).toBeDisabled();
+    expect(deleteBtn).toHaveAttribute('title', 'Das letzte Dashboard kann nicht gelöscht werden');
   });
 
   it('deaktiviert Löschen bei schreibgeschütztem Team-Dashboard', () => {

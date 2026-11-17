@@ -16,7 +16,7 @@ export interface DashboardSwitcherMenuV2Props {
   errorText: string | null;
   isPreviewMode: boolean;
   isLimitReached: boolean;
-  isOnlyOneDashboard: boolean;
+  isOnlyOneDashboard?: boolean;
   onOpenAction: (action: PendingSelectionAction) => void;
   onOpenDuplicateDialog: () => void;
   onOpenShareDialog?: () => void;
@@ -78,7 +78,6 @@ export function DashboardSwitcherMenuV2({
   errorText,
   isPreviewMode,
   isLimitReached,
-  isOnlyOneDashboard,
   onOpenAction,
   onOpenDuplicateDialog,
   onOpenShareDialog,
@@ -90,12 +89,13 @@ export function DashboardSwitcherMenuV2({
     groupDashboardsForMenu(dashboards);
 
   const isCurrentTeam = currentDashboard.scope === 'team';
-  const isDeleteDisabled = isCurrentTeam ? currentDashboard.canWrite === false : isOnlyOneDashboard;
+  const isPersonalLast = personalDashboards.length <= 1;
+  const isDeleteDisabled = isCurrentTeam ? currentDashboard.canWrite === false : isPersonalLast;
   const deleteDisabledTooltip = isCurrentTeam
     ? currentDashboard.canWrite === false
       ? 'Keine Schreibberechtigung für dieses Team-Dashboard'
       : undefined
-    : isOnlyOneDashboard
+    : isPersonalLast
       ? 'Das letzte Dashboard kann nicht gelöscht werden'
       : undefined;
 
