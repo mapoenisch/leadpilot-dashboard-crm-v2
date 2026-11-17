@@ -2,6 +2,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   INITIAL_TIME_CONTROL_STATE,
+  formatBerlinLocalDateTime,
+  getBerlinPresets,
+  parseBerlinDateTime,
   pauseTimeControl,
   resumeTimeControl,
   timeControlReducer,
@@ -129,6 +132,40 @@ describe('timeControl', () => {
         now: '2026-11-15T14:32:00.000Z',
       });
       expect(invalid).toBe(INITIAL_TIME_CONTROL_STATE);
+    });
+  });
+
+  describe('Berliner Zeitformatierung und Zeitumstellung (Auftrag 161)', () => {
+    it('erzeugt Schnellauswahl-Vorgaben für gestern, letzte Woche und letzten Monat', () => {
+      const presets = getBerlinPresets(new Date('2026-11-17T12:00:00.000Z'));
+      expect(presets).toHaveLength(3);
+      expect(presets[0]?.id).toBe('gestern');
+      expect(presets[1]?.id).toBe('letzte_woche');
+      expect(presets[2]?.id).toBe('letzter_monat');
+    });
+
+    it('formatiert Berlin LocalDateTime korrekt', () => {
+      // 15. Juli 14:30 UTC -> Sommerzeit 16:30 MESZ
+      const formatted = formatBerlinLocalDateTime('2026-07-15T14:30:00.000Z');
+      expect(formatted).toBe('2026-07-15T16:30');
+    });
+
+    it('parst Berliner Datum und Uhrzeit inkl. DST-Übergang am 29.03. und 25.10.2026', () => {
+      // Vor der Zeitumstellung im März: Standardzeit MEZ (+01:00)
+      const winter = parseBerlinDateTime('2026-03-28T12:00');
+      expect(winter).toBe('2026-03-28T12:00:00+01:00');
+
+      // Nach der Zeitumstellung im März (29.03.2026): Sommerzeit MESZ (+02:00)
+      const summer = parseBerlinDateTime('2026-03-29T14:00');
+      expect(summer).toBe('2026-03-29T14:00:00+02:00');
+
+      // Nach der Zeitumstellung im Oktober (25.10.2026): Standardzeit MEZ (+01:00)
+      const autumn = parseBerlinDateTime('2026-10-25T14:00');
+      expect(autumn).toBe('2026-10-25T14:00:00+01:00');
+
+      // Ungültige / leere Werte
+      expect(parseBerlinDateTime('')).toBeNull();
+      expect(parseBerlinDateTime('kein-datum')).toBeNull();
     });
   });
 });

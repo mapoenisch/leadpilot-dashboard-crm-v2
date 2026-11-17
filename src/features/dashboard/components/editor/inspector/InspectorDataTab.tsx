@@ -15,6 +15,7 @@ import {
 } from '../../../model/historyCapability';
 import { useOptionalTimeControl } from '../../../time/TimeControlProvider';
 import { useDashboardData } from '../../../hooks/useDashboardData';
+import { TimeWindowField, type TimeWindowConfig } from './TimeWindowField';
 
 export function InspectorDataTab({
   selectedTile,
@@ -64,6 +65,15 @@ export function InspectorDataTab({
       query: {
         ...normQuery,
         pipelineId: nextPipelineId,
+      },
+    });
+  };
+
+  const handleWindowChange = (nextWindow: TimeWindowConfig | undefined) => {
+    onTileOverrideChange(selectedTile.id, {
+      query: {
+        ...normQuery,
+        window: nextWindow,
       },
     });
   };
@@ -202,34 +212,41 @@ export function InspectorDataTab({
         )}
       </div>
 
-      {/* Zeitraum */}
-      <div className="space-y-1.5">
-        <label className="text-xs font-medium text-[var(--color-text-muted)]">Zeitraum</label>
-        <select
-          data-testid="inspector-timeframe-override"
-          aria-label="Zeitraum"
-          disabled
-          value={caps?.allowedTimeframes[0] ?? 'fest'}
-          className="h-8 w-full rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-2 text-xs text-white outline-none focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <option value="fest" className="bg-[var(--color-bg-deep,#051413)]">
-            Fester Stichtag (31.12.2025)
-          </option>
-          <option value="aktuell" className="bg-[var(--color-bg-deep,#051413)]">
-            Aktueller Snapshot (CRM)
-          </option>
-          <option value="live" className="bg-[var(--color-bg-deep,#051413)]">
-            Echtzeit-Stream (Live)
-          </option>
-        </select>
-        <p
-          className="text-[10px] text-[var(--color-text-muted)]"
-          data-testid="timeframe-disabled-reason"
-        >
-          Fester Zeitbezug laut Kennzahl ({caps?.allowedTimeframes[0] ?? 'fest'}). Eigene
-          Zeitfenster folgen in P10.
-        </p>
-      </div>
+      {/* Zeitfenster für Verlaufskacheln (Auftrag 161 §2.3 Nr. 15) bzw. Zeitraum für andere */}
+      {isTimeSeries && catalogEntry ? (
+        <TimeWindowField
+          catalogEntry={catalogEntry}
+          currentWindow={normQuery.window}
+          onChangeWindow={handleWindowChange}
+        />
+      ) : (
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-[var(--color-text-muted)]">Zeitraum</label>
+          <select
+            data-testid="inspector-timeframe-override"
+            aria-label="Zeitraum"
+            disabled
+            value={caps?.allowedTimeframes[0] ?? 'fest'}
+            className="h-8 w-full rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-2 text-xs text-white outline-none focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value="fest" className="bg-[var(--color-bg-deep,#051413)]">
+              Fester Stichtag (31.12.2025)
+            </option>
+            <option value="aktuell" className="bg-[var(--color-bg-deep,#051413)]">
+              Aktueller Snapshot (CRM)
+            </option>
+            <option value="live" className="bg-[var(--color-bg-deep,#051413)]">
+              Echtzeit-Stream (Live)
+            </option>
+          </select>
+          <p
+            className="text-[10px] text-[var(--color-text-muted)]"
+            data-testid="timeframe-disabled-reason"
+          >
+            Fester Zeitbezug laut Kennzahl ({caps?.allowedTimeframes[0] ?? 'fest'}).
+          </p>
+        </div>
+      )}
     </div>
   );
 }

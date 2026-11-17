@@ -227,5 +227,59 @@ describe('tileQuery (Auftrag 154 Task T1b & T3)', () => {
       expect(res.valid).toBe(false);
       expect(res.errors.some((e) => e.code === 'zeitraum_unzulaessig')).toBe(true);
     });
+
+    describe('Fehlercode fenster_unzulaessig und typ_ungueltig (Auftrag 161)', () => {
+      const liveTileEntry = getCatalogEntry('live.arr.verlauf') as ActiveCatalogEntry;
+
+      it('lehnt nicht-Objekt oder unvollständige Schlüssel für window ab', () => {
+        expect(
+          validateTileQuery({ metricId: 'crm.pipeline_deals', window: 'invalid' as unknown as never }, crmDealsEntry).errors.some((e) => e.code === 'typ_ungueltig'),
+        ).toBe(true);
+
+        expect(
+          validateTileQuery({ metricId: 'crm.pipeline_deals', window: { count: 10 } as unknown as never }, crmDealsEntry).errors.some((e) => e.code === 'typ_ungueltig'),
+        ).toBe(true);
+
+        expect(
+          validateTileQuery({ metricId: 'crm.pipeline_deals', window: { count: -1, resolution: 'tag' } }, crmDealsEntry).errors.some((e) => e.code === 'typ_ungueltig'),
+        ).toBe(true);
+      });
+
+      it('lehnt window für Nicht-Verlaufskennzahlen ab', () => {
+        const res = validateTileQuery(
+          { metricId: 'baseline.arr', window: { count: 10, resolution: 'tag' } },
+          baselineArrEntry,
+        );
+        expect(res.errors.some((e) => e.code === 'fenster_unzulaessig')).toBe(true);
+      });
+
+      it('prüft Quellenbeschränkungen für CRM (keine Stunde, max Limits)', () => {
+        // Stunde auf CRM unzulässig
+        expect(
+          validateTileQuery({ metricId: 'crm.pipeline_deals', window: { count: 10, resolution: 'stunde' } }, crmDealsEntry).errors.some((e) => e.code === 'fenster_unzulaessig'),
+        ).toBe(true);
+
+        // Mehr als 366 Tage auf CRM unzulässig
+        expect(
+          validateTileQuery({ metricId: 'crm.pipeline_deals', window: { count: 400, resolution: 'tag' } }, crmDealsEntry).errors.some((e) => e.code === 'fenster_unzulaessig'),
+        ).toBe(true);
+      });
+
+      it('prüft Quellenbeschränkungen für Live (keine Woche/Monat, max 90 Tage)', () => {
+        // Woche auf Live unzulässig
+        const resWoche = validateTileQuery(
+          { metricId: 'live.arr.verlauf', window: { count: 4, resolution: 'woche' } },
+          liveTileEntry,
+        );
+        expect(resWoche.errors.some((e) => e.code === 'fenster_unzulaessig')).toBe(true);
+
+        // Mehr als 90 Tage auf Live unzulässig
+        const resTage = validateTileQuery(
+          { metricId: 'live.arr.verlauf', window: { count: 100, resolution: 'tag' } },
+          liveTileEntry,
+        );
+        expect(resTage.errors.some((e) => e.code === 'fenster_unzulaessig')).toBe(true);
+      });
+    });
   });
 });

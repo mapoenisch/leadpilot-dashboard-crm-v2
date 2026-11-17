@@ -138,4 +138,69 @@ describe('Modus zeitpunkt Kachelanzeige (Auftrag 161)', () => {
     // Hinweis 'zeitunabhängiger Wert' in Standzeile
     expect(screen.getByTestId('tile-stand-line')).toHaveTextContent(/zeitunabhängiger Wert/i);
   });
+
+  it('zeigt für Verlaufskacheln im Modus zeitpunkt das Fenster bis zum Analysezeitpunkt', () => {
+    const seriesEntry: ActiveCatalogEntry = {
+      ...pufferEntry,
+      id: 'crm.deals',
+      name: 'Gewonnene Deals',
+      history: {
+        kind: 'ereignisse',
+        reconstructable: 'nur_fluesse',
+        note: 'Test-Notiz',
+        defaultWindow: { count: 12, resolution: 'woche' },
+      },
+    };
+
+    const rawData: ResolvedTileData = {
+      catalogId: 'crm.deals',
+      state: 'bereit',
+      value: 42,
+      series: null,
+      overview: null,
+      unit: 'Deals',
+      timeBasis: 'Ereignisstrom',
+      asOf: '2026-11-16T14:00:00.000Z',
+      origin: { layer: 'crm', module: 'crm', exportName: 'deals' },
+      scope: 'organisation',
+      effectiveFilter: { mode: 'fester_stand', period: null, pipeline: null },
+      timeSeries: {
+        points: [
+          { at: '2026-10-01T00:00:00Z', value: 10, status: 'belegt', measuredAt: null },
+          { at: '2026-10-08T00:00:00Z', value: 12, status: 'belegt', measuredAt: null },
+        ],
+        resolution: 'woche',
+        from: '2026-10-01T00:00:00Z',
+        to: '2026-10-15T00:00:00Z',
+        source: 'deal_stage_events',
+        historyStartAt: '2026-10-01T00:00:00Z',
+        generatedAt: '2026-10-15T00:00:00Z',
+      },
+    };
+
+    const dataWithStand = attachTileStand(rawData, {
+      mode: 'zeitpunkt',
+      analysisAt: '2026-10-31T23:00:00.000Z',
+      observedAt: '2026-11-16T14:00:00.000Z',
+      loadedAfterPause: false,
+    });
+
+    render(
+      <DashboardTile
+        tile={{
+          tileId: 't-series',
+          catalogId: 'crm.deals',
+          view: 'zahl',
+          size: 'klein',
+          filterMode: 'fester_stand',
+        }}
+        entry={seriesEntry}
+        data={dataWithStand}
+        onShowDetails={() => {}}
+      />,
+    );
+
+    const standLine = screen.getByTestId('tile-stand-line');
+    expect(standLine).toHaveTextContent(/Verlauf letzte 2 Wochen, je Woche bis/i);
+  });
 });
