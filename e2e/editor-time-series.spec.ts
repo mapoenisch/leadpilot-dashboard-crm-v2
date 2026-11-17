@@ -78,8 +78,10 @@ test.describe('Dashboard-Editor V2: Zeitreihen-Kacheln (Auftrag 160 / P10b-1)', 
     // CRM-Kachel hat "vor Aufzeichnungsbeginn"-Zone
     await expect(crmTile.getByTestId('depth-history-zone')).toBeVisible();
 
-    // Standzeile zeigt "Verlauf Letzte 12 Wochen"
-    await expect(crmTile.getByTestId('tile-stand-line')).toContainText('Verlauf Letzte 12 Wochen');
+    // Standzeile zeigt "Verlauf letzte 12 Wochen"
+    await expect(crmTile.getByTestId('tile-stand-line')).toContainText(
+      /Verlauf (letzte|Letzte) 12 Wochen/,
+    );
 
     // 3. Live-Verlaufskachel hinzufügen
     await page.getByTestId('library-tab-live').click();

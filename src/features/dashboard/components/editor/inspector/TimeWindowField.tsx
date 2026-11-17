@@ -2,13 +2,19 @@
 // Zeitfenster-Auswahl je Verlaufskachel im Kachel-Inspector.
 // Unterstützt Katalog-Standard, Vorgaben je Quelle und eigenes Fenster mit Höchstwerten.
 
-import { useEffect, useState, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import type { ActiveCatalogEntry } from '../../../model/dashboardCatalog';
 import type { TimeSeriesResolution } from '../../../data/dashboardData';
 
 export interface TimeWindowConfig {
   count: number;
   resolution: TimeSeriesResolution;
+}
+
+function isSameWindow(a?: TimeWindowConfig, b?: TimeWindowConfig): boolean {
+  if (!a && !b) return true;
+  if (!a || !b) return false;
+  return a.count === b.count && a.resolution === b.resolution;
 }
 
 export interface TimeWindowFieldProps {
@@ -66,33 +72,67 @@ export function TimeWindowField({
     ? `Standard (${defaultWin.count} ${defaultWin.resolution === 'stunde' ? 'Std.' : defaultWin.resolution === 'tag' ? 'Tage' : defaultWin.resolution === 'woche' ? 'Wochen' : 'Monate'})`
     : 'Standard (Katalog)';
 
-  // Erkennen, ob aktuelles Fenster einem Preset entspricht
-  let currentPresetId = 'standard';
-  if (currentWindow) {
+  const [isCustomMode, setIsCustomMode] = useState<boolean>(() => {
+    if (!currentWindow) return false;
+    return !presets.some(
+      (p) =>
+        p.window &&
+        p.window.count === currentWindow.count &&
+        p.window.resolution === currentWindow.resolution,
+    );
+  });
+  const [selectedPresetId, setSelectedPresetId] = useState<string>(() => {
+    if (!currentWindow) return 'standard';
     const matched = presets.find(
       (p) =>
         p.window &&
         p.window.count === currentWindow.count &&
         p.window.resolution === currentWindow.resolution,
     );
-    currentPresetId = matched ? matched.id : 'custom';
-  }
-
-  const [selectedPreset, setSelectedPreset] = useState<string>(currentPresetId);
+    return matched ? matched.id : 'custom';
+  });
   const [customCount, setCustomCount] = useState<number>(currentWindow?.count ?? 30);
   const [customResolution, setCustomResolution] = useState<TimeSeriesResolution>(
     currentWindow?.resolution ?? (layer === 'crm' ? 'woche' : 'tag'),
   );
   const [error, setError] = useState<string | null>(null);
 
+  const lastEmittedWindowRef = useRef<TimeWindowConfig | undefined>(currentWindow);
+  const prevTileIdRef = useRef<string>(catalogEntry.id);
+
   useEffect(() => {
-    setSelectedPreset(currentPresetId);
-    if (currentWindow) {
-      setCustomCount(currentWindow.count);
-      setCustomResolution(currentWindow.resolution);
+    const isNewTile = catalogEntry.id !== prevTileIdRef.current;
+    const isExternalChange = !isSameWindow(currentWindow, lastEmittedWindowRef.current);
+
+    if (isNewTile || isExternalChange) {
+      prevTileIdRef.current = catalogEntry.id;
+      lastEmittedWindowRef.current = currentWindow;
+      setError(null);
+
+      if (!currentWindow) {
+        setIsCustomMode(false);
+        setSelectedPresetId('standard');
+      } else {
+        const matched = presets.find(
+          (p) =>
+            p.window &&
+            p.window.count === currentWindow.count &&
+            p.window.resolution === currentWindow.resolution,
+        );
+        if (matched) {
+          setIsCustomMode(false);
+          setSelectedPresetId(matched.id);
+          setCustomCount(currentWindow.count);
+          setCustomResolution(currentWindow.resolution);
+        } else {
+          setIsCustomMode(true);
+          setSelectedPresetId('custom');
+          setCustomCount(currentWindow.count);
+          setCustomResolution(currentWindow.resolution);
+        }
+      }
     }
-    setError(null);
-  }, [catalogEntry.id, currentPresetId, currentWindow]);
+  }, [catalogEntry.id, currentWindow, presets]);
 
   const allowedResolutions: readonly { value: TimeSeriesResolution; label: string }[] =
     layer === 'crm'
@@ -106,26 +146,6 @@ export function TimeWindowField({
           { value: 'tag', label: 'Tage (max. 90)' },
         ];
 
-  const handlePresetChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    const nextId = e.target.value;
-    setSelectedPreset(nextId);
-    setError(null);
-
-    if (nextId === 'standard') {
-      onChangeWindow(undefined);
-      return;
-    }
-    if (nextId === 'custom') {
-      validateAndApplyCustom(customCount, customResolution);
-      return;
-    }
-
-    const matched = presets.find((p) => p.id === nextId);
-    if (matched?.window) {
-      onChangeWindow(matched.window);
-    }
-  };
-
   const validateAndApplyCustom = (count: number, resolution: TimeSeriesResolution) => {
     if (!Number.isInteger(count) || count < 1) {
       setError('Bitte eine ganze Zahl von mindestens 1 eingeben.');
@@ -137,11 +157,50 @@ export function TimeWindowField({
       return;
     }
     if (count > max) {
-      setError(`Maximal ${max} ${resolution === 'stunde' ? 'Stunden' : resolution === 'tag' ? 'Tage' : resolution === 'woche' ? 'Wochen' : 'Monate'} zulässig.`);
+      setError(
+        `Maximal ${max} ${
+          resolution === 'stunde'
+            ? 'Stunden'
+            : resolution === 'tag'
+              ? 'Tage'
+              : resolution === 'woche'
+                ? 'Wochen'
+                : 'Monate'
+        } zulässig.`,
+      );
       return;
     }
     setError(null);
-    onChangeWindow({ count, resolution });
+    const nextWindow: TimeWindowConfig = { count, resolution };
+    lastEmittedWindowRef.current = nextWindow;
+    onChangeWindow(nextWindow);
+  };
+
+  const handlePresetChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const nextId = e.target.value;
+    setError(null);
+
+    if (nextId === 'standard') {
+      setIsCustomMode(false);
+      setSelectedPresetId('standard');
+      lastEmittedWindowRef.current = undefined;
+      onChangeWindow(undefined);
+      return;
+    }
+    if (nextId === 'custom') {
+      setIsCustomMode(true);
+      setSelectedPresetId('custom');
+      validateAndApplyCustom(customCount, customResolution);
+      return;
+    }
+
+    const matched = presets.find((p) => p.id === nextId);
+    if (matched?.window) {
+      setIsCustomMode(false);
+      setSelectedPresetId(nextId);
+      lastEmittedWindowRef.current = matched.window;
+      onChangeWindow(matched.window);
+    }
   };
 
   return (
@@ -149,7 +208,7 @@ export function TimeWindowField({
       <label className="text-xs font-medium text-[var(--color-text-muted)]">Zeitfenster</label>
       <select
         data-testid="inspector-window-preset-select"
-        value={selectedPreset}
+        value={isCustomMode ? 'custom' : selectedPresetId}
         onChange={handlePresetChange}
         className="h-8 w-full rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-2 text-xs text-white outline-none focus:border-primary"
       >
@@ -166,7 +225,7 @@ export function TimeWindowField({
         </option>
       </select>
 
-      {selectedPreset === 'custom' && (
+      {isCustomMode && (
         <div className="flex flex-col gap-1.5 pt-1">
           <div className="flex gap-2">
             <input

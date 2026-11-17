@@ -120,4 +120,30 @@ describe('TimePointDialogV2', () => {
     fireEvent.keyDown(dialog, { key: 'Tab', shiftKey: false });
     expect(document.activeElement).toBe(first);
   });
+
+  it('behält manuelle Eingabe bei Re-Render / Minutenwechsel bei', () => {
+    const { rerender } = render(
+      <TimePointDialogV2
+        isOpen={true}
+        onClose={() => {}}
+        onSelect={() => {}}
+        currentAnalysisAt={null}
+      />,
+    );
+
+    const input = screen.getByTestId('time-point-datetime-input') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '2026-10-15T14:30' } });
+    expect(input.value).toBe('2026-10-15T14:30');
+
+    // Re-render ohne Props-Änderung (z.B. Minutentick)
+    rerender(
+      <TimePointDialogV2
+        isOpen={true}
+        onClose={() => {}}
+        onSelect={() => {}}
+        currentAnalysisAt={null}
+      />,
+    );
+    expect(input.value).toBe('2026-10-15T14:30');
+  });
 });

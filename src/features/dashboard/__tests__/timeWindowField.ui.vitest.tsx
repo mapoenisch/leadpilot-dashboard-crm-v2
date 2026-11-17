@@ -1,7 +1,7 @@
 // Auftrag 161 (P10b-2): UI-Tests für TimeWindowField im Inspector.
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { TimeWindowField } from '../components/editor/inspector/TimeWindowField';
+import { TimeWindowField, type TimeWindowConfig } from '../components/editor/inspector/TimeWindowField';
 import { getCatalogEntry, type ActiveCatalogEntry } from '../model/dashboardCatalog';
 
 const crmEntry = getCatalogEntry('crm.phaseneintritte_verlauf') as ActiveCatalogEntry;
@@ -124,5 +124,40 @@ describe('TimeWindowField', () => {
     );
     expect(select.value).toBe('standard');
     expect(screen.queryByTestId('inspector-window-custom-count')).not.toBeInTheDocument();
+  });
+
+  it('behält den benutzerdefinierten Modus bei, auch wenn die Werte einem Preset entsprechen', () => {
+    let current: TimeWindowConfig | undefined = { count: 12, resolution: 'woche' };
+    const { rerender } = render(
+      <TimeWindowField
+        catalogEntry={crmEntry}
+        currentWindow={current}
+        onChangeWindow={(next) => {
+          current = next;
+        }}
+      />,
+    );
+
+    const select = screen.getByTestId('inspector-window-preset-select') as HTMLSelectElement;
+    expect(select.value).toBe('12_wochen');
+
+    // Wähle "Eigenes Fenster…"
+    fireEvent.change(select, { target: { value: 'custom' } });
+    expect(select.value).toBe('custom');
+    expect(screen.getByTestId('inspector-window-custom-count')).toBeInTheDocument();
+
+    // Re-render mit dem übernommenen Fenster (das count: 12, resolution: 'woche' entspricht)
+    rerender(
+      <TimeWindowField
+        catalogEntry={crmEntry}
+        currentWindow={current}
+        onChangeWindow={(next) => {
+          current = next;
+        }}
+      />,
+    );
+    // Soll weiterhin im custom-Modus bleiben und Eingabefelder nicht einklappen
+    expect(select.value).toBe('custom');
+    expect(screen.getByTestId('inspector-window-custom-count')).toBeInTheDocument();
   });
 });

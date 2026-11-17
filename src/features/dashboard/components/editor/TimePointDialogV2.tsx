@@ -27,10 +27,10 @@ export function TimePointDialogV2({
 }: TimePointDialogV2Props) {
   const titleId = useId();
   const presets = getBerlinPresets();
-  const nowLocalDateTime = formatBerlinLocalDateTime(new Date());
+  const maxLocalDateTime = formatBerlinLocalDateTime(new Date());
 
   const [datetimeInput, setDatetimeInput] = useState<string>(() =>
-    currentAnalysisAt ? formatBerlinLocalDateTime(currentAnalysisAt) : nowLocalDateTime,
+    currentAnalysisAt ? formatBerlinLocalDateTime(currentAnalysisAt) : maxLocalDateTime,
   );
   const [error, setError] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -39,7 +39,9 @@ export function TimePointDialogV2({
     if (isOpen) {
       setError(null);
       setDatetimeInput(
-        currentAnalysisAt ? formatBerlinLocalDateTime(currentAnalysisAt) : nowLocalDateTime,
+        currentAnalysisAt
+          ? formatBerlinLocalDateTime(currentAnalysisAt)
+          : formatBerlinLocalDateTime(new Date()),
       );
       dialogRef.current?.focus();
     }
@@ -47,7 +49,7 @@ export function TimePointDialogV2({
     return () => {
       triggerEl?.focus();
     };
-  }, [isOpen, currentAnalysisAt, nowLocalDateTime, triggerRef]);
+  }, [isOpen, currentAnalysisAt, triggerRef]);
 
   if (!isOpen) return null;
 
@@ -159,7 +161,7 @@ export function TimePointDialogV2({
                 id="time-point-input"
                 type="datetime-local"
                 data-testid="time-point-datetime-input"
-                max={nowLocalDateTime}
+                max={maxLocalDateTime}
                 value={datetimeInput}
                 onChange={(e) => {
                   setDatetimeInput(e.target.value);
