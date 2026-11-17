@@ -225,7 +225,7 @@ BEGIN
     INSERT INTO public.dashboard_revisions (
       dashboard_id, organization_id, revision, title, config, created_by_user_id, created_at, change_summary
     ) VALUES (
-      v_dashboard_id, v_org, 1, v_trimmed_title, p_config, v_user, v_created_at, COALESCE(p_description, 'Ersterstellung')
+      v_dashboard_id, v_org, 1, v_trimmed_title, p_config, v_user, v_created_at, 'Dashboard initial erstellt'
     );
 
     RETURN QUERY SELECT v_dashboard_id, 1, v_created_at;
@@ -283,7 +283,7 @@ BEGIN
     INSERT INTO public.dashboard_revisions (
       dashboard_id, organization_id, revision, title, config, created_by_user_id, created_at, change_summary
     ) VALUES (
-      v_dashboard_id, v_org, 1, v_trimmed_title, p_config, v_user, v_created_at, COALESCE(p_description, 'Ersterstellung')
+      v_dashboard_id, v_org, 1, v_trimmed_title, p_config, v_user, v_created_at, 'Dashboard initial erstellt'
     );
 
     RETURN QUERY SELECT v_dashboard_id, 1, v_created_at;
@@ -297,9 +297,9 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.save_dashboard_v2(
   p_dashboard_id UUID,
+  p_expected_revision INTEGER,
   p_title TEXT,
   p_config JSONB,
-  p_expected_revision INTEGER,
   p_change_summary TEXT DEFAULT NULL
 )
 RETURNS TABLE (
@@ -610,8 +610,8 @@ $$;
 REVOKE ALL ON FUNCTION public.create_dashboard_v2(TEXT, JSONB, TEXT, UUID, TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.create_dashboard_v2(TEXT, JSONB, TEXT, UUID, TEXT) TO authenticated;
 
-REVOKE ALL ON FUNCTION public.save_dashboard_v2(UUID, TEXT, JSONB, INTEGER, TEXT) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.save_dashboard_v2(UUID, TEXT, JSONB, INTEGER, TEXT) TO authenticated;
+REVOKE ALL ON FUNCTION public.save_dashboard_v2(UUID, INTEGER, TEXT, JSONB, TEXT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.save_dashboard_v2(UUID, INTEGER, TEXT, JSONB, TEXT) TO authenticated;
 
 REVOKE ALL ON FUNCTION public.restore_dashboard_revision_v2(UUID, INTEGER, INTEGER) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.restore_dashboard_revision_v2(UUID, INTEGER, INTEGER) TO authenticated;
@@ -842,10 +842,15 @@ BEGIN
     RAISE EXCEPTION 'LP_FORBIDDEN' USING ERRCODE = '42501';
   END IF;
 
-  IF NOT EXISTS (
-    SELECT 1 FROM public.dashboard_teams t
-    WHERE t.id = p_team_id AND t.organization_id = v_org
-  ) THEN
+  -- Serialisierung gegen paralleles Anlegen/Kopieren von Dashboards in dieses Team
+  PERFORM pg_advisory_xact_lock(hashtext('team_dashboard:' || v_org::text || ':' || p_team_id::text));
+
+  -- Zeilensperre auf das Team
+  PERFORM 1 FROM public.dashboard_teams t
+  WHERE t.id = p_team_id AND t.organization_id = v_org
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
     RAISE EXCEPTION 'LP_TEAM_NOT_FOUND' USING ERRCODE = 'P0002';
   END IF;
 
@@ -1197,7 +1202,8 @@ BEGIN
   SELECT d.scope, d.team_id, d.revision
   INTO v_scope, v_team_id, v_current_revision
   FROM public.dashboards AS d
-  WHERE d.id = p_dashboard_id AND d.organization_id = v_org;
+  WHERE d.id = p_dashboard_id AND d.organization_id = v_org
+  FOR UPDATE;
 
   IF NOT FOUND OR v_scope <> 'team' THEN
     RAISE EXCEPTION 'LP_DASHBOARD_NOT_FOUND' USING ERRCODE = 'P0002';
@@ -1212,14 +1218,21 @@ BEGIN
   END IF;
 
   IF p_expected_revision IS NOT NULL AND v_current_revision <> p_expected_revision THEN
-    RAISE EXCEPTION 'LP_DASHBOARD_CONFLICT' USING ERRCODE = 'P0001';
+    RAISE EXCEPTION 'LP_DASHBOARD_CONFLICT' USING ERRCODE = 'P0001',
+      DETAIL = 'Aktuelle Revision (' || v_current_revision || ') weicht von erwarteter Revision (' || p_expected_revision || ') ab.';
   END IF;
 
   DELETE FROM public.dashboard_revisions r
   WHERE r.dashboard_id = p_dashboard_id AND r.organization_id = v_org;
 
   DELETE FROM public.dashboards d
-  WHERE d.id = p_dashboard_id AND d.organization_id = v_org;
+  WHERE d.id = p_dashboard_id
+    AND d.organization_id = v_org
+    AND (p_expected_revision IS NULL OR d.revision = p_expected_revision);
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'LP_DASHBOARD_CONFLICT' USING ERRCODE = 'P0001';
+  END IF;
 
   INSERT INTO public.audit_log (
     organization_id, actor_id, action, target_type, target_id, details

@@ -262,9 +262,9 @@ SELECT set_config('request.jwt.claims', '{"sub":"9f620000-0000-0000-0000-0000000
 CREATE TEMP TABLE tmp_dash_saved AS
 SELECT * FROM public.save_dashboard_v2(
   (SELECT dashboard_id FROM tmp_dash_created),
+  1,
   'Team Board 1 Updated',
   jsonb_build_object('version', 2, 'title', 'Team Board 1 Updated', 'scope', 'team', 'teamId', (SELECT id::text FROM tmp_team_created), 'ownerUserId', '9f620000-0000-0000-0000-000000000002', 'organizationId', 'af620000-0000-0000-0000-00000000000a', 'globalTimeframe', 'aktuell', 'tiles', '[]'::jsonb),
-  1,
   'Zweite Revision'
 );
 
@@ -278,7 +278,7 @@ SELECT is(
 SELECT set_config('request.jwt.claims', '{"sub":"9f620000-0000-0000-0000-000000000004","role":"authenticated"}', true);
 SELECT throws_ok(
   format(
-    'SELECT * FROM public.save_dashboard_v2(%L::uuid, ''Team Board Viewer Edit'', jsonb_build_object(''version'', 2, ''title'', ''Team Board Viewer Edit'', ''scope'', ''team'', ''teamId'', %L, ''ownerUserId'', ''9f620000-0000-0000-0000-000000000004'', ''organizationId'', ''af620000-0000-0000-0000-00000000000a'', ''globalTimeframe'', ''aktuell'', ''tiles'', ''[]''::jsonb), 2)',
+    'SELECT * FROM public.save_dashboard_v2(%L::uuid, 2, ''Team Board Viewer Edit'', jsonb_build_object(''version'', 2, ''title'', ''Team Board Viewer Edit'', ''scope'', ''team'', ''teamId'', %L, ''ownerUserId'', ''9f620000-0000-0000-0000-000000000004'', ''organizationId'', ''af620000-0000-0000-0000-00000000000a'', ''globalTimeframe'', ''aktuell'', ''tiles'', ''[]''::jsonb))',
     (SELECT dashboard_id FROM tmp_dash_created),
     (SELECT id::text FROM tmp_team_created)
   ),
@@ -291,7 +291,7 @@ SELECT throws_ok(
 SELECT set_config('request.jwt.claims', '{"sub":"9f620000-0000-0000-0000-000000000003","role":"authenticated"}', true);
 SELECT throws_ok(
   format(
-    'SELECT * FROM public.save_dashboard_v2(%L::uuid, ''Non Member Edit'', jsonb_build_object(''version'', 2, ''title'', ''Non Member Edit'', ''scope'', ''team'', ''teamId'', %L, ''ownerUserId'', ''9f620000-0000-0000-0000-000000000003'', ''organizationId'', ''af620000-0000-0000-0000-00000000000a'', ''globalTimeframe'', ''aktuell'', ''tiles'', ''[]''::jsonb), 2)',
+    'SELECT * FROM public.save_dashboard_v2(%L::uuid, 2, ''Non Member Edit'', jsonb_build_object(''version'', 2, ''title'', ''Non Member Edit'', ''scope'', ''team'', ''teamId'', %L, ''ownerUserId'', ''9f620000-0000-0000-0000-000000000003'', ''organizationId'', ''af620000-0000-0000-0000-00000000000a'', ''globalTimeframe'', ''aktuell'', ''tiles'', ''[]''::jsonb))',
     (SELECT dashboard_id FROM tmp_dash_created),
     (SELECT id::text FROM tmp_team_created)
   ),
@@ -323,7 +323,7 @@ SELECT ok(
 SELECT set_config('request.jwt.claims', '{"sub":"9f620000-0000-0000-0000-000000000002","role":"authenticated"}', true);
 SELECT throws_ok(
   format(
-    'SELECT * FROM public.save_dashboard_v2(%L::uuid, ''Versuch nach Entzug'', jsonb_build_object(''version'', 2, ''title'', ''Versuch nach Entzug'', ''scope'', ''team'', ''teamId'', %L, ''ownerUserId'', ''9f620000-0000-0000-0000-000000000002'', ''organizationId'', ''af620000-0000-0000-0000-00000000000a'', ''globalTimeframe'', ''aktuell'', ''tiles'', ''[]''::jsonb), 2)',
+    'SELECT * FROM public.save_dashboard_v2(%L::uuid, 2, ''Versuch nach Entzug'', jsonb_build_object(''version'', 2, ''title'', ''Versuch nach Entzug'', ''scope'', ''team'', ''teamId'', %L, ''ownerUserId'', ''9f620000-0000-0000-0000-000000000002'', ''organizationId'', ''af620000-0000-0000-0000-00000000000a'', ''globalTimeframe'', ''aktuell'', ''tiles'', ''[]''::jsonb))',
     (SELECT dashboard_id FROM tmp_dash_created),
     (SELECT id::text FROM tmp_team_created)
   ),
@@ -336,7 +336,7 @@ SELECT throws_ok(
 SELECT set_config('request.jwt.claims', '{"sub":"9f620000-0000-0000-0000-000000000004","role":"authenticated"}', true);
 SELECT throws_ok(
   format(
-    'SELECT * FROM public.save_dashboard_v2(%L::uuid, ''Viewer Konflikt Test'', jsonb_build_object(''version'', 2, ''title'', ''Viewer Konflikt Test'', ''scope'', ''team'', ''teamId'', %L, ''ownerUserId'', ''9f620000-0000-0000-0000-000000000004'', ''organizationId'', ''af620000-0000-0000-0000-00000000000a'', ''globalTimeframe'', ''aktuell'', ''tiles'', ''[]''::jsonb), 999)',
+    'SELECT * FROM public.save_dashboard_v2(%L::uuid, 999, ''Viewer Konflikt Test'', jsonb_build_object(''version'', 2, ''title'', ''Viewer Konflikt Test'', ''scope'', ''team'', ''teamId'', %L, ''ownerUserId'', ''9f620000-0000-0000-0000-000000000004'', ''organizationId'', ''af620000-0000-0000-0000-00000000000a'', ''globalTimeframe'', ''aktuell'', ''tiles'', ''[]''::jsonb))',
     (SELECT dashboard_id FROM tmp_dash_created),
     (SELECT id::text FROM tmp_team_created)
   ),
@@ -356,7 +356,7 @@ SELECT ok(
 SELECT set_config('request.jwt.claims', '{"sub":"9f620000-0000-0000-0000-000000000002","role":"authenticated"}', true);
 SELECT throws_ok(
   format(
-    'SELECT * FROM public.save_dashboard_v2(%L::uuid, ''Konflikt Test'', jsonb_build_object(''version'', 2, ''title'', ''Konflikt Test'', ''scope'', ''team'', ''teamId'', %L, ''ownerUserId'', ''9f620000-0000-0000-0000-000000000002'', ''organizationId'', ''af620000-0000-0000-0000-00000000000a'', ''globalTimeframe'', ''aktuell'', ''tiles'', ''[]''::jsonb), 1)',
+    'SELECT * FROM public.save_dashboard_v2(%L::uuid, 1, ''Konflikt Test'', jsonb_build_object(''version'', 2, ''title'', ''Konflikt Test'', ''scope'', ''team'', ''teamId'', %L, ''ownerUserId'', ''9f620000-0000-0000-0000-000000000002'', ''organizationId'', ''af620000-0000-0000-0000-00000000000a'', ''globalTimeframe'', ''aktuell'', ''tiles'', ''[]''::jsonb))',
     (SELECT dashboard_id FROM tmp_dash_created),
     (SELECT id::text FROM tmp_team_created)
   ),
@@ -375,9 +375,9 @@ SELECT ok(
 CREATE TEMP TABLE tmp_admin_saved AS
 SELECT * FROM public.save_dashboard_v2(
   (SELECT dashboard_id FROM tmp_dash_created),
+  2,
   'Admin Saved After Creator Left',
   jsonb_build_object('version', 2, 'title', 'Admin Saved After Creator Left', 'scope', 'team', 'teamId', (SELECT id::text FROM tmp_team_created), 'ownerUserId', '9f620000-0000-0000-0000-000000000001', 'organizationId', 'af620000-0000-0000-0000-00000000000a', 'globalTimeframe', 'aktuell', 'tiles', '[]'::jsonb),
-  2,
   'Admin Uebernahme'
 );
 
@@ -403,7 +403,7 @@ SET ROLE authenticated;
 SELECT set_config('request.jwt.claims', '{"sub":"9f620000-0000-0000-0000-000000000003","role":"authenticated"}', true);
 SELECT throws_ok(
   format(
-    'SELECT * FROM public.save_dashboard_v2(%L::uuid, ''Degradierter Manager Speichern'', jsonb_build_object(''version'', 2, ''title'', ''Degradierter Manager Speichern'', ''scope'', ''team'', ''teamId'', %L, ''ownerUserId'', ''9f620000-0000-0000-0000-000000000003'', ''organizationId'', ''af620000-0000-0000-0000-00000000000a'', ''globalTimeframe'', ''aktuell'', ''tiles'', ''[]''::jsonb), 3)',
+    'SELECT * FROM public.save_dashboard_v2(%L::uuid, 3, ''Degradierter Manager Speichern'', jsonb_build_object(''version'', 2, ''title'', ''Degradierter Manager Speichern'', ''scope'', ''team'', ''teamId'', %L, ''ownerUserId'', ''9f620000-0000-0000-0000-000000000003'', ''organizationId'', ''af620000-0000-0000-0000-00000000000a'', ''globalTimeframe'', ''aktuell'', ''tiles'', ''[]''::jsonb))',
     (SELECT dashboard_id FROM tmp_dash_created),
     (SELECT id::text FROM tmp_team_created)
   ),
@@ -418,9 +418,9 @@ SELECT set_config('request.jwt.claims', '{"sub":"9f620000-0000-0000-0000-0000000
 CREATE TEMP TABLE tmp_bound_saved AS
 SELECT * FROM public.save_dashboard_v2(
   (SELECT dashboard_id FROM tmp_dash_created),
+  3,
   'Bound Config Test',
-  jsonb_build_object('version', 2, 'title', 'Bound Config Test', 'scope', 'personal', 'teamId', '00000000-0000-0000-0000-000000000000', 'ownerUserId', '9f620000-0000-0000-0000-000000000001', 'organizationId', 'af620000-0000-0000-0000-00000000000a', 'globalTimeframe', 'aktuell', 'tiles', '[]'::jsonb),
-  3
+  jsonb_build_object('version', 2, 'title', 'Bound Config Test', 'scope', 'personal', 'teamId', '00000000-0000-0000-0000-000000000000', 'ownerUserId', '9f620000-0000-0000-0000-000000000001', 'organizationId', 'af620000-0000-0000-0000-00000000000a', 'globalTimeframe', 'aktuell', 'tiles', '[]'::jsonb)
 );
 
 SELECT is(

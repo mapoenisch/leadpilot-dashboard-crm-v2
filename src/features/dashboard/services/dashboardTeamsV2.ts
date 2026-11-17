@@ -94,14 +94,15 @@ export async function createDashboardTeamV2(
     }
 
     const row = (Array.isArray(data) ? data[0] : data) as {
-      team_id: string;
+      id?: string;
+      team_id?: string;
       created_at: string;
     };
 
     return {
       ok: true,
       value: {
-        teamId: row.team_id,
+        teamId: row.id ?? row.team_id ?? '',
         createdAt: row.created_at,
       },
     };
@@ -136,14 +137,15 @@ export async function updateDashboardTeamV2(
     }
 
     const row = (Array.isArray(data) ? data[0] : data) as {
-      team_id: string;
+      id?: string;
+      team_id?: string;
       updated_at: string;
     };
 
     return {
       ok: true,
       value: {
-        teamId: row.team_id,
+        teamId: row.id ?? row.team_id ?? teamId,
         updatedAt: row.updated_at,
       },
     };
@@ -173,14 +175,19 @@ export async function deleteDashboardTeamV2(
         : { ok: false, error: classified };
     }
 
-    const row = (Array.isArray(data) ? data[0] : data) as {
-      deleted_team_id: string;
-    };
+    const row = (Array.isArray(data) ? data[0] : data) as
+      | { deleted_team_id?: string }
+      | boolean
+      | undefined;
+    const deletedId =
+      typeof row === 'object' && row !== null && 'deleted_team_id' in row
+        ? (row.deleted_team_id ?? teamId)
+        : teamId;
 
     return {
       ok: true,
       value: {
-        deletedTeamId: row.deleted_team_id,
+        deletedTeamId: deletedId,
       },
     };
   } catch (cause) {
@@ -239,7 +246,7 @@ export async function listDashboardTeamMembersV2(
 export async function addDashboardTeamMemberV2(
   teamId: string,
   userId: string,
-): Promise<StorageResult<{ teamId: string; userId: string; createdAt: string }>> {
+): Promise<StorageResult<{ teamId: string; userId: string; createdAt?: string }>> {
   if (!isSupabaseConfigured || !supabase) {
     return unavailableResult();
   }
@@ -256,18 +263,21 @@ export async function addDashboardTeamMemberV2(
         : { ok: false, error: classified };
     }
 
-    const row = (Array.isArray(data) ? data[0] : data) as {
-      team_id: string;
-      user_id: string;
-      created_at: string;
-    };
+    const row = (Array.isArray(data) ? data[0] : data) as
+      | { team_id?: string; user_id?: string; created_at?: string }
+      | boolean
+      | undefined;
+    const createdAt =
+      typeof row === 'object' && row !== null && 'created_at' in row
+        ? row.created_at
+        : undefined;
 
     return {
       ok: true,
       value: {
-        teamId: row.team_id,
-        userId: row.user_id,
-        createdAt: row.created_at,
+        teamId,
+        userId,
+        createdAt,
       },
     };
   } catch (cause) {
@@ -298,14 +308,18 @@ export async function removeDashboardTeamMemberV2(
         : { ok: false, error: classified };
     }
 
-    const row = (Array.isArray(data) ? data[0] : data) as {
-      removed: boolean;
-    };
+    const row = Array.isArray(data) ? data[0] : data;
+    const removed =
+      typeof row === 'boolean'
+        ? row
+        : typeof row === 'object' && row !== null && 'removed' in row
+          ? Boolean((row as { removed: boolean }).removed)
+          : true;
 
     return {
       ok: true,
       value: {
-        removed: Boolean(row.removed),
+        removed,
       },
     };
   } catch (cause) {

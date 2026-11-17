@@ -150,9 +150,9 @@ describe('dashboardTeamsV2', () => {
   });
 
   describe('createDashboardTeamV2', () => {
-    it('ruft create_dashboard_team_v2 mit exakten Parametern auf', async () => {
+    it('ruft create_dashboard_team_v2 mit exakten Parametern auf (unterstützt id und team_id)', async () => {
       rpc.mockResolvedValueOnce({
-        data: [{ team_id: 'new-team-id', created_at: '2026-11-22T10:00:00Z' }],
+        data: [{ id: 'new-team-id', name: 'Marketing', description: 'Marketing Team', created_at: '2026-11-22T10:00:00Z' }],
         error: null,
       });
 
@@ -196,9 +196,9 @@ describe('dashboardTeamsV2', () => {
   });
 
   describe('updateDashboardTeamV2', () => {
-    it('ruft update_dashboard_team_v2 mit exakten Parametern auf', async () => {
+    it('ruft update_dashboard_team_v2 mit exakten Parametern auf (unterstützt id und team_id)', async () => {
       rpc.mockResolvedValueOnce({
-        data: [{ team_id: 't-1', updated_at: '2026-11-22T11:00:00Z' }],
+        data: [{ id: 't-1', name: 'Neuer Name', description: null, updated_at: '2026-11-22T11:00:00Z' }],
         error: null,
       });
 
@@ -230,9 +230,9 @@ describe('dashboardTeamsV2', () => {
   });
 
   describe('deleteDashboardTeamV2', () => {
-    it('ruft delete_dashboard_team_v2 mit exakten Parametern auf', async () => {
+    it('ruft delete_dashboard_team_v2 mit exakten Parametern auf (unterstützt boolesche Skalare)', async () => {
       rpc.mockResolvedValueOnce({
-        data: [{ deleted_team_id: 't-1' }],
+        data: true,
         error: null,
       });
 
@@ -298,7 +298,7 @@ describe('dashboardTeamsV2', () => {
   describe('addDashboardTeamMemberV2', () => {
     it('ruft add_dashboard_team_member_v2 mit exakten Parametern auf', async () => {
       rpc.mockResolvedValueOnce({
-        data: [{ team_id: 't-1', user_id: 'u-1', created_at: '2026-11-22T09:30:00Z' }],
+        data: true,
         error: null,
       });
 
@@ -311,7 +311,6 @@ describe('dashboardTeamsV2', () => {
       if (res.ok) {
         expect(res.value.teamId).toBe('t-1');
         expect(res.value.userId).toBe('u-1');
-        expect(res.value.createdAt).toBe('2026-11-22T09:30:00Z');
       }
     });
 
@@ -345,7 +344,7 @@ describe('dashboardTeamsV2', () => {
   describe('removeDashboardTeamMemberV2', () => {
     it('ruft remove_dashboard_team_member_v2 mit exakten Parametern auf', async () => {
       rpc.mockResolvedValueOnce({
-        data: [{ removed: true }],
+        data: true,
         error: null,
       });
 

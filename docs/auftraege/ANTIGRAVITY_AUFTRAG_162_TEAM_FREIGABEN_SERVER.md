@@ -201,7 +201,7 @@ npm test
 npm run verify
 npm run build
 npm run build:production      # mit gültiger Beispielkonfiguration
-npm run size-limit
+npx size-limit
 supabase test db              # lokal, inkl. dashboard_team_sharing.sql und aller bestehenden dashboard_*.sql
 npx tsx scripts/verifyLiveKpiCatalog.ts
 git diff <baseline> -- src/simulation src/types src/context src/services/data src/features/resources   # leer
