@@ -7,6 +7,7 @@ import { useOrganization } from '@/auth/organizationContext';
 import { DashboardWorkspace } from '../components/DashboardWorkspace';
 import { DashboardEditorShellV2 } from '../components/editor/DashboardEditorShellV2';
 import { DashboardConflictDialogV2 } from '../components/editor/DashboardConflictDialogV2';
+import { TeamAccessRevokedDialogV2 } from '../components/editor/TeamAccessRevokedDialogV2';
 import { useBrowserBackGuard } from '../hooks/useBrowserBackGuard';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useDashboardNavigation } from '../hooks/useDashboardNavigation';
@@ -49,6 +50,8 @@ function PersonalExecutiveDashboardV2Container({
   const [showDeletedDialog, setShowDeletedDialog] = useState(false);
   const [deletedDraft, setDeletedDraft] = useState<DashboardConfigV2 | null>(null);
   const [deletedDialogError, setDeletedDialogError] = useState<string | null>(null);
+  const [showRevokedDialog, setShowRevokedDialog] = useState(false);
+  const [revokedDraft, setRevokedDraft] = useState<DashboardConfigV2 | null>(null);
 
   if (v2Storage.status === 'laden' || !v2Storage.dashboard) {
     return (
@@ -64,7 +67,10 @@ function PersonalExecutiveDashboardV2Container({
   const handleSave = async (cfg: DashboardConfigV2): Promise<boolean> => {
     const res = await v2Storage.save(cfg);
     if (!res.ok) {
-      if (res.error.kind === 'konflikt') {
+      if (res.error.kind === 'team_zugriff_entzogen') {
+        setRevokedDraft(cfg);
+        setShowRevokedDialog(true);
+      } else if (res.error.kind === 'konflikt') {
         setConflictDraft(cfg);
         setConflictDialogError(null);
         setShowConflictDialog(true);
@@ -128,6 +134,21 @@ function PersonalExecutiveDashboardV2Container({
     await v2Storage.reload();
   };
 
+  const handleSaveAsPersonalCopyFromRevoked = async () => {
+    if (!revokedDraft) return;
+    const res = await v2Storage.saveAsNewPersonalCopy(revokedDraft);
+    if (res.ok) {
+      setShowRevokedDialog(false);
+      setRevokedDraft(null);
+    }
+  };
+
+  const handleDiscardAndReloadFromRevoked = async () => {
+    setShowRevokedDialog(false);
+    setRevokedDraft(null);
+    await v2Storage.reload();
+  };
+
   return (
     <>
       <TimeControlProvider key={v2Storage.dashboard.id}>
@@ -148,6 +169,10 @@ function PersonalExecutiveDashboardV2Container({
           onCreateFromTemplate={v2Storage.createFromTemplate}
           onDuplicateCurrent={v2Storage.duplicateCurrent}
           onDeleteDashboard={v2Storage.deleteDashboard}
+          onShareWithTeam={v2Storage.shareWithTeam}
+          onSaveAsPersonalCopy={async () => {
+            await v2Storage.duplicateCurrent(undefined, { scope: 'personal' });
+          }}
           onRefreshList={v2Storage.refreshList}
           listError={v2Storage.listError}
         />
@@ -156,6 +181,7 @@ function PersonalExecutiveDashboardV2Container({
         open={showConflictDialog}
         isSaving={v2Storage.isSaving}
         error={conflictDialogError}
+        scope={v2Storage.dashboard.scope}
         onReload={handleReloadConflict}
         onSaveAsCopy={handleSaveAsCopyConflict}
         onStay={() => {
@@ -173,6 +199,13 @@ function PersonalExecutiveDashboardV2Container({
           setShowDeletedDialog(false);
           setDeletedDialogError(null);
         }}
+      />
+      <TeamAccessRevokedDialogV2
+        open={showRevokedDialog}
+        dashboardTitle={v2Storage.dashboard.title}
+        isSaving={v2Storage.isSaving}
+        onSaveAsPersonalCopy={handleSaveAsPersonalCopyFromRevoked}
+        onDiscardAndReload={handleDiscardAndReloadFromRevoked}
       />
     </>
   );

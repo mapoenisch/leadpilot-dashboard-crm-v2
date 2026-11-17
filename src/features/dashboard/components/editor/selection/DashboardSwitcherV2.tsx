@@ -1,11 +1,9 @@
-// Auftrag 158 (P09b): Dashboard-Auswahl in der Top-Bar.
-// Scope-Badge, Disclosure-Menü, Tastaturbedienung und barrierefreie Ansagen.
-
-import { useCallback, useEffect, useRef } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { cn } from '@/lib/utils';
 import type {
+  AccessibleDashboardListItemV2,
   DashboardV2StorageError,
   PersonalDashboardListItemV2,
   StoredDashboardV2Row,
@@ -17,9 +15,13 @@ import { DashboardSwitcherMenuV2 } from './DashboardSwitcherMenuV2';
 import { useDashboardSelection } from './useDashboardSelection';
 import { UnsavedChangesDialog } from '../../UnsavedChangesDialog';
 
+const ShareWithTeamDialogV2 = lazy(() =>
+  import('./ShareWithTeamDialogV2').then((m) => ({ default: m.ShareWithTeamDialogV2 })),
+);
+
 export interface DashboardSwitcherV2Props {
   currentDashboard: StoredDashboardV2Row;
-  dashboards: PersonalDashboardListItemV2[];
+  dashboards: (AccessibleDashboardListItemV2 | PersonalDashboardListItemV2)[];
   isDirty: boolean;
   isPreviewMode?: boolean;
   isSaving?: boolean;
@@ -33,6 +35,7 @@ export interface DashboardSwitcherV2Props {
     id: string,
   ) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
   onSaveCurrent: () => Promise<boolean>;
+  onShareWithTeam?: (teamId: string, title: string) => Promise<{ ok: boolean; error?: unknown }>;
   onRefreshList?: () => Promise<void>;
   listError?: DashboardV2StorageError | null;
   className?: string;
@@ -61,6 +64,7 @@ export function DashboardSwitcherV2({
   onDuplicateCurrent,
   onDeleteDashboard,
   onSaveCurrent,
+  onShareWithTeam,
   onRefreshList,
   listError,
   className,
@@ -75,6 +79,7 @@ export function DashboardSwitcherV2({
     onDuplicateCurrent,
     onDeleteDashboard,
     onSaveCurrent,
+    onShareWithTeam,
   });
 
   const {
@@ -97,6 +102,7 @@ export function DashboardSwitcherV2({
     handleCreate,
     handleDuplicate,
     handleDelete,
+    handleShareWithTeam,
     returnFocusToTrigger,
   } = selection;
 
@@ -235,7 +241,22 @@ export function DashboardSwitcherV2({
             variant="neutral"
             className="border-blue-500/40 bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-300"
           >
-            Persönlich
+            {currentDashboard.scope === 'team'
+              ? currentDashboard.teamName
+                ? `Team: ${currentDashboard.teamName}`
+                : (
+                      dashboards.find((d) => d.id === currentDashboard.id) as
+                        AccessibleDashboardListItemV2 | undefined
+                    )?.teamName
+                  ? `Team: ${
+                      (
+                        dashboards.find(
+                          (d) => d.id === currentDashboard.id,
+                        ) as AccessibleDashboardListItemV2
+                      ).teamName
+                    }`
+                  : 'Team'
+              : 'Persönlich'}
           </Badge>
         </span>
         <span className="max-w-[160px] truncate sm:max-w-[220px]">{currentDashboard.title}</span>
@@ -266,6 +287,14 @@ export function DashboardSwitcherV2({
             setIsOpen(false);
             setActiveDialog('duplicate');
           }}
+          onOpenShareDialog={() => {
+            if (isSaving) return;
+            setIsOpen(false);
+            setActiveDialog('share');
+          }}
+          canShareWithTeam={
+            currentDashboard.scope === 'personal' && !isPreviewMode && Boolean(onShareWithTeam)
+          }
           onKeyDown={handleKeyDown}
           itemRefs={itemRefs}
         />
@@ -298,6 +327,19 @@ export function DashboardSwitcherV2({
         onConfirm={handleDelete}
         isSaving={isProcessing || isSaving}
       />
+
+      {/* Dialog 4: Mit Team teilen */}
+      {activeDialog === 'share' && (
+        <Suspense fallback={null}>
+          <ShareWithTeamDialogV2
+            open={true}
+            onClose={handleCloseActiveDialog}
+            currentDashboard={currentDashboard}
+            onShare={handleShareWithTeam}
+            isSaving={isProcessing || isSaving}
+          />
+        </Suspense>
+      )}
 
       {/* Dialog 4: Navigationsschutz bei ungespeicherten Änderungen vor Wechsel/Neu/Löschen */}
       <UnsavedChangesDialog

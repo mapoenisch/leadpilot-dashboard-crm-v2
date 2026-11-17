@@ -31,6 +31,7 @@ export function useDashboardSelection({
   onDuplicateCurrent,
   onDeleteDashboard,
   onSaveCurrent,
+  onShareWithTeam,
 }: UseDashboardSelectionParams) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDialog, setActiveDialog] = useState<ActiveDialogType>(() => {
@@ -60,9 +61,7 @@ export function useDashboardSelection({
   const isOnlyOneDashboard = dashboards.length <= 1;
 
   const returnFocusToTrigger = useCallback(() => {
-    requestAnimationFrame(() => {
-      triggerButtonRef.current?.focus();
-    });
+    requestAnimationFrame(() => triggerButtonRef.current?.focus());
   }, []);
 
   // Fokus & Fehler nach Shell-Remount auf den Auswahlknopf zurücksetzen (Codex P2)
@@ -80,9 +79,7 @@ export function useDashboardSelection({
     returnFocusToTrigger();
   }, [returnFocusToTrigger]);
 
-  const announce = useCallback((msg: string) => {
-    setAnnouncement(msg);
-  }, []);
+  const announce = useCallback((msg: string) => setAnnouncement(msg), []);
 
   const executeAction = useCallback(
     async (action: PendingSelectionAction) => {
@@ -188,6 +185,7 @@ export function useDashboardSelection({
     async (
       templateId: string,
       title?: string,
+      target?: { scope: 'personal' | 'team'; teamId?: string },
     ): Promise<{ ok: boolean; error?: DashboardV2StorageError }> => {
       setIsProcessing(true);
       setErrorText(null);
@@ -195,7 +193,11 @@ export function useDashboardSelection({
       setPendingPostSwitchAnnouncement(`Dashboard ‚${targetTitle}‘ angelegt`);
       setPendingFocusTriggerOnMount(true);
 
-      const res = (await onCreateFromTemplate(templateId, title)) as {
+      const res = (
+        target && target.scope === 'team'
+          ? await onCreateFromTemplate(templateId, title, target)
+          : await onCreateFromTemplate(templateId, title)
+      ) as {
         ok: boolean;
         error?: DashboardV2StorageError;
       };
@@ -223,6 +225,7 @@ export function useDashboardSelection({
     async (
       title?: string,
       saveFirst = false,
+      target?: { scope: 'personal' | 'team'; teamId?: string },
     ): Promise<{ ok: boolean; error?: DashboardV2StorageError }> => {
       setIsProcessing(true);
       setErrorText(null);
@@ -245,7 +248,11 @@ export function useDashboardSelection({
       setPendingPostSwitchAnnouncement(`Dashboard ‚${targetTitle}‘ angelegt`);
       setPendingFocusTriggerOnMount(true);
 
-      const res = (await onDuplicateCurrent(title)) as {
+      const res = (
+        target && target.scope === 'team'
+          ? await onDuplicateCurrent(title, target)
+          : await onDuplicateCurrent(title)
+      ) as {
         ok: boolean;
         error?: DashboardV2StorageError;
       };
@@ -267,13 +274,40 @@ export function useDashboardSelection({
       return { ok: false, error: res.error };
     },
     [
-      isDirty,
-      onSaveCurrent,
       currentDashboard.title,
+      isDirty,
       onDuplicateCurrent,
+      onSaveCurrent,
       announce,
       returnFocusToTrigger,
     ],
+  );
+
+  const handleShareWithTeam = useCallback(
+    async (
+      teamId: string,
+      title: string,
+    ): Promise<{ ok: boolean; error?: DashboardV2StorageError }> => {
+      if (!onShareWithTeam) {
+        return { ok: false, error: { kind: 'nicht_verfuegbar' } };
+      }
+      setIsProcessing(true);
+      setErrorText(null);
+      const res = (await onShareWithTeam(teamId, title)) as {
+        ok: boolean;
+        error?: DashboardV2StorageError;
+      };
+      if (!isMountedRef.current) return res;
+      setIsProcessing(false);
+      if (res.ok) {
+        setActiveDialog(null);
+        announce(`Dashboard ‚${title}‘ mit Team geteilt`);
+        returnFocusToTrigger();
+        return { ok: true };
+      }
+      return { ok: false, error: res.error };
+    },
+    [onShareWithTeam, announce, returnFocusToTrigger],
   );
 
   const handleDelete = useCallback(async (): Promise<{
@@ -295,22 +329,18 @@ export function useDashboardSelection({
       const remaining = dashboards.find((d) => d.id === res.nextDashboardId);
       const msg = `Dashboard ‚${deletedTitle}‘ gelöscht, ‚${remaining?.title ?? 'Nächstes'}‘ geöffnet`;
       setPendingPostSwitchAnnouncement(msg);
-    }
-
-    if (!isMountedRef.current) return res;
-
-    setIsProcessing(false);
-    if (res.ok) {
+      if (!isMountedRef.current) return res;
+      setIsProcessing(false);
       setPendingPostSwitchAnnouncement(null);
       setPendingFocusTriggerOnMount(false);
       setActiveDialog(null);
-      const remaining = dashboards.find((d) => d.id === res.nextDashboardId);
-      const msg = `Dashboard ‚${deletedTitle}‘ gelöscht, ‚${remaining?.title ?? 'Nächstes'}‘ geöffnet`;
       announce(msg);
       returnFocusToTrigger();
       return { ok: true };
     }
 
+    if (!isMountedRef.current) return res;
+    setIsProcessing(false);
     setPendingPostSwitchAnnouncement(null);
     setPendingFocusTriggerOnMount(false);
     return { ok: false, error: res.error };
@@ -360,5 +390,6 @@ export function useDashboardSelection({
     handleCreate,
     handleDuplicate,
     handleDelete,
+    handleShareWithTeam,
   };
 }

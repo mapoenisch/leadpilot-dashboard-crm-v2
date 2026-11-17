@@ -36,6 +36,7 @@ export const E2E_PARALLEL = [
   'e2e/resources-viewer.spec.ts',
   'e2e/routes.spec.ts',
   'e2e/semantic-routes.spec.ts',
+  'e2e/team-dashboards-preview.spec.ts',
   'e2e/tenant-isolation.spec.ts',
   'e2e/visual.spec.ts',
 ];
@@ -55,6 +56,7 @@ export const E2E_SEQUENTIAL = [
   'e2e/worker-responsiveness.spec.ts',
   'e2e/run-control.spec.ts',
   'e2e/member-management.spec.ts',
+  'e2e/team-dashboards.spec.ts',
   'e2e/crm-deals-persistence.spec.ts',
   'e2e/crm-lead-qualification.spec.ts',
 ];

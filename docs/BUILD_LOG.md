@@ -21878,3 +21878,68 @@ Zeile-für-Zeile-Prüfung aller Hilfsfunktionen und RPCs:
    - **Schritt 7 (Rechteentzug):** Admin entfernt Manager aus Team (`remove_dashboard_team_member_v2`). Nächster Aufruf von `save_dashboard_v2` durch den Manager scheitert mit `LP_TEAM_ACCESS_REVOKED`.
 3. **Rückweg / Rollback:**
    Die Migration ist rein additiv bzw. überschreibt bestehende Funktionen idempotenterweise (`CREATE OR REPLACE FUNCTION`). Bei einem Rollback werden die vorherigen Fassungen der Funktionen aus Migration `20261113_dashboard_v2_storage_and_revisions.sql` und `20261121_dashboard_revisions_scope_guard.sql` erneut eingespielt.
+
+
+---
+
+## 2026-11-17 — Auftrag 163: Dashboard-Editor: Team-Freigaben in der Oberfläche (P11b)
+
+**Rolle:** Antigravity (Builder) · **Prüfer:** Codex · **Branch:** `auftrag-163-team-freigaben-oberflaeche` · **PR:** [folgt] · **Detailauftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_163_TEAM_FREIGABEN_OBERFLAECHE.md`
+
+### 1. Ziel & Zusammenfassung
+
+Auftrag 163 schließt Phase 11 (Team-Freigaben und Kollaboration) mit der vollständigen UI-Integration ab:
+- **Gruppierter Switcher:** Persönliche Dashboards, teamspezifische Abschnitte und Vorlagen mit Metadaten (Titel, Kachelanzahl, Sektionen, Stand, Berechtigungs-Badges).
+- **Leseansicht:** Abgeleitet rein aus serverseitigem `canWrite === false` mit breitem Hinweisbalken (`ReadOnlyNoticeV2`), gesperrten/ausgeblendeten Editor-Aktionen und der Möglichkeit, eine persönliche Arbeitskopie anzulegen.
+- **Teilen als unabhängige Team-Kopie:** Dialog `ShareWithTeamDialogV2` teilt persönliche Dashboards als eigenständige Kopie in ein beschreibbares Zielteam (`copyDashboardV2`).
+- **Schutz vor Rechteentzug:** Fehler `LP_TEAM_ACCESS_REVOKED` beim Speichern wird vom Dialog `TeamAccessRevokedDialogV2` verlustfrei abgefangen (Optionen: Entwurf als persönliche Kopie sichern oder verwerfen).
+- **Admin-Teams-Verwaltung:** Route `/admin/teams` mit `DashboardTeamsPage`, `TeamFormDialog` und `TeamMembersPanel` zur vollständigen Verwaltung von Teams und deren Mitgliedern für Organisations-Admins.
+- **Vorschau & Gate-Screenshots:** Vorschau unterstützt `&teams=1` und `&teams=entzogen`. Gate-Screenshots auf 3 Viewports (1440, 768, 375 px) je hell und dunkel mit 0 px Überlauf nachgewiesen.
+
+### 2. WICHTIGE DEPLOYMENT-REIHENFOLGE (Hosted)
+
+> [!WARNING] **Deployment-Reihenfolge einhalten**
+> Vor dem Rollout des Frontends dieser PR muss die Datenbankmigration `supabase/migrations/20261122_dashboard_team_sharing.sql` aus Auftrag 162 auf der Hosted-Instanz eingespielt sein (`supabase db push` oder SQL Editor). Das Frontend stützt sich auf die RPCs `list_dashboard_teams_v2`, `list_accessible_dashboards_v2`, `load_dashboard_v2`, `copy_dashboard_v2` etc. Ein Rollout ohne angewendete Migration würde zu Fehlern im Team-Switcher und der Leseansicht führen.
+
+### 3. Geänderte & neue Dateien
+
+- **Komponenten & UI:**
+  - `src/features/dashboard/components/editor/selection/DashboardSwitcherV2.tsx`: Gruppierte Anzeige, Team-Badges, Anbindung des Teilen-Dialogs.
+  - `src/features/dashboard/components/editor/selection/DashboardSwitcherMenuV2.tsx`: Gruppiertes Dropdown mit Persönlich, Team und Vorlagen.
+  - `src/features/dashboard/components/editor/selection/ShareWithTeamDialogV2.tsx`: Neuer Dialog zum Teilen mit Zielteam-Auswahl.
+  - `src/features/dashboard/components/editor/selection/NewDashboardDialogV2.tsx`: Zielauswahl Persönlich vs. Team bei Neuanlage.
+  - `src/features/dashboard/components/editor/ReadOnlyNoticeV2.tsx`: Hinweisbalken für Team-Dashboards mit nur Lesezugriff.
+  - `src/features/dashboard/components/editor/TeamAccessRevokedDialogV2.tsx`: Schutz-Dialog bei nachträglichem Rechteentzug beim Speichern.
+  - `src/features/dashboard/components/editor/DashboardEditorShellV2.tsx`: Anbindung von ReadOnlyNotice, Switcher-Callbacks und Shell-Controller.
+  - `src/features/dashboard/components/editor/useDashboardShellController.ts`: Entkopplung von State und Logik zur Einhaltung des 400-Zeilen-Limits.
+- **Hooks & Dienste:**
+  - `src/features/dashboard/hooks/useDashboardV2Storage.ts`: Integration von `listAccessibleDashboardsV2`, Leseansichts-Zustand und Fallbacks.
+  - `src/features/dashboard/hooks/dashboardV2Access.ts`: Berechtigungsprüfung (`canWrite`, `scope`).
+  - `src/features/dashboard/hooks/dashboardV2Mutations.ts`: Mutation-Callbacks für Teilen, Duplizieren und Löschen.
+- **Administration (`/admin/teams`):**
+  - `src/features/admin/pages/DashboardTeamsPage.tsx`: Admin-Seite für Teamübersicht und Aktionen.
+  - `src/features/admin/components/TeamFormDialog.tsx`: Dialog zum Anlegen und Bearbeiten von Teams.
+  - `src/features/admin/components/TeamMembersPanel.tsx`: Panel zur Zuweisung und Entfernung von Teammitgliedern mit Sicherheitsabfrage.
+  - `src/app/routes.tsx`, `src/app/routePages.tsx`, `src/components/layout/Sidebar.tsx`: Registrierung der Route `/admin/teams` und Nav-Item.
+- **Vorschau & Tests:**
+  - `src/features/dashboard/preview/previewTeamDashboards.ts`: Beispieldaten für Team-Vorschau.
+  - `src/features/dashboard/preview/DashboardEditorPreviewV2.tsx`: Unterstützung von `&teams=1` und `&teams=entzogen`.
+  - `e2e/team-dashboards.spec.ts`: E2E-Lifecycle-Test mit echtem lokalem Supabase-Backend (5 Schritte nach §2.6 Nr. 32).
+  - `e2e/team-dashboards-preview.spec.ts`: Vorschau-E2E-Test über alle 3 Viewports.
+  - `scripts/captureAuftrag163GateScreenshots.mjs`: Screenshot-Harness für 5 Szenarien auf 3 Viewports je hell/dunkel.
+  - `docs/screenshots/auftrag-163/README.md`: Nachweismatrix mit 30 Screenshots, 0 px Überlauf und distinkten SHA-256-Hashes.
+
+### 4. Nachweise & Verifikation (§7)
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen** (`--max-warnings 0`)
+- `npm run format:check`: **Bestanden**
+- `npm test`: **416 Testdateien, 3099 Tests PASS**
+- `npx playwright test e2e/team-dashboards-preview.spec.ts`: **6/6 Tests PASS** (alle 3 Viewports)
+- `npx playwright test e2e/team-dashboards.spec.ts`: **1/1 Tests PASS** (5-Schritte-Lifecycle)
+- `node scripts/captureAuftrag163GateScreenshots.mjs`: **Erfolgreich ausgeführt (30 Screenshots, 0 px Überlauf)**
+- `npx size-limit`:
+  - Initial JS bundle (gzip): **169.95 kB** (Limit: 180 kB, Baseline: 178.93 kB; -8.98 kB unter Baseline)
+  - Largest chunk (gzip): **79.41 kB** (Limit: 250 kB)
+- `max-lines`: **Alle neuen und geänderten TS/TSX-Dateien strikt ≤ 400 Zeilen**
+- **Schutzbereiche:** Unverändert (`src/simulation/**`, `src/types/**`, `src/context/**`, `src/services/data/**`, `src/features/resources/**`, `supabase/**`, `src/auth/**`, `src/services/liveKpi/**` unberührt).

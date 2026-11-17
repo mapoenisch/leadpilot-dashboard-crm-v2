@@ -9,6 +9,7 @@ import {
   type AccessibleDashboardListItemV2,
   type LoadedDashboardV2Result,
   type StorageResult,
+  type SupabaseErrorLike,
   classifyDashboardV2Error,
 } from './dashboardStorageV2Types';
 
@@ -23,6 +24,10 @@ function unavailableResult<T>(): StorageResult<T> {
 }
 
 function failTechnically<T>(cause: unknown): StorageResult<T> {
+  const classified = classifyDashboardV2Error(cause as SupabaseErrorLike);
+  if (classified.kind === 'server_funktion_fehlt') {
+    return { ok: false, error: classified };
+  }
   logger.warn('[dashboardSharingV2] Operation fehlgeschlagen.', cause);
   return { ok: false, error: { kind: 'technisch' } };
 }

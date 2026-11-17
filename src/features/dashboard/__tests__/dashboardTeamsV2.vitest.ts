@@ -377,5 +377,21 @@ describe('dashboardTeamsV2', () => {
         expect(res.error.kind).toBe('technisch');
       }
     });
+
+    it('reicht server_funktion_fehlt bei PGRST202 / 42883 durch', async () => {
+      rpc.mockResolvedValueOnce({
+        data: null,
+        error: {
+          code: 'PGRST202',
+          message: 'Could not find the function remove_dashboard_team_member_v2',
+        },
+      });
+
+      const res = await removeDashboardTeamMemberV2('t-1', 'u-1');
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.kind).toBe('server_funktion_fehlt');
+      }
+    });
   });
 });

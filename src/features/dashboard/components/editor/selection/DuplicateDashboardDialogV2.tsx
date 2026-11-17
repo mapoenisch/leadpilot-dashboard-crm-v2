@@ -14,6 +14,12 @@ import {
 } from '../../../model/dashboardTitles';
 import { useEscapeToClose } from '../../UnsavedChangesDialog';
 
+import type { DashboardTeamV2 } from '../../../services/dashboardStorageV2Types';
+import { listDashboardTeamsV2 } from '../../../services/dashboardTeamsV2';
+import { getDashboardTeamErrorMessage } from '../../../model/dashboardTeamMessages';
+
+export type DuplicateTarget = { scope: 'personal' } | { scope: 'team'; teamId: string };
+
 export type DuplicateConfirmResult = boolean | { ok: boolean; error?: DashboardV2StorageError };
 
 export interface DuplicateDashboardDialogV2Props {
@@ -21,25 +27,18 @@ export interface DuplicateDashboardDialogV2Props {
   onClose: () => void;
   currentDashboard: StoredDashboardV2Row;
   isDirty: boolean;
-  onDuplicate: (title: string, saveFirst?: boolean) => Promise<DuplicateConfirmResult>;
+  onDuplicate: (
+    title: string,
+    saveFirst?: boolean,
+    target?: DuplicateTarget,
+  ) => Promise<DuplicateConfirmResult>;
   isSaving?: boolean;
+  teams?: DashboardTeamV2[];
 }
 
 function getDuplicateErrorMessage(error?: DashboardV2StorageError): string {
   if (!error) return 'Das Dashboard konnte nicht dupliziert werden.';
-  switch (error.kind) {
-    case 'obergrenze_erreicht':
-      return 'Die Obergrenze von 20 Dashboards wurde erreicht. Bitte lösche ein bestehendes Dashboard.';
-    case 'konflikt':
-      return 'Revisionskonflikt: Der aktuelle Stand konnte vor dem Duplizieren nicht gespeichert werden.';
-    case 'nicht_gefunden':
-      return 'Das Quell-Dashboard wurde nicht gefunden.';
-    case 'nicht_berechtigt':
-    case 'keine_mitgliedschaft':
-      return 'Keine Berechtigung zum Duplizieren dieses Dashboards.';
-    default:
-      return 'Das Dashboard konnte nicht dupliziert werden.';
-  }
+  return getDashboardTeamErrorMessage(error, 'dashboard');
 }
 
 export function DuplicateDashboardDialogV2({
@@ -49,14 +48,39 @@ export function DuplicateDashboardDialogV2({
   isDirty,
   onDuplicate,
   isSaving = false,
+  teams: providedTeams,
 }: DuplicateDashboardDialogV2Props) {
   const [title, setTitle] = useState('');
+  const [targetValue, setTargetValue] = useState<string>('personal');
+  const [teams, setTeams] = useState<DashboardTeamV2[]>(providedTeams ?? []);
   const [error, setError] = useState<string | null>(null);
   const inputId = useId();
+  const targetSelectId = useId();
+
+  // Teams laden, falls nicht über Props bereitgestellt
+  useEffect(() => {
+    if (!open) return;
+    if (providedTeams) {
+      setTeams(providedTeams);
+      return;
+    }
+    let isMounted = true;
+    listDashboardTeamsV2()
+      .then((res) => {
+        if (isMounted && res.ok) {
+          setTeams(res.value);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [open, providedTeams]);
 
   useEffect(() => {
     if (open) {
       setTitle(buildDerivedDashboardTitle(currentDashboard.title, ' (Kopie)'));
+      setTargetValue('personal');
       setError(null);
     }
   }, [open, currentDashboard.title]);
@@ -66,6 +90,9 @@ export function DuplicateDashboardDialogV2({
   };
 
   useEscapeToClose(open, handleClose);
+
+  const isReadOnly = currentDashboard.canWrite === false;
+  const writableTeams = isReadOnly ? [] : teams.filter((t) => t.canWrite);
 
   const handleSubmit = async (saveFirst: boolean) => {
     if (isSaving) return;
@@ -80,7 +107,12 @@ export function DuplicateDashboardDialogV2({
     }
 
     setError(null);
-    const res = await onDuplicate(trimmed, saveFirst);
+    const target: DuplicateTarget | undefined =
+      targetValue === 'personal' ? undefined : { scope: 'team', teamId: targetValue.slice(5) };
+
+    const res = target
+      ? await onDuplicate(trimmed, saveFirst, target)
+      : await onDuplicate(trimmed, saveFirst);
     if (typeof res === 'boolean') {
       if (!res) setError('Das Dashboard konnte nicht dupliziert werden.');
     } else if (res && !res.ok) {
@@ -162,6 +194,42 @@ export function DuplicateDashboardDialogV2({
               duplizieren“.
             </p>
           </div>
+        )}
+
+        {/* Zielauswahl (§2.4 Nr. 21) */}
+        {isReadOnly ? (
+          <div
+            role="note"
+            className="rounded border border-primary/30 bg-primary/10 p-2.5 text-xs text-[var(--color-text-soft,#e6f3f1)]"
+          >
+            Team-Dashboards ohne Schreibrecht werden als persönliche Kopie dupliziert.
+          </div>
+        ) : (
+          writableTeams.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor={targetSelectId}
+                className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                Bereich
+              </label>
+              <select
+                id={targetSelectId}
+                data-testid="duplicate-dashboard-target-select"
+                value={targetValue}
+                onChange={(e) => setTargetValue(e.target.value)}
+                disabled={isSaving}
+                className="h-9 w-full rounded border border-[var(--color-border,#1b3d39)] bg-[var(--color-surface,#0c1e1c)] px-3 text-sm text-white outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="personal">Persönlich</option>
+                {writableTeams.map((team) => (
+                  <option key={team.id} value={`team:${team.id}`}>
+                    Team: {team.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )
         )}
 
         <div className="flex flex-col gap-1.5">

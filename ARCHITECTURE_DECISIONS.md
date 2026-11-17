@@ -2006,6 +2006,13 @@ Artefakt-/Versionsabgleichs.
 - **Löschsperre für Teams:** Ein Team kann nicht gelöscht werden, solange ihm noch Dashboards zugeordnet sind (`LP_TEAM_HAS_DASHBOARDS`). Dashboards müssen vor Teamlöschung explizit entfernt oder in andere Teams/persönlichen Bereich überführt werden.
 - **Mandantentrennung & Limits:** Strikt isoliert auf Organisationsebene; Obergrenzen von 50 Teams/Org, 200 Mitgliedern/Team, 50 Dashboards/Team und 20 persönlichen Dashboards/Nutzer.
 
+## C9. Dashboard V2 Team-Freigaben in der Oberfläche (Auftrag 163 / P11b, 2026-11-17)
+
+- **Teilen = Unabhängige Kopie:** Beim Teilen eines persönlichen Dashboards mit einem Team entsteht über `copy_dashboard_v2` eine eigenständige Kopie im Zielteam (`ShareWithTeamDialogV2`). Das persönliche Original bleibt unverändert; spätere Änderungen werden nicht abgeglichen. Nur Teams mit Schreibrecht (`canWrite === true`) stehen als Ziel zur Auswahl.
+- **Leseansicht aus `canWrite`:** Die Leseansicht (`ReadOnlyNoticeV2`) leitet sich clientseitig ausschließlich aus dem serverseitigen Berechtigungsfeld `canWrite === false` (geliefert von `loadDashboardV2` und `listAccessibleDashboardsV2`) ab. In der Leseansicht sind Bearbeitungs- und Speicherelemente gesperrt bzw. ausgeblendet. Der Nutzer kann jederzeit über die Aktion „Als persönliche Kopie sichern“ eine editierbare Arbeitskopie anlegen.
+- **Dynamischer Rechteentzug (`LP_TEAM_ACCESS_REVOKED`):** Verliert ein Nutzer während der Bearbeitung die Berechtigung am Team-Dashboard, fängt der Dialog `TeamAccessRevokedDialogV2` den Fehler beim Speichern ab. Ungespeicherte Entwurfsänderungen können verlustfrei als neue persönliche Kopie gesichert oder verworfen werden.
+- **Teamverwaltung unter `/admin/teams`:** Die Administration von Dashboard-Teams und ihren Mitgliedern (`DashboardTeamsPage`, `TeamFormDialog`, `TeamMembersPanel`) ist als administrative Route (`/admin/teams`) exklusiv für Organisations-Admins (`session?.role === 'admin'`) realisiert.
+
 ---
 ---
 
@@ -2080,6 +2087,7 @@ Fassungen mit widersprüchlicher „Nächste Entscheidungsnummer“ — **1224, 
 | 2026-09-25 | **Release `v2.3.0`** von Marc Pönisch freigegeben (Masterauftrag 067, Gates G44–G65; Release Notes `docs/releases/V2.3.0.md`). |
 | 2026-09-26 | Revision zu B18 (Auftrag 069 / G67): 32 statische Inhaltsseiten wieder als Original-WebP aus v2.2.0 mit unsichtbarer Textschicht; Regeln „kein Ganzseiten-WebP“ (G52–G55) und G66-Design-Gate zurückgenommen; Rückweg zu v2.3.1 per Schalter `PAGE_PRESENTATION` und unverändertem Tag ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_069_V2_3_2_BILDSEITEN_WIEDERHERSTELLUNG.md)). |
 | 2026-10-19 | Revision zu B18 (Paket G3 / Auftrag 104): alle 32 Inhaltsseiten als echte Seiten, `PAGE_PRESENTATION = 'html'`, keine unsichtbare Zweitfassung mehr aktiv; Rückweg je Seite über `'bild'` + `HTML_PAGES` ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_104_G3_BILDSEITEN_ABSCHLUSS.md)). |
+| 2026-11-17 | AUFTRAG 163 (P11b) — Dashboard-Editor: Team-Freigaben in der Oberfläche (Gruppierter Switcher, serverseitige Leseansicht, Teilen als Team-Kopie, Schutz vor Rechteentzug, Teamverwaltung unter `/admin/teams`). Gate-Screenshots und E2E grün. |
 
 ## D5. MASTERSTATUS
 

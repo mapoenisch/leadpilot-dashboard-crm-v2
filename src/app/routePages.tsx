@@ -241,6 +241,11 @@ const MembersPage = React.lazy(() =>
     default: m.MembersPage,
   })),
 );
+const DashboardTeamsPage = React.lazy(() =>
+  import('@/features/admin/pages/DashboardTeamsPage').then((m) => ({
+    default: m.DashboardTeamsPage,
+  })),
+);
 const AuditPage = React.lazy(() =>
   import('@/features/admin/pages/AuditPage').then((m) => ({
     default: m.AuditPage,
@@ -325,6 +330,7 @@ export const ROUTE_PAGE_ENTRIES: readonly RoutePageEntry[] = [
 
   // 13. Administration
   { id: 's-admin-members', component: MembersPage },
+  { id: 's-admin-teams', component: DashboardTeamsPage },
   { id: 's-admin-audit', component: AuditPage },
   { id: 's-admin-health', component: SystemHealthPage },
 ] as const;

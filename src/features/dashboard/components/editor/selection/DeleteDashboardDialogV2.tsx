@@ -20,21 +20,11 @@ export interface DeleteDashboardDialogV2Props {
   isSaving?: boolean;
 }
 
+import { getDashboardTeamErrorMessage } from '../../../model/dashboardTeamMessages';
+
 function getDeleteErrorMessage(error?: DashboardV2StorageError): string {
   if (!error) return 'Das Dashboard konnte nicht gelöscht werden.';
-  switch (error.kind) {
-    case 'konflikt':
-      return 'Revisionskonflikt: Das Dashboard wurde zwischenzeitlich anderweitig geändert. Bitte lade die Seite neu, bevor du es löschst.';
-    case 'letztes_dashboard':
-      return 'Das letzte Dashboard kann nicht gelöscht werden.';
-    case 'nicht_gefunden':
-      return 'Das Dashboard wurde bereits gelöscht oder existiert nicht mehr.';
-    case 'nicht_berechtigt':
-    case 'keine_mitgliedschaft':
-      return 'Du hast keine Berechtigung, dieses Dashboard zu löschen.';
-    default:
-      return 'Das Dashboard konnte nicht gelöscht werden.';
-  }
+  return getDashboardTeamErrorMessage(error, 'dashboard');
 }
 
 export function DeleteDashboardDialogV2({
@@ -122,8 +112,9 @@ export function DeleteDashboardDialogV2({
         >
           <p className="font-semibold">Achtung: Endgültiges Löschen</p>
           <p className="mt-1">
-            Das Dashboard und seine Versionshistorie werden endgültig gelöscht. Diese Aktion kann
-            nicht rückgängig gemacht werden.
+            {dashboard.scope === 'team'
+              ? `Das Dashboard wird für alle Mitglieder von ‚${dashboard.teamName ?? 'Team'}‘ gelöscht, einschließlich aller Versionen.`
+              : 'Das Dashboard und seine Versionshistorie werden endgültig gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.'}
           </p>
         </div>
       </div>

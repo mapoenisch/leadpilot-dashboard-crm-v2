@@ -14,6 +14,7 @@ import type {
   DashboardScope,
 } from '../../model/dashboardConfigV2';
 import type {
+  AccessibleDashboardListItemV2,
   DashboardV2StorageError,
   PersonalDashboardListItemV2,
   StoredDashboardV2Row,
@@ -47,9 +48,10 @@ export interface EditorTopBarV2Props {
   onToggleLibrary?: () => void;
   isInspectorOpen?: boolean;
   onToggleInspector?: () => void;
+  readOnly?: boolean;
   className?: string;
   // Auftrag 158: Dashboard-Auswahl
-  dashboards?: PersonalDashboardListItemV2[];
+  dashboards?: (AccessibleDashboardListItemV2 | PersonalDashboardListItemV2)[];
   currentStoredDashboard?: StoredDashboardV2Row;
   onOpenDashboard?: (id: string) => Promise<boolean>;
   onCreateFromTemplate?: (
@@ -60,6 +62,7 @@ export interface EditorTopBarV2Props {
   onDeleteDashboard?: (
     id: string,
   ) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
+  onShareWithTeam?: (teamId: string, title: string) => Promise<{ ok: boolean; error?: unknown }>;
   onRefreshList?: () => Promise<void>;
   listError?: DashboardV2StorageError | null;
 }
@@ -102,6 +105,7 @@ export function EditorTopBarV2({
   onToggleLibrary,
   isInspectorOpen = true,
   onToggleInspector,
+  readOnly = false,
   className,
   dashboards,
   currentStoredDashboard,
@@ -109,6 +113,7 @@ export function EditorTopBarV2({
   onCreateFromTemplate,
   onDuplicateCurrent,
   onDeleteDashboard,
+  onShareWithTeam,
   onRefreshList,
   listError,
 }: EditorTopBarV2Props) {
@@ -165,7 +170,7 @@ export function EditorTopBarV2({
     >
       {/* Linker Bereich: Navigation / Panels Toggle, Scope & Switcher & Titel */}
       <div className="flex items-center gap-3">
-        {onToggleLibrary && (
+        {!readOnly && onToggleLibrary && (
           <button
             type="button"
             data-testid="toggle-library-button"
@@ -199,6 +204,7 @@ export function EditorTopBarV2({
             onCreateFromTemplate={onCreateFromTemplate}
             onDuplicateCurrent={onDuplicateCurrent}
             onDeleteDashboard={onDeleteDashboard}
+            onShareWithTeam={onShareWithTeam}
             onRefreshList={onRefreshList}
             listError={listError}
             onSaveCurrent={async () => {
@@ -223,7 +229,7 @@ export function EditorTopBarV2({
 
         {/* Dashboard-Titel mit Inline-Editing & Dirty-Indikator */}
         <div className="flex items-center gap-2">
-          {isEditingTitle ? (
+          {isEditingTitle && !readOnly ? (
             <input
               ref={titleInputRef}
               data-testid="title-input"
@@ -235,6 +241,13 @@ export function EditorTopBarV2({
               onKeyDown={handleTitleKeyDown}
               className="h-8 rounded border border-primary bg-black/40 px-2 text-sm font-semibold text-white outline-none focus:ring-1 focus:ring-primary"
             />
+          ) : readOnly ? (
+            <div
+              data-testid="title-display"
+              className="px-2 py-1 text-sm font-semibold text-[var(--color-text-primary,#fff)]"
+            >
+              <span>{config.title}</span>
+            </div>
           ) : (
             <button
               type="button"
@@ -306,7 +319,9 @@ export function EditorTopBarV2({
 
       {/* Rechter Bereich: Undo/Redo, Vorschau, Speichern & Abbrechen */}
       <div className="flex items-center gap-2">
-        <UndoRedoGroup canUndo={canUndo} canRedo={canRedo} onUndo={onUndo} onRedo={onRedo} />
+        {!readOnly && (
+          <UndoRedoGroup canUndo={canUndo} canRedo={canRedo} onUndo={onUndo} onRedo={onRedo} />
+        )}
 
         {/* Vorschau-Modus Schalter */}
         <button
@@ -326,7 +341,7 @@ export function EditorTopBarV2({
         </button>
 
         {/* Inspector Toggle Button */}
-        {onToggleInspector && (
+        {!readOnly && onToggleInspector && (
           <button
             type="button"
             data-testid="toggle-inspector-button"
@@ -345,31 +360,35 @@ export function EditorTopBarV2({
         )}
 
         {/* Abbrechen */}
-        <Button
-          type="button"
-          data-testid="cancel-button"
-          variant="secondary"
-          size="sm"
-          onClick={onCancel}
-          className="h-8 gap-1 border-[var(--color-border,#1b3d39)] text-xs"
-        >
-          <X className="h-3.5 w-3.5" />
-          <span>Abbrechen</span>
-        </Button>
+        {!readOnly && (
+          <Button
+            type="button"
+            data-testid="cancel-button"
+            variant="secondary"
+            size="sm"
+            onClick={onCancel}
+            className="h-8 gap-1 border-[var(--color-border,#1b3d39)] text-xs"
+          >
+            <X className="h-3.5 w-3.5" />
+            <span>Abbrechen</span>
+          </Button>
+        )}
 
         {/* Speichern */}
-        <Button
-          type="button"
-          data-testid="save-button"
-          variant="primary"
-          size="sm"
-          disabled={!isDirty || isSaving}
-          onClick={onSave}
-          className="h-8 gap-1.5 text-xs font-semibold"
-        >
-          <Save className="h-3.5 w-3.5" />
-          <span>{isSaving ? 'Speichern…' : 'Speichern'}</span>
-        </Button>
+        {!readOnly && (
+          <Button
+            type="button"
+            data-testid="save-button"
+            variant="primary"
+            size="sm"
+            disabled={!isDirty || isSaving}
+            onClick={onSave}
+            className="h-8 gap-1.5 text-xs font-semibold"
+          >
+            <Save className="h-3.5 w-3.5" />
+            <span>{isSaving ? 'Speichern…' : 'Speichern'}</span>
+          </Button>
+        )}
       </div>
     </header>
   );

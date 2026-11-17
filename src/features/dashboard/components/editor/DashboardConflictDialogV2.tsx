@@ -13,6 +13,7 @@ export interface DashboardConflictDialogV2Props {
   onReload: () => void;
   onSaveAsCopy: () => void;
   onStay: () => void;
+  scope?: 'personal' | 'team';
 }
 
 export function DashboardConflictDialogV2({
@@ -22,6 +23,7 @@ export function DashboardConflictDialogV2({
   onReload,
   onSaveAsCopy,
   onStay,
+  scope = 'personal',
 }: DashboardConflictDialogV2Props) {
   const stay = () => {
     if (!isSaving) onStay();
@@ -64,8 +66,9 @@ export function DashboardConflictDialogV2({
           </div>
         )}
         <p>
-          Dieses Dashboard wurde in einem anderen Tab oder Browserfenster bereits mit einer neueren
-          Revision gespeichert.
+          {scope === 'team'
+            ? 'Ein anderes Teammitglied hat dieses Dashboard inzwischen gespeichert.'
+            : 'Dieses Dashboard wurde in einem anderen Tab oder Browserfenster bereits mit einer neueren Revision gespeichert.'}
         </p>
         <p className="text-muted-foreground">
           Um einen Datenverlust zu verhindern, wurden deine aktuellen Änderungen nicht

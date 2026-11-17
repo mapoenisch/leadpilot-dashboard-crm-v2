@@ -352,5 +352,36 @@ describe('dashboardSharingV2', () => {
         expect(res.error.kind).toBe('obergrenze_erreicht');
       }
     });
+
+    it('reicht server_funktion_fehlt bei PGRST202 / 42883 durch', async () => {
+      rpc.mockResolvedValueOnce({
+        data: null,
+        error: {
+          code: 'PGRST202',
+          message: 'Could not find the function list_accessible_dashboards_v2',
+        },
+      });
+
+      const res = await listAccessibleDashboardsV2();
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error.kind).toBe('server_funktion_fehlt');
+      }
+
+      rpc.mockResolvedValueOnce({
+        data: null,
+        error: { code: '42883', message: 'function copy_dashboard_v2 does not exist' },
+      });
+
+      const copyRes = await copyDashboardV2({
+        sourceId: 'd-source',
+        targetScope: 'personal',
+        title: 'Kopie',
+      });
+      expect(copyRes.ok).toBe(false);
+      if (!copyRes.ok) {
+        expect(copyRes.error.kind).toBe('server_funktion_fehlt');
+      }
+    });
   });
 });

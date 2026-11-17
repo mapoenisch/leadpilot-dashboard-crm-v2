@@ -1,11 +1,10 @@
-// Auftrag 158 (P09b): Typen und modulweiter Status für Dashboard-Auswahl und Shell-Remounts.
-
 import type {
+  AccessibleDashboardListItemV2,
   PersonalDashboardListItemV2,
   StoredDashboardV2Row,
 } from '../../../services/dashboardStorageV2Types';
 
-export type ActiveDialogType = null | 'new' | 'duplicate' | 'delete';
+export type ActiveDialogType = null | 'new' | 'duplicate' | 'delete' | 'share';
 
 export type PendingSelectionAction =
   | { type: 'open'; id: string; title: string }
@@ -14,19 +13,24 @@ export type PendingSelectionAction =
 
 export interface UseDashboardSelectionParams {
   currentDashboard: StoredDashboardV2Row;
-  dashboards: PersonalDashboardListItemV2[];
+  dashboards: (AccessibleDashboardListItemV2 | PersonalDashboardListItemV2)[];
   isDirty: boolean;
   isPreviewMode?: boolean;
   onOpenDashboard: (id: string) => Promise<boolean>;
   onCreateFromTemplate: (
     templateId: string,
     title?: string,
+    target?: { scope: 'personal' | 'team'; teamId?: string },
   ) => Promise<{ ok: boolean; error?: unknown }>;
-  onDuplicateCurrent: (title?: string) => Promise<{ ok: boolean; error?: unknown }>;
+  onDuplicateCurrent: (
+    title?: string,
+    target?: { scope: 'personal' | 'team'; teamId?: string },
+  ) => Promise<{ ok: boolean; error?: unknown }>;
   onDeleteDashboard: (
     id: string,
   ) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
   onSaveCurrent: () => Promise<boolean>;
+  onShareWithTeam?: (teamId: string, title: string) => Promise<{ ok: boolean; error?: unknown }>;
 }
 
 // Modulweiter Zwischenspeicher für Folgeaktionen, Ansagen, Fehler und Trigger-Fokus über Shell-Remounts hinweg (P09b / Codex P2)

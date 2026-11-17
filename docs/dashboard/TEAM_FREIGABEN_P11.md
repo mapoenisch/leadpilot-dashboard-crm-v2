@@ -1,6 +1,6 @@
 # Team-Freigaben und Kollaboration (P11a – Auftrag 162)
 
-> **Status:** Umgesetzt im Backend & Dienstschicht (P11a / Auftrag 162, 2026-11-17 (Datum korrigiert am 17.11.2026; ursprünglich irrtümlich 22.11.2026)). UI folgt in P11b (Auftrag 163).  
+> **Status:** Vollständig umgesetzt (Backend & Dienstschicht P11a / Auftrag 162; Oberfläche P11b / Auftrag 163, 2026-11-17).  
 > **Migration:** `supabase/migrations/20261122_dashboard_team_sharing.sql`  
 > **Dienste:** `src/features/dashboard/services/dashboardTeamsV2.ts`, `src/features/dashboard/services/dashboardSharingV2.ts`
 
@@ -111,6 +111,8 @@ Alle Tabellen unterliegen strikter Row Level Security:
 
 ## 6. Vorgaben für Auftrag 163 (P11b – UI)
 
+> **Umsetzungsstand (17.11.2026):** Vollständig umgesetzt in Auftrag 163 (P11b). Alle Vorgaben wurden in die Dashboard-Editor-Oberfläche und Administration integriert.
+
 1. **Team-Switcher & Dashboard-Auswahl:**
    - Nutzt `listAccessibleDashboardsV2` für die Dashboard-Liste.
    - Zeigt Team-Zugehörigkeit (`teamName`) und Schreibberechtigung (`canWrite`) an.
@@ -118,3 +120,33 @@ Alle Tabellen unterliegen strikter Row Level Security:
    - Ist `canWrite === false`, schaltet der Editor in den Nur-Lese-Modus (Inspektor deaktiviert, Toolbar auf Leseansicht, Speichern ausgeblendet).
 3. **Teamverwaltung:**
    - Teamverwaltungs-Dialog nur für Organisations-Admins einblenden.
+
+---
+
+## 7. Oberfläche (P11b, Auftrag 163)
+
+Mit Auftrag 163 wurde die Benutzeroberfläche für Team-Freigaben und Kollaboration vollständig implementiert:
+
+### 7.1 Gruppierter Dashboard-Switcher (`DashboardSwitcherV2`, `DashboardSwitcherMenuV2`)
+- **Gruppierung:** Unterteilung in „Persönliche Dashboards“, teamspezifische Abschnitte („Team: <Name>“) und „Vorlagen“.
+- **Metadaten:** Jedes Dashboard zeigt Titel, Kachelanzahl, Sektionsanzahl, Änderungsdatum sowie bei Team-Dashboards ein Lese- bzw. Bearbeitungsrecht (`canWrite`).
+- **Team-Zielauswahl bei Neuanlage:** Im Dialog `NewDashboardDialogV2` kann ein Ziel („Persönlich“ oder ein beschreibbares Team) gewählt werden.
+
+### 7.2 Leseansicht für Team-Dashboards (`ReadOnlyNoticeV2`)
+- **Serverseitige Autorisierung:** Der Nur-Lese-Status wird strikt aus `canWrite === false` (aus `loadDashboardV2` bzw. `listAccessibleDashboardsV2`) abgeleitet.
+- **Visueller Hinweis:** Breiter `readonly-notice-banner` mit Team-Badge und Erläuterung.
+- **Deaktivierte Editor-Aktionen:** Speichern-Button, Kachelbibliothek und Inspektor sind ausgeblendet. Kacheln sind nicht verschieb- oder löschbar; Zeitauswahl und globale Filter bleiben für Ad-hoc-Analysen interaktiv bedienbar.
+- **Persönliche Kopie anlegen:** Über `copy-as-personal-button` kann jederzeit eine persönliche, frei editierbare Arbeitskopie erstellt werden.
+
+### 7.3 Unabhängiges Teilen mit Teams (`ShareWithTeamDialogV2`)
+- **Kopieren statt Verschieben:** Beim Teilen eines persönlichen Dashboards mit einem Team entsteht eine eigenständige Team-Kopie (`copyDashboardV2`). Das persönliche Original bleibt unverändert bestehen.
+- **Zielteam-Prüfung:** Nur Teams, in denen der Nutzer Schreibrecht besitzt (`canWrite === true`), stehen als Ziel zur Auswahl.
+
+### 7.4 Dynamischer Rechteentzug (`TeamAccessRevokedDialogV2`)
+- **Schutz vor Datenverlust:** Wird einem Nutzer während der Bearbeitung die Teammitgliedschaft oder Schreibberechtigung entzogen (`LP_TEAM_ACCESS_REVOKED`), blockiert die Oberfläche das fehlschlagende Überschreiben und öffnet den Rechteentzug-Dialog.
+- **Optionen:** Der Nutzer kann den aktuellen Entwurf mit allen ungespeicherten Änderungen als persönliche Kopie sichern oder verwerfen.
+
+### 7.5 Administration von Dashboard-Teams (`/admin/teams`)
+- **Admin-Only-Route:** Registriert unter `/admin/teams` mit Prüfung auf `session?.role === 'admin'`. Nicht-Admins sehen `ForbiddenView`.
+- **Team-CRUD:** Teams anlegen, bearbeiten (Name, Beschreibung) und löschen (mit Löschschutz bei vorhandenen Dashboards via `LP_TEAM_HAS_DASHBOARDS`).
+- **Mitgliederverwaltung:** Panel `TeamMembersPanel` zur Zuordnung von Organisationsmitgliedern zum Team sowie sofortigem Entzug von Zugriffsrechten mit Sicherheitsabfrage.
