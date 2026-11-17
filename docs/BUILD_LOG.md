@@ -21943,3 +21943,8 @@ Auftrag 163 schließt Phase 11 (Team-Freigaben und Kollaboration) mit der vollst
   - Largest chunk (gzip): **79.41 kB** (Limit: 250 kB)
 - `max-lines`: **Alle neuen und geänderten TS/TSX-Dateien strikt ≤ 400 Zeilen**
 - **Schutzbereiche:** Unverändert (`src/simulation/**`, `src/types/**`, `src/context/**`, `src/services/data/**`, `src/features/resources/**`, `supabase/**`, `src/auth/**`, `src/services/liveKpi/**` unberührt).
+
+### 5. Nachtrag: Visual-Baselines (17.11.2026)
+
+- Der neue Sidebar-Eintrag „Dashboard-Teams“ (Auftrag 163, Administration) verlängert die Seiten `/crm/leads` und `/market/overview` im Desktop-Viewport um rund 38 px. Die beiden Linux-Baselines `visual-crm-leads-1-desktop-1440-linux.png` und `visual-market-overview-1-desktop-1440-linux.png` waren dadurch erwartbar rot (CI-Lauf 44174876345).
+- Neu erzeugt über den dafür vorgesehenen Workflow `update-visual-baselines.yml` (Branch `visual-baselines/163`, Lauf 44178752388, grün inkl. Dreifach-Verifikation). Nur diese zwei Dateien haben sich geändert; Sichtprüfung: einziger Unterschied ist der zusätzliche Nav-Eintrag (und die aktuelle Versionsangabe im Footer).
