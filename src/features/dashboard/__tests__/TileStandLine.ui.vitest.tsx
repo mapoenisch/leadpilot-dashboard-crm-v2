@@ -229,4 +229,18 @@ describe('TileStandLine', () => {
       'Stand nach Pausenbeginn geladen',
     );
   });
+
+  it('formatiert historischen Standzeilen-Zeitpunkt in Berliner Zeit (Europe/Berlin)', () => {
+    const entry = makeEntry('puffer');
+    // 2026-10-31T23:00:00Z entspricht in Berlin (UTC+1) 01.11.2026 00:00
+    const stand: TileStand = {
+      mode: 'zeitpunkt',
+      analysisAt: '2026-10-31T23:00:00.000Z',
+      observedAt: '2026-10-31T23:00:00.000Z',
+      loadedAfterPause: false,
+    };
+    render(<TileStandLine data={makeData('bereit', stand)} entry={entry} />);
+    const line = screen.getByTestId('tile-stand-line');
+    expect(line.textContent).toContain('01.11., 00:00');
+  });
 });

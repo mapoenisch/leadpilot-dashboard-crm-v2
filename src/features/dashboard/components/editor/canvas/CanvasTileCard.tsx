@@ -79,6 +79,7 @@ export function convertV2TileToV1(
     filterMode: tile.timeframeOverride ? 'eigener_zeitraum' : 'dashboard',
     period: tile.timeframeOverride ? parseTimeframeToPeriod(tile.timeframeOverride) : undefined,
     pipeline: effectivePipeline,
+    query: tile.query,
   };
 }
 

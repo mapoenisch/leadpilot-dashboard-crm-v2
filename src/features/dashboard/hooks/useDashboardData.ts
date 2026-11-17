@@ -29,6 +29,7 @@ import {
   truncateBerlin,
 } from '../data/resolveTimeSeries';
 import { attachCrmQueryMeta } from '../time/useTimeControlledData';
+import { useOptionalTimeControl } from '../time/TimeControlProvider';
 
 const LIVE_IDS = LIVE_KPI_DEFINITIONS.map((def) => def.id);
 
@@ -37,17 +38,17 @@ export interface UseDashboardDataOptions {
   store?: LiveKpiStreamStore;
   dealSource?: FunnelDealSource;
   /**
-   * Auftrag 159: Anzeige eingefroren (gemeinsame Pause). Unterdrückt automatische CRM-Neuladungen
-   * bei Fensterfokus und Reconnect; der Erstaufruf und Filterwechsel laden weiterhin einmal.
-   * Fehlt die Option, ist das Verhalten unverändert.
+   * Auftrag 159 & 161: Anzeige eingefroren oder historischer Zeitpunkt.
    */
   frozen?: boolean;
+  analysisAt?: string | null;
 }
 
 function loadingTileData(
   entry: ActiveCatalogEntry,
   effectiveFilter: EffectiveTileFilter,
 ): ResolvedTileData {
+  const { layer, module, exportName, liveKpiId } = entry.source;
   return {
     catalogId: entry.id,
     state: 'laden',
@@ -57,13 +58,8 @@ function loadingTileData(
     unit: entry.unit,
     timeBasis: entry.timeBasis,
     asOf: null,
-    origin: {
-      layer: entry.source.layer,
-      module: entry.source.module,
-      exportName: entry.source.exportName,
-      liveKpiId: entry.source.liveKpiId,
-    },
-    scope: getScopeForLayer(entry.source.layer),
+    origin: { layer, module, exportName, liveKpiId },
+    scope: getScopeForLayer(layer),
     effectiveFilter,
   };
 }
@@ -108,7 +104,16 @@ export function useDashboardData(
     });
   }, [queryClient, organizationId, userId, identity]);
 
-  // Zeitreihen (Auftrag 160 P10b-1)
+  const timeControl = useOptionalTimeControl();
+  const effectiveAnalysisAt =
+    options.analysisAt !== undefined
+      ? options.analysisAt
+      : timeControl?.state.mode === 'zeitpunkt'
+        ? timeControl.state.analysisAt
+        : null;
+  const isTimePoint = Boolean(effectiveAnalysisAt);
+
+  // Zeitreihen (Auftrag 160 P10b-1 & Auftrag 161 P10b-2)
   const activeEntry = catalogEntry && isActiveEntry(catalogEntry) ? catalogEntry : null;
   const isTimeSeries = Boolean(activeEntry && activeEntry.history.kind === 'ereignisse');
   const timeSeriesEnabled = isEnabled && isTimeSeries && Boolean(organizationId && userId);
@@ -125,9 +130,10 @@ export function useDashboardData(
   }, [options.frozen]);
 
   useEffect(() => {
-    if (!isTimeSeries || !activeEntry || options.frozen) return;
+    if (!isTimeSeries || !activeEntry || options.frozen || isTimePoint) return;
     const now = new Date();
     const resolution =
+      tile.query?.window?.resolution ??
       activeEntry.history.defaultWindow?.resolution ??
       (activeEntry.source.layer === 'crm' ? 'woche' : 'stunde');
 
@@ -142,21 +148,29 @@ export function useDashboardData(
       msUntilNext = Math.max(1000, nextStart.getTime() - now.getTime() + 500);
     }
 
-    const timer = setTimeout(() => {
-      setWindowTick((t) => t + 1);
-    }, msUntilNext);
+    const MAX_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 Stunden Sicherheitsgrenze (< 2^31 - 1)
+    const timer = setTimeout(
+      () => {
+        setWindowTick((t) => t + 1);
+      },
+      Math.min(msUntilNext, MAX_TIMEOUT_MS),
+    );
 
     return () => clearTimeout(timer);
-  }, [isTimeSeries, activeEntry, options.frozen, windowTick]);
+  }, [isTimeSeries, activeEntry, options.frozen, isTimePoint, windowTick, tile.query?.window]);
 
-  const tsWindow = useMemo(() => {
-    // windowTick sorgt für Neuberechnung beim nächsten Abschnittswechsel
+  const [tsWindow, windowError] = useMemo(() => {
     void windowTick;
     if (!isTimeSeries || !activeEntry) {
-      return { from: '', to: '', resolution: 'stunde' as const, count: 24 };
+      return [{ from: '', to: '', resolution: 'stunde' as const, count: 24 }, null] as const;
     }
-    return timeSeriesWindow(activeEntry);
-  }, [isTimeSeries, activeEntry, windowTick]);
+    try {
+      const targetNow = effectiveAnalysisAt ? new Date(effectiveAnalysisAt) : new Date();
+      return [timeSeriesWindow(activeEntry, targetNow, tile.query?.window), null] as const;
+    } catch (err) {
+      return [null, (err as Error).message] as const;
+    }
+  }, [isTimeSeries, activeEntry, windowTick, effectiveAnalysisAt, tile.query?.window]);
 
   const timeSeriesMetric =
     isTimeSeries && activeEntry
@@ -172,7 +186,7 @@ export function useDashboardData(
 
   const timeSeriesQuery = useQuery({
     queryKey:
-      organizationId && userId && isTimeSeries
+      organizationId && userId && isTimeSeries && tsWindow
         ? dashboardQueryKeys.timeSeries(
             organizationId,
             userId,
@@ -188,14 +202,18 @@ export function useDashboardData(
       fetchTimeSeries({
         source: timeSeriesSource,
         metric: timeSeriesMetric,
-        resolution: tsWindow.resolution,
-        from: tsWindow.from,
-        to: tsWindow.to,
+        resolution: tsWindow!.resolution,
+        from: tsWindow!.from,
+        to: tsWindow!.to,
         pipeline: catalogEntry?.source.layer === 'crm' ? effectiveFilter.pipeline : undefined,
       }),
-    enabled: timeSeriesEnabled,
-    staleTime: tsWindow.resolution === 'stunde' ? 3_600_000 : 7 * 86_400_000,
-    ...(options.frozen
+    enabled: timeSeriesEnabled && Boolean(tsWindow),
+    staleTime: isTimePoint
+      ? Infinity
+      : tsWindow?.resolution === 'stunde'
+        ? 3_600_000
+        : 7 * 86_400_000,
+    ...(options.frozen || isTimePoint
       ? { refetchOnWindowFocus: false as const, refetchOnReconnect: false as const }
       : {}),
   });
@@ -318,6 +336,13 @@ export function useDashboardData(
 
   // 3b. Server-Zeitreihen (Auftrag 160 P10b-1)
   if (isTimeSeries) {
+    if (windowError || !tsWindow) {
+      return {
+        ...loadingTileData(catalogEntry, effectiveFilter),
+        state: 'fehler',
+        message: windowError ?? 'Ungültiges Zeitfenster',
+      };
+    }
     if (!organizationId) {
       return loadingTileData(catalogEntry, effectiveFilter);
     }

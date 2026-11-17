@@ -203,9 +203,9 @@ function DashboardEditorShellBody({
     ...(liveStatusOverrides ? { overrides: liveStatusOverrides } : {}),
   });
 
-  // Auftrag 159: Pause friert nur die Anzeige ein; Fortsetzen lädt die CRM-Übersichten einmal neu.
+  // Auftrag 159 & 161: Pause friert Anzeige ein; Fortsetzen lädt CRM-Übersichten einmal neu.
   const handleToggleLivePause = useCallback(() => {
-    if (timeControl.state.mode === 'pausiert') {
+    if (timeControl.state.mode === 'pausiert' || timeControl.state.mode === 'zeitpunkt') {
       timeControl.resume();
       onResume?.();
     } else {
@@ -281,9 +281,10 @@ function DashboardEditorShellBody({
         onGlobalFilterChange={handleGlobalFilterChange}
         isLivePaused={isLivePaused}
         onToggleLivePause={handleToggleLivePause}
+        onResume={onResume}
         isPreviewMode={isPreviewMode}
         onTogglePreviewMode={() => {
-          setIsPreviewMode((prev) => !prev);
+          setIsPreviewMode((p) => !p);
           setSelectedTileId(null);
         }}
         canUndo={canUndo}

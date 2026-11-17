@@ -15,6 +15,7 @@ import {
 } from '../../../model/historyCapability';
 import { useOptionalTimeControl } from '../../../time/TimeControlProvider';
 import { useDashboardData } from '../../../hooks/useDashboardData';
+import { TimeWindowField, type TimeWindowConfig } from './TimeWindowField';
 
 export function InspectorDataTab({
   selectedTile,
@@ -68,9 +69,20 @@ export function InspectorDataTab({
     });
   };
 
+  const handleWindowChange = (nextWindow: TimeWindowConfig | undefined) => {
+    onTileOverrideChange(selectedTile.id, {
+      query: {
+        ...normQuery,
+        window: nextWindow,
+      },
+    });
+  };
+
   const isTimeSeries = catalogEntry?.history.kind === 'ereignisse';
   const timeControl = useOptionalTimeControl();
   const isPaused = timeControl?.state.mode === 'pausiert';
+
+  const effectiveWindow = normQuery.window ?? catalogEntry?.history.defaultWindow;
 
   const tileConfig: DashboardTileConfig = {
     tileId: selectedTile.id,
@@ -79,6 +91,7 @@ export function InspectorDataTab({
     size: 'mittel',
     filterMode: 'dashboard',
     pipeline: effectivePipeline,
+    query: normQuery,
   };
 
   const filters: DashboardFilters = { pipeline: globalPipeline };
@@ -118,7 +131,7 @@ export function InspectorDataTab({
               isCollapsed={isCollapsed}
             />
 
-            {isTimeSeries && catalogEntry.history.defaultWindow && (
+            {isTimeSeries && effectiveWindow && (
               <div
                 data-testid="inspector-time-series-meta"
                 className="mt-1 flex flex-col gap-0.5 text-[10px] text-[var(--color-text-muted)]"
@@ -126,13 +139,13 @@ export function InspectorDataTab({
                 <div>
                   <span>Auflösung: </span>
                   <span className="text-white font-medium" data-testid="inspector-resolution-text">
-                    {formatResolutionText(catalogEntry.history.defaultWindow.resolution)}
+                    {formatResolutionText(effectiveWindow.resolution)}
                   </span>
                 </div>
                 <div>
                   <span>Zeitraum: </span>
                   <span className="text-white font-medium" data-testid="inspector-timeframe-text">
-                    {formatTimeframeText(catalogEntry.history.defaultWindow)}
+                    {formatTimeframeText(effectiveWindow)}
                   </span>
                 </div>
               </div>
@@ -202,34 +215,41 @@ export function InspectorDataTab({
         )}
       </div>
 
-      {/* Zeitraum */}
-      <div className="space-y-1.5">
-        <label className="text-xs font-medium text-[var(--color-text-muted)]">Zeitraum</label>
-        <select
-          data-testid="inspector-timeframe-override"
-          aria-label="Zeitraum"
-          disabled
-          value={caps?.allowedTimeframes[0] ?? 'fest'}
-          className="h-8 w-full rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-2 text-xs text-white outline-none focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <option value="fest" className="bg-[var(--color-bg-deep,#051413)]">
-            Fester Stichtag (31.12.2025)
-          </option>
-          <option value="aktuell" className="bg-[var(--color-bg-deep,#051413)]">
-            Aktueller Snapshot (CRM)
-          </option>
-          <option value="live" className="bg-[var(--color-bg-deep,#051413)]">
-            Echtzeit-Stream (Live)
-          </option>
-        </select>
-        <p
-          className="text-[10px] text-[var(--color-text-muted)]"
-          data-testid="timeframe-disabled-reason"
-        >
-          Fester Zeitbezug laut Kennzahl ({caps?.allowedTimeframes[0] ?? 'fest'}). Eigene
-          Zeitfenster folgen in P10.
-        </p>
-      </div>
+      {/* Zeitfenster für Verlaufskacheln (Auftrag 161 §2.3 Nr. 15) bzw. Zeitraum für andere */}
+      {isTimeSeries && catalogEntry ? (
+        <TimeWindowField
+          catalogEntry={catalogEntry}
+          currentWindow={normQuery.window}
+          onChangeWindow={handleWindowChange}
+        />
+      ) : (
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-[var(--color-text-muted)]">Zeitraum</label>
+          <select
+            data-testid="inspector-timeframe-override"
+            aria-label="Zeitraum"
+            disabled
+            value={caps?.allowedTimeframes[0] ?? 'fest'}
+            className="h-8 w-full rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-2 text-xs text-white outline-none focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value="fest" className="bg-[var(--color-bg-deep,#051413)]">
+              Fester Stichtag (31.12.2025)
+            </option>
+            <option value="aktuell" className="bg-[var(--color-bg-deep,#051413)]">
+              Aktueller Snapshot (CRM)
+            </option>
+            <option value="live" className="bg-[var(--color-bg-deep,#051413)]">
+              Echtzeit-Stream (Live)
+            </option>
+          </select>
+          <p
+            className="text-[10px] text-[var(--color-text-muted)]"
+            data-testid="timeframe-disabled-reason"
+          >
+            Fester Zeitbezug laut Kennzahl ({caps?.allowedTimeframes[0] ?? 'fest'}).
+          </p>
+        </div>
+      )}
     </div>
   );
 }

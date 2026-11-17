@@ -183,6 +183,37 @@ describe('EditorStatusBarV2 Verbindung & Statusanzeigen', () => {
       />,
     );
     expect(screen.getByTestId('data-timestamp').textContent).toBe('Angehalten');
+
+    // Historischer Zeitpunkt aktiv
+    rerender(
+      <EditorStatusBarV2
+        {...baseProps({
+          liveStatus: baseStatus({
+            pausedSince: null,
+            timePointAt: '2026-10-31T23:00:00.000Z',
+          }),
+        })}
+      />,
+    );
+    expect(screen.getByTestId('data-timestamp').textContent).toContain(
+      'Analysezeitpunkt: 01.11., 00:00',
+    );
+    expect(screen.getByTestId('live-status-announcement').textContent).toContain(
+      'Historischer Analysezeitpunkt',
+    );
+
+    // Wechsel von Zeitpunkt zurück zu Live
+    rerender(
+      <EditorStatusBarV2
+        {...baseProps({
+          liveStatus: baseStatus({
+            pausedSince: null,
+            timePointAt: null,
+          }),
+        })}
+      />,
+    );
+    expect(screen.getByTestId('live-status-announcement').textContent).toBe('Anzeige fortgesetzt.');
   });
 
   it('zeigt Kachelbudget in Normal-, Warn- und Voll-Zustand sowie mit Teilaktivierung', () => {
