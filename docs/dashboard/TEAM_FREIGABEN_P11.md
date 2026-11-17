@@ -1,6 +1,6 @@
 # Team-Freigaben und Kollaboration (P11a – Auftrag 162)
 
-> **Status:** Umgesetzt im Backend & Dienstschicht (P11a / Auftrag 162, 2026-11-22). UI folgt in P11b (Auftrag 163).  
+> **Status:** Umgesetzt im Backend & Dienstschicht (P11a / Auftrag 162, 2026-11-17 (Datum korrigiert am 17.11.2026; ursprünglich irrtümlich 22.11.2026)). UI folgt in P11b (Auftrag 163).  
 > **Migration:** `supabase/migrations/20261122_dashboard_team_sharing.sql`  
 > **Dienste:** `src/features/dashboard/services/dashboardTeamsV2.ts`, `src/features/dashboard/services/dashboardSharingV2.ts`
 

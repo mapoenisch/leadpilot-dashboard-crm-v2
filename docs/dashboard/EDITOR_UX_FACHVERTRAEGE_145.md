@@ -266,7 +266,7 @@ Für erfahrene Anwender bietet der Panel-Editor eine strukturierte, deklarative 
 | Freigabegruppen (Teams) verwalten                              |     ✅ Ja      |                           ❌ Nein                            |          ❌ Nein          |
 | Dashboard-Export durchführen (JSON / PDF)                      |     ✅ Ja      |                            ✅ Ja                             |           ✅ Ja           |
 
-### 6.4 Nachtrag: Umgesetzt in Auftrag 162 (P11a, 22.11.2026)
+### 6.4 Nachtrag: Umgesetzt in Auftrag 162 (P11a, 17.11.2026 (Datum korrigiert am 17.11.2026; ursprünglich irrtümlich 22.11.2026))
 
 Der Team-Scope (`scope = 'team'`) und die Freigabe- und Rechtematrix wurden in Auftrag 162 serverseitig vollständig realisiert. Vollständige Spezifikation und Rechtematrix siehe [TEAM_FREIGABEN_P11.md](file:///Users/marcpoenisch/Projekte/LeadPilot%20Dashboard-CRM/docs/dashboard/TEAM_FREIGABEN_P11.md).
 

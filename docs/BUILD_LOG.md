@@ -21768,7 +21768,7 @@ Migration `20261120_dashboard_query_window.sql` muss auf Hosted vor dem App-Depl
 
 Empfehlung: ein kleiner Rest-Auftrag „161R“ vor oder nach 162; Entscheidung Marc. Bis dahin ist P10 **nicht** vollständig abgeschlossen.
 
-## 2026-11-22 — Auftrag 162: Dashboard-Editor: Team-Freigaben im Server – Teams, Rechte, Team-Dashboards, Kopieren (P11a)
+## 2026-11-17 — Auftrag 162 (Datum korrigiert am 17.11.2026; ursprünglich irrtümlich 22.11.2026): Dashboard-Editor: Team-Freigaben im Server – Teams, Rechte, Team-Dashboards, Kopieren (P11a)
 
 **Rolle:** Builder (Antigravity)  
 **Branch:** `auftrag-162-team-freigaben-server`  
