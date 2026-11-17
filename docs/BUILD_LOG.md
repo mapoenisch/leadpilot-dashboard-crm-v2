@@ -21768,7 +21768,7 @@ Migration `20261120_dashboard_query_window.sql` muss auf Hosted vor dem App-Depl
 
 Empfehlung: ein kleiner Rest-Auftrag „161R“ vor oder nach 162; Entscheidung Marc. Bis dahin ist P10 **nicht** vollständig abgeschlossen.
 
-## 2026-11-22 — Auftrag 162: Dashboard-Editor: Team-Freigaben im Server – Teams, Rechte, Team-Dashboards, Kopieren (P11a)
+## 2026-11-17 — Auftrag 162 (Datum korrigiert am 17.11.2026; ursprünglich irrtümlich 22.11.2026): Dashboard-Editor: Team-Freigaben im Server – Teams, Rechte, Team-Dashboards, Kopieren (P11a)
 
 **Rolle:** Builder (Antigravity)  
 **Branch:** `auftrag-162-team-freigaben-server`  
@@ -21815,6 +21815,7 @@ Keine Oberflächenänderungen (UI folgt in Auftrag 163 / P11b).
 ### 3. T1 Rot-Nachweise
 
 Vor der Implementierung der Migration und Dienstschicht wurden die 4 Pflicht-Rotfälle verifiziert:
+
 - **(a) Team-Mitglied liest Team-Revisionen:** Vor 162 warf `get_dashboard_v2_revisions` `LP_DASHBOARD_NOT_FOUND` für alle Team-Dashboards (Schutz aus PR #198). Rot gegen Soll, da Teammitglieder und Admins ab P11 Leserecht besitzen.
 - **(b) Manager legt Team-Dashboard an:** Vor 162 warf `create_dashboard_v2` bei `scope = 'team'` `LP_TEAM_DASHBOARDS_LOCKED_UNTIL_P11`. Rot gegen Soll.
 - **(c) Rechteentzug beim Speichern:** Vor 162 gab es weder `LP_TEAM_ACCESS_REVOKED` noch eine dynamische Prüfung gegen `dashboard_team_members`.
@@ -21825,6 +21826,7 @@ Vor der Implementierung der Migration und Dienstschicht wurden die 4 Pflicht-Rot
 ### 4. T10 Sicherheitsvorprüfung
 
 Zeile-für-Zeile-Prüfung aller Hilfsfunktionen und RPCs:
+
 1. **Rechteprüfung vor jeder Wirkung:** Jede schreibende RPC (`create_dashboard_team_v2`, `update_dashboard_team_v2`, `delete_dashboard_team_v2`, `add_dashboard_team_member_v2`, `remove_dashboard_team_member_v2`, `save_dashboard_v2`, `restore_dashboard_revision_v2`, `delete_team_dashboard_v2`, `copy_dashboard_v2`) prüft Authentifizierung und Berechtigung vor jeder Abfrage- oder Mutationsoperation.
 2. **`search_path` gesetzt:** Alle Funktionen besitzen `SET search_path = public, pg_temp` und deklarieren `SECURITY DEFINER`.
 3. **Keine dynamische SQL:** Sämtliche Datenbankzugriffe erfolgen über statische, typisierte SQL-Statements ohne `EXECUTE` oder String-Konkatenation.

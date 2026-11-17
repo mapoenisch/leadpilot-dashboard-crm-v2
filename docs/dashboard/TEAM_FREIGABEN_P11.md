@@ -1,6 +1,6 @@
 # Team-Freigaben und Kollaboration (P11a – Auftrag 162)
 
-> **Status:** Umgesetzt im Backend & Dienstschicht (P11a / Auftrag 162, 2026-11-22). UI folgt in P11b (Auftrag 163).  
+> **Status:** Umgesetzt im Backend & Dienstschicht (P11a / Auftrag 162, 2026-11-17 (Datum korrigiert am 17.11.2026; ursprünglich irrtümlich 22.11.2026)). UI folgt in P11b (Auftrag 163).  
 > **Migration:** `supabase/migrations/20261122_dashboard_team_sharing.sql`  
 > **Dienste:** `src/features/dashboard/services/dashboardTeamsV2.ts`, `src/features/dashboard/services/dashboardSharingV2.ts`
 
@@ -11,6 +11,7 @@
 Mit Phase 11 wird der Scope `team` im Executive Dashboard V2 aktiviert. Dashboards können Teams zugeordnet werden, sodass Mitglieder innerhalb einer Organisation kollaborativ an Dashboards arbeiten oder diese einsehen können.
 
 ### 1.1 Wesentliche Fachregeln (2.1)
+
 1. **Zwei Rollenebenen:**
    - **Organisationsrolle (`organization_members.role`):** `admin`, `manager`, `viewer`.
    - **Teamrolle (`dashboard_team_members.role`):** `member` (Standard; `lead` ist für künftige Erweiterungen reserviert und hat in P11 dieselben Rechte wie `member`).
@@ -57,41 +58,42 @@ Mit Phase 11 wird der Scope `team` im Executive Dashboard V2 aktiviert. Dashboar
 
 ## 2. Rechtematrix im Detail
 
-| Aktion | Admin | Manager (Team-Mitglied) | Manager (kein Mitglied) | Viewer (Team-Mitglied) | Viewer (kein Mitglied) |
-|---|:---:|:---:|:---:|:---:|:---:|
-| **Teams auflisten** (`list_dashboard_teams_v2`) | Alle Teams der Org | Eigene Teams | Keine | Eigene Teams | Keine |
-| **Team anlegen/bearbeiten/löschen** | Ja | Nein (`LP_FORBIDDEN`) | Nein (`LP_FORBIDDEN`) | Nein (`LP_FORBIDDEN`) | Nein (`LP_FORBIDDEN`) |
-| **Team-Mitglieder verwalten** | Ja | Nein (`LP_FORBIDDEN`) | Nein (`LP_FORBIDDEN`) | Nein (`LP_FORBIDDEN`) | Nein (`LP_FORBIDDEN`) |
-| **Team-Dashboard anlegen** | Ja | Ja | Nein (`LP_FORBIDDEN`) | Nein (`LP_FORBIDDEN`) | Nein (`LP_FORBIDDEN`) |
-| **Team-Dashboard lesen** | Ja | Ja | Nein (`LP_DASHBOARD_NOT_FOUND`) | Ja | Nein (`LP_DASHBOARD_NOT_FOUND`) |
-| **Team-Dashboard speichern/löschen** | Ja | Ja | Nein (`LP_TEAM_ACCESS_REVOKED`) | Nein (`LP_TEAM_ACCESS_REVOKED`) | Nein (`LP_TEAM_ACCESS_REVOKED`) |
-| **Team-Revisionen lesen/wiederherstellen** | Ja | Ja | Nein (`LP_DASHBOARD_NOT_FOUND`) | Ja (Lesen) / Nein (Restore) | Nein (`LP_DASHBOARD_NOT_FOUND`) |
-| **Kopieren (Ziel: Team)** | Ja | Ja (mit Schreibrecht) | Nein (`LP_FORBIDDEN`) | Nein (`LP_FORBIDDEN`) | Nein (`LP_FORBIDDEN`) |
-| **Kopieren (Ziel: personal)** | Ja | Ja | Nein (wenn Quelle nicht lesbar) | Ja | Nein (wenn Quelle nicht lesbar) |
+| Aktion                                          |       Admin        | Manager (Team-Mitglied) |     Manager (kein Mitglied)     |     Viewer (Team-Mitglied)      |     Viewer (kein Mitglied)      |
+| ----------------------------------------------- | :----------------: | :---------------------: | :-----------------------------: | :-----------------------------: | :-----------------------------: |
+| **Teams auflisten** (`list_dashboard_teams_v2`) | Alle Teams der Org |      Eigene Teams       |              Keine              |          Eigene Teams           |              Keine              |
+| **Team anlegen/bearbeiten/löschen**             |         Ja         |  Nein (`LP_FORBIDDEN`)  |      Nein (`LP_FORBIDDEN`)      |      Nein (`LP_FORBIDDEN`)      |      Nein (`LP_FORBIDDEN`)      |
+| **Team-Mitglieder verwalten**                   |         Ja         |  Nein (`LP_FORBIDDEN`)  |      Nein (`LP_FORBIDDEN`)      |      Nein (`LP_FORBIDDEN`)      |      Nein (`LP_FORBIDDEN`)      |
+| **Team-Dashboard anlegen**                      |         Ja         |           Ja            |      Nein (`LP_FORBIDDEN`)      |      Nein (`LP_FORBIDDEN`)      |      Nein (`LP_FORBIDDEN`)      |
+| **Team-Dashboard lesen**                        |         Ja         |           Ja            | Nein (`LP_DASHBOARD_NOT_FOUND`) |               Ja                | Nein (`LP_DASHBOARD_NOT_FOUND`) |
+| **Team-Dashboard speichern/löschen**            |         Ja         |           Ja            | Nein (`LP_TEAM_ACCESS_REVOKED`) | Nein (`LP_TEAM_ACCESS_REVOKED`) | Nein (`LP_TEAM_ACCESS_REVOKED`) |
+| **Team-Revisionen lesen/wiederherstellen**      |         Ja         |           Ja            | Nein (`LP_DASHBOARD_NOT_FOUND`) |   Ja (Lesen) / Nein (Restore)   | Nein (`LP_DASHBOARD_NOT_FOUND`) |
+| **Kopieren (Ziel: Team)**                       |         Ja         |  Ja (mit Schreibrecht)  |      Nein (`LP_FORBIDDEN`)      |      Nein (`LP_FORBIDDEN`)      |      Nein (`LP_FORBIDDEN`)      |
+| **Kopieren (Ziel: personal)**                   |         Ja         |           Ja            | Nein (wenn Quelle nicht lesbar) |               Ja                | Nein (wenn Quelle nicht lesbar) |
 
 ---
 
 ## 3. RPC-Übersicht & Fehlercodes
 
-| RPC | Berechtigung | Rückgabe / Verhalten | Spezifische Fehlercodes |
-|---|---|---|---|
-| `list_dashboard_teams_v2()` | Angemeldet | Liste der Teams mit `id, name, description, member_count, dashboard_count, can_write, is_member` | `LP_AUTH_REQUIRED` |
-| `create_dashboard_team_v2(p_name, p_description)` | Admin | `{ team_id, created_at }`, Audit `dashboard.team.created` | `LP_FORBIDDEN`, `LP_TEAM_NAME_TAKEN`, `LP_TEAM_LIMIT` |
-| `update_dashboard_team_v2(p_team_id, p_name, p_description)` | Admin | `{ team_id, updated_at }`, Audit `dashboard.team.updated` | `LP_FORBIDDEN`, `LP_TEAM_NOT_FOUND`, `LP_TEAM_NAME_TAKEN` |
-| `delete_dashboard_team_v2(p_team_id)` | Admin | `{ deleted_team_id }`, Audit `dashboard.team.deleted` | `LP_FORBIDDEN`, `LP_TEAM_NOT_FOUND`, `LP_TEAM_HAS_DASHBOARDS` |
-| `list_dashboard_team_members_v2(p_team_id)` | Admin | Liste der Mitglieder mit `user_id, email, org_role, org_status, team_role, created_at` | `LP_FORBIDDEN`, `LP_TEAM_NOT_FOUND` |
-| `add_dashboard_team_member_v2(p_team_id, p_user_id)` | Admin | `{ team_id, user_id, created_at }`, Audit `dashboard.team.member_added` | `LP_FORBIDDEN`, `LP_TEAM_NOT_FOUND`, `LP_MEMBER_NOT_IN_ORG`, `LP_TEAM_MEMBER_LIMIT` |
-| `remove_dashboard_team_member_v2(p_team_id, p_user_id)` | Admin | `{ removed }`, Audit `dashboard.team.member_removed` | `LP_FORBIDDEN`, `LP_TEAM_NOT_FOUND` |
-| `list_accessible_dashboards_v2()` | Angemeldet | Eigene persönliche + lesbare Team-Dashboards mit `id, title, scope, revision, tile_count, section_count, updated_at, team_id, team_name, can_write` | `LP_AUTH_REQUIRED` |
-| `load_dashboard_v2(p_dashboard_id)` | Leserecht | `{ id, title, scope, team_id, revision, config, updated_at, can_write }` | `LP_DASHBOARD_NOT_FOUND`, `LP_TEAM_ACCESS_REVOKED` |
-| `delete_team_dashboard_v2(p_dashboard_id, p_expected_revision)` | Schreibrecht | `{ deleted_id }`, Revisionen mitgelöscht, Audit `dashboard.team_dashboard.deleted` | `LP_DASHBOARD_NOT_FOUND`, `LP_TEAM_ACCESS_REVOKED`, `LP_DASHBOARD_CONFLICT` |
-| `copy_dashboard_v2(p_source_id, p_target_scope, p_target_team_id, p_title)` | Leserecht an Quelle + Schreibrecht am Ziel | `{ dashboard_id, revision, created_at }`, Audit `dashboard.copied` | `LP_DASHBOARD_NOT_FOUND`, `LP_FORBIDDEN`, `LP_TEAM_NOT_FOUND`, `LP_DASHBOARD_LIMIT`, `LP_TEAM_DASHBOARD_LIMIT`, `LP_DASHBOARD_INVALID` |
+| RPC                                                                         | Berechtigung                               | Rückgabe / Verhalten                                                                                                                                | Spezifische Fehlercodes                                                                                                                |
+| --------------------------------------------------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `list_dashboard_teams_v2()`                                                 | Angemeldet                                 | Liste der Teams mit `id, name, description, member_count, dashboard_count, can_write, is_member`                                                    | `LP_AUTH_REQUIRED`                                                                                                                     |
+| `create_dashboard_team_v2(p_name, p_description)`                           | Admin                                      | `{ team_id, created_at }`, Audit `dashboard.team.created`                                                                                           | `LP_FORBIDDEN`, `LP_TEAM_NAME_TAKEN`, `LP_TEAM_LIMIT`                                                                                  |
+| `update_dashboard_team_v2(p_team_id, p_name, p_description)`                | Admin                                      | `{ team_id, updated_at }`, Audit `dashboard.team.updated`                                                                                           | `LP_FORBIDDEN`, `LP_TEAM_NOT_FOUND`, `LP_TEAM_NAME_TAKEN`                                                                              |
+| `delete_dashboard_team_v2(p_team_id)`                                       | Admin                                      | `{ deleted_team_id }`, Audit `dashboard.team.deleted`                                                                                               | `LP_FORBIDDEN`, `LP_TEAM_NOT_FOUND`, `LP_TEAM_HAS_DASHBOARDS`                                                                          |
+| `list_dashboard_team_members_v2(p_team_id)`                                 | Admin                                      | Liste der Mitglieder mit `user_id, email, org_role, org_status, team_role, created_at`                                                              | `LP_FORBIDDEN`, `LP_TEAM_NOT_FOUND`                                                                                                    |
+| `add_dashboard_team_member_v2(p_team_id, p_user_id)`                        | Admin                                      | `{ team_id, user_id, created_at }`, Audit `dashboard.team.member_added`                                                                             | `LP_FORBIDDEN`, `LP_TEAM_NOT_FOUND`, `LP_MEMBER_NOT_IN_ORG`, `LP_TEAM_MEMBER_LIMIT`                                                    |
+| `remove_dashboard_team_member_v2(p_team_id, p_user_id)`                     | Admin                                      | `{ removed }`, Audit `dashboard.team.member_removed`                                                                                                | `LP_FORBIDDEN`, `LP_TEAM_NOT_FOUND`                                                                                                    |
+| `list_accessible_dashboards_v2()`                                           | Angemeldet                                 | Eigene persönliche + lesbare Team-Dashboards mit `id, title, scope, revision, tile_count, section_count, updated_at, team_id, team_name, can_write` | `LP_AUTH_REQUIRED`                                                                                                                     |
+| `load_dashboard_v2(p_dashboard_id)`                                         | Leserecht                                  | `{ id, title, scope, team_id, revision, config, updated_at, can_write }`                                                                            | `LP_DASHBOARD_NOT_FOUND`, `LP_TEAM_ACCESS_REVOKED`                                                                                     |
+| `delete_team_dashboard_v2(p_dashboard_id, p_expected_revision)`             | Schreibrecht                               | `{ deleted_id }`, Revisionen mitgelöscht, Audit `dashboard.team_dashboard.deleted`                                                                  | `LP_DASHBOARD_NOT_FOUND`, `LP_TEAM_ACCESS_REVOKED`, `LP_DASHBOARD_CONFLICT`                                                            |
+| `copy_dashboard_v2(p_source_id, p_target_scope, p_target_team_id, p_title)` | Leserecht an Quelle + Schreibrecht am Ziel | `{ dashboard_id, revision, created_at }`, Audit `dashboard.copied`                                                                                  | `LP_DASHBOARD_NOT_FOUND`, `LP_FORBIDDEN`, `LP_TEAM_NOT_FOUND`, `LP_DASHBOARD_LIMIT`, `LP_TEAM_DASHBOARD_LIMIT`, `LP_DASHBOARD_INVALID` |
 
 ---
 
 ## 4. RLS-Architektur
 
 Alle Tabellen unterliegen strikter Row Level Security:
+
 - `dashboards`: Direkter `SELECT` erlaubt für persönliche Dashboards des Nutzers sowie Team-Dashboards via `dashboard_team_can_read`. Keine direkten `INSERT/UPDATE/DELETE` für `authenticated` (nur über RPCs).
 - `dashboard_revisions`: Direkter `SELECT` erlaubt, wenn zugehöriges Dashboard lesbar ist (`dashboard_team_can_read` bzw. persönlicher Besitzer).
 - `dashboard_teams`: Direkter `SELECT` erlaubt für Admins (alle Teams) bzw. zugeordnete Mitglieder (`dashboard_team_is_active_member`). Keine direkten Mutationen.
