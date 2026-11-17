@@ -52,6 +52,7 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
   const testRunId = Date.now();
   const teamName = `E2E Team ${testRunId}`;
   let createdTeamId: string | null = null;
+  let managerUserId: string | null = null;
   const createdDashboardIds: string[] = [];
 
   test.beforeEach(async ({ page }) => {
@@ -116,7 +117,7 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
 
     // Suche Option mit Manager Email
     const managerOption = memberSelect.locator('option', { hasText: MANAGER_EMAIL });
-    const managerUserId = await managerOption.getAttribute('value');
+    managerUserId = await managerOption.getAttribute('value');
     if (managerUserId) {
       await memberSelect.selectOption(managerUserId);
       await page.getByTestId('add-member-button').click();
