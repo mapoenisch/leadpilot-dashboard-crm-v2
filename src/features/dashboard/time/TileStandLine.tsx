@@ -5,22 +5,32 @@ import type { ActiveCatalogEntry } from '../model/dashboardCatalog';
 import type { ResolvedTileData, TileData, TileTimeSeriesData } from '../data/dashboardData';
 import { readTileStand } from './useTimeControlledData';
 
+const BERLIN_TZ = 'Europe/Berlin';
+
 const timeFormat = new Intl.DateTimeFormat('de-DE', {
   hour: '2-digit',
   minute: '2-digit',
+  timeZone: BERLIN_TZ,
 });
 const dateTimeFormat = new Intl.DateTimeFormat('de-DE', {
   day: '2-digit',
   month: '2-digit',
   hour: '2-digit',
   minute: '2-digit',
+  timeZone: BERLIN_TZ,
+});
+const dayFormat = new Intl.DateTimeFormat('en-CA', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  timeZone: BERLIN_TZ,
 });
 
 function formatStand(iso: string | null): string | null {
   if (!iso) return null;
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return null;
-  const sameDay = date.toDateString() === new Date().toDateString();
+  const sameDay = dayFormat.format(date) === dayFormat.format(new Date());
   return sameDay ? timeFormat.format(date) : dateTimeFormat.format(date);
 }
 

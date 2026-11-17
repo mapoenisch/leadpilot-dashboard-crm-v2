@@ -82,6 +82,8 @@ export function InspectorDataTab({
   const timeControl = useOptionalTimeControl();
   const isPaused = timeControl?.state.mode === 'pausiert';
 
+  const effectiveWindow = normQuery.window ?? catalogEntry?.history.defaultWindow;
+
   const tileConfig: DashboardTileConfig = {
     tileId: selectedTile.id,
     catalogId: selectedTile.catalogId,
@@ -89,6 +91,7 @@ export function InspectorDataTab({
     size: 'mittel',
     filterMode: 'dashboard',
     pipeline: effectivePipeline,
+    query: normQuery,
   };
 
   const filters: DashboardFilters = { pipeline: globalPipeline };
@@ -128,7 +131,7 @@ export function InspectorDataTab({
               isCollapsed={isCollapsed}
             />
 
-            {isTimeSeries && catalogEntry.history.defaultWindow && (
+            {isTimeSeries && effectiveWindow && (
               <div
                 data-testid="inspector-time-series-meta"
                 className="mt-1 flex flex-col gap-0.5 text-[10px] text-[var(--color-text-muted)]"
@@ -136,13 +139,13 @@ export function InspectorDataTab({
                 <div>
                   <span>Auflösung: </span>
                   <span className="text-white font-medium" data-testid="inspector-resolution-text">
-                    {formatResolutionText(catalogEntry.history.defaultWindow.resolution)}
+                    {formatResolutionText(effectiveWindow.resolution)}
                   </span>
                 </div>
                 <div>
                   <span>Zeitraum: </span>
                   <span className="text-white font-medium" data-testid="inspector-timeframe-text">
-                    {formatTimeframeText(catalogEntry.history.defaultWindow)}
+                    {formatTimeframeText(effectiveWindow)}
                   </span>
                 </div>
               </div>

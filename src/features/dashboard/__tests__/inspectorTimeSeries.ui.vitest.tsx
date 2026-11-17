@@ -202,4 +202,42 @@ describe('Inspector & Bibliothek Zeitreihen-Texte (Auftrag 160 §2.4 Nr. 25)', (
       }),
     );
   });
+
+  it('InspectorDataTab übernimmt query.window für Metadaten und Abfrage', async () => {
+    const queryClient = createTestQueryClient();
+    const fetchSpy = vi.spyOn(resolveTimeSeriesModule, 'fetchTimeSeries');
+    fetchSpy.mockClear();
+
+    const rawEntry = getCatalogEntry('crm.phaseneintritte_verlauf');
+    const entry = rawEntry && isActiveEntry(rawEntry) ? rawEntry : undefined;
+    expect(entry).toBeDefined();
+
+    const selectedTile: DashboardTileConfigV2 = {
+      id: 'tile-crm-custom-window',
+      catalogId: 'crm.phaseneintritte_verlauf',
+      title: 'Phaseneintritte 30 Tage',
+      presentation: 'linie',
+      layouts: { desktop: { x: 0, y: 0, w: 6, h: 4 } },
+      query: { window: { count: 30, resolution: 'tag' } },
+    };
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <InspectorDataTab
+          selectedTile={selectedTile}
+          catalogEntry={entry}
+          onTileOverrideChange={vi.fn()}
+        />
+      </QueryClientProvider>,
+    );
+
+    expect(screen.getByTestId('inspector-resolution-text').textContent).toBe('je Tag');
+    expect(screen.getByTestId('inspector-timeframe-text').textContent).toBe('Letzte 30 Tage');
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        resolution: 'tag',
+        source: 'deal_stage_events',
+      }),
+    );
+  });
 });
