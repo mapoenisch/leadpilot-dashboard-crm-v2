@@ -38,7 +38,11 @@ const CRM_PRESETS: readonly WindowPreset[] = [
 
 const LIVE_PRESETS: readonly WindowPreset[] = [
   { id: '6_stunden', label: '6 Stunden (je Stunde)', window: { count: 6, resolution: 'stunde' } },
-  { id: '24_stunden', label: '24 Stunden (je Stunde)', window: { count: 24, resolution: 'stunde' } },
+  {
+    id: '24_stunden',
+    label: '24 Stunden (je Stunde)',
+    window: { count: 24, resolution: 'stunde' },
+  },
   { id: '7_tage', label: '7 Tage (je Tag)', window: { count: 7, resolution: 'tag' } },
   { id: '30_tage', label: '30 Tage (je Tag)', window: { count: 30, resolution: 'tag' } },
 ];

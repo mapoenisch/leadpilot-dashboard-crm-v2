@@ -233,15 +233,24 @@ describe('tileQuery (Auftrag 154 Task T1b & T3)', () => {
 
       it('lehnt nicht-Objekt oder unvollständige Schlüssel für window ab', () => {
         expect(
-          validateTileQuery({ metricId: 'crm.pipeline_deals', window: 'invalid' as unknown as never }, crmDealsEntry).errors.some((e) => e.code === 'typ_ungueltig'),
+          validateTileQuery(
+            { metricId: 'crm.pipeline_deals', window: 'invalid' as unknown as never },
+            crmDealsEntry,
+          ).errors.some((e) => e.code === 'typ_ungueltig'),
         ).toBe(true);
 
         expect(
-          validateTileQuery({ metricId: 'crm.pipeline_deals', window: { count: 10 } as unknown as never }, crmDealsEntry).errors.some((e) => e.code === 'typ_ungueltig'),
+          validateTileQuery(
+            { metricId: 'crm.pipeline_deals', window: { count: 10 } as unknown as never },
+            crmDealsEntry,
+          ).errors.some((e) => e.code === 'typ_ungueltig'),
         ).toBe(true);
 
         expect(
-          validateTileQuery({ metricId: 'crm.pipeline_deals', window: { count: -1, resolution: 'tag' } }, crmDealsEntry).errors.some((e) => e.code === 'typ_ungueltig'),
+          validateTileQuery(
+            { metricId: 'crm.pipeline_deals', window: { count: -1, resolution: 'tag' } },
+            crmDealsEntry,
+          ).errors.some((e) => e.code === 'typ_ungueltig'),
         ).toBe(true);
       });
 
@@ -256,12 +265,18 @@ describe('tileQuery (Auftrag 154 Task T1b & T3)', () => {
       it('prüft Quellenbeschränkungen für CRM (keine Stunde, max Limits)', () => {
         // Stunde auf CRM unzulässig
         expect(
-          validateTileQuery({ metricId: 'crm.pipeline_deals', window: { count: 10, resolution: 'stunde' } }, crmDealsEntry).errors.some((e) => e.code === 'fenster_unzulaessig'),
+          validateTileQuery(
+            { metricId: 'crm.pipeline_deals', window: { count: 10, resolution: 'stunde' } },
+            crmDealsEntry,
+          ).errors.some((e) => e.code === 'fenster_unzulaessig'),
         ).toBe(true);
 
         // Mehr als 366 Tage auf CRM unzulässig
         expect(
-          validateTileQuery({ metricId: 'crm.pipeline_deals', window: { count: 400, resolution: 'tag' } }, crmDealsEntry).errors.some((e) => e.code === 'fenster_unzulaessig'),
+          validateTileQuery(
+            { metricId: 'crm.pipeline_deals', window: { count: 400, resolution: 'tag' } },
+            crmDealsEntry,
+          ).errors.some((e) => e.code === 'fenster_unzulaessig'),
         ).toBe(true);
       });
 

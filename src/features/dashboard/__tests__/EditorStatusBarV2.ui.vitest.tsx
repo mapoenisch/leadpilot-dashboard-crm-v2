@@ -195,8 +195,12 @@ describe('EditorStatusBarV2 Verbindung & Statusanzeigen', () => {
         })}
       />,
     );
-    expect(screen.getByTestId('data-timestamp').textContent).toContain('Analysezeitpunkt: 01.11., 00:00');
-    expect(screen.getByTestId('live-status-announcement').textContent).toContain('Historischer Analysezeitpunkt');
+    expect(screen.getByTestId('data-timestamp').textContent).toContain(
+      'Analysezeitpunkt: 01.11., 00:00',
+    );
+    expect(screen.getByTestId('live-status-announcement').textContent).toContain(
+      'Historischer Analysezeitpunkt',
+    );
 
     // Wechsel von Zeitpunkt zurück zu Live
     rerender(

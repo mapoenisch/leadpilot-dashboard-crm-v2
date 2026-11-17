@@ -130,7 +130,9 @@ export function EditorStatusBarV2({
 
     if (currentMode === 'zeitpunkt') {
       setAnnouncement(
-        timePointText ? `Historischer Analysezeitpunkt: ${timePointText}.` : 'Historischer Analysezeitpunkt aktiv.',
+        timePointText
+          ? `Historischer Analysezeitpunkt: ${timePointText}.`
+          : 'Historischer Analysezeitpunkt aktiv.',
       );
     } else if (currentMode === 'pausiert') {
       setAnnouncement(pausedAt ? `Anzeige angehalten um ${pausedAt}.` : 'Anzeige angehalten.');

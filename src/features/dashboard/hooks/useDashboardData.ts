@@ -149,9 +149,12 @@ export function useDashboardData(
     }
 
     const MAX_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 Stunden Sicherheitsgrenze (< 2^31 - 1)
-    const timer = setTimeout(() => {
-      setWindowTick((t) => t + 1);
-    }, Math.min(msUntilNext, MAX_TIMEOUT_MS));
+    const timer = setTimeout(
+      () => {
+        setWindowTick((t) => t + 1);
+      },
+      Math.min(msUntilNext, MAX_TIMEOUT_MS),
+    );
 
     return () => clearTimeout(timer);
   }, [isTimeSeries, activeEntry, options.frozen, isTimePoint, windowTick, tile.query?.window]);

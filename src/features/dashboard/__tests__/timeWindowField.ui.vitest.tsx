@@ -1,7 +1,10 @@
 // Auftrag 161 (P10b-2): UI-Tests für TimeWindowField im Inspector.
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { TimeWindowField, type TimeWindowConfig } from '../components/editor/inspector/TimeWindowField';
+import {
+  TimeWindowField,
+  type TimeWindowConfig,
+} from '../components/editor/inspector/TimeWindowField';
 import { getCatalogEntry, type ActiveCatalogEntry } from '../model/dashboardCatalog';
 
 const crmEntry = getCatalogEntry('crm.phaseneintritte_verlauf') as ActiveCatalogEntry;
@@ -120,7 +123,9 @@ describe('TimeWindowField', () => {
       />,
     );
     expect(select.value).toBe('custom');
-    expect((screen.getByTestId('inspector-window-custom-count') as HTMLInputElement).value).toBe('5');
+    expect((screen.getByTestId('inspector-window-custom-count') as HTMLInputElement).value).toBe(
+      '5',
+    );
 
     // Wechsel auf eine Live-Kachel ohne gesetztes Fenster (Standard)
     rerender(
