@@ -28,12 +28,29 @@ export function formatByteSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MiB`;
 }
 
-const timeFormat = new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' });
+const timeFormat = new Intl.DateTimeFormat('de-DE', {
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Europe/Berlin',
+});
+const dateTimeBerlinFormat = new Intl.DateTimeFormat('de-DE', {
+  day: '2-digit',
+  month: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Europe/Berlin',
+});
 
 export function formatStatusTime(iso: string | null): string | null {
   if (!iso) return null;
   const date = new Date(iso);
   return Number.isNaN(date.getTime()) ? null : timeFormat.format(date);
+}
+
+export function formatStatusDateTime(iso: string | null): string | null {
+  if (!iso) return null;
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? null : dateTimeBerlinFormat.format(date);
 }
 
 const CONNECTION_TEXT: Record<EditorLiveStatus['connection'], string> = {
@@ -77,13 +94,16 @@ export function EditorStatusBarV2({
   const isBudgetFull = tileCount >= maxTiles;
 
   const pausedAt = formatStatusTime(liveStatus.pausedSince);
+  const timePointText = formatStatusDateTime(liveStatus.timePointAt ?? null);
   const lastEvent = formatStatusTime(liveStatus.lastEventAt);
   const dataStand = formatStatusTime(liveStatus.dataAsOf);
 
-  // Ansagen nur bei Wechsel der Verbindung und bei Pause/Fortsetzen, nicht bei jedem Ereignis.
+  // Ansagen nur bei Wechsel der Verbindung, Pause/Fortsetzen und Zeitpunkt-Modus.
   const [announcement, setAnnouncement] = useState('');
   const previousConnection = useRef<EditorLiveStatus['connection'] | null>(null);
-  const previousPaused = useRef<boolean>(liveStatus.pausedSince !== null);
+  const previousMode = useRef<'live' | 'pausiert' | 'zeitpunkt'>(
+    liveStatus.timePointAt ? 'zeitpunkt' : liveStatus.pausedSince ? 'pausiert' : 'live',
+  );
 
   useEffect(() => {
     if (previousConnection.current === null) {
@@ -98,15 +118,26 @@ export function EditorStatusBarV2({
   }, [liveStatus.connection]);
 
   useEffect(() => {
-    const paused = liveStatus.pausedSince !== null;
-    if (previousPaused.current === paused) return;
-    previousPaused.current = paused;
-    if (paused) {
+    const currentMode: 'live' | 'pausiert' | 'zeitpunkt' = liveStatus.timePointAt
+      ? 'zeitpunkt'
+      : liveStatus.pausedSince
+        ? 'pausiert'
+        : 'live';
+
+    if (previousMode.current === currentMode) return;
+    const oldMode = previousMode.current;
+    previousMode.current = currentMode;
+
+    if (currentMode === 'zeitpunkt') {
+      setAnnouncement(
+        timePointText ? `Historischer Analysezeitpunkt: ${timePointText}.` : 'Historischer Analysezeitpunkt aktiv.',
+      );
+    } else if (currentMode === 'pausiert') {
       setAnnouncement(pausedAt ? `Anzeige angehalten um ${pausedAt}.` : 'Anzeige angehalten.');
-    } else {
+    } else if (oldMode !== 'live') {
       setAnnouncement('Anzeige fortgesetzt.');
     }
-  }, [liveStatus.pausedSince, pausedAt]);
+  }, [liveStatus.pausedSince, liveStatus.timePointAt, pausedAt, timePointText]);
 
   return (
     <footer
@@ -154,19 +185,25 @@ export function EditorStatusBarV2({
         </div>
 
         <div className="flex min-w-0 items-center gap-1" data-testid="data-timestamp">
-          {liveStatus.pausedSince ? (
+          {liveStatus.timePointAt ? (
+            <Clock className="h-3 w-3 shrink-0 text-amber-400" aria-hidden="true" />
+          ) : liveStatus.pausedSince ? (
             <PauseCircle className="h-3 w-3 shrink-0 text-amber-400" aria-hidden="true" />
           ) : (
             <Clock className="h-3 w-3 shrink-0" aria-hidden="true" />
           )}
           <span className="truncate">
-            {liveStatus.pausedSince
-              ? pausedAt
-                ? `Angehalten seit ${pausedAt}`
-                : 'Angehalten'
-              : dataStand
-                ? `Datenstand: ${dataStand}`
-                : 'Kein aktueller Datenstand'}
+            {liveStatus.timePointAt
+              ? timePointText
+                ? `Analysezeitpunkt: ${timePointText}`
+                : 'Analysezeitpunkt aktiv'
+              : liveStatus.pausedSince
+                ? pausedAt
+                  ? `Angehalten seit ${pausedAt}`
+                  : 'Angehalten'
+                : dataStand
+                  ? `Datenstand: ${dataStand}`
+                  : 'Kein aktueller Datenstand'}
           </span>
         </div>
       </div>
