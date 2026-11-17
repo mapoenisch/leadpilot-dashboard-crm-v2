@@ -8,7 +8,7 @@
 **Baseline:** Merge-Commit des Deps-Auftrags in `main`. Ist er bei Start noch nicht gemergt: `5f9a4b75`, und der Builder rebased vor PR-Öffnung auf den Merge-Commit. Die Baseline wird im BUILD_LOG genannt.
 **Branch:** `auftrag-161-zeitpunkt-fenster-crosshair`.
 **Builder:** Antigravity (oder ein anderer von Marc benannter Agent). **Prüfer:** Codex auf GitHub oder ein anderer Agent, der nicht gebaut hat (`CLAUDE.md` §4.1). **Merge und Hosted-Deployment der Migration:** Marc.
-**Status:** OFFEN.
+**Status:** GEMERGT am 17.11.2026 (`6dbbc593`, PR #196), **teilweise umgesetzt**: Fadenkreuz-Kopplung (§2.4), E2E/Screenshots (T8) und Fach-Doku (§2.7) offen. Details im nachgetragenen BUILD_LOG-Eintrag vom 17.11.2026.
 
 ---
 

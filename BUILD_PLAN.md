@@ -2,7 +2,7 @@
 
 **Stand:** 16.11.2026
 
-**Aktueller Auftrag:** Auftrag 161 – Dashboard-Editor: Analysezeitpunkt (`mode: 'zeitpunkt'`), Zeitfenster je Kachel (`tile.query.window`) und gemeinsames Fadenkreuz (P10b-2, schließt P10 ab; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_161_ZEITPUNKT_FENSTER_CROSSHAIR.md`; Branch `auftrag-161-zeitpunkt-fenster-crosshair`; Builder Antigravity, Prüfer Codex; Status: OFFEN). Vorher: separater Auftrag `ANTIGRAVITY_AUFTRAG_DEPS_DEPENDABOT_CI.md` (Dependabot-PRs #189–#193, PR #195). Zuletzt: 160 Server-Zeitreihen (P10b-1; PR #194 gemergt), 159 Historienmatrix & Zeitsteuerung (P10a; PR #187 gemergt), 158 V2-Vorlagen (P09b; PR #188 gemergt).
+**Aktueller Auftrag:** keiner in Arbeit. Als Nächstes: Auftrag 162 (P11a, Team-Freigaben im Server; Detailauftrag in PR #197). Davor zu mergen: Sicherheitskorrektur `ANTIGRAVITY_AUFTRAG_FIX_DASHBOARD_REVISIONS_SCOPE.md` (PR #198). Zuletzt: 161 Analysezeitpunkt, Zeitfenster je Kachel, Fadenkreuz (P10b-2; PR #196 gemergt, **teilweise umgesetzt** – Fadenkreuz-Kopplung, E2E/Screenshots und Fach-Doku offen, siehe BUILD_LOG 17.11.2026), DEPS_DEPENDABOT_CI (PR #195), 160 Server-Zeitreihen (P10b-1; PR #194).
 
 **Betriebsregel Live-Feed:** Am 14.11.2026 durch Marc aufgehoben (Edge Function und Migrationen seit 14.11.2026 online; echte Kennzahlen dürfen über den mandantengebundenen Feed eingespeist werden).
 **Offen nach dem v3.1.0-Rollout (10./11.11.2026):**
