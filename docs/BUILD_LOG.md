@@ -21660,3 +21660,50 @@ Reine Konfigurations-, Abhängigkeits- und Lockfile-Änderungen. 0 Zeilen Anwend
 - `DENO_NO_PACKAGE_JSON=1 deno check`: 0 Fehler
 - `DENO_NO_PACKAGE_JSON=1 deno test`: 86/86 Tests bestanden
 - `npx playwright test`: Playwright 1.65.1 lokal verifiziert
+
+## 2026-11-17 — Separater Auftrag FIX_DASHBOARD_REVISIONS_SCOPE: Team-Revisionen nur für Berechtigte
+
+**Rolle:** Claude Code (Builder, Auftrag Marc vom 17.11.2026)
+**Branch:** `fix-dashboard-revisions-team-guard`
+**Baseline:** `6dbbc593` (Merge von PR #196, Auftrag 161)
+**Detailauftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_FIX_DASHBOARD_REVISIONS_SCOPE.md`
+**Status:** Gebaut und lokal verifiziert, Review offen
+
+### Ziel & Kontext
+
+Beim Schreiben von Auftrag 162 gefunden: `get_dashboard_v2_revisions` gab Revisionen von Team-Dashboards an jedes aktive Mitglied der Organisation heraus (`d.scope = 'team' OR d.user_id = v_user`). Latent, weil Team-Dashboards bis P11 über keine RPC entstehen können. Vor Aufhebung der Team-Sperre in 162 geschlossen.
+
+### Geänderte Dateien
+
+- `supabase/migrations/20261121_dashboard_revisions_scope_guard.sql` (neu): `CREATE OR REPLACE FUNCTION public.get_dashboard_v2_revisions`, Bedingung jetzt `d.scope = 'personal' AND d.user_id = v_user`; Grants wie in 20261113 wiederholt.
+- `supabase/tests/dashboard_revisions_scope_guard.sql` (neu, 6 Tests).
+- `docs/auftraege/ANTIGRAVITY_AUFTRAG_FIX_DASHBOARD_REVISIONS_SCOPE.md` (neu).
+
+### Rot-/Grün-Nachweis
+
+- **Rot** (vor der Migration, `supabase test db supabase/tests/dashboard_revisions_scope_guard.sql`): `Failed 2/6 subtests` – Test 1 (Viewer ohne Teammitgliedschaft) und Test 2 (Admin, Team bis P11 gesperrt) jeweils `caught: no exception, wanted: P0002`. Damit belegt: Ein Nicht-Mitglied erhielt Team-Revisionen einschließlich Änderungsnotiz.
+- **Grün** (nach Anwenden der Migration im lokalen DB-Container): `supabase test db` → `Files=18, Tests=410, Result: PASS`.
+
+### Funktionale Prüfungen
+
+- Eigene persönliche Revisionen weiterhin lesbar (Test 3); fremde persönliche (Test 4) und fremde Org (Test 5) → `LP_DASHBOARD_NOT_FOUND`; `anon` ohne `EXECUTE` (Test 6).
+- `save_dashboard_v2`/`restore_dashboard_revision_v2` geprüft: nicht betroffen (Abbruch mit `LP_TEAM_DASHBOARDS_LOCKED_UNTIL_P11` vor jedem Zugriff).
+
+### Schutzbereichs-Prüfung
+
+`git diff 6dbbc593 -- src/simulation src/types src/context src/services/data src/features/resources` → leer. Kein TypeScript geändert.
+
+### Automatisierte Verifikation
+
+- `npx tsc --noEmit`: 0 Fehler
+- `npm run verify`: alle Integrity-Suiten 001–025 bestanden
+- `npm run build`: erfolgreich
+- `supabase test db`: 18 Dateien, 410 Tests, PASS
+
+### Screenshot-Matrix
+
+Entfällt (keine UI-Änderung).
+
+### Ergebnis & Freigabestatus
+
+Lücke geschlossen und durch vorher roten Test belegt. Freigabe durch unabhängigen Prüfer offen. **Deployment (Marc):** Migration 20261121 auf Hosted anwenden; App-Deploy nicht nötig. **Folge für Auftrag 162:** dessen Migration heißt jetzt `20261122_dashboard_team_sharing.sql`; die Rechteprüfung in `get_dashboard_v2_revisions` ersetzt 162 durch die Team-Rechteprüfung.
