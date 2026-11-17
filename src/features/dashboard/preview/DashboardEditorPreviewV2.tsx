@@ -100,11 +100,13 @@ export function DashboardEditorPreviewV2() {
   });
 
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [revokedDraftConfig, setRevokedDraftConfig] = useState<DashboardConfigV2 | null>(null);
 
   const handleSave = useCallback(
     async (newConfig: DashboardConfigV2): Promise<boolean> => {
       await new Promise((resolve) => setTimeout(resolve, 300));
       if (teamsScenario === 'entzogen') {
+        setRevokedDraftConfig(newConfig);
         setShowRevokedDialog(true);
         return false;
       }
@@ -192,8 +194,13 @@ export function DashboardEditorPreviewV2() {
   );
 
   const handleDuplicateCurrent = useCallback(
-    async (title?: string, target?: { scope: 'personal' | 'team'; teamId?: string }) => {
-      const targetTitle = title?.trim() || buildDerivedDashboardTitle(config.title, ' (Kopie)');
+    async (
+      title?: string,
+      target?: { scope: 'personal' | 'team'; teamId?: string },
+      sourceConfig?: DashboardConfigV2,
+    ) => {
+      const base = sourceConfig ?? config;
+      const targetTitle = title?.trim() || buildDerivedDashboardTitle(base.title, ' (Kopie)');
       const newId = 'preview_' + Math.random().toString(36).slice(2, 8);
       const now = new Date().toISOString();
       const scope = target?.scope ?? 'personal';
@@ -208,20 +215,20 @@ export function DashboardEditorPreviewV2() {
         teamName: targetTeam ? targetTeam.name : null,
         canWrite: true,
         revision: 1,
-        tileCount: config.tiles.length,
-        sectionCount: config.sections?.length ?? 0,
+        tileCount: base.tiles.length,
+        sectionCount: base.sections?.length ?? 0,
         updatedAt: now,
       };
 
       setDashboards((prev) => [newListItem, ...prev]);
       setActiveDashboardId(newId);
-      setConfig((prev) => ({
-        ...prev,
+      setConfig({
+        ...base,
         id: newId,
         title: targetTitle,
         scope,
         teamId: scope === 'team' && target?.teamId ? target.teamId : undefined,
-      }));
+      });
       return { ok: true, value: { dashboardId: newId, revision: 1, updatedAt: now } };
     },
     [config],
@@ -341,12 +348,15 @@ export function DashboardEditorPreviewV2() {
         open={showRevokedDialog}
         dashboardTitle={config.title}
         onSaveAsPersonalCopy={async () => {
-          const copyTitle = buildDerivedDashboardTitle(config.title, ' (Persönliche Kopie)');
-          await handleDuplicateCurrent(copyTitle, { scope: 'personal' });
+          const draft = revokedDraftConfig ?? config;
+          const copyTitle = buildDerivedDashboardTitle(draft.title, ' (Persönliche Kopie)');
+          await handleDuplicateCurrent(copyTitle, { scope: 'personal' }, draft);
           setShowRevokedDialog(false);
+          setRevokedDraftConfig(null);
         }}
         onDiscardAndReload={() => {
           setShowRevokedDialog(false);
+          setRevokedDraftConfig(null);
         }}
       />
     </div>

@@ -101,9 +101,10 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Vorschau (P11b)', () => {
     await expect(saveCopyBtn).toBeVisible();
     await saveCopyBtn.click();
 
-    // Dialog schließt, Dashboard wurde als persönliche Kopie übernommen
+    // Dialog schließt, Dashboard wurde als persönliche Kopie übernommen inkl. aktuellem Entwurf
     await expect(revokedDialog).not.toBeVisible();
     await expect(switcherBtn).toContainText('Persönlich');
     await expect(switcherBtn).toContainText('(Persönliche Kopie)');
+    await expect(timeframeSelect).toHaveValue('letzte_7_tage');
   });
 });

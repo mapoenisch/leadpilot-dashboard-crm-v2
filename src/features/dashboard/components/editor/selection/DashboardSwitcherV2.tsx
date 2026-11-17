@@ -11,7 +11,7 @@ import type {
 import { NewDashboardDialogV2 } from './NewDashboardDialogV2';
 import { DuplicateDashboardDialogV2 } from './DuplicateDashboardDialogV2';
 import { DeleteDashboardDialogV2 } from './DeleteDashboardDialogV2';
-import { DashboardSwitcherMenuV2 } from './DashboardSwitcherMenuV2';
+import { DashboardSwitcherMenuV2, groupDashboardsForMenu } from './DashboardSwitcherMenuV2';
 import { useDashboardSelection } from './useDashboardSelection';
 import { UnsavedChangesDialog } from '../../UnsavedChangesDialog';
 
@@ -112,7 +112,8 @@ export function DashboardSwitcherV2({
   // Beim Öffnen des Menüs Fokus auf das aktive Dashboard oder ersten Eintrag übertragen (Codex P2)
   useEffect(() => {
     if (isOpen && !wasOpenRef.current) {
-      const currentIdx = dashboards.findIndex((d) => d.id === currentDashboard.id);
+      const { orderedDashboards } = groupDashboardsForMenu(dashboards);
+      const currentIdx = orderedDashboards.findIndex((d) => d.id === currentDashboard.id);
       const activeEl = currentIdx >= 0 ? itemRefs.current[currentIdx] : null;
       if (activeEl && !activeEl.disabled) {
         activeEl.focus();

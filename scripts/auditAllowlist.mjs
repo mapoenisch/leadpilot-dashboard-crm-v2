@@ -13,9 +13,18 @@ export const ALLOWLIST = [
     package: 'braces',
     reason:
       'Stack-Exhaustion bei tief verschachtelten Mustern. Betroffen bis 3.0.3, der neuesten Version; ' +
-      'keine reparierte Version (Stand 03.10.2026). Kommt nur über tailwindcss@3 (Build-Werkzeug) mit festen Mustern ' +
-      'aus dem Repository, keine fremden Eingaben. Entscheidung Marc vom 03.10.2026.',
-    expires: '2026-11-02',
+      'keine reparierte Version (Stand 17.11.2026). Kommt nur über tailwindcss@3 (Build-Werkzeug) mit festen Mustern ' +
+      'aus dem Repository, keine fremden Eingaben. Verlängerung bis 17.12.2026.',
+    expires: '2026-12-17',
+  },
+  {
+    id: 'GHSA-fc5q-39xc-vjpf',
+    package: 'picomatch',
+    reason:
+      'ReDoS über Single-Branch Extglob-Muster (GHSA-fc5q-39xc-vjpf). Betroffen bis 4.0.7, keine reparierte Version ' +
+      '(Stand 17.11.2026). Build-Werkzeug über tailwindcss@3 / tinyglobby / vite mit festen Globs aus dem Repository, ' +
+      'keine fremden Eingaben. Befristet bis 17.12.2026.',
+    expires: '2026-12-17',
   },
 ];
 

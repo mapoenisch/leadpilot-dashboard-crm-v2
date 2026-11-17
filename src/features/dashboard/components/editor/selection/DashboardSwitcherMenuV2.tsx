@@ -44,22 +44,10 @@ export function formatRelativeTime(dateString: string): string {
   }
 }
 
-export function DashboardSwitcherMenuV2({
-  menuRef,
-  currentDashboard,
-  dashboards,
-  errorText,
-  isPreviewMode,
-  isLimitReached,
-  isOnlyOneDashboard,
-  onOpenAction,
-  onOpenDuplicateDialog,
-  onOpenShareDialog,
-  canShareWithTeam = false,
-  onKeyDown,
-  itemRefs,
-}: DashboardSwitcherMenuV2Props) {
-  // Gruppierung: Persönlich zuerst, danach Teams alphabetisch (Auftrag 163 §2.2 Nr. 16)
+// Gruppierung: Persönlich zuerst, danach Teams alphabetisch (Auftrag 163 §2.2 Nr. 16)
+export function groupDashboardsForMenu(
+  dashboards: (AccessibleDashboardListItemV2 | PersonalDashboardListItemV2)[],
+) {
   const personalDashboards = dashboards.filter((d) => d.scope !== 'team');
   const teamDashboards = dashboards.filter((d) => d.scope === 'team');
 
@@ -79,6 +67,27 @@ export function DashboardSwitcherMenuV2({
     ...personalDashboards,
     ...sortedTeamNames.flatMap((tName) => teamGroupsMap.get(tName) ?? []),
   ];
+
+  return { personalDashboards, sortedTeamNames, teamGroupsMap, orderedDashboards };
+}
+
+export function DashboardSwitcherMenuV2({
+  menuRef,
+  currentDashboard,
+  dashboards,
+  errorText,
+  isPreviewMode,
+  isLimitReached,
+  isOnlyOneDashboard,
+  onOpenAction,
+  onOpenDuplicateDialog,
+  onOpenShareDialog,
+  canShareWithTeam = false,
+  onKeyDown,
+  itemRefs,
+}: DashboardSwitcherMenuV2Props) {
+  const { personalDashboards, sortedTeamNames, teamGroupsMap, orderedDashboards } =
+    groupDashboardsForMenu(dashboards);
 
   const isCurrentTeam = currentDashboard.scope === 'team';
   const isDeleteDisabled = isCurrentTeam ? currentDashboard.canWrite === false : isOnlyOneDashboard;

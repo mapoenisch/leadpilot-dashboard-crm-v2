@@ -82,6 +82,7 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
 
   test('Vollständiger Team-Sharing-Lebenszyklus: Anlegen, Berechtigung, Leseansicht, Rechteentzug', async ({
     page,
+    browser,
   }) => {
     test.setTimeout(90000);
     // -------------------------------------------------------------
@@ -220,47 +221,54 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
     await logout(page);
 
     // -------------------------------------------------------------
-    // Schritt 4: Admin entfernt Manager; Manager erhält Rechteentzug
+    // Schritt 4: Admin entfernt Manager; Manager erhält Rechteentzug beim Speichern
     // -------------------------------------------------------------
-    await loginAs(page, ADMIN_EMAIL);
-    await page.goto('/admin/teams');
-    const manageBtn2 = page.locator('tr', { hasText: teamName }).getByRole('button', { name: 'Mitglieder' });
-    await manageBtn2.click();
-
-    if (managerUserId) {
-      const removeBtn = page.getByTestId(`remove-member-button-${managerUserId}`);
-      await removeBtn.click();
-
-      // Sofort-Zugriffsentzug-Warnung
-      await expect(page.getByText('verliert sofort den Zugriff auf alle Dashboards dieses Teams')).toBeVisible();
-      await page.getByTestId('confirm-remove-member-button').click();
-      await expect(page.locator('tr', { hasText: MANAGER_EMAIL })).not.toBeVisible();
-    }
-    await logout(page);
-
-    // Manager meldet sich wieder an
     await loginAs(page, MANAGER_EMAIL);
     await expect(page.getByTestId('dashboard-editor-shell-v2')).toBeVisible();
 
-    // Wenn Manager das Dashboard noch offen hat oder per URL ansteuert
-    if (dashData?.id) {
-      await page.goto(`/dashboard?id=${dashData.id}`);
-      await expect(page.getByTestId('dashboard-editor-shell-v2')).toBeVisible();
+    // Manager öffnet das Team-Dashboard im Editor
+    const managerSwitcher = page.getByTestId('dashboard-switcher-button');
+    await managerSwitcher.click();
+    const teamDashItemManager = page.locator('[data-testid^="dashboard-item-"]', { hasText: dashboardTitle });
+    await expect(teamDashItemManager).toBeVisible();
+    await teamDashItemManager.click();
+    await expect(managerSwitcher).toContainText(dashboardTitle);
 
-      // Versuche Änderung zu speichern
-      await timeframeSelect.selectOption('dieser_monat');
-      if (await saveBtn.isEnabled()) {
-        await saveBtn.click();
-        // Rechteentzug-Dialog muss erscheinen
-        const revokedDialog = page.getByTestId('team-access-revoked-dialog');
-        await expect(revokedDialog).toBeVisible();
+    // Manager ändert Filter im Entwurf
+    const managerTimeframeSelect = page.getByTestId('global-timeframe-select');
+    await managerTimeframeSelect.selectOption('dieser_monat');
+    await expect(page.getByTestId('dirty-indicator')).toBeVisible();
 
-        // Entwurf als persönliche Kopie sichern
-        await page.getByTestId('team-revoked-save-copy-button').click();
-        await expect(revokedDialog).not.toBeVisible();
-        await expect(page.getByTestId('dashboard-switcher-button')).toContainText('Persönlich');
-      }
+    // Admin entfernt Manager über separaten Browser-Kontext während Entwurf offen ist
+    const adminContext = await browser.newContext();
+    const adminPage = await adminContext.newPage();
+    await loginAs(adminPage, ADMIN_EMAIL);
+    await adminPage.goto('/admin/teams');
+    const manageBtn2 = adminPage.locator('tr', { hasText: teamName }).getByRole('button', { name: 'Mitglieder' });
+    await manageBtn2.click();
+
+    if (managerUserId) {
+      const removeBtn = adminPage.getByTestId(`remove-member-button-${managerUserId}`);
+      await removeBtn.click();
+      await expect(adminPage.getByText('verliert sofort den Zugriff auf alle Dashboards dieses Teams')).toBeVisible();
+      await adminPage.getByTestId('confirm-remove-member-button').click();
+      await expect(adminPage.locator('tr', { hasText: MANAGER_EMAIL })).not.toBeVisible();
     }
+    await adminContext.close();
+
+    // Manager klickt im bestehenden Entwurf auf Speichern
+    const managerSaveBtn = page.getByTestId('save-button');
+    await expect(managerSaveBtn).toBeEnabled();
+    await managerSaveBtn.click();
+
+    // Rechteentzug-Dialog muss erscheinen (§2.1 Nr. 7)
+    const revokedDialog = page.getByTestId('team-access-revoked-dialog');
+    await expect(revokedDialog).toBeVisible();
+
+    // Entwurf als persönliche Kopie sichern
+    await page.getByTestId('team-revoked-save-copy-button').click();
+    await expect(revokedDialog).not.toBeVisible();
+    await expect(page.getByTestId('dashboard-switcher-button')).toContainText('Persönlich');
     await logout(page);
 
     // -------------------------------------------------------------
