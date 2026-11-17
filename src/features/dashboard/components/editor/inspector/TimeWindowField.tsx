@@ -60,6 +60,14 @@ export function getMaxCountForResolution(
   return null;
 }
 
+function parsePositiveInteger(raw: string): number | null {
+  const trimmed = raw.trim();
+  if (!/^\d+$/.test(trimmed)) return null;
+  const num = Number(trimmed);
+  if (!Number.isSafeInteger(num) || num < 1) return null;
+  return num;
+}
+
 export function TimeWindowField({
   catalogEntry,
   currentWindow,
@@ -91,7 +99,9 @@ export function TimeWindowField({
     );
     return matched ? matched.id : 'custom';
   });
-  const [customCount, setCustomCount] = useState<number>(currentWindow?.count ?? 30);
+  const [customCountInput, setCustomCountInput] = useState<string>(() =>
+    String(currentWindow?.count ?? 30),
+  );
   const [customResolution, setCustomResolution] = useState<TimeSeriesResolution>(
     currentWindow?.resolution ?? (layer === 'crm' ? 'woche' : 'tag'),
   );
@@ -122,12 +132,12 @@ export function TimeWindowField({
         if (matched) {
           setIsCustomMode(false);
           setSelectedPresetId(matched.id);
-          setCustomCount(currentWindow.count);
+          setCustomCountInput(String(currentWindow.count));
           setCustomResolution(currentWindow.resolution);
         } else {
           setIsCustomMode(true);
           setSelectedPresetId('custom');
-          setCustomCount(currentWindow.count);
+          setCustomCountInput(String(currentWindow.count));
           setCustomResolution(currentWindow.resolution);
         }
       }
@@ -146,8 +156,9 @@ export function TimeWindowField({
           { value: 'tag', label: 'Tage (max. 90)' },
         ];
 
-  const validateAndApplyCustom = (count: number, resolution: TimeSeriesResolution) => {
-    if (!Number.isInteger(count) || count < 1) {
+  const validateAndApplyCustom = (countRaw: string, resolution: TimeSeriesResolution) => {
+    const count = parsePositiveInteger(countRaw);
+    if (count === null) {
       setError('Bitte eine ganze Zahl von mindestens 1 eingeben.');
       return;
     }
@@ -190,7 +201,7 @@ export function TimeWindowField({
     if (nextId === 'custom') {
       setIsCustomMode(true);
       setSelectedPresetId('custom');
-      validateAndApplyCustom(customCount, customResolution);
+      validateAndApplyCustom(customCountInput, customResolution);
       return;
     }
 
@@ -233,11 +244,11 @@ export function TimeWindowField({
               min={1}
               step={1}
               data-testid="inspector-window-custom-count"
-              value={customCount}
+              value={customCountInput}
               onChange={(e) => {
-                const val = parseInt(e.target.value, 10);
-                setCustomCount(val);
-                if (!Number.isNaN(val)) validateAndApplyCustom(val, customResolution);
+                const raw = e.target.value;
+                setCustomCountInput(raw);
+                validateAndApplyCustom(raw, customResolution);
               }}
               className="h-8 w-24 rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-2 text-xs text-white outline-none focus:border-primary"
             />
@@ -247,7 +258,7 @@ export function TimeWindowField({
               onChange={(e) => {
                 const res = e.target.value as TimeSeriesResolution;
                 setCustomResolution(res);
-                validateAndApplyCustom(customCount, res);
+                validateAndApplyCustom(customCountInput, res);
               }}
               className="h-8 flex-1 rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-2 text-xs text-white outline-none focus:border-primary"
             >

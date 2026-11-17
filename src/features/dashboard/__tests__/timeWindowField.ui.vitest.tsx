@@ -71,6 +71,14 @@ describe('TimeWindowField', () => {
     // Negative Zahl oder 0
     fireEvent.change(countInput, { target: { value: '0' } });
     expect(screen.getByTestId('inspector-window-error')).toHaveTextContent(/mindestens 1/i);
+
+    // Dezimalzahl wie 1.5
+    fireEvent.change(countInput, { target: { value: '1.5' } });
+    expect(screen.getByTestId('inspector-window-error')).toHaveTextContent(/mindestens 1/i);
+
+    // Exponentialschreibweise wie 1e2
+    fireEvent.change(countInput, { target: { value: '1e2' } });
+    expect(screen.getByTestId('inspector-window-error')).toHaveTextContent(/mindestens 1/i);
   });
 
   it('prüft Obergrenzen für Live-Kennzahlen (max 90 Tage, max 168 Stunden)', () => {
