@@ -1999,6 +1999,13 @@ von „Aufträgen 001–007“ und „001–008“.
 Abschlussnachweis ist laut C3/C4 **strittig** und Teil des ausstehenden
 Artefakt-/Versionsabgleichs.
 
+## C8. Dashboard V2 Team-Freigaben & Kollaboration (Auftrag 162 / P11a, 2026-11-22)
+
+- **Migration `20261122_dashboard_team_sharing.sql`:** Aktiviert den Scope `team` im Executive Dashboard V2 über Hilfsfunktionen, RLS-Policies und erweiterte RPCs (`create_dashboard_v2`, `save_dashboard_v2`, `restore_dashboard_revision_v2`, `get_dashboard_v2_revisions`, `list_dashboard_teams_v2`, `create_dashboard_team_v2`, `update_dashboard_team_v2`, `delete_dashboard_team_v2`, `list_dashboard_team_members_v2`, `add_dashboard_team_member_v2`, `remove_dashboard_team_member_v2`, `list_accessible_dashboards_v2`, `load_dashboard_v2`, `delete_team_dashboard_v2`, `copy_dashboard_v2`).
+- **Dynamische Rechteprüfung je Aufruf:** Rechte für Lese- und Schreibzugriff auf Team-Dashboards werden atomar bei jedem RPC-Aufruf gegen `organization_members` und `dashboard_team_members` geprüft. Ein Entzug von Rechten (z. B. Entfernen aus dem Team oder Rollenänderung auf Viewer) führt unmittelbar beim nächsten Schreibversuch zu `LP_TEAM_ACCESS_REVOKED` (`team_zugriff_entzogen`).
+- **Löschsperre für Teams:** Ein Team kann nicht gelöscht werden, solange ihm noch Dashboards zugeordnet sind (`LP_TEAM_HAS_DASHBOARDS`). Dashboards müssen vor Teamlöschung explizit entfernt oder in andere Teams/persönlichen Bereich überführt werden.
+- **Mandantentrennung & Limits:** Strikt isoliert auf Organisationsebene; Obergrenzen von 50 Teams/Org, 200 Mitgliedern/Team, 50 Dashboards/Team und 20 persönlichen Dashboards/Nutzer.
+
 ---
 ---
 

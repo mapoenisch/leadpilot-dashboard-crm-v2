@@ -21767,3 +21767,114 @@ Migration `20261120_dashboard_query_window.sql` muss auf Hosted vor dem App-Depl
 3. Fach-Doku-Nachträge (§2.7 Nr. 27–29, 31).
 
 Empfehlung: ein kleiner Rest-Auftrag „161R“ vor oder nach 162; Entscheidung Marc. Bis dahin ist P10 **nicht** vollständig abgeschlossen.
+
+## 2026-11-22 — Auftrag 162: Dashboard-Editor: Team-Freigaben im Server – Teams, Rechte, Team-Dashboards, Kopieren (P11a)
+
+**Rolle:** Builder (Antigravity)  
+**Branch:** `auftrag-162-team-freigaben-server`  
+**Baseline:** `610799318b7c73ffabf9bb0cf238c9288ee8618e` (`origin/main` nach Merge von PR #198 und PR #199)  
+**Detailauftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_162_TEAM_FREIGABEN_SERVER.md`  
+**Status:** IMPLEMENTIERT – BEREIT FÜR CODEX-REVIEW
+
+---
+
+### 1. Ziel & Kontext
+
+Umsetzung von Phase 11a (P11a, Server & Dienste): Aktivierung des Scopes `team` im Executive Dashboard V2. Ermöglicht das kollaborative Arbeiten an Team-Dashboards innerhalb einer Organisation bei strikter Mandantentrennung, dynamischer Rechteprüfung bei jedem Aufruf, Schutz vor Datenverlust bei Ersteller-Austritt, Löschsperre für Teams mit aktiven Dashboards und sicherem Kopieren zwischen Scopes.
+
+Keine Oberflächenänderungen (UI folgt in Auftrag 163 / P11b).
+
+---
+
+### 2. Geänderte und neue Dateien
+
+- **Migration:**
+  - `supabase/migrations/20261122_dashboard_team_sharing.sql` (neu): Hilfsfunktionen `dashboard_team_is_active_member`, `dashboard_team_can_read`, `dashboard_team_can_write`; RLS-Policies auf `dashboards`, `dashboard_revisions`, `dashboard_teams`, `dashboard_team_members`; ersetzte RPCs (`create_dashboard_v2`, `save_dashboard_v2`, `restore_dashboard_revision_v2`, `get_dashboard_v2_revisions`); neue RPCs (`list_dashboard_teams_v2`, `create_dashboard_team_v2`, `update_dashboard_team_v2`, `delete_dashboard_team_v2`, `list_dashboard_team_members_v2`, `add_dashboard_team_member_v2`, `remove_dashboard_team_member_v2`, `list_accessible_dashboards_v2`, `load_dashboard_v2`, `delete_team_dashboard_v2`, `copy_dashboard_v2`).
+- **pgTAP Tests:**
+  - `supabase/tests/dashboard_team_sharing.sql` (neu, 52 Tests): Vollständige Rechtematrix, Mandantentrennung, sofortiger Rechteentzug, Ersteller-Austritt, Reihenfolge Rechte vor Konflikt, Revisionskonflikte, Löschschutz bei Teams, Config-Bindung, Kopierregeln, Obergrenzen, RLS-Direktzugriff und Audit-Logging.
+  - `supabase/tests/dashboard_revisions_scope_guard.sql`: Test 2 angepasst an das neue Soll (Admins dürfen Team-Revisionen lesen, da Team-Scope aktiv).
+- **Dienstschicht (TypeScript):**
+  - `src/features/dashboard/services/dashboardTeamsV2.ts` (neu, 314 Zeilen): Team- und Mitgliederverwaltung mit Fallback auf `nicht_verfuegbar` im Demo-/In-Memory-Modus.
+  - `src/features/dashboard/services/dashboardSharingV2.ts` (neu, 223 Zeilen): `listAccessibleDashboardsV2`, `loadDashboardV2`, `deleteTeamDashboardV2`, `copyDashboardV2`.
+  - `src/features/dashboard/services/dashboardStorageV2Types.ts` (238 Zeilen): Fehlerarten `team_zugriff_entzogen`, `team_nicht_gefunden`, `team_hat_dashboards`, `team_name_vergeben`, `team_grenze`, `mitglied_nicht_in_org` und Interfaces `DashboardTeamV2`, `DashboardTeamMemberV2`, `AccessibleDashboardListItemV2`, `LoadedDashboardV2Result`.
+  - `src/features/dashboard/services/dashboardStorageV2.ts`: Demo-Modus-Schutz für `createDashboardV2` bei `scope === 'team'`.
+- **Unit Tests:**
+  - `src/features/dashboard/__tests__/dashboardTeamsV2.vitest.ts` (neu, 22 Tests): Parameterprüfung, Fehlermapping, Demo-Modus.
+  - `src/features/dashboard/__tests__/dashboardSharingV2.vitest.ts` (neu, 16 Tests): Parameterprüfung, Validierung, Fehlermapping, Demo-Modus.
+- **Dokumentation:**
+  - `docs/dashboard/TEAM_FREIGABEN_P11.md` (neu): Fachspezifikation, Rechtematrix, RPC-Tabelle, RLS-Übersicht, Abgrenzungen und Vorgaben für 163.
+  - `docs/dashboard/DASHBOARD_EDITOR_MASTERPLAN.md`: §6 Nachtrag Plananpassung P11a/P11b und Umsetzungsstand P11a.
+  - `docs/dashboard/EDITOR_UX_FACHVERTRAEGE_145.md`: §6 Nachtrag Umgesetzt in 162 mit Verweis auf `TEAM_FREIGABEN_P11.md`.
+  - `docs/dashboard/SPEICHERSTRUKTUR_REVISIONEN_P07.md`: §7 Nachtrag Team-Scope aktiviert (20261122).
+  - `ARCHITECTURE_DECISIONS.md`: Teil C, §C8 Nachtrag Dashboard V2 Team-Freigaben & Kollaboration.
+  - `BUILD_PLAN.md`: Status aktualisiert.
+  - `docs/auftraege/ANTIGRAVITY_AUFTRAG_162_TEAM_FREIGABEN_SERVER.md`: Checkboxen T0–T12 gepflegt.
+
+---
+
+### 3. T1 Rot-Nachweise
+
+Vor der Implementierung der Migration und Dienstschicht wurden die 4 Pflicht-Rotfälle verifiziert:
+- **(a) Team-Mitglied liest Team-Revisionen:** Vor 162 warf `get_dashboard_v2_revisions` `LP_DASHBOARD_NOT_FOUND` für alle Team-Dashboards (Schutz aus PR #198). Rot gegen Soll, da Teammitglieder und Admins ab P11 Leserecht besitzen.
+- **(b) Manager legt Team-Dashboard an:** Vor 162 warf `create_dashboard_v2` bei `scope = 'team'` `LP_TEAM_DASHBOARDS_LOCKED_UNTIL_P11`. Rot gegen Soll.
+- **(c) Rechteentzug beim Speichern:** Vor 162 gab es weder `LP_TEAM_ACCESS_REVOKED` noch eine dynamische Prüfung gegen `dashboard_team_members`.
+- **(d) Vitest Fehlerabbildung:** Vor Erweiterung von `classifyDashboardV2Error` führte `LP_TEAM_ACCESS_REVOKED` zu `technisch` statt `team_zugriff_entzogen`.
+
+---
+
+### 4. T10 Sicherheitsvorprüfung
+
+Zeile-für-Zeile-Prüfung aller Hilfsfunktionen und RPCs:
+1. **Rechteprüfung vor jeder Wirkung:** Jede schreibende RPC (`create_dashboard_team_v2`, `update_dashboard_team_v2`, `delete_dashboard_team_v2`, `add_dashboard_team_member_v2`, `remove_dashboard_team_member_v2`, `save_dashboard_v2`, `restore_dashboard_revision_v2`, `delete_team_dashboard_v2`, `copy_dashboard_v2`) prüft Authentifizierung und Berechtigung vor jeder Abfrage- oder Mutationsoperation.
+2. **`search_path` gesetzt:** Alle Funktionen besitzen `SET search_path = public, pg_temp` und deklarieren `SECURITY DEFINER`.
+3. **Keine dynamische SQL:** Sämtliche Datenbankzugriffe erfolgen über statische, typisierte SQL-Statements ohne `EXECUTE` oder String-Konkatenation.
+4. **Mandantentrennung & Datenschutz:** `list_dashboard_team_members_v2` liest E-Mails strikt nur über `WHERE om.organization_id = v_org_id AND om.user_id = tm.user_id`. Ein Zugriff auf Nutzer anderer Organisationen ist ausgeschlossen.
+5. **Config-Bindung:** In `save_dashboard_v2` und `create_dashboard_v2` werden `config.scope` und `config.teamId` serverseitig zwingend an die echten Spaltenwerte gebunden.
+
+---
+
+### 5. Automatisierte Verifikation (§7)
+
+- `npx tsc --noEmit`: **0 Fehler**
+- `npm run lint`: **0 Fehler, 0 Warnungen** (`--max-warnings 0`)
+- `npm run format:check`: **Bestanden**
+- `npm test`: **410 Testdateien, 3081 Tests PASS** (Duration: 33.18s)
+- `npm run verify`: **Alle 24 Integrity-Suiten (001–025) PASS**
+- `npm run build`: **Erfolgreich gebaut** (3.33s)
+- `VITE_SUPABASE_URL=https://example.supabase.co npm run build:production`: **Erfolgreich gebaut** (3.02s)
+- `npx size-limit`:
+  - Initial JS bundle (gzip): **178.93 kB** (Limit: 180 kB, Diff zur Baseline: **0.00 kB**)
+  - Largest chunk (gzip): **79.41 kB** (Limit: 250 kB)
+- `supabase test db`: **19 Testdateien, 462 Tests PASS** (100% grün)
+- `npx tsx scripts/verifyLiveKpiCatalog.ts`: **Gate G24 PASS**
+- `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources`: **Vollständig leer (0 Zeilen Diff)**
+- `git diff origin/main -- src/features/dashboard/components src/features/dashboard/pages src/features/admin src/app src/auth e2e`: **Vollständig leer (0 Zeilen Diff)**
+- `git diff origin/main -- src/services/liveKpi supabase/functions src/services/db/crmRepository.ts src/domain src/features/dashboard/data`: **Vollständig leer (0 Zeilen Diff)**
+- `git diff --stat origin/main -- supabase/migrations`: **Genau 1 neue Datei (`20261122_dashboard_team_sharing.sql`)**
+- `max-lines` Prüfung (alle neuen/geänderten TS-Dateien ≤ 400 Zeilen):
+  - `src/features/dashboard/services/dashboardStorageV2.ts`: 387 Zeilen
+  - `src/features/dashboard/services/dashboardStorageV2Types.ts`: 238 Zeilen
+  - `src/features/dashboard/services/dashboardTeamsV2.ts`: 314 Zeilen
+  - `src/features/dashboard/services/dashboardSharingV2.ts`: 223 Zeilen
+  - `src/features/dashboard/__tests__/dashboardTeamsV2.vitest.ts`: 373 Zeilen
+  - `src/features/dashboard/__tests__/dashboardSharingV2.vitest.ts`: 356 Zeilen
+
+---
+
+### 6. Deployment-Anleitung für Marc (Hosted Migration & Smoke Test)
+
+1. **Migration einspielen:**
+   Die Migration `supabase/migrations/20261122_dashboard_team_sharing.sql` im Supabase Dashboard (SQL Editor) oder via CLI auf Hosted anwenden:
+   ```bash
+   supabase db push
+   ```
+2. **Smoke Test als `authenticated`:**
+   - **Schritt 1 (Team anlegen):** Als Organisations-Admin `create_dashboard_team_v2('Vertriebsteam', 'Für Vertriebs-Dashboards')` aufrufen → liefert `team_id`.
+   - **Schritt 2 (Mitglied zuordnen):** Als Admin `add_dashboard_team_member_v2(team_id, manager_user_id)` aufrufen.
+   - **Schritt 3 (Team-Dashboard anlegen):** Als Manager `create_dashboard_v2` mit `p_scope: 'team'`, `p_team_id: team_id` aufrufen → Revision 1 erstellt.
+   - **Schritt 4 (Kollaboratives Speichern):** Manager speichert mit `save_dashboard_v2` → Revision 2 erstellt.
+   - **Schritt 5 (Viewer liest):** Ein Teammitglied mit Org-Rolle `viewer` ruft `load_dashboard_v2(dashboard_id)` auf → liefert `can_write: false`.
+   - **Schritt 6 (Viewer speichern scheitert):** Versucht der Viewer `save_dashboard_v2` aufzurufen → scheitert mit `LP_TEAM_ACCESS_REVOKED` (42501).
+   - **Schritt 7 (Rechteentzug):** Admin entfernt Manager aus Team (`remove_dashboard_team_member_v2`). Nächster Aufruf von `save_dashboard_v2` durch den Manager scheitert mit `LP_TEAM_ACCESS_REVOKED`.
+3. **Rückweg / Rollback:**
+   Die Migration ist rein additiv bzw. überschreibt bestehende Funktionen idempotenterweise (`CREATE OR REPLACE FUNCTION`). Bei einem Rollback werden die vorherigen Fassungen der Funktionen aus Migration `20261113_dashboard_v2_storage_and_revisions.sql` und `20261121_dashboard_revisions_scope_guard.sql` erneut eingespielt.

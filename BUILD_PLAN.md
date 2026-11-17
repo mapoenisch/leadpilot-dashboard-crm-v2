@@ -1,8 +1,8 @@
 # LeadPilot Dashboard-CRM — Bauplan
 
-**Stand:** 16.11.2026
+**Stand:** 17.11.2026
 
-**Aktueller Auftrag:** Auftrag 162 – Dashboard-Editor: Team-Freigaben im Server – Teams, Rechte, Team-Dashboards, Kopieren (P11a, nur Datenbank und Dienste; Oberfläche folgt in 163 = P11b; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_162_TEAM_FREIGABEN_SERVER.md`; Branch `auftrag-162-team-freigaben-server`; Builder Antigravity, Prüfer Codex; Status: OFFEN). Vorher: Sicherheitskorrektur `ANTIGRAVITY_AUFTRAG_FIX_DASHBOARD_REVISIONS_SCOPE.md` (PR #198, Migration 20261121). Zuletzt: 161 Analysezeitpunkt, Zeitfenster je Kachel, Fadenkreuz (P10b-2; PR #196 gemergt, **teilweise umgesetzt** – Fadenkreuz-Kopplung, E2E/Screenshots und Fach-Doku offen, siehe BUILD_LOG 17.11.2026), DEPS_DEPENDABOT_CI (PR #195), 160 Server-Zeitreihen (P10b-1; PR #194).
+**Aktueller Auftrag:** Auftrag 162 – Dashboard-Editor: Team-Freigaben im Server – Teams, Rechte, Team-Dashboards, Kopieren (P11a, nur Datenbank und Dienste; Oberfläche folgt in 163 = P11b; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_162_TEAM_FREIGABEN_SERVER.md`; Branch `auftrag-162-team-freigaben-server`; Builder Antigravity, Prüfer Codex; Status: IMPLEMENTIERT – BEREIT FÜR CODEX-REVIEW). Vorher: Sicherheitskorrektur `ANTIGRAVITY_AUFTRAG_FIX_DASHBOARD_REVISIONS_SCOPE.md` (PR #198, Migration 20261121). Zuletzt: 161 Analysezeitpunkt, Zeitfenster je Kachel, Fadenkreuz (P10b-2; PR #196 gemergt, **teilweise umgesetzt** – Fadenkreuz-Kopplung, E2E/Screenshots und Fach-Doku offen, siehe BUILD_LOG 17.11.2026), DEPS_DEPENDABOT_CI (PR #195), 160 Server-Zeitreihen (P10b-1; PR #194).
 
 **Betriebsregel Live-Feed:** Am 14.11.2026 durch Marc aufgehoben (Edge Function und Migrationen seit 14.11.2026 online; echte Kennzahlen dürfen über den mandantengebundenen Feed eingespeist werden).
 **Offen nach dem v3.1.0-Rollout (10./11.11.2026):**

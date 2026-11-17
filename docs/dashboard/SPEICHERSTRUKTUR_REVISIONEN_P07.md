@@ -127,3 +127,17 @@ Mit Auftrag 158 (Migration `20261118_dashboard_selection.sql`) wird die V2-Speic
 4. **Duplizier-RPC:** `duplicate_personal_dashboard_v2(dashboard_id, title)` erzeugt ein neues Dashboard mit identischen Kacheln/Sektionen unter Einhaltung des 20er-Limits.
 5. **Titel-Sicherheit:** Automatische Kopietitel werden über `buildDerivedDashboardTitle` strikt auf maximal 80 Zeichen begrenzt.
 
+---
+
+## 7. Nachtrag Auftrag 162 (P11a, 22. November 2026): Team-Scope aktiviert (20261122)
+
+Mit Auftrag 162 (Migration `20261122_dashboard_team_sharing.sql`) wird der `scope = 'team'` in der V2-Speicherstruktur vollständig aktiviert:
+1. **Aktivierung Team-Scope:** `create_dashboard_v2` und `save_dashboard_v2` erlauben nun `scope = 'team'` bei gültiger Team-Zugehörigkeit und Schreibrecht. Die bisherige Blockade (`LP_TEAM_DASHBOARDS_LOCKED_UNTIL_P11`) entfällt.
+2. **Team-Verwaltung:** Neue RPCs `list_dashboard_teams_v2`, `create_dashboard_team_v2`, `update_dashboard_team_v2`, `delete_dashboard_team_v2` sowie Mitgliederverwaltung `list_dashboard_team_members_v2`, `add_dashboard_team_member_v2`, `remove_dashboard_team_member_v2` (nur Admins).
+3. **Kollaboratives Speichern:** Atomare Revisionszählung über mehrere Teammitglieder hinweg; Prüfung von `expected_revision`.
+4. **Rechteentzug:** Dynamische Prüfung live gegen `dashboard_team_members` und `organization_members`; entzogene Nutzer erhalten `LP_TEAM_ACCESS_REVOKED`.
+5. **Team-Dashboard-Löschung:** `delete_team_dashboard_v2` löscht Team-Dashboards atomar mit Revisionsprüfung. Löschung von Teams mit vorhandenen Dashboards wird gesperrt (`LP_TEAM_HAS_DASHBOARDS`).
+6. **Kopieren:** `copy_dashboard_v2` ermöglicht Kopieren zwischen persönlich und Team sowie Team und persönlich mit Revision 1 und initialem Revisionsprotokoll.
+7. **Obergrenzen:** 50 Teams pro Org, 200 Mitglieder pro Team, 50 Dashboards pro Team.
+
+

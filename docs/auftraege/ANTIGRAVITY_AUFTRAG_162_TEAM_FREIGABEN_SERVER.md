@@ -8,7 +8,7 @@
 **Baseline:** `main` nach Merge von PR #198 (Migration 20261121) und PR #199 (161-Nachtrag). Der Builder nennt den Commit im BUILD_LOG.
 **Branch:** `auftrag-162-team-freigaben-server`.
 **Builder:** Antigravity (oder ein anderer von Marc benannter Agent). **Prüfer:** Codex auf GitHub oder ein anderer Agent, der nicht gebaut hat (`CLAUDE.md` §4.1). **Merge und Hosted-Deployment der Migration:** Marc.
-**Status:** OFFEN.
+**Status:** IMPLEMENTIERT – BEREIT FÜR CODEX-REVIEW.
 
 ---
 
@@ -167,19 +167,19 @@ Bei Bedarf außerhalb dieser Liste: stoppen und im PR begründen (`CLAUDE.md` §
 
 Reihenfolge je Block: Tests zuerst, dann Umsetzung.
 
-- [ ] **T0 Einstieg:** Baseline festlegen, Ist-Tabelle §1 prüfen, `ownerUserId`-Befüllung und `audit_log`-Prüfliste klären (2.1 Nr. 8, 11), lokale Supabase starten (`supabase start`, `supabase db reset`).
-- [ ] **T1 Rot-Nachweise:** §3 Nr. 9 (a)–(d), Ergebnisse im BUILD_LOG.
-- [ ] **T2 Hilfsfunktionen und RLS:** 2.2 Nr. 12–13, RLS-Fälle aus 2.3 grün.
-- [ ] **T3 Bestehende RPCs ersetzen:** 2.2 Nr. 14; persönliche pgTAP-Dateien unverändert grün (Nachweis).
-- [ ] **T4 Teamverwaltung:** RPCs Teams/Mitglieder, Grenzen, Audit.
-- [ ] **T5 Team-Dashboards:** Liste, Laden, Löschen, Kopieren, Config-Bindung.
-- [ ] **T6 Rechteentzug und Austritt:** alle Fälle aus 2.3, Reihenfolge Rechte vor Konflikt.
-- [ ] **T7 Dienstschicht:** 2.4, Vitest grün, Demo-Modus.
-- [ ] **T8 Bundle-Gegenprobe:** `size-limit` vorher/nachher (≤ 0,1 kB Änderung).
-- [ ] **T9 Gegenprobe persönlich und V1:** bestehende E2E `editor-*.spec.ts` und V1-Tests grün, V1-Diff leer.
-- [ ] **T10 Sicherheitsvorprüfung:** Builder geht die RPC-Tabelle Zeile für Zeile durch (Rechteprüfung vor jeder Wirkung, `search_path` gesetzt, keine dynamische SQL, keine Rückgabe fremder E-Mails) und legt die Liste im BUILD_LOG ab. Optional lokal `/security-review` oder Plugin `codex-review`; ersetzt nicht das unabhängige Review.
-- [ ] **T11 Doku:** 2.5 einschließlich Plananpassung §0.
-- [ ] **T12 Abschluss:** Pflicht-Verifikation (§7), Schutzbereichs-Diff, BUILD_LOG-Eintrag inklusive Deployment-Anleitung für Marc (Migration 20261122 auf Hosted anwenden; Smoke als `authenticated`: Admin legt Team an, fügt Manager hinzu, Manager legt Team-Dashboard an und speichert, Viewer-Mitglied lädt es und erhält beim Speichern `LP_TEAM_ACCESS_REVOKED`), PR öffnen, Review anfordern.
+- [x] **T0 Einstieg:** Baseline festlegen, Ist-Tabelle §1 prüfen, `ownerUserId`-Befüllung und `audit_log`-Prüfliste klären (2.1 Nr. 8, 11), lokale Supabase starten (`supabase start`, `supabase db reset`).
+- [x] **T1 Rot-Nachweise:** §3 Nr. 9 (a)–(d), Ergebnisse im BUILD_LOG.
+- [x] **T2 Hilfsfunktionen und RLS:** 2.2 Nr. 12–13, RLS-Fälle aus 2.3 grün.
+- [x] **T3 Bestehende RPCs ersetzen:** 2.2 Nr. 14; persönliche pgTAP-Dateien unverändert grün (Nachweis).
+- [x] **T4 Teamverwaltung:** RPCs Teams/Mitglieder, Grenzen, Audit.
+- [x] **T5 Team-Dashboards:** Liste, Laden, Löschen, Kopieren, Config-Bindung.
+- [x] **T6 Rechteentzug und Austritt:** alle Fälle aus 2.3, Reihenfolge Rechte vor Konflikt.
+- [x] **T7 Dienstschicht:** 2.4, Vitest grün, Demo-Modus.
+- [x] **T8 Bundle-Gegenprobe:** `size-limit` vorher/nachher (≤ 0,1 kB Änderung).
+- [x] **T9 Gegenprobe persönlich und V1:** bestehende E2E `editor-*.spec.ts` und V1-Tests grün, V1-Diff leer.
+- [x] **T10 Sicherheitsvorprüfung:** Builder geht die RPC-Tabelle Zeile für Zeile durch (Rechteprüfung vor jeder Wirkung, `search_path` gesetzt, keine dynamische SQL, keine Rückgabe fremder E-Mails) und legt die Liste im BUILD_LOG ab. Optional lokal `/security-review` oder Plugin `codex-review`; ersetzt nicht das unabhängige Review.
+- [x] **T11 Doku:** 2.5 einschließlich Plananpassung §0.
+- [x] **T12 Abschluss:** Pflicht-Verifikation (§7), Schutzbereichs-Diff, BUILD_LOG-Eintrag inklusive Deployment-Anleitung für Marc (Migration 20261122 auf Hosted anwenden; Smoke als `authenticated`: Admin legt Team an, fügt Manager hinzu, Manager legt Team-Dashboard an und speichert, Viewer-Mitglied lädt es und erhält beim Speichern `LP_TEAM_ACCESS_REVOKED`), PR öffnen, Review anfordern.
 
 ## 6. Abnahme
 

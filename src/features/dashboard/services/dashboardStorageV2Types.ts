@@ -13,6 +13,13 @@ export type DashboardV2StorageError =
   | { kind: 'letztes_dashboard' }
   | { kind: 'obergrenze_erreicht' }
   | { kind: 'nicht_konfiguriert' }
+  | { kind: 'nicht_verfuegbar'; message?: string }
+  | { kind: 'team_zugriff_entzogen' }
+  | { kind: 'team_nicht_gefunden' }
+  | { kind: 'team_hat_dashboards' }
+  | { kind: 'team_name_vergeben' }
+  | { kind: 'team_grenze' }
+  | { kind: 'mitglied_nicht_in_org' }
   | { kind: 'technisch' };
 
 export type StorageResult<T> =
@@ -62,6 +69,49 @@ export interface SavedDashboardV2Result {
   updatedAt: string;
 }
 
+export interface DashboardTeamV2 {
+  id: string;
+  name: string;
+  description: string | null;
+  memberCount: number;
+  dashboardCount: number;
+  canWrite: boolean;
+  isMember: boolean;
+}
+
+export interface DashboardTeamMemberV2 {
+  userId: string;
+  email: string;
+  orgRole: string;
+  orgStatus: string;
+  teamRole: string;
+  createdAt: string;
+}
+
+export interface AccessibleDashboardListItemV2 {
+  id: string;
+  title: string;
+  scope: 'personal' | 'team';
+  revision: number;
+  tileCount: number;
+  sectionCount: number;
+  updatedAt: string;
+  teamId: string | null;
+  teamName: string | null;
+  canWrite: boolean;
+}
+
+export interface LoadedDashboardV2Result {
+  id: string;
+  title: string;
+  scope: 'personal' | 'team';
+  teamId: string | null;
+  revision: number;
+  config: DashboardConfigV2;
+  updatedAt: string;
+  canWrite: boolean;
+}
+
 export interface SupabaseErrorLike {
   code?: string;
   message?: string;
@@ -75,6 +125,28 @@ export function classifyDashboardV2Error(
   status?: number,
 ): DashboardV2StorageError {
   const message = error?.message ?? '';
+  if (message.includes('LP_TEAM_ACCESS_REVOKED')) {
+    return { kind: 'team_zugriff_entzogen' };
+  }
+  if (message.includes('LP_TEAM_NOT_FOUND')) {
+    return { kind: 'team_nicht_gefunden' };
+  }
+  if (message.includes('LP_TEAM_HAS_DASHBOARDS')) {
+    return { kind: 'team_hat_dashboards' };
+  }
+  if (message.includes('LP_TEAM_NAME_TAKEN')) {
+    return { kind: 'team_name_vergeben' };
+  }
+  if (
+    message.includes('LP_TEAM_LIMIT') ||
+    message.includes('LP_TEAM_MEMBER_LIMIT') ||
+    message.includes('LP_TEAM_DASHBOARD_LIMIT')
+  ) {
+    return { kind: 'team_grenze' };
+  }
+  if (message.includes('LP_MEMBER_NOT_IN_ORG')) {
+    return { kind: 'mitglied_nicht_in_org' };
+  }
   if (message.includes('LP_LAST_DASHBOARD')) {
     return { kind: 'letztes_dashboard' };
   }
