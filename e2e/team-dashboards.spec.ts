@@ -236,7 +236,7 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
 
     // Manager ändert Filter im Entwurf
     const managerTimeframeSelect = page.getByTestId('global-timeframe-select');
-    await managerTimeframeSelect.selectOption('dieser_monat');
+    await managerTimeframeSelect.selectOption('letzte_30_tage');
     await expect(page.getByTestId('dirty-indicator')).toBeVisible();
 
     // Admin entfernt Manager über separaten Browser-Kontext während Entwurf offen ist

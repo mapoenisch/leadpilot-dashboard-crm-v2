@@ -7,12 +7,14 @@ import { Button } from '@/components/ui/Button';
 export interface ReadOnlyNoticeV2Props {
   teamName?: string | null;
   onSaveAsPersonalCopy: () => void;
+  copyError?: string | null;
   className?: string;
 }
 
 export function ReadOnlyNoticeV2({
   teamName,
   onSaveAsPersonalCopy,
+  copyError,
   className,
 }: ReadOnlyNoticeV2Props) {
   const teamLabel = teamName ? `‚${teamName}‘` : 'dieses Teams';
@@ -43,6 +45,15 @@ export function ReadOnlyNoticeV2({
         <Copy className="h-3.5 w-3.5" />
         <span>Als persönliche Kopie</span>
       </Button>
+      {copyError && (
+        <div
+          role="alert"
+          data-testid="readonly-copy-error"
+          className="mt-1 w-full text-xs font-semibold text-rose-300"
+        >
+          {copyError}
+        </div>
+      )}
     </div>
   );
 }

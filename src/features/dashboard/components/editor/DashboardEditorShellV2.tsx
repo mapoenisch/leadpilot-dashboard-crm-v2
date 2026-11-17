@@ -38,6 +38,7 @@ export interface DashboardEditorShellV2Props {
   liveConfigured?: boolean;
   liveStatusOverrides?: Partial<EditorLiveStatus>;
   readOnly?: boolean;
+  readOnlyCopyError?: string | null;
   onSaveAsPersonalCopy?: () => Promise<void>;
   className?: string;
   dashboards?: (
@@ -83,6 +84,7 @@ function DashboardEditorShellBody({
   liveConfigured,
   liveStatusOverrides,
   readOnly: explicitReadOnly,
+  readOnlyCopyError,
   onSaveAsPersonalCopy,
   className,
   dashboards,
@@ -122,11 +124,11 @@ function DashboardEditorShellBody({
 
   const { config, isDirty, activeBreakpoint, selectedTileId } = state;
 
-  // Sektionsaktionen (Auftrag 157 / P09a)
+  // Sektionsaktionen (Auftrag 157 / P09a; flüchtiges Einklappen auch im Lesemodus)
   const sectionActions = useSectionActions({
     config,
     dispatch,
-    isPreviewMode,
+    isPreviewMode: isPreviewMode || isReadOnly,
     selectedTileId,
     setSelectedTileId,
   });
@@ -219,6 +221,7 @@ function DashboardEditorShellBody({
       {isReadOnly && (
         <ReadOnlyNoticeV2
           teamName={currentStoredDashboard?.teamName}
+          copyError={readOnlyCopyError}
           onSaveAsPersonalCopy={async () => {
             if (onSaveAsPersonalCopy) {
               await onSaveAsPersonalCopy();
