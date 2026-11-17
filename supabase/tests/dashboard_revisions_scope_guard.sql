@@ -75,13 +75,12 @@ SELECT throws_ok(
   'Nicht-Mitglied derselben Organisation erhält keine Team-Revisionen'
 );
 
--- 2. Bis P11 auch nicht der Admin (Team-Scope ist gesperrt, Rechte folgen erst mit 162)
+-- 2. Seit Auftrag 162 (P11a): Admin darf Team-Revisionen der eigenen Organisation lesen
 SELECT set_config('request.jwt.claims', '{"sub":"9f210000-0000-0000-0000-000000000001","role":"authenticated"}', true);
-SELECT throws_ok(
-  $$ SELECT * FROM public.get_dashboard_v2_revisions('df210000-0000-0000-0000-000000000001') $$,
-  'P0002',
-  'LP_DASHBOARD_NOT_FOUND',
-  'Team-Revisionen bleiben bis P11 für alle gesperrt'
+SELECT is(
+  (SELECT count(*)::integer FROM public.get_dashboard_v2_revisions('df210000-0000-0000-0000-000000000001')),
+  1,
+  'Admin darf Team-Revisionen der eigenen Organisation lesen'
 );
 
 -- 3. Regression: Eigentümer liest eigene persönliche Revisionen

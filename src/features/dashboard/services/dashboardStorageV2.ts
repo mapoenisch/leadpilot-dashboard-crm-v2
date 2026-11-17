@@ -201,6 +201,15 @@ export async function createDashboardV2(params: {
   }
 
   if (!isSupabaseConfigured || !supabase) {
+    if (params.scope === 'team') {
+      return {
+        ok: false,
+        error: {
+          kind: 'nicht_verfuegbar',
+          message: 'Team-Freigaben brauchen eine Server-Verbindung',
+        },
+      };
+    }
     const trimmedTitle = (params.title ?? '').trim();
     if (trimmedTitle.length < 1 || trimmedTitle.length > 80) {
       return {
