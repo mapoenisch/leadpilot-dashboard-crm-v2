@@ -119,4 +119,42 @@ describe('Dialog Target Retention Tests', () => {
       });
     });
   });
+
+  it('behaelt bearbeiteten Titel bei nachtraeglichem Wechsel des Ziels auf Team in DuplicateDashboardDialogV2 bei', async () => {
+    const onDuplicate = vi.fn().mockResolvedValue(true);
+    const onClose = vi.fn();
+
+    render(
+      <DuplicateDashboardDialogV2
+        open={true}
+        onClose={onClose}
+        currentDashboard={baseDashboard}
+        onDuplicate={onDuplicate}
+        teams={teams}
+        isDirty={false}
+      />,
+    );
+
+    // Nutzer bearbeitet zuerst den Titel
+    const titleInput = screen.getByTestId('duplicate-dashboard-title-input');
+    fireEvent.change(titleInput, { target: { value: 'Mein eigener Kopientitel' } });
+    expect(titleInput).toHaveValue('Mein eigener Kopientitel');
+
+    // Nutzer wechselt danach das Ziel auf Team
+    const targetSelect = screen.getByTestId('duplicate-dashboard-target-select');
+    fireEvent.change(targetSelect, { target: { value: 'team:t-alpha' } });
+    expect(targetSelect).toHaveValue('team:t-alpha');
+
+    // Titel darf NICHT überschrieben worden sein!
+    expect(titleInput).toHaveValue('Mein eigener Kopientitel');
+
+    // Duplizieren absenden
+    fireEvent.click(screen.getByTestId('duplicate-submit-button'));
+    await waitFor(() => {
+      expect(onDuplicate).toHaveBeenCalledWith('Mein eigener Kopientitel', false, {
+        scope: 'team',
+        teamId: 't-alpha',
+      });
+    });
+  });
 });

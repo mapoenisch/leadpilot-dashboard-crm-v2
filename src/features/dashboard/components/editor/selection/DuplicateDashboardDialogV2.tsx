@@ -55,6 +55,7 @@ export function DuplicateDashboardDialogV2({
   teams: providedTeams,
 }: DuplicateDashboardDialogV2Props) {
   const [title, setTitle] = useState('');
+  const [userHasEditedTitle, setUserHasEditedTitle] = useState(false);
   const [hasUserSelectedTarget, setHasUserSelectedTarget] = useState(false);
   const [targetValue, setTargetValue] = useState<string>('personal');
   const [teams, setTeams] = useState<DashboardTeamV2[]>(providedTeams ?? []);
@@ -93,19 +94,30 @@ export function DuplicateDashboardDialogV2({
     : false;
   const isTargetBlocked = targetValue === 'personal' && isPersonalLimitReached;
 
+  // Zielauswahl vorbesetzen: Nur beim Öffnen oder nach dem Laden der Teams, falls Nutzer noch nichts gewählt hat
   useEffect(() => {
     if (!open) {
       setHasUserSelectedTarget(false);
       setTargetValue('personal');
       return;
     }
-    setTitle(buildDerivedDashboardTitle(currentDashboard.title, ' (Kopie)'));
-    setError(null);
     if (!hasUserSelectedTarget) {
       const defaultToTeam = isPersonalLimitReached && writableTeams.length > 0 && writableTeams[0];
       setTargetValue(defaultToTeam ? `team:${defaultToTeam.id}` : 'personal');
     }
-  }, [open, currentDashboard.title, isPersonalLimitReached, writableTeams, hasUserSelectedTarget]);
+  }, [open, isPersonalLimitReached, writableTeams, hasUserSelectedTarget]);
+
+  // Vorbelegung des Kopientitels beim Öffnen (unabhängig von Ziel- oder Teamzuständen)
+  useEffect(() => {
+    if (!open) {
+      setUserHasEditedTitle(false);
+      setError(null);
+      return;
+    }
+    if (!userHasEditedTitle) {
+      setTitle(buildDerivedDashboardTitle(currentDashboard.title, ' (Kopie)'));
+    }
+  }, [open, currentDashboard.title, userHasEditedTitle]);
 
   const handleClose = () => {
     if (!isSaving) onClose();
@@ -279,7 +291,10 @@ export function DuplicateDashboardDialogV2({
             disabled={isSaving}
             value={title}
             maxLength={MAX_DASHBOARD_TITLE_LENGTH}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              setUserHasEditedTitle(true);
+            }}
             className="h-9 w-full rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-3 text-sm text-white outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
             autoFocus
           />
