@@ -315,6 +315,7 @@ export function DashboardSwitcherV2({
         open={activeDialog === 'duplicate'}
         onClose={handleCloseActiveDialog}
         currentDashboard={currentDashboard}
+        existingDashboards={dashboards}
         isDirty={isDirty}
         onDuplicate={handleDuplicate}
         isSaving={isProcessing || isSaving}
@@ -336,6 +337,7 @@ export function DashboardSwitcherV2({
             open={true}
             onClose={handleCloseActiveDialog}
             currentDashboard={currentDashboard}
+            isDirty={isDirty}
             onShare={handleShareWithTeam}
             isSaving={isProcessing || isSaving}
           />

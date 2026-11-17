@@ -1,7 +1,7 @@
 // Auftrag 158 (P09b): Dialog zur Neuanlage eines Dashboards aus einer V2-Vorlage.
 // Dynamischer Import der Vorlagen für optimales Code-Splitting (P09b §2.5 Nr. 30).
 
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { cn } from '@/lib/utils';
@@ -13,6 +13,7 @@ import type {
 import type { DashboardTemplateV2 } from '../../../model/dashboardTemplatesV2';
 import {
   MAX_DASHBOARD_TITLE_LENGTH,
+  MAX_PERSONAL_DASHBOARDS,
   buildDerivedDashboardTitle,
 } from '../../../model/dashboardTitles';
 import { useEscapeToClose } from '../../UnsavedChangesDialog';
@@ -110,6 +111,11 @@ export function NewDashboardDialogV2({
     };
   }, [open]);
 
+  const writableTeams = useMemo(() => teams.filter((t) => t.canWrite), [teams]);
+  const isPersonalLimitReached =
+    existingDashboards.filter((d) => d.scope !== 'team').length >= MAX_PERSONAL_DASHBOARDS;
+  const isTargetBlocked = targetValue === 'personal' && isPersonalLimitReached;
+
   // Vorbelegung des Titels beim Öffnen oder Vorlagenwechsel
   useEffect(() => {
     if (!open) {
@@ -119,13 +125,24 @@ export function NewDashboardDialogV2({
       return;
     }
 
+    const defaultToTeam = isPersonalLimitReached && writableTeams.length > 0 && writableTeams[0];
+    setTargetValue(defaultToTeam ? `team:${defaultToTeam.id}` : 'personal');
+
     if (!userHasEditedTitle) {
       const template = templates.find((t) => t.id === selectedTemplateId);
       const baseName = template?.name ?? 'Executive Summary';
       const existingTitles = new Set(existingDashboards.map((d) => d.title));
       setTitle(computeUniqueTitle(baseName, existingTitles));
     }
-  }, [open, selectedTemplateId, templates, existingDashboards, userHasEditedTitle]);
+  }, [
+    open,
+    selectedTemplateId,
+    templates,
+    existingDashboards,
+    userHasEditedTitle,
+    isPersonalLimitReached,
+    writableTeams,
+  ]);
 
   const handleClose = () => {
     if (!isSaving) {
@@ -135,11 +152,9 @@ export function NewDashboardDialogV2({
 
   useEscapeToClose(open, handleClose);
 
-  const writableTeams = teams.filter((t) => t.canWrite);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSaving) return;
+    if (isSaving || isTargetBlocked) return;
     const trimmed = title.trim();
     if (!trimmed) {
       setError('Bitte gib einen Titel für das Dashboard ein.');
@@ -182,7 +197,7 @@ export function NewDashboardDialogV2({
           </Button>
           <Button
             data-testid="create-dashboard-submit-button"
-            disabled={isSaving || !title.trim()}
+            disabled={isSaving || !title.trim() || isTargetBlocked}
             onClick={handleSubmit}
             className="w-full sm:w-auto"
           >
@@ -203,6 +218,17 @@ export function NewDashboardDialogV2({
             className="rounded border border-error/40 bg-error/10 p-2.5 text-xs text-error"
           >
             {error}
+          </div>
+        )}
+
+        {isTargetBlocked && (
+          <div
+            role="alert"
+            data-testid="new-dashboard-target-blocked"
+            className="rounded border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300"
+          >
+            Das Limit von {MAX_PERSONAL_DASHBOARDS} persönlichen Dashboards ist erreicht. Wähle ein
+            Team als Ziel.
           </div>
         )}
 

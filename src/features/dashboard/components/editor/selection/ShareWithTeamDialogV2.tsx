@@ -21,8 +21,13 @@ export interface ShareWithTeamDialogV2Props {
   open: boolean;
   onClose: () => void;
   currentDashboard: StoredDashboardV2Row;
-  onShare: (targetTeamId: string, title: string) => Promise<ShareWithTeamConfirmResult>;
+  onShare: (
+    targetTeamId: string,
+    title: string,
+    saveFirst?: boolean,
+  ) => Promise<ShareWithTeamConfirmResult>;
   teams?: DashboardTeamV2[];
+  isDirty?: boolean;
   isSaving?: boolean;
 }
 
@@ -32,6 +37,7 @@ export function ShareWithTeamDialogV2({
   currentDashboard,
   onShare,
   teams: providedTeams,
+  isDirty = false,
   isSaving = false,
 }: ShareWithTeamDialogV2Props) {
   const [teams, setTeams] = useState<DashboardTeamV2[]>(providedTeams ?? []);
@@ -106,13 +112,21 @@ export function ShareWithTeamDialogV2({
     !trimmedTitle ||
     trimmedTitle.length > MAX_DASHBOARD_TITLE_LENGTH;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (
+    eOrSaveFirst?: React.FormEvent | boolean,
+    explicitSaveFirst?: boolean,
+  ) => {
+    if (eOrSaveFirst && typeof eOrSaveFirst === 'object' && 'preventDefault' in eOrSaveFirst) {
+      eOrSaveFirst.preventDefault();
+    }
+    const saveFirst = typeof eOrSaveFirst === 'boolean' ? eOrSaveFirst : Boolean(explicitSaveFirst);
     if (isSubmitDisabled) return;
 
     setError(null);
     try {
-      const res = await onShare(selectedTeamId, trimmedTitle);
+      const res = isDirty
+        ? await onShare(selectedTeamId, trimmedTitle, saveFirst)
+        : await onShare(selectedTeamId, trimmedTitle);
       if (typeof res === 'boolean') {
         if (res) {
           onClose();
@@ -145,15 +159,37 @@ export function ShareWithTeamDialogV2({
           >
             Abbrechen
           </Button>
-          <Button
-            data-testid="share-with-team-confirm-button"
-            variant="primary"
-            disabled={isSubmitDisabled}
-            onClick={handleSubmit}
-            className="w-full sm:w-auto"
-          >
-            {isSaving ? 'Wird geteilt...' : 'Mit Team teilen'}
-          </Button>
+          {isDirty ? (
+            <>
+              <Button
+                variant="secondary"
+                disabled={isSubmitDisabled}
+                onClick={() => handleSubmit(false)}
+                className="w-full sm:w-auto"
+              >
+                Nur gespeicherten Stand teilen
+              </Button>
+              <Button
+                data-testid="share-with-team-confirm-button"
+                variant="primary"
+                disabled={isSubmitDisabled}
+                onClick={() => handleSubmit(true)}
+                className="w-full sm:w-auto"
+              >
+                {isSaving ? 'Wird gespeichert & geteilt...' : 'Speichern & teilen'}
+              </Button>
+            </>
+          ) : (
+            <Button
+              data-testid="share-with-team-confirm-button"
+              variant="primary"
+              disabled={isSubmitDisabled}
+              onClick={() => handleSubmit(false)}
+              className="w-full sm:w-auto"
+            >
+              {isSaving ? 'Wird geteilt...' : 'Mit Team teilen'}
+            </Button>
+          )}
         </div>
       }
     >
@@ -168,6 +204,17 @@ export function ShareWithTeamDialogV2({
             className="rounded border border-error/40 bg-error/10 p-2.5 text-xs text-error"
           >
             {error}
+          </div>
+        )}
+
+        {isDirty && (
+          <div
+            role="note"
+            data-testid="share-with-team-dirty-notice"
+            className="rounded border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300"
+          >
+            Du hast ungespeicherte Änderungen. Wähle „Speichern & teilen“, um den aktuellen Stand zu
+            teilen, oder „Nur gespeicherten Stand teilen“, um die Entwurfsänderungen auszulassen.
           </div>
         )}
 

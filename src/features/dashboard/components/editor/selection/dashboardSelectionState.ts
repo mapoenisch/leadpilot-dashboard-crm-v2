@@ -1,5 +1,6 @@
 import type {
   AccessibleDashboardListItemV2,
+  DashboardV2StorageError,
   PersonalDashboardListItemV2,
   StoredDashboardV2Row,
 } from '../../../services/dashboardStorageV2Types';
@@ -30,7 +31,11 @@ export interface UseDashboardSelectionParams {
     id: string,
   ) => Promise<{ ok: boolean; nextDashboardId?: string | null; error?: unknown }>;
   onSaveCurrent: () => Promise<boolean>;
-  onShareWithTeam?: (teamId: string, title: string) => Promise<{ ok: boolean; error?: unknown }>;
+  onShareWithTeam?: (
+    teamId: string,
+    title: string,
+    saveFirst?: boolean,
+  ) => Promise<{ ok: boolean; error?: unknown }>;
 }
 
 // Modulweiter Zwischenspeicher für Folgeaktionen, Ansagen, Fehler und Trigger-Fokus über Shell-Remounts hinweg (P09b / Codex P2)
@@ -82,4 +87,15 @@ export function clearPendingFollowUpSelectionAction(): void {
   pendingPostSwitchAnnouncement = null;
   pendingPostSwitchError = null;
   pendingFocusTriggerOnMount = false;
+}
+
+export async function saveBeforeAction(
+  isDirty: boolean,
+  onSaveCurrent: () => Promise<boolean>,
+  errorDetail: string,
+): Promise<{ ok: true } | { ok: false; error: DashboardV2StorageError }> {
+  if (!isDirty) return { ok: true };
+  const saved = await onSaveCurrent();
+  if (saved) return { ok: true };
+  return { ok: false, error: { kind: 'konflikt', detail: errorDetail } };
 }

@@ -12,6 +12,7 @@ import {
   getPendingFollowUpSelectionAction,
   getPendingPostSwitchAnnouncement,
   getPendingPostSwitchError,
+  saveBeforeAction,
   setPendingFocusTriggerOnMount,
   setPendingFollowUpSelectionAction,
   setPendingPostSwitchAnnouncement,
@@ -167,18 +168,14 @@ export function useDashboardSelection({
     const saved = await onSaveCurrent();
     if (!isMountedRef.current) return;
     setIsProcessing(false);
-    if (!saved) {
-      setPendingFollowUpSelectionAction(null);
-      setShowUnsavedConfirm(false);
-      setPendingAction(null);
-      return;
-    }
     setShowUnsavedConfirm(false);
     setPendingAction(null);
-    const followUp = getPendingFollowUpSelectionAction();
-    if (followUp) {
-      await executeAction(followUp);
+    if (!saved) {
+      setPendingFollowUpSelectionAction(null);
+      return;
     }
+    const followUp = getPendingFollowUpSelectionAction();
+    if (followUp) await executeAction(followUp);
   }, [onSaveCurrent, pendingAction, executeAction]);
 
   // Dialog-Aktionen
@@ -195,13 +192,10 @@ export function useDashboardSelection({
       setPendingFocusTriggerOnMount(true);
 
       const res = (
-        target && target.scope === 'team'
+        target?.scope === 'team'
           ? await onCreateFromTemplate(templateId, title, target)
           : await onCreateFromTemplate(templateId, title)
-      ) as {
-        ok: boolean;
-        error?: DashboardV2StorageError;
-      };
+      ) as { ok: boolean; error?: DashboardV2StorageError };
 
       if (!isMountedRef.current) return res;
 
@@ -230,18 +224,15 @@ export function useDashboardSelection({
     ): Promise<{ ok: boolean; error?: DashboardV2StorageError }> => {
       setIsProcessing(true);
       setErrorText(null);
-      if (saveFirst && isDirty) {
-        const saved = await onSaveCurrent();
-        if (!saved) {
+      if (saveFirst) {
+        const sRes = await saveBeforeAction(
+          isDirty,
+          onSaveCurrent,
+          'Ungespeicherte Änderungen konnten vor dem Duplizieren nicht gesichert werden.',
+        );
+        if (!sRes.ok) {
           setIsProcessing(false);
-          return {
-            ok: false,
-            error: {
-              kind: 'konflikt',
-              detail:
-                'Ungespeicherte Änderungen konnten vor dem Duplizieren nicht gesichert werden.',
-            },
-          };
+          return sRes;
         }
       }
 
@@ -250,13 +241,10 @@ export function useDashboardSelection({
       setPendingFocusTriggerOnMount(true);
 
       const res = (
-        target && target.scope === 'team'
+        target?.scope === 'team'
           ? await onDuplicateCurrent(title, target)
           : await onDuplicateCurrent(title)
-      ) as {
-        ok: boolean;
-        error?: DashboardV2StorageError;
-      };
+      ) as { ok: boolean; error?: DashboardV2StorageError };
 
       if (!isMountedRef.current) return res;
 
@@ -288,13 +276,25 @@ export function useDashboardSelection({
     async (
       teamId: string,
       title: string,
+      saveFirst = false,
     ): Promise<{ ok: boolean; error?: DashboardV2StorageError }> => {
       if (!onShareWithTeam) {
         return { ok: false, error: { kind: 'nicht_verfuegbar' } };
       }
       setIsProcessing(true);
       setErrorText(null);
-      const res = (await onShareWithTeam(teamId, title)) as {
+      if (saveFirst) {
+        const sRes = await saveBeforeAction(
+          isDirty,
+          onSaveCurrent,
+          'Ungespeicherte Änderungen konnten vor dem Teilen nicht gesichert werden.',
+        );
+        if (!sRes.ok) {
+          setIsProcessing(false);
+          return sRes;
+        }
+      }
+      const res = (await onShareWithTeam(teamId, title, saveFirst)) as {
         ok: boolean;
         error?: DashboardV2StorageError;
       };
@@ -308,7 +308,7 @@ export function useDashboardSelection({
       }
       return { ok: false, error: res.error };
     },
-    [onShareWithTeam, announce, returnFocusToTrigger],
+    [onShareWithTeam, isDirty, onSaveCurrent, announce, returnFocusToTrigger],
   );
 
   const handleDelete = useCallback(async (): Promise<{

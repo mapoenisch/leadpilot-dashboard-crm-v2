@@ -1,20 +1,22 @@
 // Auftrag 158 (P09b): Dialog zum Duplizieren eines Dashboards.
 // Titel vorbelegt über buildDerivedDashboardTitle, Prüfung auf ungespeicherte Änderungen.
 
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import type {
+  AccessibleDashboardListItemV2,
+  DashboardTeamV2,
   DashboardV2StorageError,
+  PersonalDashboardListItemV2,
   StoredDashboardV2Row,
 } from '../../../services/dashboardStorageV2Types';
 import {
   MAX_DASHBOARD_TITLE_LENGTH,
+  MAX_PERSONAL_DASHBOARDS,
   buildDerivedDashboardTitle,
 } from '../../../model/dashboardTitles';
 import { useEscapeToClose } from '../../UnsavedChangesDialog';
-
-import type { DashboardTeamV2 } from '../../../services/dashboardStorageV2Types';
 import { listDashboardTeamsV2 } from '../../../services/dashboardTeamsV2';
 import { getDashboardTeamErrorMessage } from '../../../model/dashboardTeamMessages';
 
@@ -26,6 +28,7 @@ export interface DuplicateDashboardDialogV2Props {
   open: boolean;
   onClose: () => void;
   currentDashboard: StoredDashboardV2Row;
+  existingDashboards?: (AccessibleDashboardListItemV2 | PersonalDashboardListItemV2)[];
   isDirty: boolean;
   onDuplicate: (
     title: string,
@@ -45,6 +48,7 @@ export function DuplicateDashboardDialogV2({
   open,
   onClose,
   currentDashboard,
+  existingDashboards,
   isDirty,
   onDuplicate,
   isSaving = false,
@@ -77,13 +81,25 @@ export function DuplicateDashboardDialogV2({
     };
   }, [open, providedTeams]);
 
+  const isReadOnly = currentDashboard.canWrite === false;
+  const writableTeams = useMemo(
+    () => (isReadOnly ? [] : teams.filter((t) => t.canWrite)),
+    [isReadOnly, teams],
+  );
+
+  const isPersonalLimitReached = existingDashboards
+    ? existingDashboards.filter((d) => d.scope !== 'team').length >= MAX_PERSONAL_DASHBOARDS
+    : false;
+  const isTargetBlocked = targetValue === 'personal' && isPersonalLimitReached;
+
   useEffect(() => {
     if (open) {
       setTitle(buildDerivedDashboardTitle(currentDashboard.title, ' (Kopie)'));
-      setTargetValue('personal');
+      const defaultToTeam = isPersonalLimitReached && writableTeams.length > 0 && writableTeams[0];
+      setTargetValue(defaultToTeam ? `team:${defaultToTeam.id}` : 'personal');
       setError(null);
     }
-  }, [open, currentDashboard.title]);
+  }, [open, currentDashboard.title, isPersonalLimitReached, writableTeams]);
 
   const handleClose = () => {
     if (!isSaving) onClose();
@@ -91,11 +107,8 @@ export function DuplicateDashboardDialogV2({
 
   useEscapeToClose(open, handleClose);
 
-  const isReadOnly = currentDashboard.canWrite === false;
-  const writableTeams = isReadOnly ? [] : teams.filter((t) => t.canWrite);
-
   const handleSubmit = async (saveFirst: boolean) => {
-    if (isSaving) return;
+    if (isSaving || isTargetBlocked) return;
     const trimmed = title.trim();
     if (!trimmed) {
       setError('Bitte gib einen Titel für das duplizierte Dashboard ein.');
@@ -140,7 +153,7 @@ export function DuplicateDashboardDialogV2({
             <>
               <Button
                 variant="secondary"
-                disabled={isSaving || !title.trim()}
+                disabled={isSaving || !title.trim() || isTargetBlocked}
                 onClick={() => handleSubmit(false)}
                 className="w-full sm:w-auto"
               >
@@ -148,7 +161,7 @@ export function DuplicateDashboardDialogV2({
               </Button>
               <Button
                 data-testid="duplicate-submit-button"
-                disabled={isSaving || !title.trim()}
+                disabled={isSaving || !title.trim() || isTargetBlocked}
                 onClick={() => handleSubmit(true)}
                 className="w-full sm:w-auto"
               >
@@ -158,7 +171,7 @@ export function DuplicateDashboardDialogV2({
           ) : (
             <Button
               data-testid="duplicate-submit-button"
-              disabled={isSaving || !title.trim()}
+              disabled={isSaving || !title.trim() || isTargetBlocked}
               onClick={() => handleSubmit(false)}
               className="w-full sm:w-auto"
             >
@@ -179,6 +192,17 @@ export function DuplicateDashboardDialogV2({
             className="rounded border border-error/40 bg-error/10 p-2.5 text-xs text-error"
           >
             {error}
+          </div>
+        )}
+
+        {isTargetBlocked && (
+          <div
+            role="alert"
+            data-testid="duplicate-target-blocked"
+            className="rounded border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300"
+          >
+            Das Limit von {MAX_PERSONAL_DASHBOARDS} persönlichen Dashboards ist erreicht. Wähle ein
+            Team als Ziel.
           </div>
         )}
 

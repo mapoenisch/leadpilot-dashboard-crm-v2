@@ -193,4 +193,33 @@ describe('Auftrag 163 - ShareWithTeamDialogV2 & dashboardTeamMessages', () => {
       'gehört nicht zu dieser Organisation',
     );
   });
+
+  it('zeigt Speicher-Entscheidung und Dirty-Hinweis bei ungespeicherten Änderungen', async () => {
+    const onShare = vi.fn().mockResolvedValue(true);
+    const onClose = vi.fn();
+
+    render(
+      <ShareWithTeamDialogV2
+        open={true}
+        onClose={onClose}
+        currentDashboard={mockDashboard}
+        onShare={onShare}
+        teams={mockTeams}
+        isDirty={true}
+      />,
+    );
+
+    expect(screen.getByTestId('share-with-team-dirty-notice')).toBeInTheDocument();
+    expect(screen.getByText('Nur gespeicherten Stand teilen')).toBeInTheDocument();
+    expect(screen.getByTestId('share-with-team-confirm-button')).toHaveTextContent(
+      'Speichern & teilen',
+    );
+
+    fireEvent.click(screen.getByTestId('share-with-team-confirm-button'));
+
+    await waitFor(() => {
+      expect(onShare).toHaveBeenCalledWith('team-write', mockDashboard.title, true);
+      expect(onClose).toHaveBeenCalled();
+    });
+  });
 });

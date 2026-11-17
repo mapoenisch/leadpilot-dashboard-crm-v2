@@ -91,6 +91,8 @@ export function DashboardSwitcherMenuV2({
   const isCurrentTeam = currentDashboard.scope === 'team';
   const isPersonalLast = personalDashboards.length <= 1;
   const isDeleteDisabled = isCurrentTeam ? currentDashboard.canWrite === false : isPersonalLast;
+  const isNewDisabled = isLimitReached && !canShareWithTeam;
+  const isDuplicateDisabled = isLimitReached && !canShareWithTeam && !isCurrentTeam;
   const deleteDisabledTooltip = isCurrentTeam
     ? currentDashboard.canWrite === false
       ? 'Keine Schreibberechtigung für dieses Team-Dashboard'
@@ -232,19 +234,19 @@ export function DashboardSwitcherMenuV2({
             type="button"
             role="menuitem"
             data-testid="new-dashboard-menu-item"
-            disabled={isLimitReached}
+            disabled={isNewDisabled}
             onClick={() => {
-              if (isLimitReached) return;
+              if (isNewDisabled) return;
               onOpenAction({ type: 'new' });
             }}
             className={cn(
               'flex min-h-[44px] w-full items-center gap-2 rounded px-2.5 py-2 text-left text-xs transition-colors',
-              isLimitReached
+              isNewDisabled
                 ? 'cursor-not-allowed opacity-50 text-muted-foreground'
                 : 'text-[var(--color-text-soft,#e6f3f1)] hover:bg-white/5 hover:text-white focus:bg-white/10 focus:outline-none',
             )}
             title={
-              isLimitReached
+              isNewDisabled
                 ? `Höchstens ${MAX_PERSONAL_DASHBOARDS} persönliche Dashboards`
                 : undefined
             }
@@ -252,7 +254,7 @@ export function DashboardSwitcherMenuV2({
             <Plus className="h-4 w-4 text-primary" />
             <div className="flex flex-col">
               <span>Neues Dashboard …</span>
-              {isLimitReached && (
+              {isNewDisabled && (
                 <span className="text-[10px] text-muted-foreground">
                   Höchstens {MAX_PERSONAL_DASHBOARDS} persönliche Dashboards
                 </span>
@@ -267,19 +269,19 @@ export function DashboardSwitcherMenuV2({
             type="button"
             role="menuitem"
             data-testid="duplicate-dashboard-menu-item"
-            disabled={isLimitReached && !isCurrentTeam}
+            disabled={isDuplicateDisabled}
             onClick={() => {
-              if (isLimitReached && !isCurrentTeam) return;
+              if (isDuplicateDisabled) return;
               onOpenDuplicateDialog();
             }}
             className={cn(
               'flex min-h-[44px] w-full items-center gap-2 rounded px-2.5 py-2 text-left text-xs transition-colors',
-              isLimitReached && !isCurrentTeam
+              isDuplicateDisabled
                 ? 'cursor-not-allowed opacity-50 text-muted-foreground'
                 : 'text-[var(--color-text-soft,#e6f3f1)] hover:bg-white/5 hover:text-white focus:bg-white/10 focus:outline-none',
             )}
             title={
-              isLimitReached && !isCurrentTeam
+              isDuplicateDisabled
                 ? `Höchstens ${MAX_PERSONAL_DASHBOARDS} persönliche Dashboards`
                 : undefined
             }
@@ -287,7 +289,7 @@ export function DashboardSwitcherMenuV2({
             <Copy className="h-4 w-4 text-primary" />
             <div className="flex flex-col">
               <span>Dashboard duplizieren …</span>
-              {isLimitReached && !isCurrentTeam && (
+              {isDuplicateDisabled && (
                 <span className="text-[10px] text-muted-foreground">
                   Höchstens {MAX_PERSONAL_DASHBOARDS} persönliche Dashboards
                 </span>
