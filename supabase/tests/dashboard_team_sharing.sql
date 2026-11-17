@@ -589,9 +589,10 @@ SELECT ok(
 );
 
 -- 38. RLS Direktpruefung: Mutation als authenticated scheitert
-SELECT throws_matching(
+SELECT throws_ok(
   $$ INSERT INTO public.dashboard_teams (organization_id, name) VALUES ('af620000-0000-0000-0000-00000000000a', 'Hacked') $$,
-  'permission denied',
+  '42501',
+  NULL,
   'Direktes INSERT auf dashboard_teams scheitert per RLS / Revoke'
 );
 
