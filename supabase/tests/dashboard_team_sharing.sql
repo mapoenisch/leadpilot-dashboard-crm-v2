@@ -3,7 +3,7 @@
 
 BEGIN;
 
-SELECT plan(52);
+SELECT plan(54);
 SET CONSTRAINTS ALL IMMEDIATE;
 
 -- ---------------------------------------------------------------- Setup --
@@ -525,6 +525,30 @@ SELECT throws_ok(
   'Leerer Kopiertitel wird abgewiesen'
 );
 
+-- 33b. save_dashboard_v2 fuer persoenliches Dashboard erlaubt bis zu 120 Zeichen
+SELECT lives_ok(
+  format(
+    'SELECT * FROM public.save_dashboard_v2(%L::uuid, 1, %L, jsonb_build_object(''version'', 2, ''title'', %L, ''scope'', ''personal'', ''ownerUserId'', ''9f620000-0000-0000-0000-000000000001'', ''organizationId'', ''af620000-0000-0000-0000-00000000000a'', ''globalTimeframe'', ''aktuell'', ''tiles'', ''[]''::jsonb))',
+    (SELECT dashboard_id FROM tmp_admin_pers_created),
+    repeat('A', 100),
+    repeat('A', 100)
+  ),
+  'Persoenliches Dashboard kann mit 100-Zeichen-Titel gespeichert werden'
+);
+
+-- 33c. save_dashboard_v2 fuer persoenliches Dashboard weist >120 Zeichen ab
+SELECT throws_ok(
+  format(
+    'SELECT * FROM public.save_dashboard_v2(%L::uuid, 2, %L, jsonb_build_object(''version'', 2, ''title'', %L, ''scope'', ''personal'', ''ownerUserId'', ''9f620000-0000-0000-0000-000000000001'', ''organizationId'', ''af620000-0000-0000-0000-00000000000a'', ''globalTimeframe'', ''aktuell'', ''tiles'', ''[]''::jsonb))',
+    (SELECT dashboard_id FROM tmp_admin_pers_created),
+    repeat('A', 121),
+    repeat('A', 121)
+  ),
+  '22023',
+  'LP_DASHBOARD_INVALID: title must be 1-120 characters',
+  'Persoenliches Dashboard mit >120 Zeichen wird abgewiesen'
+);
+
 -- 34. list_accessible_dashboards_v2 listet eigene persoenliche + zugaengliche Team-Dashboards
 SELECT is(
   (SELECT count(*)::integer FROM public.list_accessible_dashboards_v2()),
@@ -608,6 +632,9 @@ SELECT ok(
   AND EXISTS (SELECT 1 FROM public.audit_log WHERE action = 'dashboard.team.updated' AND organization_id = 'af620000-0000-0000-0000-00000000000a')
   AND EXISTS (SELECT 1 FROM public.audit_log WHERE action = 'dashboard.team.member_added' AND organization_id = 'af620000-0000-0000-0000-00000000000a')
   AND EXISTS (SELECT 1 FROM public.audit_log WHERE action = 'dashboard.team.member_removed' AND organization_id = 'af620000-0000-0000-0000-00000000000a')
+  AND EXISTS (SELECT 1 FROM public.audit_log WHERE action = 'dashboard.team_dashboard.created' AND organization_id = 'af620000-0000-0000-0000-00000000000a')
+  AND EXISTS (SELECT 1 FROM public.audit_log WHERE action = 'dashboard.team_dashboard.updated' AND organization_id = 'af620000-0000-0000-0000-00000000000a')
+  AND EXISTS (SELECT 1 FROM public.audit_log WHERE action = 'dashboard.team_dashboard.restored' AND organization_id = 'af620000-0000-0000-0000-00000000000a')
   AND EXISTS (SELECT 1 FROM public.audit_log WHERE action = 'dashboard.copied' AND organization_id = 'af620000-0000-0000-0000-00000000000a')
   AND EXISTS (SELECT 1 FROM public.audit_log WHERE action = 'dashboard.team_dashboard.deleted' AND organization_id = 'af620000-0000-0000-0000-00000000000a')
   AND EXISTS (SELECT 1 FROM public.audit_log WHERE action = 'dashboard.team.deleted' AND organization_id = 'af620000-0000-0000-0000-00000000000a'),

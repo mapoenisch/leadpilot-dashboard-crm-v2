@@ -286,6 +286,13 @@ BEGIN
       v_dashboard_id, v_org, 1, v_trimmed_title, p_config, v_user, v_created_at, 'Dashboard initial erstellt'
     );
 
+    INSERT INTO public.audit_log (
+      organization_id, actor_id, action, target_type, target_id, details
+    ) VALUES (
+      v_org, v_user, 'dashboard.team_dashboard.created', 'dashboard', v_dashboard_id::text,
+      jsonb_build_object('team_id', p_team_id, 'title', v_trimmed_title)
+    );
+
     RETURN QUERY SELECT v_dashboard_id, 1, v_created_at;
     RETURN;
 
@@ -369,8 +376,14 @@ BEGIN
   END IF;
 
   v_trimmed_title := btrim(p_title);
-  IF length(v_trimmed_title) < 1 OR length(v_trimmed_title) > 80 THEN
-    RAISE EXCEPTION 'LP_DASHBOARD_INVALID: title must be 1-80 characters' USING ERRCODE = '22023';
+  IF v_current_scope = 'personal' THEN
+    IF length(v_trimmed_title) < 1 OR length(v_trimmed_title) > 120 THEN
+      RAISE EXCEPTION 'LP_DASHBOARD_INVALID: title must be 1-120 characters' USING ERRCODE = '22023';
+    END IF;
+  ELSE
+    IF length(v_trimmed_title) < 1 OR length(v_trimmed_title) > 80 THEN
+      RAISE EXCEPTION 'LP_DASHBOARD_INVALID: title must be 1-80 characters' USING ERRCODE = '22023';
+    END IF;
   END IF;
 
   p_config := jsonb_set(p_config, '{id}', to_jsonb(p_dashboard_id::text), true);
@@ -421,6 +434,15 @@ BEGIN
     v_updated_at,
     p_change_summary
   );
+
+  IF v_current_scope = 'team' THEN
+    INSERT INTO public.audit_log (
+      organization_id, actor_id, action, target_type, target_id, details
+    ) VALUES (
+      v_org, v_user, 'dashboard.team_dashboard.updated', 'dashboard', p_dashboard_id::text,
+      jsonb_build_object('team_id', v_team_id, 'revision', v_new_revision, 'title', v_trimmed_title)
+    );
+  END IF;
 
   RETURN QUERY SELECT p_dashboard_id, v_new_revision, v_updated_at;
 END;
@@ -549,6 +571,15 @@ BEGIN
     v_updated_at,
     'Wiederherstellung von Revision ' || p_target_revision::text
   );
+
+  IF v_current_scope = 'team' THEN
+    INSERT INTO public.audit_log (
+      organization_id, actor_id, action, target_type, target_id, details
+    ) VALUES (
+      v_org, v_user, 'dashboard.team_dashboard.restored', 'dashboard', p_dashboard_id::text,
+      jsonb_build_object('team_id', v_team_id, 'revision', v_new_revision, 'target_revision', p_target_revision, 'title', v_target_title)
+    );
+  END IF;
 
   RETURN QUERY SELECT p_dashboard_id, v_new_revision, v_updated_at;
 END;
@@ -969,14 +1000,14 @@ BEGIN
     RAISE EXCEPTION 'LP_MEMBER_NOT_IN_ORG' USING ERRCODE = '22023';
   END IF;
 
+  PERFORM pg_advisory_xact_lock(hashtext('team_members:' || p_team_id::text));
+
   IF EXISTS (
     SELECT 1 FROM public.dashboard_team_members tm
     WHERE tm.team_id = p_team_id AND tm.user_id = p_user_id
   ) THEN
     RETURN TRUE;
   END IF;
-
-  PERFORM pg_advisory_xact_lock(hashtext('team_members:' || p_team_id::text));
 
   SELECT count(*) INTO v_count
   FROM public.dashboard_team_members tm
