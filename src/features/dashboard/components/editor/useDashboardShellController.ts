@@ -117,10 +117,10 @@ export function useDashboardShellController({
     [config.globalTimeframe, config.globalPipeline, dispatch],
   );
 
-  const handleSave = async () => {
+  const handleSave = async (): Promise<boolean> => {
     setIsSaving(true);
     try {
-      await executeSave();
+      return await executeSave();
     } finally {
       setIsSaving(false);
     }

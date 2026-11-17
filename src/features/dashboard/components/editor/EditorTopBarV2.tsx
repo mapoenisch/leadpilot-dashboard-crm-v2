@@ -41,7 +41,7 @@ export interface EditorTopBarV2Props {
   canRedo: boolean;
   onUndo: () => void;
   onRedo: () => void;
-  onSave: () => void;
+  onSave: () => Promise<boolean> | void;
   isSaving: boolean;
   onCancel: () => void;
   isLibraryOpen?: boolean;
@@ -208,8 +208,8 @@ export function EditorTopBarV2({
             onRefreshList={onRefreshList}
             listError={listError}
             onSaveCurrent={async () => {
-              onSave();
-              return true;
+              const res = await onSave();
+              return res !== false;
             }}
           />
         ) : (
