@@ -176,9 +176,7 @@ export async function deleteDashboardTeamV2(
     }
 
     const row = (Array.isArray(data) ? data[0] : data) as
-      | { deleted_team_id?: string }
-      | boolean
-      | undefined;
+      { deleted_team_id?: string } | boolean | undefined;
     const deletedId =
       typeof row === 'object' && row !== null && 'deleted_team_id' in row
         ? (row.deleted_team_id ?? teamId)
@@ -264,13 +262,9 @@ export async function addDashboardTeamMemberV2(
     }
 
     const row = (Array.isArray(data) ? data[0] : data) as
-      | { team_id?: string; user_id?: string; created_at?: string }
-      | boolean
-      | undefined;
+      { team_id?: string; user_id?: string; created_at?: string } | boolean | undefined;
     const createdAt =
-      typeof row === 'object' && row !== null && 'created_at' in row
-        ? row.created_at
-        : undefined;
+      typeof row === 'object' && row !== null && 'created_at' in row ? row.created_at : undefined;
 
     return {
       ok: true,
