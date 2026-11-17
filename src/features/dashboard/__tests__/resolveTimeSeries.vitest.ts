@@ -364,4 +364,20 @@ describe('resolveTimeSeriesTile', () => {
     const octDst = truncateBerlin('2026-10-25T15:00:00+01:00', 'tag');
     expect(formatBerlinIso(octDst)).toBe('2026-10-25T00:00:00+02:00');
   });
+
+  it('übersteuert das Katalogfenster durch das übergebene eigene Fenster und Zeitpunkt (Auftrag 161)', () => {
+    const entry = makeTestEntry();
+    // Zeitpunkt 31.10.2026 23:45 Berlin (Sommerzeit +02:00)
+    // Eigenes Fenster: 30 Tage, je Tag
+    const win = timeSeriesWindow(entry, '2026-10-31T23:45:00+02:00', {
+      count: 30,
+      resolution: 'tag',
+    });
+    expect(win.count).toBe(30);
+    expect(win.resolution).toBe('tag');
+    // to ist Beginn des laufenden Tages (31.10. 00:00, Winterzeit nach DST-Rücksprung am 25.10.)
+    expect(win.to).toBe('2026-10-31T00:00:00+01:00');
+    // from ist 30 Tage davor (01.10. 00:00, Sommerzeit)
+    expect(win.from).toBe('2026-10-01T00:00:00+02:00');
+  });
 });

@@ -45,7 +45,7 @@ interface BerlinParts {
   offset: string;
 }
 
-function getBerlinParts(date: Date | string | number): BerlinParts {
+export function getBerlinParts(date: Date | string | number): BerlinParts {
   const d = new Date(date);
   const formatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Europe/Berlin',
@@ -166,11 +166,13 @@ export function subtractBerlin(
 export function timeSeriesWindow(
   entry: ActiveCatalogEntry,
   now: Date | string | number = Date.now(),
+  customWindow?: { count: number; resolution: TimeSeriesResolution },
 ): TimeSeriesWindow {
-  const windowDef = entry.history.defaultWindow ?? {
-    resolution: entry.source.layer === 'crm' ? ('woche' as const) : ('stunde' as const),
-    count: entry.source.layer === 'crm' ? 12 : 24,
-  };
+  const windowDef = customWindow ??
+    entry.history.defaultWindow ?? {
+      resolution: entry.source.layer === 'crm' ? ('woche' as const) : ('stunde' as const),
+      count: entry.source.layer === 'crm' ? 12 : 24,
+    };
 
   if (windowDef.count > 400) {
     throw new RangeError(`zu_viele_punkte: ${windowDef.count} übersteigt Grenze von 400`);

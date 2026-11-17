@@ -1,11 +1,20 @@
 // Auftrag 159 (P10a): React-Kontext der gemeinsamen Zeitsteuerung.
 // Liegt bewusst unter src/features/dashboard/time/ — src/context/ ist Schutzbereich.
-import { createContext, useCallback, useContext, useMemo, useReducer, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+  type ReactNode,
+} from 'react';
 import {
   INITIAL_TIME_CONTROL_STATE,
   timeControlReducer,
   type TimeControlState,
 } from './timeControl';
+import { createCrosshairStore, type CrosshairStore } from './crosshairStore';
 
 export interface TimeControlValue {
   state: TimeControlState;
@@ -13,6 +22,10 @@ export interface TimeControlValue {
   pause: (now?: Date | string) => void;
   /** Gibt die Anzeige frei; der Datenpfad lädt einmalig einen konsistenten aktuellen Stand. */
   resume: () => void;
+  /** Setzt den Analysezeitpunkt (Modus zeitpunkt). */
+  setTimePoint: (at: string, now?: string) => void;
+  /** Geteilter Fadenkreuz-Store für synchrone Zeitreihen-Ablesung. */
+  crosshairStore: CrosshairStore;
 }
 
 const TimeControlContext = createContext<TimeControlValue | null>(null);
@@ -26,6 +39,12 @@ export function TimeControlProvider({
   initialState?: TimeControlState;
 }) {
   const [state, dispatch] = useReducer(timeControlReducer, initialState);
+  const crosshairStore = useMemo(() => createCrosshairStore(), []);
+
+  // Beim Wechsel des Zeitmodus Fadenkreuz leeren (Auftrag 161 §2.4 Nr. 17)
+  useEffect(() => {
+    crosshairStore.clearCrosshair();
+  }, [state.mode, crosshairStore]);
 
   const pause = useCallback((now?: Date | string) => {
     dispatch({
@@ -38,7 +57,18 @@ export function TimeControlProvider({
     dispatch({ type: 'resume' });
   }, []);
 
-  const value = useMemo<TimeControlValue>(() => ({ state, pause, resume }), [state, pause, resume]);
+  const setTimePoint = useCallback((at: string, now?: string) => {
+    dispatch({
+      type: 'zeitpunkt',
+      at,
+      now: now ?? new Date().toISOString(),
+    });
+  }, []);
+
+  const value = useMemo<TimeControlValue>(
+    () => ({ state, pause, resume, setTimePoint, crosshairStore }),
+    [state, pause, resume, setTimePoint, crosshairStore],
+  );
 
   return <TimeControlContext.Provider value={value}>{children}</TimeControlContext.Provider>;
 }

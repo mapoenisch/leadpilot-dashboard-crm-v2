@@ -44,6 +44,8 @@ export interface DashboardTileConfig {
   period?: DashboardPeriod;
   /** Kachelausnahme: eigene Pipeline statt des zentralen Filters. */
   pipeline?: string;
+  /** Auftrag 161: Kanonische Abfragekonfiguration (V2). */
+  query?: import('./dashboardConfigV2').TileQueryConfig;
 }
 
 export interface DashboardConfig {

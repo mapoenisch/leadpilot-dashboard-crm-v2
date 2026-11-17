@@ -4,7 +4,7 @@
 // Breakpoint-Wahlschalter, Globale Filter, Live/Pause, Vorschau-Modus, Undo/Redo und Speichern/Abbrechen.
 
 import { useState, useRef, useEffect, type ChangeEvent } from 'react';
-import { Eye, EyeOff, PanelLeft, PanelRight, Pause, Play, Save, X } from 'lucide-react';
+import { Eye, EyeOff, PanelLeft, PanelRight, Save, X } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
@@ -21,6 +21,7 @@ import type {
 import { BreakpointSelector } from './topbar/BreakpointSelector';
 import { UndoRedoGroup } from './topbar/UndoRedoGroup';
 import { DashboardSwitcherV2 } from './selection/DashboardSwitcherV2';
+import { TimeControlMenuV2 } from './TimeControlMenuV2';
 
 export interface EditorTopBarV2Props {
   config: DashboardConfigV2;
@@ -293,32 +294,8 @@ export function EditorTopBarV2({
           ))}
         </select>
 
-        {/* Live / Pause Button */}
-        <button
-          type="button"
-          data-testid="live-pause-button"
-          aria-pressed={isLivePaused}
-          onClick={onToggleLivePause}
-          className={cn(
-            'flex h-8 items-center gap-1.5 rounded border px-2.5 text-xs font-medium transition-colors',
-            isLivePaused
-              ? 'border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20'
-              : 'border-[var(--color-border,#1b3d39)] bg-black/20 text-[var(--color-text-muted)] hover:text-white',
-          )}
-          title={isLivePaused ? 'Live-Aktualisierung fortsetzen' : 'Live-Aktualisierung anhalten'}
-        >
-          {isLivePaused ? (
-            <>
-              <Play className="h-3 w-3" aria-hidden="true" />
-              <span>Fortsetzen</span>
-            </>
-          ) : (
-            <>
-              <Pause className="h-3 w-3" aria-hidden="true" />
-              <span>Pausieren</span>
-            </>
-          )}
-        </button>
+        {/* Live / Pause & Zeitpunkt Menü */}
+        <TimeControlMenuV2 isLivePaused={isLivePaused} onToggleLivePause={onToggleLivePause} />
       </div>
 
       {/* Rechter Bereich: Undo/Redo, Vorschau, Speichern & Abbrechen */}

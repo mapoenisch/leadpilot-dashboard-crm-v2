@@ -9,8 +9,8 @@ import type { TileData } from '../data/dashboardData';
 import { useTimeControl } from './TimeControlProvider';
 
 export interface TileStand {
-  mode: 'live' | 'pausiert';
-  /** Beginn der gemeinsamen Pause (ISO) oder null im Live-Modus. */
+  mode: 'live' | 'pausiert' | 'zeitpunkt';
+  /** Beginn der gemeinsamen Pause oder Analysezeitpunkt (ISO) oder null im Live-Modus. */
   analysisAt: string | null;
   /** Zeitpunkt, zu dem die angezeigten Daten in dieser Kachel ankamen (ISO). */
   observedAt: string | null;
@@ -109,8 +109,13 @@ export function useTimeControlledSource(
 ): TileData {
   const { state: control } = useTimeControl();
   const paused = control.mode === 'pausiert';
+  const isTimePoint = control.mode === 'zeitpunkt';
 
-  const source = useSource(tile, filters, { ...options, frozen: paused } as { enabled?: boolean });
+  const source = useSource(tile, filters, {
+    ...options,
+    frozen: paused,
+    analysisAt: isTimePoint ? control.analysisAt : undefined,
+  } as UseDashboardDataOptions);
 
   const queryKey = effectiveQueryKeyOf(tile, source);
   const lastQueryKey = useRef<string>(queryKey);
@@ -148,6 +153,17 @@ export function useTimeControlledSource(
     }
   }
   previousState.current = source.state;
+
+  if (isTimePoint) {
+    pausedAt.current = null;
+    frozen.current = null;
+    return attachStand(source, {
+      mode: 'zeitpunkt',
+      analysisAt: control.analysisAt,
+      observedAt: isSettled(source) ? new Date(observedAt.current).toISOString() : null,
+      loadedAfterPause: false,
+    });
+  }
 
   if (!paused) {
     pausedAt.current = null;

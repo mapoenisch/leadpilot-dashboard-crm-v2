@@ -62,4 +62,73 @@ describe('timeControl', () => {
     const withDefault = pauseTimeControl(INITIAL_TIME_CONTROL_STATE);
     expect(typeof withDefault.analysisAt).toBe('string');
   });
+
+  describe('Modus zeitpunkt (Auftrag 161)', () => {
+    it('wechselt von live in den Modus zeitpunkt und setzt analysisAt', () => {
+      const next = timeControlReducer(INITIAL_TIME_CONTROL_STATE, {
+        type: 'zeitpunkt',
+        at: '2026-10-31T23:00:00.000Z',
+        now: '2026-11-15T14:32:00.000Z',
+      });
+      expect(next.mode).toBe('zeitpunkt');
+      expect(next.analysisAt).toBe('2026-10-31T23:00:00.000Z');
+      expect(next.resumeToken).toBe(0);
+    });
+
+    it('ersetzt analysisAt beim Wechsel von zeitpunkt auf einen neuen Zeitpunkt', () => {
+      const state1 = {
+        mode: 'zeitpunkt' as const,
+        analysisAt: '2026-10-31T23:00:00.000Z',
+        resumeToken: 0,
+      };
+      const state2 = timeControlReducer(state1, {
+        type: 'zeitpunkt',
+        at: '2026-10-15T12:00:00.000Z',
+        now: '2026-11-15T14:32:00.000Z',
+      });
+      expect(state2.mode).toBe('zeitpunkt');
+      expect(state2.analysisAt).toBe('2026-10-15T12:00:00.000Z');
+      expect(state2.resumeToken).toBe(0);
+    });
+
+    it('kehrt mit resume aus dem Modus zeitpunkt zu live zurück und inkrementiert resumeToken', () => {
+      const state1 = {
+        mode: 'zeitpunkt' as const,
+        analysisAt: '2026-10-31T23:00:00.000Z',
+        resumeToken: 3,
+      };
+      const resumed = timeControlReducer(state1, { type: 'resume' });
+      expect(resumed).toEqual({
+        mode: 'live',
+        analysisAt: null,
+        resumeToken: 4,
+      });
+    });
+
+    it('lässt pause im Modus zeitpunkt folgenlos', () => {
+      const state1 = {
+        mode: 'zeitpunkt' as const,
+        analysisAt: '2026-10-31T23:00:00.000Z',
+        resumeToken: 0,
+      };
+      const paused = timeControlReducer(state1, { type: 'pause', now: '2026-11-16T10:00:00.000Z' });
+      expect(paused).toBe(state1);
+    });
+
+    it('verwirft ungültige Zeitpunkte (Zukunft oder kein ISO) und behält Zustand unverändert', () => {
+      const future = timeControlReducer(INITIAL_TIME_CONTROL_STATE, {
+        type: 'zeitpunkt',
+        at: '2026-11-20T00:00:00.000Z',
+        now: '2026-11-15T14:32:00.000Z',
+      });
+      expect(future).toBe(INITIAL_TIME_CONTROL_STATE);
+
+      const invalid = timeControlReducer(INITIAL_TIME_CONTROL_STATE, {
+        type: 'zeitpunkt',
+        at: 'ungueltiges-datum',
+        now: '2026-11-15T14:32:00.000Z',
+      });
+      expect(invalid).toBe(INITIAL_TIME_CONTROL_STATE);
+    });
+  });
 });

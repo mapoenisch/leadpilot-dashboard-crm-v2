@@ -1,33 +1,29 @@
 // Executive Dashboard, Teilauftrag 4 (Auftrag 073): einheitlicher Kachelrahmen (Plan §3, §4).
 // Kopf mit Kategorie, Titel, Zeitraum/Stand, Quelle, Zeitbezug und Geltungsbereich; Inhalt über
 // DashboardChart; Fußzeile mit „Details“. Die Kachel lädt keine Daten selbst, sie bekommt sie.
-import { useEffect, useId, useRef, useState, type MutableRefObject } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { cn } from '@/lib/utils';
-import {
-  DASHBOARD_CATEGORIES,
-  type ActiveCatalogEntry,
-  type DashboardView,
-} from '../model/dashboardCatalog';
+import { DASHBOARD_CATEGORIES, type ActiveCatalogEntry } from '../model/dashboardCatalog';
 import type { DashboardFilters, DashboardTileConfig } from '../model/dashboardConfig';
 import type { TileData } from '../data/dashboardData';
-import { ChartLoadingPlaceholder, OVERLAY } from './charts/ChartModuleBoundary';
-import { ChartLayoutReserve } from './charts/ChartReadout';
-import { isChartView, type ChartLoaders } from './charts/chartLoaders';
-import { checkTileValues, DashboardChart, reserveFor, TableToggleReserve } from './DashboardChart';
+import type { ChartLoaders } from './charts/chartLoaders';
+import { checkTileValues } from './DashboardChart';
 import {
   BLOCKING_STATES,
   blockingText,
   CombinationFormula,
-  InlineStateBadge,
   MUTED,
   TileNotices,
   TileStateBadge,
   TimeReference,
 } from './TileStatus';
+
 import { formatAsOf, NO_DATA, SOURCE_LABEL, timeLabel } from './tileFormat';
 import { TileStandLine } from '../time/TileStandLine';
+import { readTileStand } from '../time/useTimeControlledData';
+import { TileBody } from './TileBody';
 
 export interface DashboardTileProps {
   tile: DashboardTileConfig;
@@ -49,18 +45,6 @@ export interface DashboardTileProps {
   dashboardFilters?: DashboardFilters;
   className?: string;
 }
-
-/**
- * Höhe ohne Diagramm: Laden, Hinweis und fertige Darstellung bleiben gleich hoch. Tabelle und
- * Übersicht haben eine feste Höhe und scrollen innerhalb der Kachel (Codex-Befund PR #57).
- */
-const MIN_HEIGHT: Partial<Record<DashboardView, string>> = {
-  // Auftrag 091: 48 px (Zahl 32 px) – Laden, Fehler und fertige Zahl bleiben gleich hoch.
-  zahl: 'min-h-[48px]',
-  tabelle: 'h-[240px]',
-  uebersicht: 'h-[240px]',
-};
-const SCROLLING_VIEWS: readonly DashboardView[] = ['tabelle', 'uebersicht'];
 
 /** Live-Kacheln: feste Höhe für bis zu drei Hinweiszeilen; mehr scrollt. */
 const NOTICE_SLOT_CLASS = 'h-[56px] overflow-y-auto';
@@ -129,21 +113,29 @@ export function DashboardTile({
       setRecovered(false);
     }
   }, [warned, data.state]);
-  const liveText = BLOCKING_STATES.has(data.state)
-    ? `${STATE_PREFIX[data.state] ?? ''}${blockingText(data)}`
-    : warned
-      ? // Beide Warnungen zusammen (veraltet und eingeschränkt) in einer Meldung.
-        [
-          data.state === 'veraltet' ? `Wert veraltet. ${stand ?? 'Zeitpunkt unbekannt'}.` : '',
-          resolved?.quality === 'degradiert' ? 'Datenqualität eingeschränkt.' : '',
-        ]
-          .filter(Boolean)
-          .join(' ')
-      : isDerivedEmpty(tile, entry, data, title)
-        ? NO_DATA
-        : recovered
-          ? 'Wert wieder aktuell.'
-          : '';
+  const standMeta = readTileStand(data);
+  const isTimePoint = standMeta?.mode === 'zeitpunkt';
+  const isTimePointNoData =
+    isTimePoint && entry && (entry.history.kind === 'puffer' || entry.history.kind === 'keine');
+  const isTimePointFest = isTimePoint && entry?.history.kind === 'fest';
+
+  const liveText = isTimePointNoData
+    ? 'Für gewählten Zeitpunkt ist kein Stand gespeichert.'
+    : BLOCKING_STATES.has(data.state)
+      ? `${STATE_PREFIX[data.state] ?? ''}${blockingText(data)}`
+      : warned
+        ? // Beide Warnungen zusammen (veraltet und eingeschränkt) in einer Meldung.
+          [
+            data.state === 'veraltet' ? `Wert veraltet. ${stand ?? 'Zeitpunkt unbekannt'}.` : '',
+            resolved?.quality === 'degradiert' ? 'Datenqualität eingeschränkt.' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')
+        : isDerivedEmpty(tile, entry, data, title)
+          ? NO_DATA
+          : recovered
+            ? 'Wert wieder aktuell.'
+            : '';
 
   return (
     <Card
@@ -215,7 +207,7 @@ export function DashboardTile({
         {/* Live-Hinweise (veraltet, eingeschränkt) erscheinen nach dem Laden: zwei Zeilen reservieren. */}
         <div
           data-testid="tile-notice-slot"
-          {...(resolved?.origin.layer === 'live'
+          {...(resolved?.origin.layer === 'live' || isTimePointFest
             ? {
                 className: NOTICE_SLOT_CLASS,
                 // Überläuft der Platz (beide Hinweise in einer schmalen Kachel): per Tastatur scrollbar.
@@ -227,6 +219,14 @@ export function DashboardTile({
               { className: 'empty:hidden' })}
         >
           <TileNotices data={data} />
+          {isTimePointFest ? (
+            <div
+              data-testid="tile-notice"
+              className="flex flex-col gap-[2px] text-[12px] text-accent"
+            >
+              <p className="m-0">zeitunabhängiger Wert</p>
+            </div>
+          ) : null}
         </div>
 
         {/* Bleibt bestehen: Zustandswechsel (z. B. Laden → Fehler) werden vorgelesen. */}
@@ -277,123 +277,4 @@ export function DashboardTile({
       </div>
     </Card>
   );
-}
-
-function TileBody({
-  loadingHadFocus,
-  tile,
-  entry,
-  data,
-  title,
-  period,
-  idPrefix,
-  onRetryChartLoad,
-  chartLoaders,
-}: {
-  loadingHadFocus: MutableRefObject<boolean>;
-  tile: DashboardTileConfig;
-  entry?: ActiveCatalogEntry;
-  data: TileData;
-  title: string;
-  period: string;
-  idPrefix: string;
-  onRetryChartLoad: () => void;
-  chartLoaders?: ChartLoaders;
-}) {
-  const chartView = isChartView(tile.view) ? tile.view : null;
-  const caption = `${title}, ${period || 'Zeitraum unbekannt'}`;
-
-  if (data.state === 'laden') {
-    if (chartView) {
-      return (
-        <>
-          <ChartLoadingPlaceholder
-            label={caption}
-            reserve={reserveFor(chartView, [])}
-            hadFocus={loadingHadFocus}
-          />
-          <TableToggleReserve />
-        </>
-      );
-    }
-    return (
-      <div
-        role="status"
-        tabIndex={0}
-        aria-label={`${caption}: wird geladen`}
-        onFocus={() => {
-          loadingHadFocus.current = true;
-        }}
-        onBlur={(event) => {
-          // Beim Entfernen aus dem DOM (Daten da) bleibt die Markierung für die Fokusübergabe.
-          if (event.currentTarget.isConnected) loadingHadFocus.current = false;
-        }}
-        className={cn(
-          'flex items-center rounded-md text-[13px] text-[var(--color-text-muted)] outline-none focus-visible:ring-2 focus-visible:ring-primary',
-          MIN_HEIGHT[tile.view],
-        )}
-      >
-        {title}: wird geladen …
-      </div>
-    );
-  }
-
-  if (BLOCKING_STATES.has(data.state)) {
-    const text = blockingText(data);
-    const testId = data.state === 'keine_daten' ? 'tile-no-data' : 'tile-blocked';
-    const blockedContent = (
-      <>
-        <InlineStateBadge data={data} />
-        <p data-testid={testId} className="m-0 text-[13px] text-[var(--color-text-muted)]">
-          {text}
-        </p>
-      </>
-    );
-    if (chartView) {
-      return (
-        <div className="relative">
-          <ChartLayoutReserve {...reserveFor(chartView, [])} />
-          <TableToggleReserve />
-          <div className={cn(OVERLAY, 'items-start')}>{blockedContent}</div>
-        </div>
-      );
-    }
-    return (
-      <div
-        className={cn('flex flex-col items-start justify-center gap-[6px]', MIN_HEIGHT[tile.view])}
-      >
-        {blockedContent}
-      </div>
-    );
-  }
-
-  if (data.state === 'nicht_verfuegbar') return null;
-  const chartElement = (
-    <DashboardChart
-      view={tile.view}
-      entry={entry}
-      data={data}
-      title={title}
-      period={period}
-      idPrefix={idPrefix}
-      onRetryChartLoad={onRetryChartLoad}
-      loaders={chartLoaders}
-    />
-  );
-  if (SCROLLING_VIEWS.includes(tile.view)) {
-    return (
-      <div
-        role="region"
-        aria-label={`${caption}, scrollbar`}
-        tabIndex={0}
-        className={cn(
-          'overflow-y-auto rounded-md outline-none focus-visible:ring-2 focus-visible:ring-primary',
-          MIN_HEIGHT[tile.view],
-        )}
-      >
-        {chartElement}
-      </div>
-    );
-  }
-  return <div className={MIN_HEIGHT[tile.view]}>{chartElement}</div>;
 }

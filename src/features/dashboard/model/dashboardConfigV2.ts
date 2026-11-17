@@ -53,6 +53,7 @@ export interface TileQueryConfig {
   aggregation?: string;
   groupBy?: string[];
   filters?: Record<string, unknown>;
+  window?: { count: number; resolution: 'stunde' | 'tag' | 'woche' | 'monat' };
 }
 
 /** Schwellenwert-Regel einer Kachel */

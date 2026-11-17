@@ -1,10 +1,4 @@
 import type { ActiveCatalogEntry } from './dashboardCatalog';
-import type {
-  DashboardConfigV2,
-  DashboardMetadataV2,
-  DashboardTileConfigV2,
-  TileQueryConfig,
-} from './dashboardConfigV2';
 import { getQueryCapabilities } from './queryCapabilities';
 
 export type TileQueryValidationErrorCode =
@@ -14,6 +8,7 @@ export type TileQueryValidationErrorCode =
   | 'gruppierung_unzulaessig'
   | 'zeitraum_unzulaessig'
   | 'unbekanntes_feld'
+  | 'fenster_unzulaessig'
   | 'typ_ungueltig';
 
 export interface TileQueryValidationError {
@@ -27,132 +22,21 @@ export interface TileQueryValidationResult {
   errors: TileQueryValidationError[];
 }
 
-export interface NormalizeTileQueryOptions {
-  globalPipeline?: string;
-  globalTimeframe?: string;
-  metadata?: DashboardMetadataV2;
-}
+export {
+  normalizeTileQuery,
+  CANONICAL_TIMEFRAMES,
+  type NormalizeTileQueryOptions,
+} from './normalizeTileQuery';
 
-const ALLOWED_QUERY_KEYS = new Set([
+export const ALLOWED_QUERY_KEYS = new Set([
   'metricId',
   'pipelineId',
   'timeframe',
   'aggregation',
   'groupBy',
   'filters',
+  'window',
 ]);
-
-const CANONICAL_TIMEFRAMES = new Set(['fest', 'aktuell', 'live']);
-
-/**
- * Normalisiert die Abfrage einer V2-Kachel deterministisch und idempotent (Auftrag 154 §2.1).
- * Vorrang:
- * 1. query-Feld vorhanden -> gilt (außer P07-Migrationsartefakte)
- * 2. Overrides (Legacy)
- * 3. erben
- */
-export function normalizeTileQuery(
-  tile: DashboardTileConfigV2,
-  dashboardOrOptions?: DashboardConfigV2 | NormalizeTileQueryOptions,
-): TileQueryConfig {
-  const metadata = dashboardOrOptions?.metadata;
-  const rawQuery = tile.query;
-
-  // metricId
-  const metricId =
-    typeof rawQuery?.metricId === 'string' && rawQuery.metricId.trim().length > 0
-      ? rawQuery.metricId.trim()
-      : tile.catalogId;
-
-  // pipelineId:
-  // Sonderfall P07-Migration: Wurde query.pipelineId rein aus der globalen Pipeline übernommen
-  // (erkennbar am fehlenden pipelineOverride und metadata.migrated_from_v1),
-  // wird es wieder als "erben" (undefined) normalisiert (§2.1 Nr. 4).
-  let pipelineId: string | null | undefined;
-  const isMigratedFromV1 = metadata?.migrated_from_v1 === true;
-
-  if (
-    isMigratedFromV1 &&
-    tile.pipelineOverride === undefined &&
-    rawQuery?.pipelineId !== undefined
-  ) {
-    // Wurde bei Migration von globaler Pipeline gesetzt -> soll wieder erben
-    pipelineId = undefined;
-  } else if (rawQuery && Object.prototype.hasOwnProperty.call(rawQuery, 'pipelineId')) {
-    if (rawQuery.pipelineId === null) {
-      pipelineId = null; // ausdrücklich alle Pipelines
-    } else if (typeof rawQuery.pipelineId === 'string' && rawQuery.pipelineId.trim().length > 0) {
-      pipelineId = rawQuery.pipelineId.trim();
-    } else {
-      pipelineId = undefined;
-    }
-  } else if (typeof tile.pipelineOverride === 'string' && tile.pipelineOverride.trim().length > 0) {
-    pipelineId = tile.pipelineOverride.trim();
-  }
-
-  // aggregation:
-  let aggregation: string | undefined;
-  if (typeof rawQuery?.aggregation === 'string' && rawQuery.aggregation.trim().length > 0) {
-    aggregation = rawQuery.aggregation.trim();
-  } else if (
-    typeof tile.aggregationOverride === 'string' &&
-    tile.aggregationOverride.trim().length > 0
-  ) {
-    aggregation = tile.aggregationOverride.trim();
-  }
-
-  // timeframe:
-  // Nur 'fest', 'aktuell' oder 'live' sind kanonisch zulässig. Legacy-Ranges (z. B. '2025-01-01/2025-12-31')
-  // oder globale V1-Werte werden verworfen (§2.1 Nr. 3).
-  let timeframe: string | undefined;
-  const rawTf = rawQuery?.timeframe?.trim();
-  if (rawTf && CANONICAL_TIMEFRAMES.has(rawTf)) {
-    timeframe = rawTf;
-  }
-
-  // groupBy:
-  let groupBy: string[] | undefined;
-  if (Array.isArray(rawQuery?.groupBy)) {
-    const validGroupings = rawQuery.groupBy.filter(
-      (g): g is string => typeof g === 'string' && g.trim().length > 0,
-    );
-    if (validGroupings.length > 0) {
-      groupBy = validGroupings.map((g) => g.trim());
-    }
-  }
-
-  // filters:
-  let filters: Record<string, unknown> | undefined;
-  if (
-    rawQuery?.filters &&
-    typeof rawQuery.filters === 'object' &&
-    !Array.isArray(rawQuery.filters)
-  ) {
-    filters = {};
-  }
-
-  const normalized: TileQueryConfig = {
-    metricId,
-  };
-
-  if (pipelineId !== undefined) {
-    normalized.pipelineId = pipelineId;
-  }
-  if (aggregation !== undefined) {
-    normalized.aggregation = aggregation;
-  }
-  if (timeframe !== undefined) {
-    normalized.timeframe = timeframe;
-  }
-  if (groupBy !== undefined) {
-    normalized.groupBy = groupBy;
-  }
-  if (filters !== undefined) {
-    normalized.filters = filters;
-  }
-
-  return normalized;
-}
 
 /**
  * Validiert die Abfrage einer Kachel gegen die tatsächlichen Fähigkeiten des aktiven
@@ -321,6 +205,89 @@ export function validateTileQuery(
         message: 'Zusätzliche Filterobjekte sind in P08a noch nicht unterstützt (muss leer sein).',
         field: 'filters',
       });
+    }
+  }
+
+  // 8. window (Auftrag 161 §2.3 Nr. 12)
+  if (record.window !== undefined) {
+    if (
+      typeof record.window !== 'object' ||
+      record.window === null ||
+      Array.isArray(record.window)
+    ) {
+      errors.push({
+        code: 'typ_ungueltig',
+        message: 'window muss ein Objekt sein.',
+        field: 'window',
+      });
+    } else {
+      const win = record.window as Record<string, unknown>;
+      const keys = Object.keys(win);
+      if (keys.length !== 2 || !keys.includes('count') || !keys.includes('resolution')) {
+        errors.push({
+          code: 'typ_ungueltig',
+          message: 'window darf genau die Schlüssel "count" und "resolution" enthalten.',
+          field: 'window',
+        });
+      } else {
+        const { count, resolution } = win;
+        const isCountInt = typeof count === 'number' && Number.isInteger(count) && count >= 1;
+        const validRes = ['stunde', 'tag', 'woche', 'monat'];
+        const isResValid = typeof resolution === 'string' && validRes.includes(resolution);
+
+        if (!isCountInt || !isResValid) {
+          errors.push({
+            code: 'typ_ungueltig',
+            message:
+              'window.count muss eine Ganzzahl >= 1 und resolution eine gültige Auflösung sein.',
+            field: 'window',
+          });
+        } else {
+          const maxLimits: Record<string, number> = {
+            stunde: 168,
+            tag: 366,
+            woche: 260,
+            monat: 120,
+          };
+          const limit = maxLimits[resolution as string] ?? 400;
+          if (count > limit) {
+            errors.push({
+              code: 'fenster_unzulaessig',
+              message: `window.count (${count}) übersteigt Grenze von ${limit} für "${resolution}".`,
+              field: 'window',
+            });
+          }
+          if (entry.history.kind !== 'ereignisse') {
+            errors.push({
+              code: 'fenster_unzulaessig',
+              message: `Ein Zeitfenster ist für Kennzahl "${entry.id}" nicht zulässig.`,
+              field: 'window',
+            });
+          } else if (entry.source.layer === 'crm') {
+            if (resolution === 'stunde') {
+              errors.push({
+                code: 'fenster_unzulaessig',
+                message: 'Stundenauflösung ist für CRM-Verläufe unzulässig.',
+                field: 'window',
+              });
+            }
+          } else {
+            if (resolution === 'woche' || resolution === 'monat') {
+              errors.push({
+                code: 'fenster_unzulaessig',
+                message: `Auflösung "${resolution}" ist für Live-Verläufe unzulässig.`,
+                field: 'window',
+              });
+            } else if (resolution === 'tag' && count > 90) {
+              errors.push({
+                code: 'fenster_unzulaessig',
+                message: `window.count (${count}) übersteigt 90 Tage für Live-Verläufe.`,
+                field: 'window',
+              });
+            }
+          }
+        }
+      }
     }
   }
 

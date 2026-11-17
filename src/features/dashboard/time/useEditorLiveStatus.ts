@@ -35,6 +35,8 @@ export interface EditorLiveStatus {
   dataAsOf: string | null;
   /** Beginn der Pause; null im Live-Modus. */
   pausedSince: string | null;
+  /** Gewählter Analysezeitpunkt; null im Live- oder Pausen-Modus. */
+  timePointAt?: string | null;
 }
 
 const ALL_LIVE_IDS = LIVE_KPI_DEFINITIONS.map((definition) => definition.id);
@@ -121,7 +123,8 @@ function sameStatus(a: EditorLiveStatus, b: EditorLiveStatus): boolean {
     a.connection === b.connection &&
     a.lastEventAt === b.lastEventAt &&
     a.dataAsOf === b.dataAsOf &&
-    a.pausedSince === b.pausedSince
+    a.pausedSince === b.pausedSince &&
+    a.timePointAt === b.timePointAt
   );
 }
 
@@ -196,7 +199,11 @@ export function useEditorLiveStatus({
                 ? 'Deal gewonnen'
                 : '*'
               : (entry.source.liveKpiId ?? '');
-          const tsWindow = timeSeriesWindow(entry);
+          const targetNow =
+            control.mode === 'zeitpunkt' && control.analysisAt
+              ? new Date(control.analysisAt)
+              : new Date();
+          const tsWindow = timeSeriesWindow(entry, targetNow, tile.query?.window);
           const pipeline =
             entry.source.layer === 'crm'
               ? effectivePipelineFor(tile, entry, defaultPipeline)
@@ -240,6 +247,7 @@ export function useEditorLiveStatus({
           ? null
           : new Date(oldestStand).toISOString(),
       pausedSince: control.mode === 'pausiert' ? control.analysisAt : null,
+      timePointAt: control.mode === 'zeitpunkt' ? control.analysisAt : null,
       ...overrides,
     };
   };
