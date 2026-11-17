@@ -40,6 +40,7 @@ export interface DashboardEditorShellV2Props {
   readOnly?: boolean;
   readOnlyCopyError?: string | null;
   onSaveAsPersonalCopy?: () => Promise<void>;
+  isSavingPersonalCopy?: boolean;
   className?: string;
   dashboards?: (
     | import('../../services/dashboardStorageV2Types').AccessibleDashboardListItemV2
@@ -86,6 +87,7 @@ function DashboardEditorShellBody({
   readOnly: explicitReadOnly,
   readOnlyCopyError,
   onSaveAsPersonalCopy,
+  isSavingPersonalCopy,
   className,
   dashboards,
   currentStoredDashboard,
@@ -222,7 +224,9 @@ function DashboardEditorShellBody({
         <ReadOnlyNoticeV2
           teamName={currentStoredDashboard?.teamName}
           copyError={readOnlyCopyError}
+          isCopying={isSavingPersonalCopy}
           onSaveAsPersonalCopy={async () => {
+            if (isSavingPersonalCopy) return;
             if (onSaveAsPersonalCopy) {
               await onSaveAsPersonalCopy();
             } else if (onDuplicateCurrent) {

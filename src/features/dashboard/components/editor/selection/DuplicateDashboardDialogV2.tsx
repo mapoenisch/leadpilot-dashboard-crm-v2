@@ -55,6 +55,7 @@ export function DuplicateDashboardDialogV2({
   teams: providedTeams,
 }: DuplicateDashboardDialogV2Props) {
   const [title, setTitle] = useState('');
+  const [hasUserSelectedTarget, setHasUserSelectedTarget] = useState(false);
   const [targetValue, setTargetValue] = useState<string>('personal');
   const [teams, setTeams] = useState<DashboardTeamV2[]>(providedTeams ?? []);
   const [error, setError] = useState<string | null>(null);
@@ -93,13 +94,18 @@ export function DuplicateDashboardDialogV2({
   const isTargetBlocked = targetValue === 'personal' && isPersonalLimitReached;
 
   useEffect(() => {
-    if (open) {
-      setTitle(buildDerivedDashboardTitle(currentDashboard.title, ' (Kopie)'));
+    if (!open) {
+      setHasUserSelectedTarget(false);
+      setTargetValue('personal');
+      return;
+    }
+    setTitle(buildDerivedDashboardTitle(currentDashboard.title, ' (Kopie)'));
+    setError(null);
+    if (!hasUserSelectedTarget) {
       const defaultToTeam = isPersonalLimitReached && writableTeams.length > 0 && writableTeams[0];
       setTargetValue(defaultToTeam ? `team:${defaultToTeam.id}` : 'personal');
-      setError(null);
     }
-  }, [open, currentDashboard.title, isPersonalLimitReached, writableTeams]);
+  }, [open, currentDashboard.title, isPersonalLimitReached, writableTeams, hasUserSelectedTarget]);
 
   const handleClose = () => {
     if (!isSaving) onClose();
@@ -241,7 +247,10 @@ export function DuplicateDashboardDialogV2({
                 id={targetSelectId}
                 data-testid="duplicate-dashboard-target-select"
                 value={targetValue}
-                onChange={(e) => setTargetValue(e.target.value)}
+                onChange={(e) => {
+                  setHasUserSelectedTarget(true);
+                  setTargetValue(e.target.value);
+                }}
                 disabled={isSaving}
                 className="h-9 w-full rounded border border-[var(--color-border,#1b3d39)] bg-[var(--color-surface,#0c1e1c)] px-3 text-sm text-white outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
               >

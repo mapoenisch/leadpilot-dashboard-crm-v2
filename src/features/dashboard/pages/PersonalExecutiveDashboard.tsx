@@ -54,6 +54,7 @@ function PersonalExecutiveDashboardV2Container({
   const [showRevokedDialog, setShowRevokedDialog] = useState(false);
   const [revokedDraft, setRevokedDraft] = useState<DashboardConfigV2 | null>(null);
   const [readOnlyCopyError, setReadOnlyCopyError] = useState<string | null>(null);
+  const [isCopyingPersonal, setIsCopyingPersonal] = useState(false);
 
   if (v2Storage.status === 'laden' || !v2Storage.dashboard) {
     return (
@@ -146,14 +147,20 @@ function PersonalExecutiveDashboardV2Container({
   };
 
   const handleSaveAsPersonalCopy = async () => {
+    if (isCopyingPersonal || v2Storage.isSaving) return;
+    setIsCopyingPersonal(true);
     setReadOnlyCopyError(null);
-    const res = await v2Storage.duplicateCurrent(undefined, { scope: 'personal' });
-    if (!res.ok) {
-      const msg =
-        res.error?.kind === 'obergrenze_erreicht'
-          ? 'Maximale Anzahl von 20 persönlichen Dashboards erreicht. Bitte löschen Sie ein anderes Dashboard.'
-          : 'Persönliche Kopie konnte nicht erstellt werden.';
-      setReadOnlyCopyError(msg);
+    try {
+      const res = await v2Storage.duplicateCurrent(undefined, { scope: 'personal' });
+      if (!res.ok) {
+        const msg =
+          res.error?.kind === 'obergrenze_erreicht'
+            ? 'Maximale Anzahl von 20 persönlichen Dashboards erreicht. Bitte löschen Sie ein anderes Dashboard.'
+            : 'Persönliche Kopie konnte nicht erstellt werden.';
+        setReadOnlyCopyError(msg);
+      }
+    } finally {
+      setIsCopyingPersonal(false);
     }
   };
 
@@ -205,6 +212,7 @@ function PersonalExecutiveDashboardV2Container({
           onDeleteDashboard={v2Storage.deleteDashboard}
           onShareWithTeam={v2Storage.shareWithTeam}
           onSaveAsPersonalCopy={handleSaveAsPersonalCopy}
+          isSavingPersonalCopy={isCopyingPersonal || v2Storage.isSaving}
           readOnlyCopyError={readOnlyCopyError}
           onRefreshList={v2Storage.refreshList}
           listError={v2Storage.listError}

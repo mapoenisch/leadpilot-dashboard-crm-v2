@@ -71,6 +71,7 @@ export function NewDashboardDialogV2({
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('executive');
   const [title, setTitle] = useState('');
   const [userHasEditedTitle, setUserHasEditedTitle] = useState(false);
+  const [hasUserSelectedTarget, setHasUserSelectedTarget] = useState(false);
   const [targetValue, setTargetValue] = useState<string>('personal');
   const [teams, setTeams] = useState<DashboardTeamV2[]>(providedTeams ?? []);
   const [error, setError] = useState<string | null>(null);
@@ -116,17 +117,26 @@ export function NewDashboardDialogV2({
     existingDashboards.filter((d) => d.scope !== 'team').length >= MAX_PERSONAL_DASHBOARDS;
   const isTargetBlocked = targetValue === 'personal' && isPersonalLimitReached;
 
-  // Vorbelegung des Titels beim Öffnen oder Vorlagenwechsel
+  // Zielauswahl vorbesetzen: Nur beim Öffnen oder nach dem Laden der Teams, falls Nutzer noch nichts gewählt hat
+  useEffect(() => {
+    if (!open) {
+      setHasUserSelectedTarget(false);
+      setTargetValue('personal');
+      return;
+    }
+    if (!hasUserSelectedTarget) {
+      const defaultToTeam = isPersonalLimitReached && writableTeams.length > 0 && writableTeams[0];
+      setTargetValue(defaultToTeam ? `team:${defaultToTeam.id}` : 'personal');
+    }
+  }, [open, isPersonalLimitReached, writableTeams, hasUserSelectedTarget]);
+
+  // Vorbelegung des Titels beim Öffnen oder Vorlagenwechsel (unabhängig vom Ziel)
   useEffect(() => {
     if (!open) {
       setUserHasEditedTitle(false);
       setError(null);
-      setTargetValue('personal');
       return;
     }
-
-    const defaultToTeam = isPersonalLimitReached && writableTeams.length > 0 && writableTeams[0];
-    setTargetValue(defaultToTeam ? `team:${defaultToTeam.id}` : 'personal');
 
     if (!userHasEditedTitle) {
       const template = templates.find((t) => t.id === selectedTemplateId);
@@ -134,15 +144,7 @@ export function NewDashboardDialogV2({
       const existingTitles = new Set(existingDashboards.map((d) => d.title));
       setTitle(computeUniqueTitle(baseName, existingTitles));
     }
-  }, [
-    open,
-    selectedTemplateId,
-    templates,
-    existingDashboards,
-    userHasEditedTitle,
-    isPersonalLimitReached,
-    writableTeams,
-  ]);
+  }, [open, selectedTemplateId, templates, existingDashboards, userHasEditedTitle]);
 
   const handleClose = () => {
     if (!isSaving) {
@@ -245,7 +247,10 @@ export function NewDashboardDialogV2({
               id={targetSelectId}
               data-testid="new-dashboard-target-select"
               value={targetValue}
-              onChange={(e) => setTargetValue(e.target.value)}
+              onChange={(e) => {
+                setHasUserSelectedTarget(true);
+                setTargetValue(e.target.value);
+              }}
               disabled={isSaving}
               className="h-9 w-full rounded border border-[var(--color-border,#1b3d39)] bg-[var(--color-surface,#0c1e1c)] px-3 text-sm text-white outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
             >

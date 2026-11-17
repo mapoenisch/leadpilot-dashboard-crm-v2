@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/Button';
 
 export interface ReadOnlyNoticeV2Props {
   teamName?: string | null;
-  onSaveAsPersonalCopy: () => void;
+  onSaveAsPersonalCopy: () => void | Promise<void>;
   copyError?: string | null;
+  isCopying?: boolean;
   className?: string;
 }
 
@@ -15,6 +16,7 @@ export function ReadOnlyNoticeV2({
   teamName,
   onSaveAsPersonalCopy,
   copyError,
+  isCopying = false,
   className,
 }: ReadOnlyNoticeV2Props) {
   const teamLabel = teamName ? `‚${teamName}‘` : 'dieses Teams';
@@ -39,11 +41,12 @@ export function ReadOnlyNoticeV2({
         size="sm"
         variant="secondary"
         data-testid="copy-as-personal-button"
+        disabled={isCopying}
         onClick={onSaveAsPersonalCopy}
-        className="h-7 gap-1.5 border-amber-500/40 bg-amber-500/20 text-xs font-medium text-amber-100 hover:bg-amber-500/30"
+        className="h-7 gap-1.5 border-amber-500/40 bg-amber-500/20 text-xs font-medium text-amber-100 hover:bg-amber-500/30 disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Copy className="h-3.5 w-3.5" />
-        <span>Als persönliche Kopie</span>
+        <span>{isCopying ? 'Wird kopiert…' : 'Als persönliche Kopie'}</span>
       </Button>
       {copyError && (
         <div

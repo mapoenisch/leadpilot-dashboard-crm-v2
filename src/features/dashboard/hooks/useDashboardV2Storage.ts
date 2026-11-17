@@ -51,6 +51,7 @@ export function useDashboardV2Storage(options?: {
   const orgId = session?.organizationId ?? 'default-org';
   const userId = session?.userId ?? 'default-user';
   const isInitializingRef = useRef(false);
+  const isSavingRef = useRef(false);
   const dashboardRef = useRef<StoredDashboardV2Row | null>(null);
   dashboardRef.current = dashboard;
 
@@ -222,22 +223,33 @@ export function useDashboardV2Storage(options?: {
       title?: string,
       target?: { scope: 'personal' | 'team'; teamId?: string },
     ): Promise<SaveV2Result> => {
+      if (isSavingRef.current) {
+        return {
+          ok: false,
+          error: { kind: 'technisch' },
+        };
+      }
+      isSavingRef.current = true;
       setIsSaving(true);
       setError(null);
-      const res = await executeDuplicateCurrent(
-        dashboard,
-        title,
-        target,
-        orgId,
-        userId,
-        setDashboard,
-        refreshList,
-      );
-      setIsSaving(false);
-      if (!res.ok) {
-        setError(res.error);
+      try {
+        const res = await executeDuplicateCurrent(
+          dashboard,
+          title,
+          target,
+          orgId,
+          userId,
+          setDashboard,
+          refreshList,
+        );
+        if (!res.ok) {
+          setError(res.error);
+        }
+        return res;
+      } finally {
+        isSavingRef.current = false;
+        setIsSaving(false);
       }
-      return res;
     },
     [dashboard, orgId, userId, refreshList],
   );

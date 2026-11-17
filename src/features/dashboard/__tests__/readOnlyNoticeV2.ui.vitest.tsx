@@ -32,4 +32,14 @@ describe('ReadOnlyNoticeV2', () => {
     expect(errorEl).toBeInTheDocument();
     expect(errorEl).toHaveTextContent('Maximale Anzahl von 20 persönlichen Dashboards erreicht.');
   });
+
+  it('deaktiviert den Kopier-Button und zeigt Ladehinweis während isCopying', () => {
+    render(
+      <ReadOnlyNoticeV2 teamName="Nord Vertrieb" onSaveAsPersonalCopy={vi.fn()} isCopying={true} />,
+    );
+
+    const copyBtn = screen.getByTestId('copy-as-personal-button');
+    expect(copyBtn).toBeDisabled();
+    expect(copyBtn).toHaveTextContent('Wird kopiert…');
+  });
 });
