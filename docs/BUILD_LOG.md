@@ -21707,3 +21707,63 @@ Entfällt (keine UI-Änderung).
 ### Ergebnis & Freigabestatus
 
 Lücke geschlossen und durch vorher roten Test belegt. Freigabe durch unabhängigen Prüfer offen. **Deployment (Marc):** Migration 20261121 auf Hosted anwenden; App-Deploy nicht nötig. **Folge für Auftrag 162:** dessen Migration heißt jetzt `20261122_dashboard_team_sharing.sql`; die Rechteprüfung in `get_dashboard_v2_revisions` ersetzt 162 durch die Team-Rechteprüfung.
+
+## 2026-11-17 — Auftrag 161: Analysezeitpunkt, Zeitfenster je Kachel, Fadenkreuz (P10b-2) – nachgetragener Builder-Eintrag
+
+**Hinweis zur Herkunft:** Der Builder-Eintrag fehlte beim Merge von PR #196. Dieser Eintrag wurde am 17.11.2026 von **Claude Code im Auftrag von Marc** nachgetragen und aus Git-Verlauf, PR #196, Codex-Review und Stichproben am Code rekonstruiert. Er ist Protokoll, keine Freigabe; Claude Code hat 161 weder gebaut noch geprüft.
+
+**Builder:** laut Auftrag Antigravity (Commits unter Marcs Git-Konto)
+**Branch:** `auftrag-161-zeitpunkt-fenster-crosshair`
+**Baseline:** `edef0b0f` (Merge von PR #195, Deps-Auftrag)
+**Geprüfter Head:** `8cafbf4c` · **Merge:** `6dbbc593` (17.11.2026)
+**Status:** gemergt, **teilweise umgesetzt** (siehe Restpunkte)
+
+### Commits
+
+`a14575b9` Auftrag · `bc4da696` Modus `zeitpunkt`, Fenstermodell, Migration 20261120 · `19fb0fd2` Inspector-Zeitfenster, Dialog-Tests · `dcf464ab`, `701590dd`, `f48b9c6d`, `bec826ca`, `0a8c35aa` Nacharbeit Codex-Befunde · `8cafbf4c` Prettier.
+
+### Geänderte Dateien (38, +3161/−414)
+
+- Zeitsteuerung: `time/timeControl.ts`, `TimeControlProvider.tsx`, `useTimeControlledData.ts`, `useEditorLiveStatus.ts`, `TileStandLine.tsx`, `crosshairStore.ts` (neu).
+- Bedienung: `editor/TimeControlMenuV2.tsx` (neu, aus Top-Bar ausgelagert), `editor/TimePointDialogV2.tsx` (neu, lazy), `EditorTopBarV2.tsx` (376 Zeilen), `EditorStatusBarV2.tsx`, `DashboardEditorShellV2.tsx` (+7 Zeilen, jetzt genau 400).
+- Zeitfenster: `model/tileQuery.ts`, `model/normalizeTileQuery.ts` (neu), `dashboardConfigV2.ts`, `dashboardConfig.ts` (+2), `data/resolveTimeSeries.ts`, `hooks/useDashboardData.ts`, `inspector/InspectorDataTab.tsx`, `inspector/TimeWindowField.tsx` (neu).
+- Kachelrahmen: `components/DashboardTile.tsx` (verkleinert), `components/TileBody.tsx` (neu), `canvas/CanvasTileCard.tsx`. **Hinweis:** `DashboardTile.tsx` wird auch vom V1-Pfad genutzt; V1-Tests sind in CI grün.
+- SQL: `supabase/migrations/20261120_dashboard_query_window.sql`, `supabase/tests/dashboard_query_window.sql`.
+- Tests: 10 Vitest-Dateien neu/ergänzt (u. a. `timeControl`, `timePointMode`, `timePointDialog`, `timeWindowField`, `tileQuery`, `crosshair`); `e2e/editor-time-series.spec.ts` angepasst.
+
+### Umsetzungsstand gegen Auftrag 161
+
+| Abschnitt                                       | Stand                                                                                                                                                                                                                                                               |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2.1/2.2 Modus `zeitpunkt`, Hinweise je Historie | umgesetzt (Reducer, Datenpfad, Statusleiste, „kein Stand gespeichert“ / „zeitunabhängiger Wert“)                                                                                                                                                                    |
+| 2.2 Nr. 9 Zeitpunkt-Bedienung                   | umgesetzt (Menü ausgelagert, Dialog lazy, Fokusfalle, „Zurück zu Live“)                                                                                                                                                                                             |
+| 2.3 Zeitfenster je Kachel                       | umgesetzt (TS-Prüfung inkl. `fenster_unzulaessig`, SQL-Migration + pgTAP, Inspector-Feld, Standzeile)                                                                                                                                                               |
+| **2.4 Gemeinsames Fadenkreuz**                  | **nur Store.** `crosshairStore.ts` wird im Provider angelegt und geleert, aber von **keinem Diagramm** gelesen oder gesetzt; `DepthLineChart`, `DepthAreaChart`, `ChartReadout` unverändert. Keine Kopplung, keine Tastatur-/Touch-Bedienung, kein Render-Zähltest. |
+| 2.5 Grenzfälle                                  | teilweise belegt (Ganzzahlprüfung, Timer-Begrenzung); Nr. 24 (Speichern ohne Hosted-Migration) nicht nachgewiesen                                                                                                                                                   |
+| 2.6 Bundle                                      | CI `size-limit` grün                                                                                                                                                                                                                                                |
+| **2.7 Doku**                                    | **fehlt** (`ZEITREIHEN_P10B.md`, `ABFRAGEVERTRAG_P08A.md`, `ZEITSTEUERUNG_P10A.md`, `ARCHITECTURE_DECISIONS.md` ohne Nachtrag). Masterplan-Stand mit diesem Nachtrag ergänzt.                                                                                       |
+| **T8 E2E/Screenshots**                          | **fehlt** (`e2e/editor-time-point.spec.ts`, `scripts/captureAuftrag161GateScreenshots.mjs`, `docs/screenshots/auftrag-161/README.md` nicht vorhanden)                                                                                                               |
+| T1 Rot-Nachweise                                | nicht protokolliert                                                                                                                                                                                                                                                 |
+
+### Prüfnachweis
+
+- **Prüfer:** Codex auf GitHub (`chatgpt-codex-connector`), 7 Review-Läufe vom 17.11.2026 06:42–09:08, letzter Lauf auf `8cafbf4c` ohne neue Befunde (09:39).
+- **Befunde:** 17 (1 × P1, 16 × P2), alle 17 Review-Konversationen als gelöst markiert. Darunter: P1 „Zeitpunkt-Dialog mit Zeitsteuerung verbinden“ (behoben), Berliner Datumskorrektur, Fokus im Dialog, Cache bei „Zurück zu Live“, Fensterwechsel bei Pause, Ganzzahlprüfung, Statusleiste, Timer bei Monatsfenstern (behoben).
+- **Abweichung:** Der P2-Befund „Schließe die Verlaufsdiagramme an den Fadenkreuz-Store an“ ist als gelöst markiert, im Code aber **nicht behoben** (siehe 2.4).
+- **Pflicht-Checks auf `8cafbf4c`:** `lint`, `typecheck`, `test`, `build`, `livekpi-verifiers`, `size-limit`, `e2e`, CodeQL – alle grün.
+
+### Schutzbereichs-Prüfung
+
+`git diff edef0b0f 6dbbc593 -- src/simulation src/types src/context src/services/data src/features/resources` → leer (nachgeprüft am 17.11.2026).
+
+### Deployment
+
+Migration `20261120_dashboard_query_window.sql` muss auf Hosted vor dem App-Deploy angewendet sein, sonst scheitert das Speichern von Kacheln mit Zeitfenster. Ob sie bereits angewendet ist, ist in diesem Nachtrag nicht geprüft.
+
+### Restpunkte (offen)
+
+1. Fadenkreuz-Kopplung in den Diagrammen (Auftrag 161 §2.4 Nr. 18–21) einschließlich Render-Zähltest.
+2. `e2e/editor-time-point.spec.ts`, Screenshot-Harness und Matrix (T8).
+3. Fach-Doku-Nachträge (§2.7 Nr. 27–29, 31).
+
+Empfehlung: ein kleiner Rest-Auftrag „161R“ vor oder nach 162; Entscheidung Marc. Bis dahin ist P10 **nicht** vollständig abgeschlossen.
