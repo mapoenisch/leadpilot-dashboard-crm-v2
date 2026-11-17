@@ -90,4 +90,39 @@ describe('TimeWindowField', () => {
     fireEvent.change(countInput, { target: { value: '200' } });
     expect(screen.getByTestId('inspector-window-error')).toHaveTextContent(/Maximal 168 Stunden/i);
   });
+
+  it('synchronisiert den internen Zustand bei Wechsel der Kachel oder von currentWindow', () => {
+    const { rerender } = render(
+      <TimeWindowField
+        catalogEntry={crmEntry}
+        currentWindow={{ count: 12, resolution: 'woche' }}
+        onChangeWindow={() => {}}
+      />,
+    );
+
+    const select = screen.getByTestId('inspector-window-preset-select') as HTMLSelectElement;
+    expect(select.value).toBe('12_wochen');
+
+    // Kachelwechsel oder Undo auf ein anderes Fenster (z. B. custom 5 Wochen)
+    rerender(
+      <TimeWindowField
+        catalogEntry={crmEntry}
+        currentWindow={{ count: 5, resolution: 'woche' }}
+        onChangeWindow={() => {}}
+      />,
+    );
+    expect(select.value).toBe('custom');
+    expect((screen.getByTestId('inspector-window-custom-count') as HTMLInputElement).value).toBe('5');
+
+    // Wechsel auf eine Live-Kachel ohne gesetztes Fenster (Standard)
+    rerender(
+      <TimeWindowField
+        catalogEntry={liveEntry}
+        currentWindow={undefined}
+        onChangeWindow={() => {}}
+      />,
+    );
+    expect(select.value).toBe('standard');
+    expect(screen.queryByTestId('inspector-window-custom-count')).not.toBeInTheDocument();
+  });
 });

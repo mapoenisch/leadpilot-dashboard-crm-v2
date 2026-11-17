@@ -76,4 +76,48 @@ describe('TimePointDialogV2', () => {
     fireEvent.click(cancelBtn);
     expect(onClose).toHaveBeenCalledTimes(2);
   });
+
+  it('gibt den Fokus beim Unmounten an den Auslöser zurück', () => {
+    const trigger = document.createElement('button');
+    document.body.appendChild(trigger);
+    const triggerRef = { current: trigger };
+
+    const { unmount } = render(
+      <TimePointDialogV2
+        isOpen={true}
+        onClose={() => {}}
+        onSelect={() => {}}
+        triggerRef={triggerRef}
+      />,
+    );
+
+    unmount();
+    expect(document.activeElement).toBe(trigger);
+    document.body.removeChild(trigger);
+  });
+
+  it('fängt den Tab-Fokus innerhalb des Dialogs ab (Focus Trap)', () => {
+    render(<TimePointDialogV2 isOpen={true} onClose={() => {}} onSelect={() => {}} />);
+
+    const dialog = screen.getByRole('dialog');
+    const focusable = dialog.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    );
+    expect(focusable.length).toBeGreaterThan(1);
+
+    const first = focusable[0]!;
+    const last = focusable[focusable.length - 1]!;
+
+    // Shift+Tab auf dem ersten Element springt zum letzten
+    first.focus();
+    expect(document.activeElement).toBe(first);
+    fireEvent.keyDown(dialog, { key: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(last);
+
+    // Tab auf dem letzten Element springt zum ersten
+    last.focus();
+    expect(document.activeElement).toBe(last);
+    fireEvent.keyDown(dialog, { key: 'Tab', shiftKey: false });
+    expect(document.activeElement).toBe(first);
+  });
 });

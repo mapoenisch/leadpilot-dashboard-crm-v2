@@ -33,6 +33,7 @@ export interface EditorTopBarV2Props {
   onGlobalFilterChange: (filters: { timeframe?: string; pipeline?: string }) => void;
   isLivePaused: boolean;
   onToggleLivePause: () => void;
+  onResume?: () => void;
   isPreviewMode: boolean;
   onTogglePreviewMode: () => void;
   canUndo: boolean;
@@ -87,6 +88,7 @@ export function EditorTopBarV2({
   onGlobalFilterChange,
   isLivePaused,
   onToggleLivePause,
+  onResume,
   isPreviewMode,
   onTogglePreviewMode,
   canUndo,
@@ -295,7 +297,11 @@ export function EditorTopBarV2({
         </select>
 
         {/* Live / Pause & Zeitpunkt Menü */}
-        <TimeControlMenuV2 isLivePaused={isLivePaused} onToggleLivePause={onToggleLivePause} />
+        <TimeControlMenuV2
+          isLivePaused={isLivePaused}
+          onToggleLivePause={onToggleLivePause}
+          onResume={onResume}
+        />
       </div>
 
       {/* Rechter Bereich: Undo/Redo, Vorschau, Speichern & Abbrechen */}

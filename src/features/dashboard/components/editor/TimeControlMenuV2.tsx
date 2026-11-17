@@ -14,6 +14,7 @@ const LazyTimePointDialog = lazy(() =>
 export interface TimeControlMenuV2Props {
   isLivePaused: boolean;
   onToggleLivePause: () => void;
+  onResume?: () => void;
   className?: string;
 }
 
@@ -35,6 +36,7 @@ function formatBerlinDateTime(iso: string | null): string {
 export function TimeControlMenuV2({
   isLivePaused,
   onToggleLivePause,
+  onResume,
   className,
 }: TimeControlMenuV2Props) {
   const timeControl = useOptionalTimeControl();
@@ -56,7 +58,14 @@ export function TimeControlMenuV2({
           <button
             type="button"
             data-testid="back-to-live-button"
-            onClick={() => timeControl?.resume()}
+            onClick={() => {
+              timeControl?.resume();
+              if (onResume) {
+                onResume();
+              } else {
+                onToggleLivePause();
+              }
+            }}
             className="ml-1 rounded border border-cyan-500/50 bg-cyan-900/60 px-2 py-0.5 text-[11px] font-medium text-cyan-100 hover:bg-cyan-800/80"
           >
             Zurück zu Live

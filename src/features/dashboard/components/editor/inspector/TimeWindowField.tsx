@@ -2,7 +2,7 @@
 // Zeitfenster-Auswahl je Verlaufskachel im Kachel-Inspector.
 // Unterstützt Katalog-Standard, Vorgaben je Quelle und eigenes Fenster mit Höchstwerten.
 
-import { useState, type ChangeEvent } from 'react';
+import { useEffect, useState, type ChangeEvent } from 'react';
 import type { ActiveCatalogEntry } from '../../../model/dashboardCatalog';
 import type { TimeSeriesResolution } from '../../../data/dashboardData';
 
@@ -84,6 +84,15 @@ export function TimeWindowField({
     currentWindow?.resolution ?? (layer === 'crm' ? 'woche' : 'tag'),
   );
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSelectedPreset(currentPresetId);
+    if (currentWindow) {
+      setCustomCount(currentWindow.count);
+      setCustomResolution(currentWindow.resolution);
+    }
+    setError(null);
+  }, [catalogEntry.id, currentPresetId, currentWindow]);
 
   const allowedResolutions: readonly { value: TimeSeriesResolution; label: string }[] =
     layer === 'crm'

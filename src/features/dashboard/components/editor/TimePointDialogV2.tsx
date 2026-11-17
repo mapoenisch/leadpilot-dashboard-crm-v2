@@ -41,12 +41,12 @@ export function TimePointDialogV2({
       setDatetimeInput(
         currentAnalysisAt ? formatBerlinLocalDateTime(currentAnalysisAt) : nowLocalDateTime,
       );
-      // Fokus auf das Dialog-Element setzen
       dialogRef.current?.focus();
-    } else {
-      // Fokus auf den Auslöser zurückgeben
-      triggerRef?.current?.focus();
     }
+    const triggerEl = triggerRef?.current;
+    return () => {
+      triggerEl?.focus();
+    };
   }, [isOpen, currentAnalysisAt, nowLocalDateTime, triggerRef]);
 
   if (!isOpen) return null;
@@ -70,6 +70,23 @@ export function TimePointDialogV2({
     if (e.key === 'Escape') {
       e.stopPropagation();
       onClose();
+      return;
+    }
+    if (e.key === 'Tab' && dialogRef.current) {
+      const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length > 0) {
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
     }
   };
 

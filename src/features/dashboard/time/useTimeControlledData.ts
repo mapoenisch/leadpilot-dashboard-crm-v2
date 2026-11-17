@@ -85,7 +85,10 @@ function effectiveQueryKeyOf(tile: DashboardTileConfig, source: TileData): strin
   const period = source.effectiveFilter.period
     ? `${source.effectiveFilter.period.from}_${source.effectiveFilter.period.to}`
     : '';
-  return `${tile.catalogId}|${pipeline}|${period}`;
+  const win = tile.query?.window
+    ? `${tile.query.window.count}_${tile.query.window.resolution}`
+    : '';
+  return `${tile.catalogId}|${pipeline}|${period}|${win}`;
 }
 
 /**
