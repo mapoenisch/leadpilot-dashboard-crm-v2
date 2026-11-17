@@ -160,6 +160,29 @@ describe('dashboardV2Access (Auftrag 163 T3)', () => {
     }
   });
 
+  it('reicht technische Fehler beim Laden eines Dashboards unverändert weiter', async () => {
+    vi.spyOn(dbClient, 'isSupabaseConfigured', 'get').mockReturnValue(true);
+    // @ts-expect-error Mock supabase
+    vi.spyOn(dbClient, 'supabase', 'get').mockReturnValue({});
+
+    vi.spyOn(sharingService, 'loadDashboardV2').mockResolvedValue({
+      ok: false,
+      error: { kind: 'technisch' },
+    });
+
+    const res = await resolveInitialOrActiveDashboard({
+      explicitDashboardId: 'team-dash-server-err',
+      orgId: 'org1',
+      userId: 'u1',
+      initialV2Config: dummyConfig,
+    });
+
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.error.kind).toBe('technisch');
+    }
+  });
+
   describe('fetchDashboardById & loadAndActivateAnyDashboardV2', () => {
     it('lädt Dashboard ohne Supabase oder bei server_funktion_fehlt über loadPersonalDashboardV2', async () => {
       vi.spyOn(dbClient, 'isSupabaseConfigured', 'get').mockReturnValue(false);

@@ -322,6 +322,7 @@ export function useDashboardV2Storage(options?: {
     listError,
     fallbackNotice,
     clearFallbackNotice: () => setFallbackNotice(null),
+    clearError: () => setError(null),
     isSaving,
     save,
     reload,

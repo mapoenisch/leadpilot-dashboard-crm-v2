@@ -198,7 +198,11 @@ export async function resolveInitialOrActiveDashboard({
           },
         };
       }
+      return personalRes;
     }
+
+    // Ladefehler außerhalb des Rechteentzugs (z.B. technisch, Netzwerk) unverändert zurückgeben
+    return { ok: false, error: loaded.error };
   }
 
   const createRes = await getOrCreatePersonalDashboardV2({

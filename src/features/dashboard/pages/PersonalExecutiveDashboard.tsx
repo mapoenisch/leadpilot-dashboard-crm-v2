@@ -23,6 +23,7 @@ import { invalidateCrmOverviewQueries } from '../time/resumeCrmRefresh';
 import { useTimeControlledData } from '../time/useTimeControlledData';
 
 import { Info } from 'lucide-react';
+import { getDashboardTeamErrorMessage } from '../model/dashboardTeamMessages';
 import { DashboardDeletedDialogV2 } from '../components/editor/DashboardDeletedDialogV2';
 
 export const RETURN_ANNOUNCEMENT = 'Zurück im Dashboard. Die Filter deiner Sitzung gelten weiter.';
@@ -55,6 +56,7 @@ function PersonalExecutiveDashboardV2Container({
   const [revokedDraft, setRevokedDraft] = useState<DashboardConfigV2 | null>(null);
   const [readOnlyCopyError, setReadOnlyCopyError] = useState<string | null>(null);
   const [isCopyingPersonal, setIsCopyingPersonal] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   if (v2Storage.status === 'laden' || !v2Storage.dashboard) {
     return (
@@ -92,6 +94,7 @@ function PersonalExecutiveDashboardV2Container({
     setConflictDraft(null);
     setConflictDialogError(null);
     await v2Storage.reload();
+    setReloadKey((k) => k + 1);
   };
 
   const handleSaveAsCopyConflict = async () => {
@@ -135,6 +138,7 @@ function PersonalExecutiveDashboardV2Container({
     setDeletedDraft(null);
     setDeletedDialogError(null);
     await v2Storage.reload();
+    setReloadKey((k) => k + 1);
   };
 
   const handleSaveAsPersonalCopyFromRevoked = async () => {
@@ -168,6 +172,7 @@ function PersonalExecutiveDashboardV2Container({
     setShowRevokedDialog(false);
     setRevokedDraft(null);
     await v2Storage.reload();
+    setReloadKey((k) => k + 1);
   };
 
   return (
@@ -192,9 +197,29 @@ function PersonalExecutiveDashboardV2Container({
           </button>
         </div>
       )}
+      {v2Storage.error && (
+        <div
+          role="alert"
+          data-testid="dashboard-storage-error-notice"
+          className="flex items-center justify-between border-b border-rose-500/30 bg-rose-500/10 px-4 py-2 text-xs text-rose-200"
+        >
+          <div className="flex items-center gap-2">
+            <Info className="h-4 w-4 shrink-0 text-rose-400" aria-hidden="true" />
+            <span>{getDashboardTeamErrorMessage(v2Storage.error)}</span>
+          </div>
+          <button
+            type="button"
+            data-testid="dismiss-storage-error-notice"
+            onClick={v2Storage.clearError}
+            className="text-xs text-rose-300 hover:text-white"
+          >
+            Ausblenden
+          </button>
+        </div>
+      )}
       <TimeControlProvider key={v2Storage.dashboard.id}>
         <DashboardEditorShellV2
-          key={`${v2Storage.dashboard.id}_${v2Storage.dashboard.revision}`}
+          key={`${v2Storage.dashboard.id}_${reloadKey}`}
           initialConfig={v2Storage.dashboard.config}
           useData={useTimeControlledData}
           onSave={handleSave}
