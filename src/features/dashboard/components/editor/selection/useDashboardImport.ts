@@ -167,28 +167,27 @@ export function useDashboardImport({
     };
 
     const createFn = createDashboardFn ?? createDashboardV2;
-    let res: StorageResult<SavedDashboardV2Result>;
+    // Dialog und Übermittlungssperre bleiben bis zum abgeschlossenen Dashboard-Wechsel aktiv,
+    // damit der Editor währenddessen nicht bedienbar ist (sonst verwirft der Wechsel neue Änderungen).
     try {
-      res = await createFn({
+      const res = await createFn({
         title: finalConfig.title,
         config: finalConfig,
         scope: targetScope,
         teamId: targetScope === 'team' ? targetTeamId : undefined,
       });
+      if (!res.ok) {
+        setSubmitError(getDashboardVersionErrorMessage(res.error));
+        return false;
+      }
+      if (onRefreshList) await onRefreshList();
+      if (onOpenDashboard) await onOpenDashboard(res.value.dashboardId);
     } finally {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
-
-    if (res.ok) {
-      resetImport();
-      if (onRefreshList) await onRefreshList();
-      if (onOpenDashboard) await onOpenDashboard(res.value.dashboardId);
-      return true;
-    } else {
-      setSubmitError(getDashboardVersionErrorMessage(res.error));
-      return false;
-    }
+    resetImport();
+    return true;
   }, [
     parseResult,
     targetScope,

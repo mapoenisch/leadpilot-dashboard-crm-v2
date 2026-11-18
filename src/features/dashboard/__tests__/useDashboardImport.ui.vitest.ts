@@ -193,6 +193,63 @@ describe('useDashboardImport', () => {
     expect(result.current.isOpen).toBe(false);
   });
 
+  it('hält Dialog und Sperre bis zum abgeschlossenen Dashboard-Wechsel (Codex P2)', async () => {
+    let resolveRefresh: () => void = () => {};
+    const onRefresh = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveRefresh = resolve;
+        }),
+    );
+    const onOpen = vi.fn().mockResolvedValue(true);
+    const mockCreate = vi
+      .fn()
+      .mockResolvedValue({ ok: true, value: { dashboardId: 'dash_slow', revision: 1 } });
+
+    const { result } = renderHook(() =>
+      useDashboardImport({
+        userId: 'usr_me',
+        organizationId: 'org_1',
+        teams: [],
+        onOpenDashboard: onOpen,
+        onRefreshList: onRefresh,
+        createDashboardFn: mockCreate,
+      }),
+    );
+
+    const content = JSON.stringify(buildDashboardExportV2(sampleConfig, { sourceRevision: 1 }));
+    const file = new File([content], 'export.json', { type: 'application/json' });
+    file.text = async () => content;
+    await act(async () => {
+      await result.current.openImport();
+    });
+    await act(async () => {
+      await result.current.handleFileSelect(file);
+    });
+
+    let pending: Promise<boolean> = Promise.resolve(false);
+    await act(async () => {
+      pending = result.current.executeImport();
+      await Promise.resolve();
+    });
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+    expect(result.current.isOpen).toBe(true);
+    expect(result.current.isSubmitting).toBe(true);
+    act(() => {
+      result.current.closeImport();
+    });
+    expect(result.current.isOpen).toBe(true);
+    expect(onOpen).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveRefresh();
+      await pending;
+    });
+    expect(onOpen).toHaveBeenCalledWith('dash_slow');
+    expect(result.current.isOpen).toBe(false);
+    expect(result.current.isSubmitting).toBe(false);
+  });
+
   it('blockiert Import wenn persönliches Limit von 20 erreicht ist', async () => {
     const mockCreate = vi.fn();
     const { result } = renderHook(() =>
