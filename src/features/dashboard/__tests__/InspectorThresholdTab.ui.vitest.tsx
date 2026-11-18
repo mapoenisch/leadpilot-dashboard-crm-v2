@@ -350,4 +350,48 @@ describe('InspectorThresholdTab (Auftrag 166 / P13a)', () => {
     const preview = screen.getByTestId('threshold-live-preview');
     expect(preview).toHaveTextContent('Kachel veraltet');
   });
+
+  it('Codex Review 2 Finding: unterscheidet ungueltige Eingaben wie 500,0,0 von leeren optionalen Feldern', () => {
+    const onTileThresholdChange = vi.fn();
+    const tileWithRule: DashboardTileConfigV2 = {
+      ...mockTile,
+      threshold: {
+        formatVersion: 2,
+        enabled: true,
+        art: 'hoch_ist_schlecht',
+        einheit: 'EUR',
+        warnung: 100,
+        kritisch: 200,
+      },
+    };
+
+    render(
+      <InspectorThresholdTab
+        selectedTile={tileWithRule}
+        onTileThresholdChange={onTileThresholdChange}
+        catalogEntry={mockCatalogEntry}
+      />,
+    );
+
+    const applyBtn = screen.getByTestId('threshold-apply-btn');
+    const kritInput = screen.getByTestId('threshold-kritisch-input') as HTMLInputElement;
+
+    // Ungueltiger Text 500,0,0 sperrt Uebernehmen und zeigt Fehler
+    fireEvent.change(kritInput, { target: { value: '500,0,0' } });
+    expect(applyBtn).toBeDisabled();
+    expect(screen.getByText('Kritischer Wert muss eine Zahl sein.')).toBeInTheDocument();
+
+    // Geleertes Feld entfernt die optionale Grenze valide
+    fireEvent.change(kritInput, { target: { value: '' } });
+    expect(applyBtn).not.toBeDisabled();
+    fireEvent.click(applyBtn);
+
+    expect(onTileThresholdChange).toHaveBeenCalledWith('t-1', {
+      formatVersion: 2,
+      enabled: true,
+      art: 'hoch_ist_schlecht',
+      einheit: 'EUR',
+      warnung: 100,
+    });
+  });
 });

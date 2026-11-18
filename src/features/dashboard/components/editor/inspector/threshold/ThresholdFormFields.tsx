@@ -73,7 +73,7 @@ function parseGermanNumber(str: string): number | undefined {
   if (!trimmed) return undefined;
   const normalized = trimmed.replace(/\./g, '').replace(',', '.');
   const num = Number(normalized);
-  return Number.isFinite(num) ? num : undefined;
+  return Number.isFinite(num) ? num : Number.NaN;
 }
 
 function formatGermanNumber(num: number | undefined): string {
@@ -103,7 +103,7 @@ function ThresholdNumberInput({
   const [text, setText] = React.useState(() => formatGermanNumber(numericValue));
 
   React.useEffect(() => {
-    if (parseGermanNumber(text) !== numericValue) {
+    if (!Object.is(parseGermanNumber(text), numericValue)) {
       setText(formatGermanNumber(numericValue));
     }
   }, [numericValue, text]);

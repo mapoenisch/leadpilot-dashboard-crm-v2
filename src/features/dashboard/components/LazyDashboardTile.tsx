@@ -11,6 +11,7 @@ import type { TileData } from '../data/dashboardData';
 import { activeEntryOf } from '../hooks/dashboardEditorReducer';
 import { useTileActivation } from '../hooks/useTileActivation';
 import type { ChartLoaders } from './charts/chartLoaders';
+import { useOptionalTimeControl } from '../time/TimeControlProvider';
 import { DashboardTile } from './DashboardTile';
 import { TileThresholdBadge } from './TileThresholdBadge';
 
@@ -54,6 +55,7 @@ export function LazyDashboardTile({
     if (near) lastApplied.current = filters;
   });
 
+  const timeControl = useOptionalTimeControl();
   const data = useData(tile, applied, { enabled: active && !suspended });
 
   const notify = useRef(onActivated);
@@ -61,6 +63,12 @@ export function LazyDashboardTile({
   useEffect(() => {
     if (active) notify.current?.(tile.tileId);
   }, [active, tile.tileId]);
+
+  useEffect(() => {
+    if (data && tile.tileId) {
+      timeControl?.tileDataStore.set(tile.tileId, data);
+    }
+  }, [data, tile.tileId, timeControl]);
 
   const entry = activeEntryOf(tile);
   const effectiveThreshold = threshold ?? (tile as { threshold?: TileThresholdRule }).threshold;

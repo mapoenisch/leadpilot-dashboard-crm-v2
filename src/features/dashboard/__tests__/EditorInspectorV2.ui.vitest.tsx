@@ -1,7 +1,9 @@
+import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { EditorInspectorV2 } from '../components/editor/EditorInspectorV2';
 import type { DashboardConfigV2, DashboardTileConfigV2 } from '../model/dashboardConfigV2';
+import { TimeControlProvider, useTimeControl } from '../time/TimeControlProvider';
 
 const MOCK_CONFIG: DashboardConfigV2 = {
   version: 2,
@@ -174,5 +176,51 @@ describe('EditorInspectorV2', () => {
     // Tab 'Daten' kann sicher geöffnet werden
     fireEvent.click(screen.getByTestId('inspector-tab-daten'));
     expect(screen.getByTestId('tab-content-daten')).toBeInTheDocument();
+  });
+
+  it('Codex Review 2: uebernimmt den Kachelstand aus TimeControlProvider.tileDataStore fuer die Vorschau', () => {
+    const tileWithRule: DashboardTileConfigV2 = {
+      ...MOCK_TILE,
+      threshold: {
+        formatVersion: 2,
+        enabled: true,
+        art: 'hoch_ist_schlecht',
+        einheit: 'EUR',
+        warnung: 100,
+      },
+    };
+
+    function TestSetter() {
+      const tc = useTimeControl();
+      React.useEffect(() => {
+        tc.tileDataStore.set(tileWithRule.id, {
+          catalogId: 'baseline.arr',
+          state: 'bereit',
+          value: 50,
+          asOf: new Date().toISOString(),
+          origin: { layer: 'live', module: 'test', exportName: 'test' },
+          effectiveFilter: { mode: 'dashboard', period: null, pipeline: null },
+        } as unknown as import('../data/dashboardData').TileData);
+      }, [tc]);
+      return null;
+    }
+
+    render(
+      <TimeControlProvider>
+        <TestSetter />
+        <EditorInspectorV2
+          selectedTile={tileWithRule}
+          config={MOCK_CONFIG}
+          onDeselect={vi.fn()}
+          onTileTitleChange={vi.fn()}
+          onTileViewChange={vi.fn()}
+          onTileOverrideChange={vi.fn()}
+          onTileThresholdChange={vi.fn()}
+        />
+      </TimeControlProvider>,
+    );
+
+    fireEvent.click(screen.getByTestId('inspector-tab-schwellenwerte'));
+    expect(screen.getByTestId('threshold-live-preview')).toHaveTextContent('50 EUR');
   });
 });
