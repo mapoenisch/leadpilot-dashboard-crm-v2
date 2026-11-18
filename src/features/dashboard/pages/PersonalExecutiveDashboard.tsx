@@ -24,6 +24,7 @@ import { useTimeControlledData } from '../time/useTimeControlledData';
 import { useDashboardImport } from '../components/editor/selection/useDashboardImport';
 import { DashboardStorageNoticesV2 } from '../components/editor/DashboardStorageNoticesV2';
 import { restoreDashboardV2Revision } from '../services/dashboardStorageV2';
+import { buildDerivedDashboardTitle } from '../model/dashboardTitles';
 
 export const RETURN_ANNOUNCEMENT = 'Zurück im Dashboard. Die Filter deiner Sitzung gelten weiter.';
 export const RETURN_MISSING_ANNOUNCEMENT =
@@ -81,7 +82,7 @@ function PersonalExecutiveDashboardV2Container({
     if (options?.saveDraftAsCopy && versionsContext?.draftConfig) {
       const copyRes = await v2Storage.saveAsNewPersonalCopy(
         versionsContext.draftConfig,
-        `${versionsContext.draftConfig.title} (Entwurf-Kopie)`,
+        buildDerivedDashboardTitle(versionsContext.draftConfig.title, ' (Entwurf-Kopie)'),
       );
       if (!copyRes.ok) {
         handleStorageError(copyRes.error.kind, currentDraft);

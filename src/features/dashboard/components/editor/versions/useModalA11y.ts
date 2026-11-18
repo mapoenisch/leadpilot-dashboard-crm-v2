@@ -6,6 +6,7 @@
 // - Fängt Tab / Shift-Tab innerhalb des Containers (Focus Trap)
 
 import { useEffect, useRef } from 'react';
+import { acquireModalKeyboardLock } from '../modalKeyboardLock';
 
 export interface UseModalA11yOptions {
   isOpen: boolean;
@@ -33,6 +34,7 @@ export function useModalA11y<T extends HTMLElement = HTMLDivElement>({
   useEffect(() => {
     if (!isOpen) return;
 
+    const releaseKeyboardLock = acquireModalKeyboardLock();
     triggerRef.current = document.activeElement as HTMLElement | null;
 
     const timer = setTimeout(() => {
@@ -101,6 +103,7 @@ export function useModalA11y<T extends HTMLElement = HTMLDivElement>({
 
     return () => {
       clearTimeout(timer);
+      releaseKeyboardLock();
       window.removeEventListener('keydown', handleKeyDown);
       if (triggerRef.current && typeof triggerRef.current.focus === 'function') {
         triggerRef.current.focus();

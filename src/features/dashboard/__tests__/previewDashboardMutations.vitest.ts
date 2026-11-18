@@ -154,4 +154,19 @@ describe('previewDashboardMutations', () => {
     expect(stored!.row.config.id).toBe(listItem.id);
     expect(stored!.revisions[0]!.changeSummary).toBe('Entwurf vor Wiederherstellung gesichert');
   });
+  it('savePreviewDraftCopy begrenzt den Kopie-Titel auf 80 Zeichen (Codex P2)', () => {
+    const longTitle = 'A'.repeat(78);
+    const listItem = savePreviewDraftCopy({
+      version: 2,
+      id: 'dash_long',
+      title: longTitle,
+      scope: 'personal',
+      ownerUserId: 'usr_me',
+      organizationId: 'org_1',
+      globalTimeframe: 'letzte_30_tage',
+      tiles: [],
+    });
+    expect(Array.from(listItem.title).length).toBeLessThanOrEqual(80);
+    expect(listItem.title.endsWith(' (Entwurf-Kopie)')).toBe(true);
+  });
 });

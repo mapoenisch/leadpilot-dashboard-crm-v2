@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, fireEvent, screen } from '@testing-library/react';
+import { render, fireEvent, screen, renderHook } from '@testing-library/react';
 import { useModalA11y } from '../components/editor/versions/useModalA11y';
+import { isModalKeyboardLocked } from '../components/editor/modalKeyboardLock';
+import { useEditorShortcuts } from '../components/editor/useEditorShortcuts';
 
 function TestModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const containerRef = useModalA11y<HTMLDivElement>({ isOpen, onClose });
@@ -50,5 +52,32 @@ describe('useModalA11y', () => {
     expect(document.activeElement).toBe(trigger);
 
     document.body.removeChild(trigger);
+  });
+  it('sperrt Editor-Kürzel (Undo) solange ein Dialog offen ist (Codex P2)', () => {
+    const undo = vi.fn();
+    renderHook(() =>
+      useEditorShortcuts({
+        isSaving: false,
+        showDiscardConfirm: false,
+        isLeaving: false,
+        hasLeaveRequest: false,
+        canUndo: true,
+        canRedo: false,
+        undo,
+        redo: vi.fn(),
+      }),
+    );
+
+    const { rerender, unmount } = render(<TestModal isOpen={true} onClose={vi.fn()} />);
+    expect(isModalKeyboardLocked()).toBe(true);
+    fireEvent.keyDown(window, { key: 'z', ctrlKey: true });
+    expect(undo).not.toHaveBeenCalled();
+
+    rerender(<TestModal isOpen={false} onClose={vi.fn()} />);
+    expect(isModalKeyboardLocked()).toBe(false);
+    fireEvent.keyDown(window, { key: 'z', ctrlKey: true });
+    expect(undo).toHaveBeenCalledTimes(1);
+    unmount();
+    expect(isModalKeyboardLocked()).toBe(false);
   });
 });

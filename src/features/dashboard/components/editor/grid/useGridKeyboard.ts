@@ -10,6 +10,7 @@ import type {
 } from '../../../model/dashboardConfigV2';
 import type { TileMovement } from '../../../core/layoutCommands';
 import { planLayoutChange } from '../editorPlacement';
+import { isModalKeyboardLocked } from '../modalKeyboardLock';
 import {
   clamp,
   getBreakpointLayout,
@@ -46,7 +47,7 @@ export function useGridKeyboard({
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (disabled) return;
+      if (disabled || isModalKeyboardLocked()) return;
 
       // Keine Tastatursteuerung wenn ein Eingabefeld aktiv ist
       const target = e.target as HTMLElement | null;

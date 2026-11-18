@@ -3,6 +3,7 @@
 // mit Schutz vor Auslösung in aktiven Texteingabefeldern und während Modaldialogen.
 
 import { useEffect } from 'react';
+import { isModalKeyboardLocked } from './modalKeyboardLock';
 
 export interface UseEditorShortcutsOptions {
   isSaving: boolean;
@@ -31,6 +32,7 @@ export function useEditorShortcuts({
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isModalKeyboardLocked()) return;
       const targetEl = e.target as HTMLElement | null;
       const tag = targetEl?.tagName;
       if (
