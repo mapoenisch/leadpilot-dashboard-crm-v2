@@ -21,35 +21,39 @@ const TIME_SERIES_B: TimeDatumInput[] = [
   { label: '13. Okt', value: 40, at: '2026-10-13T00:00:00+02:00' },
 ];
 
+function renderTwoTiles() {
+  return render(
+    <TimeControlProvider>
+      <div data-testid="tile-a">
+        <DepthLineChart
+          idPrefix="tile-a"
+          tileId="tile-a"
+          data={TIME_SERIES_A}
+          unit="EUR"
+          period="Oktober 2026"
+          title="Umsatz"
+          reducedMotion
+        />
+      </div>
+      <div data-testid="tile-b">
+        <DepthLineChart
+          idPrefix="tile-b"
+          tileId="tile-b"
+          data={TIME_SERIES_B}
+          unit="Deals"
+          period="Oktober 2026"
+          title="Abschlüsse"
+          reducedMotion
+        />
+      </div>
+    </TimeControlProvider>,
+  );
+}
+
 describe('Fadenkreuz-Kopplung (Rot-Nachweise)', () => {
   // (a) Vitest Fadenkreuz in Kachel A zeigt Linie in Kachel B
   it('(a) Fadenkreuz in Kachel A zeigt Linie in Kachel B und aktualisiert Ablesezeile', () => {
-    render(
-      <TimeControlProvider>
-        <div data-testid="tile-a">
-          <DepthLineChart
-            idPrefix="tile-a"
-            tileId="tile-a"
-            data={TIME_SERIES_A}
-            unit="EUR"
-            period="Oktober 2026"
-            title="Umsatz"
-            reducedMotion
-          />
-        </div>
-        <div data-testid="tile-b">
-          <DepthLineChart
-            idPrefix="tile-b"
-            tileId="tile-b"
-            data={TIME_SERIES_B}
-            unit="Deals"
-            period="Oktober 2026"
-            title="Abschlüsse"
-            reducedMotion
-          />
-        </div>
-      </TimeControlProvider>,
-    );
+    renderTwoTiles();
 
     const tileA = screen.getByTestId('tile-a');
     const tileB = screen.getByTestId('tile-b');
@@ -180,32 +184,7 @@ describe('Fadenkreuz-Kopplung (Rot-Nachweise)', () => {
   // (c) Tastatur Pfeiltaste wandert
   it('(c) Tastatur: Slider-Fokus setzt Fadenkreuz, Pfeiltasten wandern, Escape leert', async () => {
     const user = userEvent.setup();
-    render(
-      <TimeControlProvider>
-        <div data-testid="tile-a">
-          <DepthLineChart
-            idPrefix="tile-a"
-            tileId="tile-a"
-            data={TIME_SERIES_A}
-            unit="EUR"
-            period="Oktober 2026"
-            title="Umsatz"
-            reducedMotion
-          />
-        </div>
-        <div data-testid="tile-b">
-          <DepthLineChart
-            idPrefix="tile-b"
-            tileId="tile-b"
-            data={TIME_SERIES_B}
-            unit="Deals"
-            period="Oktober 2026"
-            title="Abschlüsse"
-            reducedMotion
-          />
-        </div>
-      </TimeControlProvider>,
-    );
+    renderTwoTiles();
 
     const tileA = screen.getByTestId('tile-a');
     const tileB = screen.getByTestId('tile-b');
@@ -441,5 +420,28 @@ describe('Fadenkreuz-Kopplung (Rot-Nachweise)', () => {
 
     // Eingeklappte Kachel hat 0 Renders
     expect(collapsedChartRenders).toBe(0);
+  });
+
+  it('Fokusverlust von Kachel A leert nicht das Fadenkreuz, wenn Kachel B bereits Quelle ist (Codex P2)', () => {
+    renderTwoTiles();
+    const tileA = screen.getByTestId('tile-a');
+    const tileB = screen.getByTestId('tile-b');
+    const sliderA = tileA.querySelector('input[type="range"]')!;
+
+    // 1. Slider in Kachel A fokussieren -> Kachel A wird Quelle
+    fireEvent.focus(sliderA);
+    expect(tileA.querySelectorAll('line[stroke-dasharray="2 3"]').length).toBe(1);
+    expect(tileB.querySelectorAll('line[stroke-dasharray="2 3"]').length).toBe(1);
+
+    // 2. Klick auf Kachel B -> Kachel B wird neue Quelle
+    const hitRectsB = tileB.querySelectorAll('rect[fill="transparent"]');
+    fireEvent.pointerDown(hitRectsB[2]!);
+
+    // 3. Slider A verliert Fokus (blur)
+    fireEvent.blur(sliderA);
+
+    // Fadenkreuz muss weiterhin aktiv sein (von Kachel B gesteuert)
+    expect(tileB.querySelectorAll('line[stroke-dasharray="2 3"]').length).toBe(1);
+    expect(tileA.querySelectorAll('line[stroke-dasharray="2 3"]').length).toBe(1);
   });
 });

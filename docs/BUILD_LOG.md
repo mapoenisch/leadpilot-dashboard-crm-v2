@@ -21815,6 +21815,7 @@ Keine Oberflächenänderungen (UI folgt in Auftrag 163 / P11b).
 ### 3. T1 Rot-Nachweise
 
 Vor der Implementierung der Migration und Dienstschicht wurden die 4 Pflicht-Rotfälle verifiziert:
+
 - **(a) Team-Mitglied liest Team-Revisionen:** Vor 162 warf `get_dashboard_v2_revisions` `LP_DASHBOARD_NOT_FOUND` für alle Team-Dashboards (Schutz aus PR #198). Rot gegen Soll, da Teammitglieder und Admins ab P11 Leserecht besitzen.
 - **(b) Manager legt Team-Dashboard an:** Vor 162 warf `create_dashboard_v2` bei `scope = 'team'` `LP_TEAM_DASHBOARDS_LOCKED_UNTIL_P11`. Rot gegen Soll.
 - **(c) Rechteentzug beim Speichern:** Vor 162 gab es weder `LP_TEAM_ACCESS_REVOKED` noch eine dynamische Prüfung gegen `dashboard_team_members`.
@@ -21825,6 +21826,7 @@ Vor der Implementierung der Migration und Dienstschicht wurden die 4 Pflicht-Rot
 ### 4. T10 Sicherheitsvorprüfung
 
 Zeile-für-Zeile-Prüfung aller Hilfsfunktionen und RPCs:
+
 1. **Rechteprüfung vor jeder Wirkung:** Jede schreibende RPC (`create_dashboard_team_v2`, `update_dashboard_team_v2`, `delete_dashboard_team_v2`, `add_dashboard_team_member_v2`, `remove_dashboard_team_member_v2`, `save_dashboard_v2`, `restore_dashboard_revision_v2`, `delete_team_dashboard_v2`, `copy_dashboard_v2`) prüft Authentifizierung und Berechtigung vor jeder Abfrage- oder Mutationsoperation.
 2. **`search_path` gesetzt:** Alle Funktionen besitzen `SET search_path = public, pg_temp` und deklarieren `SECURITY DEFINER`.
 3. **Keine dynamische SQL:** Sämtliche Datenbankzugriffe erfolgen über statische, typisierte SQL-Statements ohne `EXECUTE` oder String-Konkatenation.
@@ -21879,7 +21881,6 @@ Zeile-für-Zeile-Prüfung aller Hilfsfunktionen und RPCs:
 3. **Rückweg / Rollback:**
    Die Migration ist rein additiv bzw. überschreibt bestehende Funktionen idempotenterweise (`CREATE OR REPLACE FUNCTION`). Bei einem Rollback werden die vorherigen Fassungen der Funktionen aus Migration `20261113_dashboard_v2_storage_and_revisions.sql` und `20261121_dashboard_revisions_scope_guard.sql` erneut eingespielt.
 
-
 ---
 
 ## 2026-11-17 — Auftrag 163: Dashboard-Editor: Team-Freigaben in der Oberfläche (P11b)
@@ -21889,6 +21890,7 @@ Zeile-für-Zeile-Prüfung aller Hilfsfunktionen und RPCs:
 ### 1. Ziel & Zusammenfassung
 
 Auftrag 163 schließt Phase 11 (Team-Freigaben und Kollaboration) mit der vollständigen UI-Integration ab:
+
 - **Gruppierter Switcher:** Persönliche Dashboards, teamspezifische Abschnitte und Vorlagen mit Metadaten (Titel, Kachelanzahl, Sektionen, Stand, Berechtigungs-Badges).
 - **Leseansicht:** Abgeleitet rein aus serverseitigem `canWrite === false` mit breitem Hinweisbalken (`ReadOnlyNoticeV2`), gesperrten/ausgeblendeten Editor-Aktionen und der Möglichkeit, eine persönliche Arbeitskopie anzulegen.
 - **Teilen als unabhängige Team-Kopie:** Dialog `ShareWithTeamDialogV2` teilt persönliche Dashboards als eigenständige Kopie in ein beschreibbares Zielteam (`copyDashboardV2`).
@@ -21968,6 +21970,7 @@ Auftrag 163 schließt Phase 11 (Team-Freigaben und Kollaboration) mit der vollst
 ### 1. Ziel & Zusammenfassung
 
 Auftrag 164 schließt die verbliebenen drei Restpunkte aus Auftrag 161 (P10b-2, PR #196 gemergt als `6dbbc593`) vollständig ab, womit Phase P10 (Gemeinsame Zeitsteuerung & Server-Zeitreihen) komplett abgeschlossen ist:
+
 1. **Fadenkreuz-Kopplung (Auftrag 161 §2.4 Nr. 18–21):**
    - **Selektor-Hook (`src/features/dashboard/time/useCrosshair.ts`):** Verwendet React 18 `useSyncExternalStore` mit memoisierten Selektoren (`useCrosshair`, `useCrosshairController`).
    - **Auslösen & Drosselung:** Interaktion über Maus-Hover, Pointer-/Touch-Gesten und Tastaturnavigation (Fokus + Pfeiltasten `ArrowRight`/`ArrowLeft`, `Escape` hebt Fadenkreuz auf). Schnelles Scrubbing wird via `requestAnimationFrame` gedrosselt, während diskrete Tastatur- und Klickaktionen ohne Verzögerung synchron ausgeführt werden.
@@ -21989,10 +21992,11 @@ Auftrag 164 schließt die verbliebenen drei Restpunkte aus Auftrag 161 (P10b-2, 
 ### 2. Rot-Nachweise (T1)
 
 Vor der Implementierung wurden in `crosshairCoupling.ui.vitest.tsx` drei rote Tests nach §3 Nr. 8 ausgeführt:
+
 - (a) Fadenkreuz in Kachel A zeigt Linie in Kachel B → **Rot** (0 Linien in Kachel B gefunden).
 - (b) Render-Zähltest (unbeteiligte Kacheln dürfen nicht neu rendern) → **Rot** (keine Kopplung vorhanden).
 - (c) Tastatur Pfeiltaste wandert und Escape hebt auf → **Rot** (keine Tastatursteuerung im Chart).
-Nach Implementierung von `useCrosshair.ts` und Anbindung in `DepthLineChart.tsx` sind alle 8 Tests der Suite grün.
+  Nach Implementierung von `useCrosshair.ts` und Anbindung in `DepthLineChart.tsx` sind alle 8 Tests der Suite grün.
 
 ### 3. Geänderte & neue Dateien
 
@@ -22030,3 +22034,14 @@ Nach Implementierung von `useCrosshair.ts` und Anbindung in `DepthLineChart.tsx`
 - **V1-Pfad:** Vollständig unverändert; nicht-zeitreihenbezogene Kacheln unberührt.
 - **Abhängigkeiten:** Keine neuen npm-Dependencies hinzugefügt.
 
+### 5. Codex-Review-Befunde (18.11.2026, PR #203)
+
+Im ersten Review von Codex zu PR #203 (Commit `d80ff8d`) wurden zwei Befunde identifiziert und direkt behoben:
+
+1. **P2-Befund (`useCrosshair.ts`): Leere beim Fokusverlust nur das eigene Fadenkreuz**
+   - _Problem:_ Wenn der Schieberegler von Kachel A fokussiert war und anschließend ein Datenpunkt in Kachel B per Pointer geklickt wurde, setzte Kachel B sich zunächst als neue Quelle. Der anschließende Blur von Kachel A rief `handleClear()` auf und leerte bedingungslos den gesamten Store, wodurch auch die neue Auswahl von Kachel B gelöscht wurde.
+   - _Behebung:_ `handleClear()` in `useCrosshairController` prüft nun über `store.getSnapshot().sourceTileId`, ob die Kachel noch die aktive Quelle ist (`!currentSource || currentSource === tileId`). Nur wenn diese Kachel die Quelle ist, wird `clearCrosshair()` ausgeführt.
+   - _Regressionstest:_ Dedizierter Testfall `Fokusverlust von Kachel A leert nicht das Fadenkreuz, wenn Kachel B bereits Quelle ist (Codex P2)` in `crosshairCoupling.ui.vitest.tsx`.
+2. **P3-Befund (`ABFRAGEVERTRAG_P08A.md`): Tatsächlich unterstützter Fenstervertrag**
+   - _Problem:_ Die Dokumentation nannte vereinfachte String-Shortcuts wie `'7d'`, einen nicht existierenden globalen Dashboard-Fallback und `timeControl.asOf`.
+   - _Behebung:_ Dokumentation präzisiert: `tile.query.window` akzeptiert genau das Objekt `{ count, resolution }` (Strings werfen `typ_ungueltig`); Fallback bei fehlendem Fenster ist das im Katalog hinterlegte `entry.history.defaultWindow`; der flüchtige Zeitsteuerungszustand heißt `timeControl.analysisAt` (wird nie in der Konfiguration persistiert). Auch `ZEITSTEUERUNG_P10A.md` und `ARCHITECTURE_DECISIONS.md` (C10) auf diesen präzisen Stand harmonisiert.

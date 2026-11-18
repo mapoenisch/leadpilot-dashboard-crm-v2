@@ -202,7 +202,7 @@ export function useCrosshairController(
     [],
   );
 
-  const { state: crosshair, setCrosshair, clearCrosshair } = useCrosshair(selector, isEqual);
+  const { state: crosshair, store, setCrosshair, clearCrosshair } = useCrosshair(selector, isEqual);
   const [localActive, setLocalActive] = useState<number | null>(null);
   const throttler = useMemo(() => createRafThrottler(), []);
 
@@ -232,9 +232,15 @@ export function useCrosshairController(
     setLocalActive(null);
     throttler.cancel();
     if (hasTimeAxis) {
-      clearCrosshair();
+      // P2-Schutz: Leere den globalen Store nur, wenn diese Kachel noch die Quelle ist.
+      // Hat eine andere Kachel per Klick bereits die Fuehrung uebernommen, darf der Blur
+      // dieser Kachel nicht die fremde Auswahl aufheben.
+      const currentSource = store ? store.getSnapshot().sourceTileId : null;
+      if (!currentSource || currentSource === tileId) {
+        clearCrosshair();
+      }
     }
-  }, [hasTimeAxis, throttler, clearCrosshair]);
+  }, [hasTimeAxis, throttler, store, tileId, clearCrosshair]);
 
   const activeIndex = useMemo(() => {
     if (!hasTimeAxis) return localActive;
