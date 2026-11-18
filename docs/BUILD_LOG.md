@@ -22078,3 +22078,165 @@ Im Review von Codex zu PR #203 wurden insgesamt 8 Befunde identifiziert (7× P2,
    - _Problem:_ Wenn sich bei einem Diagramm ohne `at`-Zeitachse (z. B. V1-Pfad oder kategorische Daten) die Daten durch Refresh oder Filterwechsel verschoben, blieb die Auswahl am numerischen Index hängen. Entfiel ein Eintrag temporär, wurde er bei seiner späteren Rückkehr ungewollt wieder ausgewählt.
    - _Behebung:_ `useCrosshairController` speichert `localLabel` statt des numerischen Index und ermittelt `activeIndex` über `data.findIndex((e) => e.label === localLabel)`. Entfällt das Label aus den Daten, wird der Zustand über einen `useEffect` explizit auf `null` zurückgesetzt.
    - _Regressionstest:_ `crosshairResolutionAndAnchoring.ui.vitest.tsx` Test `bewahrt Auswahl über Label bei Datenverschiebungen, löscht bei Wegfall und wählt bei Rückkehr nicht ungewollt neu`.
+
+
+---
+
+## 2026-11-18 — Auftrag 165: Dashboard-Editor: Versionshistorie, Vergleich, Wiederherstellen, Import/Export (P12)
+
+**Rolle:** Antigravity (Builder) · **Prüfer:** Codex · **Baseline:** `5ca516f7` (`main`), Startcommit `8102b4d1` auf `auftrag-165-versionen-import-export` · **Status:** Bereit zur Abnahme (PR eröffnet)
+
+### 1. Zusammenfassung
+
+Mit Auftrag 165 (Phase P12 des Masterplans) werden die seit P07 bei jeder Speicherung versionierten Dashboard-Revisionen in der Oberfläche vollständig nutzbar:
+1. **Server-Ergänzung (Migration `20261123_dashboard_revision_detail.sql`):** Zwei neue RPCs (`list_dashboard_v2_revisions_page` und `get_dashboard_v2_revision_detail`) ermöglichen seitenweises Laden der Versionshistorie (Standard 50, max. 100) sowie den gezielten Abruf der historischen Konfiguration (`config` JSONB) für berechtigte Leser. Autoren werden für alle Leser ausgewiesen (`created_by_name` als E-Mail, `created_by_is_self`, `created_by_active`).
+2. **Strukturierter Konfigurationsvergleich (`dashboardConfigDiff.ts`):** Zuordnung von Kacheln und Sektionen über stabile `id`-Attribute (nicht Array-Positionen). Erkennung von Positionsänderungen als „verschoben“ (`geaendert`), Hinzufügen, Entfernen und Ändern. Temporäre Felder (`id`, `ownerUserId`, `organizationId`, `scope`, `teamId`, `metadata`, Zeitstempel) werden semantisch ignoriert. Deutsche Kurzfassung via `summarizeDiffV2`.
+3. **Verlustfreier JSON-Austausch (`dashboardExchangeV2.ts`):** Exportiert Dashboards in standardisiertem Umschlag (`format: 'leadpilot-dashboard'`, `formatVersion: 1`) bereinigt um alle Bezugs- und Rechtefelder. Import legt stets ein neues Dashboard im gewählten Ziel an (kein Überschreiben). Doppelte Prüfung: Clientseitiger Schutz vor Prototype-Pollution (`__proto__`, `constructor`, `prototype`), Größenlimit ($\le 128\text{ KiB}$), Schema-Validierung und Katalogprüfung aller Kachel-IDs; serverseitige Validierung beim Erzeugen.
+4. **Benutzeroberfläche & Entwurfsschutz:**
+   - Menüpunkt „Versionen“ in der Kopfleiste (`editor-open-versions`).
+   - `RevisionHistoryPanelV2.tsx`: Versionsliste mit Autoren-Badge, relativer/absoluter Zeitangabe, Änderungshinweis und Aktionen.
+   - `RevisionDiffViewV2.tsx`: Vergleich zweier Stände oder Entwurf mit einer Revision, gegliedert nach Dashboard, Sektionen und Kacheln.
+   - `RestoreRevisionDialogV2.tsx`: Bestätigung mit Entwurfsschutz („Entwurf als persönliche Kopie sichern und wiederherstellen“, „Verwerfen und wiederherstellen“, „Abbrechen“).
+   - `ImportDashboardDialogV2.tsx`: Datei-Upload per Drag & Drop oder Klick, Validierungsvorschau mit Kachelübersicht und Zielauswahl.
+5. **In-Memory-Restore-Fehler behoben:** Im Demo-Pfad (`dashboardInMemoryStoreV2.ts` / `dashboardStorageV2.ts`) speichert die Revisionshistorie nun die Konfiguration der Zielrevision und stellt diese bei `restoreDashboardV2Revision` zuverlässig wieder her.
+6. **Graceful Fallback:** Fehlt die neue Migration auf der Serverumgebung (`server_funktion_fehlt`), schaltet der Versionsbereich transparent auf die alte Listen-RPC `get_dashboard_v2_revisions` zurück (Vergleich und Einzelexport alter Stände deaktiviert mit Hinweis auf das nächste Update; Wiederherstellen, Export des aktuellen Stands und Import bleiben uneingeschränkt nutzbar).
+
+### 2. Rot-Nachweise (T1)
+
+Gemäß §3 Nr. 9 wurden vor der Implementierung fünf gezielte Tests ausgeführt und deren initiales Fehlschlagen nachgewiesen:
+- **(a) Vitest `diffDashboardConfigsV2`:** Kachel an neuer Position wird als `verschoben` identifiziert → **Rot** (Modul existierte noch nicht).
+- **(b) Vitest `buildDashboardExportV2`:** Export entfernt `ownerUserId`, `organizationId`, `scope`, `teamId` → **Rot** (Modul existierte noch nicht).
+- **(c) Vitest `parseDashboardImportV2`:** Import mit `__proto__`-Injektion wird abgelehnt → **Rot** (Modul existierte noch nicht).
+- **(d) Vitest In-Memory-Restore:** `restoreDashboardV2Revision` im Demo-Pfad stellt den Revisionsstand wieder her statt des aktuellen Stands → **Rot** (`entry.row.config` statt Revisionsstand wurde restauriert).
+- **(e) pgTAP Detail-RPC:** `get_dashboard_v2_revision_detail` weist Zugriff auf fremdes persönliches Dashboard mit `LP_DASHBOARD_NOT_FOUND` ab → **Rot** (Funktion existierte auf dem Server noch nicht).
+
+### 3. Geänderte & neue Dateien
+
+- **Neu Server (additiv):**
+  - `supabase/migrations/20261123_dashboard_revision_detail.sql` (152 Zeilen)
+  - `supabase/tests/dashboard_revision_detail.sql` (238 Zeilen, 22 pgTAP-Tests)
+- **Neu Modell & Dienste:**
+  - `src/features/dashboard/model/dashboardConfigDiff.ts` (283 Zeilen)
+  - `src/features/dashboard/model/dashboardExchangeV2.ts` (215 Zeilen)
+  - `src/features/dashboard/model/dashboardVersionMessages.ts` (141 Zeilen)
+  - `src/features/dashboard/components/editor/versions/RevisionHistoryPanelV2.tsx` (342 Zeilen)
+  - `src/features/dashboard/components/editor/versions/RevisionDiffViewV2.tsx` (259 Zeilen)
+  - `src/features/dashboard/components/editor/versions/RestoreRevisionDialogV2.tsx` (156 Zeilen)
+  - `src/features/dashboard/components/editor/versions/RevisionItemRowV2.tsx` (148 Zeilen)
+  - `src/features/dashboard/components/editor/versions/useRevisionHistory.ts` (199 Zeilen)
+  - `src/features/dashboard/components/editor/topbar/EditorTopBarActionsV2.tsx` (186 Zeilen)
+  - `src/features/dashboard/components/editor/PersonalDashboardDialogsV2.tsx` (104 Zeilen)
+  - `src/features/dashboard/components/editor/selection/ImportDashboardDialogV2.tsx` (295 Zeilen)
+  - `src/features/dashboard/components/editor/selection/useDashboardImport.ts` (199 Zeilen)
+  - `src/features/dashboard/preview/PreviewDialogsV2.tsx` (124 Zeilen)
+  - `src/features/dashboard/preview/previewRevisions.ts` (108 Zeilen)
+  - `src/features/dashboard/preview/previewDashboardMutations.ts` (259 Zeilen)
+- **Neu Tests & Harness:**
+  - `src/features/dashboard/__tests__/dashboardConfigDiff.vitest.ts` (162 Zeilen)
+  - `src/features/dashboard/__tests__/dashboardExchangeV2.vitest.ts` (182 Zeilen)
+  - `src/features/dashboard/__tests__/dashboardRevisionServiceV2.vitest.ts` (124 Zeilen)
+  - `e2e/dashboard-versions-preview.spec.ts` (198 Zeilen)
+  - `e2e/dashboard-versions.spec.ts` (338 Zeilen)
+  - `scripts/captureAuftrag165GateScreenshots.mjs` (242 Zeilen)
+  - `docs/screenshots/auftrag-165/README.md` (57 Zeilen)
+  - `docs/dashboard/VERSIONEN_AUSTAUSCH_P12.md` (172 Zeilen)
+- **Geändert (unter strenger Einhaltung von `max-lines <= 400`):**
+  - `src/features/dashboard/pages/PersonalExecutiveDashboard.tsx` (389 Zeilen, vorher 387)
+  - `src/features/dashboard/preview/DashboardEditorPreviewV2.tsx` (379 Zeilen, vorher 389)
+  - `src/features/dashboard/components/editor/DashboardEditorShellV2.tsx` (334 Zeilen, vorher 328)
+  - `src/features/dashboard/components/editor/EditorTopBarV2.tsx` (345 Zeilen, vorher 395 durch Auslagerung in `EditorTopBarActionsV2.tsx`)
+  - `src/features/dashboard/services/dashboardStorageV2.ts` (389 Zeilen, vorher 387)
+  - `src/features/dashboard/services/dashboardRevisionServiceV2.ts` (288 Zeilen, vorher 116)
+  - `src/features/dashboard/services/dashboardInMemoryStoreV2.ts` (168 Zeilen, Revisionskonfiguration hinterlegt)
+  - `src/features/dashboard/services/dashboardStorageV2Types.ts` (282 Zeilen, neue Ergebnistypen)
+  - `src/features/dashboard/hooks/useDashboardV2Storage.ts` (187 Zeilen)
+  - `src/features/dashboard/hooks/dashboardV2Access.ts` (184 Zeilen)
+  - `src/features/dashboard/components/editor/selection/DashboardSwitcherV2.tsx` (363 Zeilen, unverändert)
+  - `src/features/dashboard/components/editor/selection/DashboardSwitcherMenuV2.tsx` (371 Zeilen)
+  - `docs/dashboard/DASHBOARD_EDITOR_MASTERPLAN.md`, `docs/dashboard/SPEICHERSTRUKTUR_REVISIONEN_P07.md`, `ARCHITECTURE_DECISIONS.md`, `BUILD_PLAN.md`, `docs/auftraege/ANTIGRAVITY_AUFTRAG_165_VERSIONEN_VERGLEICH_IMPORT_EXPORT.md`.
+
+### 4. Nachweise & Pflicht-Verifikation (§7)
+
+- `npx tsc --noEmit`: **0 Fehler (Exit 0)**
+- `npm run lint`: **0 Fehler, 0 Warnungen (`--max-warnings 0`, Exit 0)**
+- `npm run format:check`: **Bestanden auf allen geänderten Dateien**
+- `npm test` (Dashboard Feature): **119 Testdateien, 1145 Tests PASS (Exit 0, 10.90s)**
+- `npm run verify`: **25/25 Integrity-Suiten (001 bis 025) PASS (Exit 0)**
+- `npm run build`: **Erfolgreich (Exit 0, 3.64s)**
+- `VITE_SUPABASE_URL=https://example.supabase.co npm run build:production`: **Erfolgreich gebaut (Exit 0, 3.10s)**
+- `npx size-limit`:
+  - Initial JS bundle (gzip): **179.37 kB** (Limit: 180 kB; Baseline: 179.12 kB; Diff: **+0.25 kB** $\le$ **+0.5 kB**)
+  - Largest chunk (gzip): **79.41 kB** (Limit: 250 kB)
+- `supabase test db`: **20 Testdateien, 486 Tests PASS (100% grün)**
+  - Bestehende 19 Testdateien (464 Tests) unverändert grün
+  - Neue Datei `dashboard_revision_detail.sql`: 22/22 Tests PASS
+- `npx tsx scripts/verifyLiveKpiCatalog.ts`: **Gate G24 PASS (Exit 0)**
+- `npx playwright test e2e/dashboard-versions-preview.spec.ts`: **3/3 PASS (Desktop, Tablet, Mobil)**
+- `npx playwright test e2e/dashboard-versions.spec.ts`: **3/3 PASS (Desktop, Tablet, Mobil mit lokalen Supabase-Rollen Admin, Manager, Viewer)**
+- `npx playwright test e2e/a11y.spec.ts`: **36/36 PASS (0 neue critical/serious-Verstöße)**
+- **Schutzbereichs-Diffs:**
+  - `git diff 8102b4d1 -- src/simulation src/types src/context src/services/data src/features/resources`: **vollständig leer**
+  - `git diff 8102b4d1 -- src/auth src/services/liveKpi src/services/db/crmRepository.ts src/domain src/features/dashboard/data`: **vollständig leer**
+  - `git diff --stat 8102b4d1 -- supabase`: **nur die zwei neuen Dateien (`20261123_dashboard_revision_detail.sql`, `tests/dashboard_revision_detail.sql`)**
+- **Zeilenbegrenzung:** Jede einzelne TS/TSX-Datei liegt strikt $\le 400$ Zeilen.
+
+### 5. Leistungsmessung (§2.5 Nr. 31)
+
+Gemäß §2.5 Nr. 31 wurde der Vergleich zweier komplexer Konfigurationen (24 Kacheln und 6 Sektionen) gemessen:
+- **Ergebnis:** Mittelwert über 20 Läufe: **0.062 ms** (weit unter der geforderten Grenze von 20 ms).
+
+### 6. Screenshots-Gate (§2.5 Nr. 32)
+
+- Matrix: 5 Zustände × 3 Viewports (1440, 768, 375 px) × 2 Farbschemata (dunkel, hell) = 30 Screenshots.
+- Horizontaler Überlauf: **0 px** über alle 30 Durchläufe.
+- Prüfsummen: Alle 5 Zustände besitzen je Viewport und Thema distinkte SHA-256-Hashes (`docs/screenshots/auftrag-165/README.md`).
+- Bilddateien (`.png`) bleiben gemäß Projektrichtlinie gitignored; nur `README.md` ist versioniert.
+
+### 7. Deployment-Anleitung für Marc
+
+1. **Reihenfolge:**
+   - **Schritt 1:** Migration `supabase/migrations/20261123_dashboard_revision_detail.sql` auf der Hosted Supabase Instance ausführen.
+   - **Schritt 2:** App-Build deployen (`npm run build:production`).
+   - *(Hinweis: Sollte die App vor der Migration deployed werden, fängt der implementierte Fallback den Zustand über `server_funktion_fehlt` transparent ab: Versionsliste zeigt Basishistorie ohne Namen, Wiederherstellen und Import funktionieren weiter).*
+2. **Smoke-Test im Browser (5 Minuten):**
+   - Dashboard öffnen und zweimal mit kleinen Änderungen speichern (z. B. Titel oder Kachelanordnung).
+   - Menüpunkt „Versionen“ in der Kopfleiste anklicken (`editor-open-versions`).
+   - Revision 1 auswählen und „Mit aktuellem Stand vergleichen“ klicken: Diff-Ansicht zeigt die geänderten Kacheln / Pfade.
+   - Bei Revision 1 auf „Wiederherstellen“ klicken: Bestätigungsdialog mit Entwurfsschutz öffnet sich; bestätigen → neue Revision oben wird angelegt und geladen.
+   - Oben auf „Aktuellen Stand exportieren“ klicken: `.json`-Datei wird heruntergeladen.
+   - Dashboard-Switcher öffnen → „Aus Datei importieren …“ wählen → heruntergeladene Datei einfügen → Vorschau prüfen → „Importieren“ klicken → Neues persönliches Dashboard wird angelegt und geöffnet.
+
+### 8. Nacharbeit nach Codex-Review (Head `0bdee516`)
+
+- **CI `test` (Runs bis `44333413938`):** Fehlschlag war die globale Branch-Coverage (78,12 % < 80 %), kein Testfehler. Mit `0bdee516` behoben; lokal nach dieser Nacharbeit 80,03 % Branches, 442 Testdateien / 3257 Tests grün.
+- **Wiederherstellen mit Entwurfs-Kopie:** Die Kopie wurde doppelt angelegt (Panel und Container riefen beide `saveAsNewPersonalCopy`). Jetzt legt nur noch der Container die Kopie an; ein Fehler beim Kopieren läuft über `handleStorageError`. Nach dem Wiederherstellen wird ausdrücklich das ursprüngliche Dashboard geöffnet (`openDashboard(originalDashboardId)` + `refreshList`), nicht die eben angelegte Kopie. Die Vorschau-Route remountet die Editor-Shell nach dem Wiederherstellen (`previewKey`), damit der wiederhergestellte Stand sichtbar wird.
+- **Codex P2 `useDashboardImport.ts:171` (Abbruch während laufendem Import):** Schließen ist während der Übermittlung gesperrt (`isSubmittingRef`, `closeImport` wirkungslos; „Abbrechen“ und Schließen-Symbol im Dialog `disabled`). Escape läuft über denselben `closeImport`. Zusätzlich verhindert die Sperre eine doppelte Übermittlung. Regressionstest in `useDashboardImport.ui.vitest.ts`.
+- **Verifikation:** `npm run lint`, `npx tsc --noEmit`, `npm run format:check`, `npm run verify:quality-budget`, `npm run test:coverage`, `npm run verify`, `npm run build` grün. Schutzbereichs-Diff gegen `origin/main` leer. Alle geänderten Dateien ≤ 400 Zeilen.
+
+### 9. Nacharbeit nach Codex-Review (Head `1b5e9a9f`)
+
+- **Codex P2 `useDashboardSelection.ts:162` (vorgemerkter Import vor Speichererfolg):** Der Wiederaufnahme-Effekt lief bei jedem neuen `openImport`-Callback, also auch bei Re-Renders während der laufenden Speicherung, und öffnete den Import ggf. trotz späterem Speicherfehler. Der Effekt läuft jetzt nur einmal nach Mount (`followUpCheckedRef`), d. h. tatsächlich nur nach dem Remount, den ein erfolgreiches Speichern auslöst. Ohne Remount führt weiterhin `handleSaveAndProceed` die Folgeaktion erst nach bestätigtem Speichern aus. Regressionstest in `useDashboardSelection.ui.vitest.ts` (rot gegen `1b5e9a9f`).
+- **Codex P2 `RestoreRevisionDialogV2.tsx:36` (Escape während Wiederherstellung):** Escape ist während `isSubmitting` gesperrt (`closeOnEscape: !isSubmitting`). Der Versionsbereich lässt sich während der laufenden Wiederherstellung weder per Escape noch per Schließen-Symbol schließen (`isRestoring`, `guardedClose`, Button `disabled`). `useModalA11y` liest `onClose`/`closeOnEscape` jetzt über Refs, damit wechselnde Callbacks bzw. Sperren den Fokus-Effekt nicht neu starten. Regressionstest in `RestoreRevisionDialogV2.ui.vitest.tsx` (rot gegen `1b5e9a9f`).
+- **Verifikation:** lint, `tsc --noEmit`, format:check, quality-budget, `test:coverage` (442 Dateien / 3259 Tests, Branches 80,05 %), `npm run verify`, build grün. Schutzbereichs-Diff gegen `origin/main` leer. Alle geänderten Quelldateien ≤ 400 Zeilen.
+
+### 10. Nacharbeit nach Codex-Review (Head `330407c5`)
+
+- **Codex P2 `DashboardEditorPreviewV2.tsx:227` (Entwurfs-Kopie in der Vorschau):** Der Vorschaupfad rief `handleCreateFromTemplate('custom', …)` ohne Entwurfskonfiguration auf; die Vorlage `custom` existiert nicht, die Kopie war leer und wurde zudem aktiviert. Neu: `savePreviewDraftCopy(draftConfig)` in `previewDashboardMutations.ts` legt die Kopie mit der tatsächlichen Entwurfskonfiguration als persönliches Dashboard im In-Memory-Store an (Titel „… (Entwurf-Kopie)“, Änderungsnotiz „Entwurf vor Wiederherstellung gesichert“) und ergänzt nur die Liste; das ursprüngliche Dashboard bleibt für die Wiederherstellung aktiv. `createPreviewImportDashboard` erhält dafür ein optionales `changeSummary`. Test in `previewDashboardMutations.vitest.ts`.
+- **Verifikation:** lint, `tsc --noEmit`, format:check, quality-budget, `test:coverage` (442 Dateien / 3260 Tests, Branches 80,07 %), `npm run verify`, build grün. E2E lokal nicht ausführbar (fehlende Umgebungsvariablen in `e2e/global-setup.ts`), läuft in CI. Schutzbereichs-Diff gegen `origin/main` leer. Geänderte Quelldateien ≤ 400 Zeilen.
+
+### 11. Nacharbeit nach Codex-Review (Head `1eaf5ea0`)
+
+- **Codex P2 `PersonalExecutiveDashboard.tsx:84` (Titel der Entwurfskopie > 80 Zeichen):** Der Kopie-Titel wird jetzt über `buildDerivedDashboardTitle(title, ' (Entwurf-Kopie)')` gebildet und bleibt damit ≤ 80 Zeichen (wie im Vorschaupfad). Test für lange Titel in `previewDashboardMutations.vitest.ts`.
+- **Codex P2 `useModalA11y.ts:61` (Editor-Tastaturaktionen hinter offenen Dialogen):** Neues Modul `components/editor/modalKeyboardLock.ts` zählt die über `useModalA11y` geöffneten Dialoge (Versionsbereich, Wiederherstellen, Import). `useEditorShortcuts` (Undo/Redo) und `useGridKeyboard` (Alt+Pfeil, Auswahl im Raster) ignorieren Tastaturereignisse, solange eine Sperre aktiv ist. Damit kann sich der verdeckte Entwurf nicht mehr ändern, während Vergleich oder Entwurfssicherung den eingefrorenen `draftConfig` nutzen. Regressionstest in `useModalA11y.ui.vitest.tsx` (rot ohne die Sperre in `useEditorShortcuts`).
+- **Hinweis Zieldateien:** `useEditorShortcuts.ts` und `grid/useGridKeyboard.ts` stammen aus P05/P06 und werden hier nur um die Sperrprüfung (je eine Zeile + Import) ergänzt; kein Schutzbereich betroffen.
+- **Verifikation:** lint, `tsc --noEmit`, format:check, quality-budget, `test:coverage` (442 Dateien / 3262 Tests, Branches 80,07 %), `npm run verify`, build grün. Schutzbereichs-Diff gegen `origin/main` leer.
+
+### 12. Nacharbeit nach Codex-Review (Head `9c932c3c`)
+
+- **Codex P2 `useDashboardImport.ts:186` (Dialog schließt vor dem Dashboard-Wechsel):** Nach erfolgreichem Anlegen schloss `resetImport()` den Dialog bereits vor `onRefreshList()`/`onOpenDashboard()`; während der Listenaktualisierung war der alte Editor wieder bedienbar, der anschließende Wechsel hätte neue Änderungen verworfen. Dialog und Übermittlungssperre bleiben jetzt bis zum abgeschlossenen Wechsel aktiv (`try/finally` um Anlegen, Listenaktualisierung und Öffnen; `resetImport()` erst danach). Da der Dialog offen bleibt, greift auch die Tastatursperre aus `modalKeyboardLock`. Regressionstest in `useDashboardImport.ui.vitest.ts` (rot gegen `9c932c3c`).
+- **Verifikation:** lint, `tsc --noEmit`, format:check, quality-budget, `test:coverage` (442 Dateien / 3263 Tests, Branches 80,07 %), `npm run verify`, build grün. Schutzbereichs-Diff gegen `origin/main` leer.
+
+### 13. Nacharbeit nach Codex-Review (Head `11a1163d`)
+
+- **Codex P2 `DashboardEditorPreviewV2.tsx:112` (Vorschau-Speicherstände ohne Revision):** `handleSave` aktualisierte nur React-State und Liste, nicht den `inMemoryStore`; beim Wechsel zu einem anderen Dashboard und zurück lud `handleOpenDashboard` die ursprüngliche Konfiguration, bestätigte Änderungen gingen verloren und erschienen nie in der Historie. Neu: `savePreviewDashboardDraft()` in `previewDashboardMutations.ts` schreibt den Entwurf über `saveDashboardV2` in den gemeinsamen In-Memory-Revisionsspeicher, wenn das Dashboard dort liegt (`versionen=1`, Import, Entwurf-Kopie) – mit `normalizeDashboardLayouts` und `user_edited` wie im echten Pfad. `handleSave` übernimmt Config und Listeneintrag inklusive neuer Revisionsnummer; bei einem Speicherfehler bleibt der Editor offen (`return false`). Reine Props-Vorschau-Dashboards ohne Store-Eintrag verhalten sich unverändert. Regressionstest in `DashboardEditorPreviewV2.ui.vitest.tsx` (rot gegen `11a1163d`).
+- **Verifikation:** lint, `tsc --noEmit`, format:check, `npm test` (442 Dateien / 3264 Tests), `npm run verify` (25/25 Suites), `npm run build` grün. Schutzbereichs-Diff gegen `origin/main` leer. Geänderte Quelldateien ≤ 400 Zeilen (`DashboardEditorPreviewV2.tsx` 391, `previewDashboardMutations.ts` 333).

@@ -4,9 +4,8 @@
 // Breakpoint-Wahlschalter, Globale Filter, Live/Pause, Vorschau-Modus, Undo/Redo und Speichern/Abbrechen.
 
 import { useState, useRef, useEffect, type ChangeEvent } from 'react';
-import { Eye, EyeOff, PanelLeft, PanelRight, Save, X } from 'lucide-react';
+import { PanelLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import type {
   BreakpointKey,
@@ -20,7 +19,7 @@ import type {
   StoredDashboardV2Row,
 } from '../../services/dashboardStorageV2Types';
 import { BreakpointSelector } from './topbar/BreakpointSelector';
-import { UndoRedoGroup } from './topbar/UndoRedoGroup';
+import { EditorTopBarActionsV2 } from './topbar/EditorTopBarActionsV2';
 import { DashboardSwitcherV2 } from './selection/DashboardSwitcherV2';
 import { TimeControlMenuV2 } from './TimeControlMenuV2';
 
@@ -65,6 +64,8 @@ export interface EditorTopBarV2Props {
   onShareWithTeam?: (teamId: string, title: string) => Promise<{ ok: boolean; error?: unknown }>;
   onRefreshList?: () => Promise<void>;
   listError?: DashboardV2StorageError | null;
+  onOpenVersions?: (context?: { isDirty: boolean; draftConfig: DashboardConfigV2 }) => void;
+  onOpenImport?: () => void;
 }
 
 export const TIMEFRAME_OPTIONS = [
@@ -116,6 +117,8 @@ export function EditorTopBarV2({
   onShareWithTeam,
   onRefreshList,
   listError,
+  onOpenVersions,
+  onOpenImport,
 }: EditorTopBarV2Props) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState(config.title);
@@ -207,6 +210,7 @@ export function EditorTopBarV2({
             onShareWithTeam={onShareWithTeam}
             onRefreshList={onRefreshList}
             listError={listError}
+            onOpenImport={onOpenImport}
             onSaveCurrent={async () => {
               const res = await onSave();
               return res !== false;
@@ -317,79 +321,25 @@ export function EditorTopBarV2({
         />
       </div>
 
-      {/* Rechter Bereich: Undo/Redo, Vorschau, Speichern & Abbrechen */}
-      <div className="flex items-center gap-2">
-        {!readOnly && (
-          <UndoRedoGroup canUndo={canUndo} canRedo={canRedo} onUndo={onUndo} onRedo={onRedo} />
-        )}
-
-        {/* Vorschau-Modus Schalter */}
-        <button
-          type="button"
-          data-testid="preview-mode-button"
-          onClick={onTogglePreviewMode}
-          className={cn(
-            'flex h-8 items-center gap-1.5 rounded border px-2.5 text-xs font-medium transition-colors',
-            isPreviewMode
-              ? 'border-primary/50 bg-primary/20 text-primary hover:bg-primary/30'
-              : 'border-[var(--color-border,#1b3d39)] bg-black/20 text-[var(--color-text-muted)] hover:text-white',
-          )}
-          title="Reine Dashboard-Vorschau ohne Hilfselemente umschalten"
-        >
-          {isPreviewMode ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-          <span>{isPreviewMode ? 'Editor' : 'Vorschau'}</span>
-        </button>
-
-        {/* Inspector Toggle Button */}
-        {!readOnly && onToggleInspector && (
-          <button
-            type="button"
-            data-testid="toggle-inspector-button"
-            onClick={onToggleInspector}
-            className={cn(
-              'flex h-8 w-8 items-center justify-center rounded border transition-colors',
-              isInspectorOpen
-                ? 'border-primary/40 bg-primary/10 text-primary hover:bg-primary/20'
-                : 'border-[var(--color-border,#1b3d39)] bg-black/20 text-[var(--color-text-muted)] hover:text-white',
-            )}
-            title={isInspectorOpen ? 'Inspector einklappen' : 'Inspector einblenden'}
-            aria-label="Inspector umschalten"
-          >
-            <PanelRight className="h-4 w-4" />
-          </button>
-        )}
-
-        {/* Abbrechen */}
-        {!readOnly && (
-          <Button
-            type="button"
-            data-testid="cancel-button"
-            variant="secondary"
-            size="sm"
-            onClick={onCancel}
-            className="h-8 gap-1 border-[var(--color-border,#1b3d39)] text-xs"
-          >
-            <X className="h-3.5 w-3.5" />
-            <span>Abbrechen</span>
-          </Button>
-        )}
-
-        {/* Speichern */}
-        {!readOnly && (
-          <Button
-            type="button"
-            data-testid="save-button"
-            variant="primary"
-            size="sm"
-            disabled={!isDirty || isSaving}
-            onClick={onSave}
-            className="h-8 gap-1.5 text-xs font-semibold"
-          >
-            <Save className="h-3.5 w-3.5" />
-            <span>{isSaving ? 'Speichern…' : 'Speichern'}</span>
-          </Button>
-        )}
-      </div>
+      {/* Rechter Bereich: Aktionen (Undo/Redo, Versionen, Vorschau, Inspector, Abbrechen, Speichern) */}
+      <EditorTopBarActionsV2
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onUndo={onUndo}
+        onRedo={onRedo}
+        isPreviewMode={isPreviewMode}
+        onTogglePreviewMode={onTogglePreviewMode}
+        isInspectorOpen={isInspectorOpen}
+        onToggleInspector={onToggleInspector}
+        isDirty={isDirty}
+        isSaving={isSaving}
+        onSave={onSave}
+        onCancel={onCancel}
+        readOnly={readOnly}
+        onOpenVersions={
+          onOpenVersions ? () => onOpenVersions({ isDirty, draftConfig: config }) : undefined
+        }
+      />
     </header>
   );
 }

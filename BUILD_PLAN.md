@@ -2,7 +2,7 @@
 
 **Stand:** 18.11.2026
 
-**Aktueller Auftrag:** Auftrag 164 – Dashboard-Editor: Restpunkte aus 161 – Fadenkreuz-Kopplung, E2E/Screenshots, Fach-Doku (161R, schließt P10; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_164_ZEITREIHEN_RESTPUNKTE_161R.md`; Branch `auftrag-164-zeitreihen-restpunkte`; PR #203; Builder Antigravity, Prüfer Codex; Status: PR ERÖFFNET). Zuletzt: 163 Team-Freigaben in der Oberfläche (P11b; PR #202 gemergt als `2ab7cdc4`), 162 Team-Freigaben im Server (P11a; PR #197 gemergt als `00ab4db5`), 161 Analysezeitpunkt, Zeitfenster je Kachel, Fadenkreuz (P10b-2; PR #196).
+**Aktueller Auftrag:** Auftrag 165 – Dashboard-Editor: Versionshistorie, Vergleich, Wiederherstellen, Import/Export (P12; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_165_VERSIONEN_VERGLEICH_IMPORT_EXPORT.md`; Branch `auftrag-165-versionen-import-export`; Builder Antigravity, Prüfer Codex; Status: PR ERÖFFNET). Zuletzt: 164 Restpunkte aus 161 (161R, schließt P10; PR #203), 163 Team-Freigaben in der Oberfläche (P11b; PR #202 gemergt als `2ab7cdc4`), 162 Team-Freigaben im Server (P11a; PR #197 gemergt als `00ab4db5`), 161 Analysezeitpunkt, Zeitfenster je Kachel, Fadenkreuz (P10b-2; PR #196).
 
 **Betriebsregel Live-Feed:** Am 14.11.2026 durch Marc aufgehoben (Edge Function und Migrationen seit 14.11.2026 online; echte Kennzahlen dürfen über den mandantengebundenen Feed eingespeist werden).
 **Offen nach dem v3.1.0-Rollout (10./11.11.2026):**

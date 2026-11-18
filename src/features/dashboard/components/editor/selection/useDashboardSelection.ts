@@ -33,6 +33,7 @@ export function useDashboardSelection({
   onDeleteDashboard,
   onSaveCurrent,
   onShareWithTeam,
+  onOpenImport,
 }: UseDashboardSelectionParams) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDialog, setActiveDialog] = useState<ActiveDialogType>(() => {
@@ -94,22 +95,17 @@ export function useDashboardSelection({
 
         const ok = await onOpenDashboard(action.id);
 
-        if (ok) {
-          setPendingPostSwitchAnnouncement(`Dashboard ‚${action.title}‘ geöffnet`);
-          setPendingPostSwitchError(null);
-        } else {
-          setPendingPostSwitchAnnouncement(null);
-          setPendingPostSwitchError('Dashboard konnte nicht geöffnet werden.');
-        }
+        setPendingPostSwitchAnnouncement(ok ? `Dashboard ‚${action.title}‘ geöffnet` : null);
+        setPendingPostSwitchError(ok ? null : 'Dashboard konnte nicht geöffnet werden.');
 
         if (isMountedRef.current) {
           setIsProcessing(false);
           setPendingFocusTriggerOnMount(false);
+          setPendingPostSwitchAnnouncement(null);
+          setPendingPostSwitchError(null);
           if (ok) {
-            setPendingPostSwitchAnnouncement(null);
             announce(`Dashboard ‚${action.title}‘ geöffnet`);
           } else {
-            setPendingPostSwitchError(null);
             setErrorText('Dashboard konnte nicht geöffnet werden.');
           }
           returnFocusToTrigger();
@@ -118,9 +114,11 @@ export function useDashboardSelection({
         setActiveDialog('new');
       } else if (action.type === 'delete') {
         setActiveDialog('delete');
+      } else if (action.type === 'import') {
+        onOpenImport?.();
       }
     },
-    [currentDashboard.id, onOpenDashboard, announce, returnFocusToTrigger],
+    [currentDashboard.id, onOpenDashboard, onOpenImport, announce, returnFocusToTrigger],
   );
 
   // Aktion mit Navigationsschutz (isDirty) absichern
@@ -149,17 +147,23 @@ export function useDashboardSelection({
     }
   }, [pendingAction, executeAction]);
 
-  // Folgeaktion nach Mount (z. B. nach Speicher-Remount bei type === 'open') ausführen
+  // Folgeaktion nur einmal nach Mount (Remount nach erfolgreichem Speichern) ausführen, nie bei
+  // Re-Renders während laufender Speicherung (sonst Import trotz späterem Speicherfehler offen).
+  const followUpCheckedRef = useRef(false);
   useEffect(() => {
+    if (followUpCheckedRef.current) return;
+    followUpCheckedRef.current = true;
     const act = getPendingFollowUpSelectionAction();
     if (act) {
       if (act.type === 'new' || act.type === 'delete') {
         setActiveDialog(act.type);
       } else if (act.type === 'open') {
         executeAction(act);
+      } else if (act.type === 'import') {
+        onOpenImport?.();
       }
     }
-  }, [executeAction]);
+  }, [executeAction, onOpenImport]);
 
   const handleSaveAndProceed = useCallback(async () => {
     setIsProcessing(true);

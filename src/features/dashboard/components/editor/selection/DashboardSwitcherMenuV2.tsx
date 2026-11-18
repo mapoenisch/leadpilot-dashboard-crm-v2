@@ -1,5 +1,5 @@
 import type { Ref, RefObject } from 'react';
-import { Check, Copy, Plus, Share2, Trash2 } from 'lucide-react';
+import { Check, Copy, Plus, Share2, Trash2, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type {
   AccessibleDashboardListItemV2,
@@ -21,6 +21,7 @@ export interface DashboardSwitcherMenuV2Props {
   onOpenDuplicateDialog: () => void;
   onOpenShareDialog?: () => void;
   canShareWithTeam?: boolean;
+  onOpenImportDialog?: () => void;
   onKeyDown: (e: React.KeyboardEvent) => void;
   itemRefs: RefObject<Array<HTMLButtonElement | null>>;
 }
@@ -82,6 +83,7 @@ export function DashboardSwitcherMenuV2({
   onOpenDuplicateDialog,
   onOpenShareDialog,
   canShareWithTeam = false,
+  onOpenImportDialog,
   onKeyDown,
   itemRefs,
 }: DashboardSwitcherMenuV2Props) {
@@ -261,6 +263,19 @@ export function DashboardSwitcherMenuV2({
               )}
             </div>
           </button>
+
+          {onOpenImportDialog && (
+            <button
+              type="button"
+              role="menuitem"
+              data-testid="import-dashboard-menu-item"
+              onClick={onOpenImportDialog}
+              className="flex min-h-[44px] w-full items-center gap-2 rounded px-2.5 py-2 text-left text-xs transition-colors text-[var(--color-text-soft,#e6f3f1)] hover:bg-white/5 hover:text-white focus:bg-white/10 focus:outline-none"
+            >
+              <Upload className="h-4 w-4 text-primary" />
+              <span>Aus Datei importieren …</span>
+            </button>
+          )}
 
           <button
             ref={(el) => {

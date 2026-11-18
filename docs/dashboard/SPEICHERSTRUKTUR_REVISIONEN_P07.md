@@ -140,4 +140,19 @@ Mit Auftrag 162 (Migration `20261122_dashboard_team_sharing.sql`) wird der `scop
 6. **Kopieren:** `copy_dashboard_v2` ermöglicht Kopieren zwischen persönlich und Team sowie Team und persönlich mit Revision 1 und initialem Revisionsprotokoll.
 7. **Obergrenzen:** 50 Teams pro Org, 200 Mitglieder pro Team, 50 Dashboards pro Team.
 
+---
 
+## 8. Nachtrag Auftrag 165 (P12, 18. November 2026): Detail- und Paging-RPCs für Revisionen & In-Memory-Restore
+
+Mit Auftrag 165 (Migration `20261123_dashboard_revision_detail.sql`) wird die Revisionsspeicherstruktur um gezielte Lesezugriffe ergänzt:
+1. **Paging-RPC `list_dashboard_v2_revisions_page(p_dashboard_id, p_before_revision, p_limit)`:**
+   - Liefert Revisionsmetadaten absteigend mit seitenweiser Begrenzung (Standard 50, maximal 100).
+   - Ergänzt Autoreninformationen für alle berechtigten Leser: `created_by_name` (E-Mail des Erstellers aus `auth.users`), `created_by_is_self` (Boolean) und `created_by_active` (Prüfung gegen aktive Organisationsmitgliedschaft).
+   - Leserechte identisch zu bestehender Listen-RPC (Eigentümer oder aktives Team-Mitglied).
+2. **Detail-RPC `get_dashboard_v2_revision_detail(p_dashboard_id, p_revision)`:**
+   - Liefert die vollständige Konfiguration (`config` JSONB) einer historischen Revision für Vergleich und Export.
+   - Weist unbekannte Revisionen mit `LP_REVISION_NOT_FOUND` ab.
+   - Geschützt über RLS und dieselbe Leserechteprüfung.
+3. **Behebung In-Memory-Restore:**
+   - Im browserseitigen Demo-Store (`dashboardInMemoryStoreV2.ts` / `dashboardStorageV2.ts`) speichert die Revisionshistorie nun den vollständigen Konfigurationsstand der jeweiligen Revision.
+   - `restoreDashboardV2Revision` im In-Memory-Pfad stellt nun verlässlich die historische Konfiguration wieder her, statt fälschlich den aktuellen Zustand unverändert zu übernehmen.

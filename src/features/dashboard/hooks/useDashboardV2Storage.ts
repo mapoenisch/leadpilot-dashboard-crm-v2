@@ -60,6 +60,14 @@ export function useDashboardV2Storage(options?: {
     if (res.ok) {
       setDashboards(res.value);
       setListError(null);
+      setDashboard((curr) => {
+        if (!curr || curr.teamName) return curr;
+        const match = res.value.find((d) => d.id === curr.id);
+        if (match?.teamName) {
+          return { ...curr, teamName: match.teamName };
+        }
+        return curr;
+      });
     } else {
       setListError(res.error);
     }

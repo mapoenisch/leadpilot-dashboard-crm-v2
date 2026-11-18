@@ -38,19 +38,15 @@ export interface DashboardSwitcherV2Props {
   onShareWithTeam?: (teamId: string, title: string) => Promise<{ ok: boolean; error?: unknown }>;
   onRefreshList?: () => Promise<void>;
   listError?: DashboardV2StorageError | null;
+  onOpenImport?: () => void;
   className?: string;
 }
 
 function getListErrorMessage(error?: DashboardV2StorageError | null): string | null {
   if (!error) return null;
-  switch (error.kind) {
-    case 'nicht_berechtigt':
-    case 'keine_mitgliedschaft':
-      return 'Keine Berechtigung zum Laden der Dashboards.';
-    case 'technisch':
-    default:
-      return 'Dashboard-Liste konnte nicht geladen werden.';
-  }
+  return error.kind === 'nicht_berechtigt' || error.kind === 'keine_mitgliedschaft'
+    ? 'Keine Berechtigung zum Laden der Dashboards.'
+    : 'Dashboard-Liste konnte nicht geladen werden.';
 }
 
 export function DashboardSwitcherV2({
@@ -67,6 +63,7 @@ export function DashboardSwitcherV2({
   onShareWithTeam,
   onRefreshList,
   listError,
+  onOpenImport,
   className,
 }: DashboardSwitcherV2Props) {
   const selection = useDashboardSelection({
@@ -80,6 +77,7 @@ export function DashboardSwitcherV2({
     onDeleteDashboard,
     onSaveCurrent,
     onShareWithTeam,
+    onOpenImport,
   });
 
   const {
@@ -280,21 +278,29 @@ export function DashboardSwitcherV2({
           isLimitReached={isLimitReached}
           isOnlyOneDashboard={isOnlyOneDashboard}
           onOpenAction={(action) => {
-            if (isSaving) return;
-            handleProtectedAction(action);
+            if (!isSaving) handleProtectedAction(action);
           }}
           onOpenDuplicateDialog={() => {
-            if (isSaving) return;
-            setIsOpen(false);
-            setActiveDialog('duplicate');
+            if (!isSaving) {
+              setIsOpen(false);
+              setActiveDialog('duplicate');
+            }
           }}
           onOpenShareDialog={() => {
-            if (isSaving) return;
-            setIsOpen(false);
-            setActiveDialog('share');
+            if (!isSaving) {
+              setIsOpen(false);
+              setActiveDialog('share');
+            }
           }}
           canShareWithTeam={
             currentDashboard.scope === 'personal' && !isPreviewMode && Boolean(onShareWithTeam)
+          }
+          onOpenImportDialog={
+            onOpenImport
+              ? () => {
+                  if (!isSaving) handleProtectedAction({ type: 'import' });
+                }
+              : undefined
           }
           onKeyDown={handleKeyDown}
           itemRefs={itemRefs}
