@@ -6,7 +6,7 @@
 **Vorgelagert:** 168 (P13c) und 174 (P16b) gemergt; **Entscheidung Marc (§0) liegt vor**.
 **Branch:** `auftrag-177-externe-alarmkanaele`.
 **Builder:** Antigravity (oder ein anderer von Marc benannter Agent). **Prüfer:** unabhängiger Agent nach `CLAUDE.md` §4.1 plus Sicherheitsreview. **Merge und Einrichten der Secrets:** Marc.
-**Status:** GESPERRT – wartet auf Entscheidung (§0).
+**Status:** GESPERRT – wartet auf Entscheidung (§0). **Entscheidung Marc vom 18.11.2026:** P17/P18 werden erst nach Abschluss von P16 (Auftrag 174) entschieden; vorher kein Start.
 
 ---
 

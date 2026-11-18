@@ -8,7 +8,7 @@
 **Baseline:** aktueller `main` beim Start.
 **Branch:** `auftrag-175-yaml-git-validierung`.
 **Builder:** Antigravity (oder ein anderer von Marc benannter Agent). **Prüfer:** unabhängiger Agent nach `CLAUDE.md` §4.1. **Merge:** Marc.
-**Status:** ENTWURF – wartet auf Marcs Freigabe für P17.
+**Status:** ENTWURF – wartet auf Marcs Freigabe für P17. **Entscheidung Marc vom 18.11.2026:** P17/P18 werden erst nach Abschluss von P16 (Auftrag 174) entschieden; vorher kein Start.
 
 ---
 

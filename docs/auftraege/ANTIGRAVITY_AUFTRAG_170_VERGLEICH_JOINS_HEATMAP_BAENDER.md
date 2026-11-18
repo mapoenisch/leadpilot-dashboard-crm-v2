@@ -8,7 +8,7 @@
 **Baseline:** aktueller `main` nach Merge von 169.
 **Branch:** `auftrag-170-vergleich-joins-heatmap`.
 **Builder:** Antigravity (oder ein anderer von Marc benannter Agent). **Prüfer:** unabhängiger Agent nach `CLAUDE.md` §4.1. **Merge und Deploy:** Marc.
-**Status:** ENTWURF (wartet auf Merge von 169; Teil Erwartungsbänder zusätzlich auf Marcs Entscheidung §8).
+**Status:** ENTWURF (wartet auf Merge von 169). Erwartungsbänder am 18.11.2026 nach Vorschlag §8 entschieden.
 
 ---
 
@@ -74,7 +74,7 @@ Schutzbereiche unverändert; eine neue Migration, bestehende RPCs unverändert; 
 - [ ] **T3** Modell und Referenzfälle.
 - [ ] **T4** Vergleich und Join in Charts, Fadenkreuz.
 - [ ] **T5** Heatmap.
-- [ ] **T6** Erwartungsband **nur** wenn §8 entschieden; sonst Abschnitt im PR als „nicht gebaut, wartet auf Entscheidung“ vermerken.
+- [ ] **T6** Erwartungsband nach §8 (entschieden 18.11.2026).
 - [ ] **T7** Vorschau, E2E, Bundle, A11y, Screenshots, Doku, Pflicht-Verifikation, BUILD_LOG, PR, Review.
 
 ## 6. Abnahme
@@ -83,7 +83,7 @@ Schutzbereiche unverändert; eine neue Migration, bestehende RPCs unverändert; 
 - Joins nur über Zeitstempel bei gleicher Auflösung, mit Größenbegrenzung; Einheiten nie vermischt.
 - Heatmap lesbar ohne Farbe allein; leere Zellen eindeutig.
 - Keine Alarme auf Vergleich/Join/Heatmap.
-- Erwartungsbänder nur mit freigegebenem Verfahren und genügend Daten.
+- Erwartungsbänder nach dem Verfahren aus §8, nur bei mindestens 8 vollständigen Vorperioden.
 
 ## 7. Pflicht-Verifikation
 
@@ -95,7 +95,7 @@ npx playwright test e2e/dashboard-compare-preview.spec.ts e2e/dashboard-transfor
 git diff <baseline> -- src/simulation src/types src/context src/services/data src/features/resources   # leer
 ```
 
-## 8. Entscheidung Marc nötig: Erwartungsbänder
+## 8. Erwartungsbänder – entschieden am 18.11.2026 (Marc, Empfehlung angenommen)
 
 Masterplan §4.D verlangt ein dokumentiertes Verfahren und genügend Daten. **Vorschlag (Empfehlung):**
 
@@ -108,4 +108,4 @@ Masterplan §4.D verlangt ein dokumentiertes Verfahren und genügend Daten. **Vo
 
 **Alternativen:** (a) Bänder ganz weglassen, P14 ohne Bänder abschließen; (b) gleitender Mittelwert ± 2 Standardabweichungen (einfacher, aber empfindlich gegen Ausreißer).
 
-Bis zur Entscheidung baut 170 alles außer den Bändern.
+**Entscheidung:** Verfahren wie in der Tabelle oben (10.–90. Perzentil der gleichen Position in den letzten 8 vollständigen Perioden, mind. 8 Perioden, keine Alarme auf das Band). Die Alternativen (a) und (b) entfallen. T6 wird damit regulär gebaut; Referenzfälle: genau 7 Perioden → kein Band, 8 → Band, Lücke in einer Periode → Periode zählt nicht.

@@ -6,7 +6,7 @@
 **Vorgelagert:** 174 gemergt; **Produktentscheidung Marc (§0) liegt vor**.
 **Branch:** `auftrag-176-oeffentliche-freigaben`.
 **Builder:** Antigravity (oder ein anderer von Marc benannter Agent). **Prüfer:** unabhängiger Agent nach `CLAUDE.md` §4.1, **plus** Sicherheitsreview (`/security-review` oder gleichwertig) durch einen weiteren Agenten. **Merge:** Marc.
-**Status:** GESPERRT – wartet auf Produktentscheidung (§0). Ohne Entscheidung wird nichts gebaut.
+**Status:** GESPERRT – wartet auf Produktentscheidung (§0). Ohne Entscheidung wird nichts gebaut. **Entscheidung Marc vom 18.11.2026:** P17/P18 werden erst nach Abschluss von P16 (Auftrag 174) entschieden; vorher kein Start.
 
 ---
 

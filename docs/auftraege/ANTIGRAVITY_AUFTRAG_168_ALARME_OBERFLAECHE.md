@@ -38,6 +38,8 @@
 8. **Admin-Übernahme:** Neue Ansicht „Alarme“ im Admin-Bereich (nur Admin): Liste aller Regeln der Organisation mit Status, Verantwortlichem, Pausegrund. Für `verantwortlicher_ohne_rechte`: „Verantwortung übernehmen und fortsetzen“ (setzt den Admin als Verantwortlichen, Regel aktiv, Audit-Eintrag, Ereignis `fortgesetzt`) oder „Löschen“. Manager sehen diese Ansicht nicht.
 9. **Ausfallhinweis:** Liefert `alarm_worker_status()` `ueberfaellig = true`, sehen Admins im Kopfbereich und in der Alarmliste ein Banner „Die Alarmprüfung ist seit X Minuten nicht gelaufen. Alarme werden gerade nicht ausgewertet.“; bei `auswertung_aktiv = false` „Die Alarmprüfung ist pausiert.“. Alle anderen Nutzer sehen den Hinweis nur in der Alarmliste.
 10. **Versionsliste (165 §8 Nr. 5):** Hat die Aufräumfunktion für das Dashboard Versionen entfernt, zeigt die Versionsliste am Ende „Ältere Versionen wurden nach der Aufbewahrungsregel entfernt.“
+    11a. **Datenalter auf Kacheln (Entscheidung Marc vom 18.11.2026):** Live-Einzelwerte, deren neuester Wert älter als 24 Stunden ist (Konstante aus `model/alarmDataAge.ts`, 167), bewertet die Kachel mit `nicht_bewertet` und zeigt „Letzter Wert älter als 24 Stunden“. Damit stimmen Kachel und Server-Alarm überein. Umsetzung an der einen Bewertungsstelle von `TileThresholdBadge` (kein Eingriff in `data/resolveLive.ts`); Referenzfälle aus 167 wiederverwenden.
+
 11. **Rechteentzug wirkt sofort:** Verliert jemand den Lesezugriff auf ein Dashboard, verschwinden dessen Meldungen aus Liste und Zähler beim nächsten Abruf (Server-RLS aus 167; Client leert Cache bei Organisationswechsel/Logout wie bei den anderen Dashboard-Abfragen).
 
 ### 2.2 Server (eine neue Migration `supabase/migrations/20261125_dashboard_alarm_receipts.sql`)
@@ -140,4 +142,4 @@ git diff <baseline> -- src/features/dashboard/data src/services/liveKpi src/doma
 
 - **Anzeigename statt E-Mail** bei Quittierungen folgt mit dem kleinen Folgeauftrag „Anzeigename“ aus 165 §8.
 - **Benachrichtigung außerhalb der App** (E-Mail, Teams, Slack) ist P18 (Auftrag 177).
-- Entscheidungen aus 167 §9 (Datenalter Live-Werte, Aufbewahrung der Ereignisse) bleiben offen, bis Marc entscheidet; 168 zeigt den Datenstand jeder Meldung.
+- Entschieden am 18.11.2026: Datenalter 24 h (2.1 Nr. 11a), Aufbewahrung der Ereignisse 12 Monate (umgesetzt in 167; Quittierungen werden mit dem Ereignis gelöscht, `ON DELETE CASCADE`). Die Alarmliste zeigt am Ende „Meldungen älter als 12 Monate werden automatisch entfernt.“
