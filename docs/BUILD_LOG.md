@@ -21963,7 +21963,7 @@ Auftrag 163 schließt Phase 11 (Team-Freigaben und Kollaboration) mit der vollst
 
 ## 2026-11-18 — Auftrag 164: Dashboard-Editor: Restpunkte aus 161 – Fadenkreuz-Kopplung, E2E/Screenshots, Fach-Doku (161R, schließt P10)
 
-**Rolle:** Antigravity (Builder) · **Prüfer:** Codex · **Branch:** `auftrag-164-zeitreihen-restpunkte` · **PR:** [folgt] · **Detailauftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_164_ZEITREIHEN_RESTPUNKTE_161R.md` · **Baseline:** `2ab7cdc4` (Merge PR #202 Auftrag 163)
+**Rolle:** Antigravity (Builder) · **Prüfer:** Codex · **Branch:** `auftrag-164-zeitreihen-restpunkte` · **PR:** #203 · **Detailauftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_164_ZEITREIHEN_RESTPUNKTE_161R.md` · **Baseline:** `2ab7cdc4` (Merge PR #202 Auftrag 163)
 
 ### 1. Ziel & Zusammenfassung
 
