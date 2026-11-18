@@ -2,7 +2,12 @@
 // Mutationslogik für Vorschau-Szenarien zur Einhaltung der <= 400 Zeilen-Grenze.
 
 import type { DashboardConfigV2 } from '../model/dashboardConfigV2';
-import type { AccessibleDashboardListItemV2 } from '../services/dashboardStorageV2Types';
+import type {
+  AccessibleDashboardListItemV2,
+  DashboardV2StorageError,
+} from '../services/dashboardStorageV2Types';
+import { normalizeDashboardLayouts } from '../services/dashboardLayoutIntegrity';
+import { saveDashboardV2 } from '../services/dashboardStorageV2';
 import {
   PREVIEW_TEAMS,
   INITIAL_PREVIEW_DASHBOARDS,
@@ -13,6 +18,61 @@ import { inMemoryStore } from '../services/dashboardInMemoryStoreV2';
 import { PREVIEW_VERSIONS_DASHBOARD_ID, initPreviewVersionsStore } from './previewRevisions';
 import { migrateV1ToV2 } from '../model/dashboardMigrationV1V2';
 import { DEFAULT_DASHBOARD_CONFIG } from '../model/defaultDashboard';
+
+export type PreviewDashboardSaveResult =
+  | {
+      ok: true;
+      config: DashboardConfigV2;
+      listPatch: Partial<AccessibleDashboardListItemV2>;
+    }
+  | { ok: false; error: DashboardV2StorageError };
+
+/**
+ * Speichert den Editor-Entwurf. Liegt das Vorschau-Dashboard im gemeinsamen
+ * In-Memory-Revisionsspeicher (versionen=1, Import, Entwurf-Kopie), wird eine
+ * neue Revision angelegt – ein Dashboard-Wechsel lädt danach den gespeicherten
+ * Stand statt des Ursprungsstands (Codex P2). Sonst bleibt alles lokal.
+ */
+export async function savePreviewDashboardDraft(params: {
+  dashboardId: string;
+  config: DashboardConfigV2;
+}): Promise<PreviewDashboardSaveResult> {
+  const entry = inMemoryStore.get(params.dashboardId);
+  if (!entry) {
+    return {
+      ok: true,
+      config: params.config,
+      listPatch: {
+        title: params.config.title,
+        tileCount: params.config.tiles.length,
+        sectionCount: params.config.sections?.length ?? 0,
+        updatedAt: new Date().toISOString(),
+      },
+    };
+  }
+  const config = normalizeDashboardLayouts({
+    ...params.config,
+    metadata: { ...params.config.metadata, user_edited: true },
+  });
+  const res = await saveDashboardV2({
+    dashboardId: params.dashboardId,
+    expectedRevision: entry.row.revision,
+    title: config.title,
+    config,
+  });
+  if (!res.ok) return { ok: false, error: res.error };
+  return {
+    ok: true,
+    config,
+    listPatch: {
+      title: config.title,
+      revision: res.value.revision,
+      tileCount: config.tiles.length,
+      sectionCount: config.sections?.length ?? 0,
+      updatedAt: res.value.updatedAt,
+    },
+  };
+}
 
 export function initPreviewDashboards(
   versionenScenario: boolean,

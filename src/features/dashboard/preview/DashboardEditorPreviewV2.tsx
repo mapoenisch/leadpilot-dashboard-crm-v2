@@ -29,6 +29,7 @@ import {
   initPreviewDashboards,
   createPreviewImportDashboard,
   savePreviewDraftCopy,
+  savePreviewDashboardDraft,
 } from './previewDashboardMutations';
 
 /** Vorschau-Daten mit derselben gemeinsamen Zeitsteuerung wie der echte V2-Pfad. */
@@ -83,19 +84,18 @@ export function DashboardEditorPreviewV2() {
         setShowRevokedDialog(true);
         return false;
       }
-      setConfig(newConfig);
+      const saved = await savePreviewDashboardDraft({
+        dashboardId: activeDashboardId,
+        config: newConfig,
+      });
+      if (!saved.ok) {
+        setSaveMessage('Speichern fehlgeschlagen. Bitte erneut versuchen.');
+        setTimeout(() => setSaveMessage(null), 3000);
+        return false;
+      }
+      setConfig(saved.config);
       setDashboards((prev) =>
-        prev.map((d) =>
-          d.id === activeDashboardId
-            ? {
-                ...d,
-                title: newConfig.title,
-                tileCount: newConfig.tiles.length,
-                sectionCount: newConfig.sections?.length ?? 0,
-                updatedAt: new Date().toISOString(),
-              }
-            : d,
-        ),
+        prev.map((d) => (d.id === activeDashboardId ? { ...d, ...saved.listPatch } : d)),
       );
       setSaveMessage('Dashboard-Entwurf erfolgreich im Speicher gesichert!');
       setTimeout(() => setSaveMessage(null), 3000);
