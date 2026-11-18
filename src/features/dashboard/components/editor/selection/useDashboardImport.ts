@@ -1,7 +1,7 @@
 // Executive Dashboard V2 (Auftrag 165 / P12):
 // Hook zur Verwaltung des Import-Ablaufs (Datei lesen, Prüfen, Vorschau, Zielwahl, Speichern).
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { DashboardConfigV2 } from '../../../model/dashboardConfigV2';
 import {
   type ImportSessionContext,
@@ -75,7 +75,10 @@ export function useDashboardImport({
     setTargetTeamId(activeTeams.find((t) => t.canWrite)?.id);
   }, [providedTeams]);
 
+  const fileReadSeqRef = useRef(0);
+
   const closeImport = useCallback(() => {
+    fileReadSeqRef.current += 1;
     setIsOpen(false);
     setFile(null);
     setParseResult(null);
@@ -84,11 +87,14 @@ export function useDashboardImport({
 
   const handleFileSelect = useCallback(
     async (selectedFile: File) => {
+      const seq = ++fileReadSeqRef.current;
       setFile(selectedFile);
+      setParseResult(null);
       setSubmitError(null);
 
       try {
         const text = await selectedFile.text();
+        if (seq !== fileReadSeqRef.current) return;
         const session: ImportSessionContext = {
           ownerUserId: userId,
           organizationId,
@@ -96,11 +102,13 @@ export function useDashboardImport({
           teamId: targetTeamId,
         };
         const result = parseDashboardImportV2(text, session);
+        if (seq !== fileReadSeqRef.current) return;
         setParseResult(result);
         if (result.ok) {
           setTitle(result.config.title);
         }
       } catch {
+        if (seq !== fileReadSeqRef.current) return;
         setParseResult({
           ok: false,
           grund: DASHBOARD_VERSION_MESSAGES.invalidJson,

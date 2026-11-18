@@ -112,6 +112,30 @@ describe('dashboardConfigDiff', () => {
     expect(summarizeDiffV2(diff)).toBe('Keine inhaltlichen Unterschiede.');
   });
 
+  it('erkennt Änderungen an displayOptions, threshold und overrides (Codex P2)', () => {
+    const modifiedConfig: DashboardConfigV2 = {
+      ...baseConfig,
+      tiles: [
+        {
+          ...baseConfig.tiles[0]!,
+          displayOptions: { showLegend: true },
+          threshold: { enabled: true, operator: 'gt', warningValue: 100 },
+          timeframeOverride: 'letzte_7_tage',
+        },
+        baseConfig.tiles[1]!,
+      ],
+    };
+
+    const diff = diffDashboardConfigsV2(baseConfig, modifiedConfig);
+    expect(diff.length).toBe(1);
+    expect(diff[0]!.bereich).toBe('kachel');
+    expect(diff[0]!.art).toBe('geaendert');
+    const pfade = diff[0]!.pfade.map((p) => p.pfad);
+    expect(pfade).toContain('displayOptions');
+    expect(pfade).toContain('threshold');
+    expect(pfade).toContain('timeframeOverride');
+  });
+
   it('Leistungsmessung: 24 Kacheln und 6 Sektionen im Schnitt unter 20 ms', () => {
     const tiles24A = Array.from({ length: 24 }, (_, i) => ({
       id: `tile_${i}`,

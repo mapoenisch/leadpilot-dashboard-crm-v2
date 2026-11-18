@@ -66,10 +66,18 @@ test.describe('Dashboard-Editor V2: Versionshistorie & Wiederherstellen Supabase
     try {
       const supabaseAdmin = createClient(getBaseUrl(), getServiceKey());
       if (createdDashboardIds.length > 0) {
-        await supabaseAdmin.from('dashboards_v2').delete().in('id', createdDashboardIds);
+        const { error: delDashErr } = await supabaseAdmin
+          .from('dashboards')
+          .delete()
+          .in('id', createdDashboardIds);
+        if (delDashErr) console.warn('Cleanup dashboards error:', delDashErr.message);
       }
       if (createdTeamId) {
-        await supabaseAdmin.from('dashboard_teams_v2').delete().eq('id', createdTeamId);
+        const { error: delTeamErr } = await supabaseAdmin
+          .from('dashboard_teams')
+          .delete()
+          .eq('id', createdTeamId);
+        if (delTeamErr) console.warn('Cleanup dashboard_teams error:', delTeamErr.message);
       }
       if (managerUserId) {
         await supabaseAdmin
@@ -127,11 +135,12 @@ test.describe('Dashboard-Editor V2: Versionshistorie & Wiederherstellen Supabase
     }
 
     const supabaseAdmin = createClient(getBaseUrl(), getServiceKey());
-    const { data: teamData } = await supabaseAdmin
-      .from('dashboard_teams_v2')
+    const { data: teamData, error: teamQueryErr } = await supabaseAdmin
+      .from('dashboard_teams')
       .select('id')
       .eq('name', teamName)
       .maybeSingle();
+    if (teamQueryErr) console.warn('Query team error:', teamQueryErr.message);
     if (teamData?.id) {
       createdTeamId = teamData.id;
     }
@@ -176,11 +185,12 @@ test.describe('Dashboard-Editor V2: Versionshistorie & Wiederherstellen Supabase
     await page.getByTestId('save-button').click();
     await expect(page.getByTestId('dirty-indicator')).not.toBeVisible();
 
-    const { data: dashData } = await supabaseAdmin
-      .from('dashboards_v2')
+    const { data: dashData, error: dashQueryErr } = await supabaseAdmin
+      .from('dashboards')
       .select('id')
       .eq('title', dashboardTitle)
       .maybeSingle();
+    if (dashQueryErr) console.warn('Query dashboard error:', dashQueryErr.message);
     if (dashData?.id) {
       createdDashboardIds.push(dashData.id);
     }

@@ -154,7 +154,15 @@ export function RevisionHistoryPanelV2({
   const handleConfirmRestore = async (options: { saveDraftAsCopy: boolean }) => {
     if (restoreTargetRevision == null) return;
     if (options.saveDraftAsCopy && draftConfig && onSaveAsCopy) {
-      await onSaveAsCopy(draftConfig, `${draftConfig.title} (Entwurf-Kopie)`);
+      const copyResult = await onSaveAsCopy(draftConfig, `${draftConfig.title} (Entwurf-Kopie)`);
+      if (
+        copyResult &&
+        typeof copyResult === 'object' &&
+        'ok' in copyResult &&
+        !(copyResult as { ok: boolean }).ok
+      ) {
+        return;
+      }
     }
     const success = await onRestoreRevision(restoreTargetRevision, options);
     if (success) {

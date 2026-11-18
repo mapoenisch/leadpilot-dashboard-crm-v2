@@ -21,9 +21,8 @@ import { TimeControlProvider } from '../time/TimeControlProvider';
 import { invalidateCrmOverviewQueries } from '../time/resumeCrmRefresh';
 import { useTimeControlledData } from '../time/useTimeControlledData';
 
-import { Info } from 'lucide-react';
-import { getDashboardTeamErrorMessage } from '../model/dashboardTeamMessages';
 import { useDashboardImport } from '../components/editor/selection/useDashboardImport';
+import { DashboardStorageNoticesV2 } from '../components/editor/DashboardStorageNoticesV2';
 import { restoreDashboardV2Revision } from '../services/dashboardStorageV2';
 
 export const RETURN_ANNOUNCEMENT = 'Zurück im Dashboard. Die Filter deiner Sitzung gelten weiter.';
@@ -72,8 +71,19 @@ function PersonalExecutiveDashboardV2Container({
     onRefreshList: v2Storage.refreshList,
   });
 
-  const handleRestoreRevision = async (targetRevision: number): Promise<boolean> => {
+  const handleRestoreRevision = async (
+    targetRevision: number,
+    options?: { saveDraftAsCopy: boolean },
+  ): Promise<boolean> => {
     if (!v2Storage.dashboard) return false;
+    const currentDraft = versionsContext?.draftConfig || v2Storage.dashboard.config;
+    if (options?.saveDraftAsCopy && versionsContext?.draftConfig) {
+      const copyRes = await v2Storage.saveAsNewPersonalCopy(
+        versionsContext.draftConfig,
+        `${versionsContext.draftConfig.title} (Entwurf-Kopie)`,
+      );
+      if (!copyRes.ok) return false;
+    }
     const res = await restoreDashboardV2Revision({
       dashboardId: v2Storage.dashboard.id,
       targetRevision,
@@ -81,11 +91,38 @@ function PersonalExecutiveDashboardV2Container({
     });
     if (res.ok) {
       setIsVersionsOpen(false);
+      setVersionsContext(null);
       await v2Storage.reload();
       setReloadKey((k) => k + 1);
       return true;
     }
+    setIsVersionsOpen(false);
+    setVersionsContext(null);
+    handleStorageError(
+      res.error.kind,
+      currentDraft,
+      'Die Version konnte nicht wiederhergestellt werden, da das Dashboard zwischenzeitlich geändert wurde.',
+    );
     return false;
+  };
+
+  const handleStorageError = (
+    kind: string,
+    draft: DashboardConfigV2,
+    conflictMsg: string | null = null,
+  ) => {
+    if (kind === 'team_zugriff_entzogen') {
+      setRevokedDraft(draft);
+      setShowRevokedDialog(true);
+    } else if (kind === 'konflikt') {
+      setConflictDraft(draft);
+      setConflictDialogError(conflictMsg);
+      setShowConflictDialog(true);
+    } else if (kind === 'nicht_gefunden') {
+      setDeletedDraft(draft);
+      setDeletedDialogError(null);
+      setShowDeletedDialog(true);
+    }
   };
 
   if (v2Storage.status === 'laden' || !v2Storage.dashboard) {
@@ -102,18 +139,7 @@ function PersonalExecutiveDashboardV2Container({
   const handleSave = async (cfg: DashboardConfigV2): Promise<boolean> => {
     const res = await v2Storage.save(cfg);
     if (!res.ok) {
-      if (res.error.kind === 'team_zugriff_entzogen') {
-        setRevokedDraft(cfg);
-        setShowRevokedDialog(true);
-      } else if (res.error.kind === 'konflikt') {
-        setConflictDraft(cfg);
-        setConflictDialogError(null);
-        setShowConflictDialog(true);
-      } else if (res.error.kind === 'nicht_gefunden') {
-        setDeletedDraft(cfg);
-        setDeletedDialogError(null);
-        setShowDeletedDialog(true);
-      }
+      handleStorageError(res.error.kind, cfg);
       return false;
     }
     return true;
@@ -137,7 +163,7 @@ function PersonalExecutiveDashboardV2Container({
     } else {
       setConflictDialogError(
         res.error?.kind === 'obergrenze_erreicht'
-          ? 'Maximale Anzahl von 20 Dashboards erreicht. Bitte lösche zunächst ein anderes Dashboard, um Platz für die Kopie zu schaffen.'
+          ? 'Maximale Anzahl von 20 Dashboards erreicht. Bitte lösche zunächst ein anderes Dashboard.'
           : res.error?.kind === 'nicht_berechtigt'
             ? 'Keine Berechtigung zum Speichern einer neuen Kopie.'
             : 'Fehler beim Speichern der Kopie. Bitte erneut versuchen.',
@@ -207,46 +233,12 @@ function PersonalExecutiveDashboardV2Container({
 
   return (
     <>
-      {v2Storage.fallbackNotice && (
-        <div
-          role="status"
-          data-testid="dashboard-fallback-notice"
-          className="flex items-center justify-between border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200"
-        >
-          <div className="flex items-center gap-2">
-            <Info className="h-4 w-4 shrink-0 text-amber-400" aria-hidden="true" />
-            <span>{v2Storage.fallbackNotice}</span>
-          </div>
-          <button
-            type="button"
-            data-testid="dismiss-fallback-notice"
-            onClick={v2Storage.clearFallbackNotice}
-            className="text-xs text-amber-300 hover:text-white"
-          >
-            Ausblenden
-          </button>
-        </div>
-      )}
-      {v2Storage.error && (
-        <div
-          role="alert"
-          data-testid="dashboard-storage-error-notice"
-          className="flex items-center justify-between border-b border-rose-500/30 bg-rose-500/10 px-4 py-2 text-xs text-rose-200"
-        >
-          <div className="flex items-center gap-2">
-            <Info className="h-4 w-4 shrink-0 text-rose-400" aria-hidden="true" />
-            <span>{getDashboardTeamErrorMessage(v2Storage.error)}</span>
-          </div>
-          <button
-            type="button"
-            data-testid="dismiss-storage-error-notice"
-            onClick={v2Storage.clearError}
-            className="text-xs text-rose-300 hover:text-white"
-          >
-            Ausblenden
-          </button>
-        </div>
-      )}
+      <DashboardStorageNoticesV2
+        fallbackNotice={v2Storage.fallbackNotice}
+        onClearFallbackNotice={v2Storage.clearFallbackNotice}
+        storageError={v2Storage.error}
+        onClearStorageError={v2Storage.clearError}
+      />
       <TimeControlProvider key={v2Storage.dashboard.id}>
         <DashboardEditorShellV2
           key={`${v2Storage.dashboard.id}_${reloadKey}`}
@@ -309,6 +301,7 @@ function PersonalExecutiveDashboardV2Container({
           setVersionsContext(null);
         }}
         onRestoreRevision={handleRestoreRevision}
+        onSaveAsCopy={v2Storage.saveAsNewPersonalCopy}
         isImportOpen={dashboardImport.isOpen}
         importFile={dashboardImport.file}
         importParseResult={dashboardImport.parseResult}

@@ -219,7 +219,16 @@ export function DashboardEditorPreviewV2() {
   } | null>(null);
 
   const handleRestoreRevision = useCallback(
-    async (targetRevision: number): Promise<boolean> => {
+    async (targetRevision: number, options?: { saveDraftAsCopy: boolean }): Promise<boolean> => {
+      if (options?.saveDraftAsCopy && versionsContext?.draftConfig) {
+        await handleCreateFromTemplate(
+          'custom',
+          `${versionsContext.draftConfig.title} (Entwurf-Kopie)`,
+          {
+            scope: 'personal',
+          },
+        );
+      }
       const res = await restoreDashboardV2Revision({
         dashboardId: activeDashboardId,
         targetRevision,
@@ -248,7 +257,7 @@ export function DashboardEditorPreviewV2() {
       }
       return false;
     },
-    [activeDashboardId],
+    [activeDashboardId, versionsContext?.draftConfig, handleCreateFromTemplate],
   );
 
   const dashboardImport = useDashboardImport({
@@ -358,6 +367,9 @@ export function DashboardEditorPreviewV2() {
           setVersionsContext(null);
         }}
         onRestoreRevision={handleRestoreRevision}
+        onSaveAsCopy={async (_cfg, title) =>
+          handleCreateFromTemplate('custom', title, { scope: 'personal' })
+        }
         pageSize={4}
         isImportOpen={dashboardImport.isOpen}
         importFile={dashboardImport.file}

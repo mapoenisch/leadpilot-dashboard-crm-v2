@@ -77,6 +77,7 @@ export function DashboardSwitcherV2({
     onDeleteDashboard,
     onSaveCurrent,
     onShareWithTeam,
+    onOpenImport,
   });
 
   const {
@@ -297,8 +298,7 @@ export function DashboardSwitcherV2({
           onOpenImportDialog={
             onOpenImport
               ? () => {
-                  setIsOpen(false);
-                  onOpenImport();
+                  if (!isSaving) handleProtectedAction({ type: 'import' });
                 }
               : undefined
           }

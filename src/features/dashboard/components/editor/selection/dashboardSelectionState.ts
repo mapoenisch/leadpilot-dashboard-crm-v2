@@ -10,7 +10,8 @@ export type ActiveDialogType = null | 'new' | 'duplicate' | 'delete' | 'share';
 export type PendingSelectionAction =
   | { type: 'open'; id: string; title: string }
   | { type: 'new' }
-  | { type: 'delete'; id: string; title: string };
+  | { type: 'delete'; id: string; title: string }
+  | { type: 'import' };
 
 export interface UseDashboardSelectionParams {
   currentDashboard: StoredDashboardV2Row;
@@ -36,6 +37,7 @@ export interface UseDashboardSelectionParams {
     title: string,
     saveFirst?: boolean,
   ) => Promise<{ ok: boolean; error?: unknown }>;
+  onOpenImport?: () => void;
 }
 
 // Modulweiter Zwischenspeicher für Folgeaktionen, Ansagen, Fehler und Trigger-Fokus über Shell-Remounts hinweg (P09b / Codex P2)

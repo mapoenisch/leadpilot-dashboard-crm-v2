@@ -212,6 +212,40 @@ export function diffDashboardConfigsV2(
       if (!deepEqual(altTile.query, t.query)) {
         tilePfade.push({ pfad: 'query', alt: altTile.query, neu: t.query });
       }
+      if (!deepEqual(altTile.displayOptions, t.displayOptions)) {
+        tilePfade.push({
+          pfad: 'displayOptions',
+          alt: altTile.displayOptions,
+          neu: t.displayOptions,
+        });
+      }
+      if (!deepEqual(altTile.threshold, t.threshold)) {
+        tilePfade.push({ pfad: 'threshold', alt: altTile.threshold, neu: t.threshold });
+      }
+      if (altTile.timeframeOverride !== t.timeframeOverride) {
+        tilePfade.push({
+          pfad: 'timeframeOverride',
+          alt: altTile.timeframeOverride,
+          neu: t.timeframeOverride,
+        });
+      }
+      if (altTile.pipelineOverride !== t.pipelineOverride) {
+        tilePfade.push({
+          pfad: 'pipelineOverride',
+          alt: altTile.pipelineOverride,
+          neu: t.pipelineOverride,
+        });
+      }
+      if (altTile.aggregationOverride !== t.aggregationOverride) {
+        tilePfade.push({
+          pfad: 'aggregationOverride',
+          alt: altTile.aggregationOverride,
+          neu: t.aggregationOverride,
+        });
+      }
+      if (altTile.drilldownUrl !== t.drilldownUrl) {
+        tilePfade.push({ pfad: 'drilldownUrl', alt: altTile.drilldownUrl, neu: t.drilldownUrl });
+      }
 
       if (tilePfade.length > 0) {
         diffs.push({

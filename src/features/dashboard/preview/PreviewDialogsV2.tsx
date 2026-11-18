@@ -34,7 +34,11 @@ export interface PreviewDialogsV2Props {
   isDirty?: boolean;
   draftConfig?: DashboardConfigV2 | null;
   onCloseVersions: () => void;
-  onRestoreRevision: (targetRevision: number) => Promise<boolean>;
+  onRestoreRevision: (
+    targetRevision: number,
+    options?: { saveDraftAsCopy: boolean },
+  ) => Promise<boolean>;
+  onSaveAsCopy?: (config: DashboardConfigV2, title?: string) => Promise<unknown>;
   pageSize?: number;
 
   // Import
@@ -68,6 +72,7 @@ export function PreviewDialogsV2({
   draftConfig,
   onCloseVersions,
   onRestoreRevision,
+  onSaveAsCopy,
   pageSize = 4,
 
   isImportOpen,
@@ -108,6 +113,7 @@ export function PreviewDialogsV2({
             currentUserId="demo-user-preview"
             scope="personal"
             onRestoreRevision={onRestoreRevision}
+            onSaveAsCopy={onSaveAsCopy}
             pageSize={pageSize}
           />
         </Suspense>

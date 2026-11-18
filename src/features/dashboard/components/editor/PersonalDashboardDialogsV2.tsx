@@ -49,7 +49,14 @@ export interface PersonalDashboardDialogsV2Props {
   isDirty?: boolean;
   draftConfig?: import('../../model/dashboardConfigV2').DashboardConfigV2 | null;
   onCloseVersions: () => void;
-  onRestoreRevision: (targetRevision: number) => Promise<boolean>;
+  onRestoreRevision: (
+    targetRevision: number,
+    options?: { saveDraftAsCopy: boolean },
+  ) => Promise<boolean>;
+  onSaveAsCopy?: (
+    config: import('../../model/dashboardConfigV2').DashboardConfigV2,
+    title?: string,
+  ) => Promise<unknown>;
 
   // Import
   isImportOpen: boolean;
@@ -93,6 +100,7 @@ export function PersonalDashboardDialogsV2({
   draftConfig,
   onCloseVersions,
   onRestoreRevision,
+  onSaveAsCopy,
 
   isImportOpen,
   importFile,
@@ -153,6 +161,7 @@ export function PersonalDashboardDialogsV2({
             scope={dashboard.scope}
             teamName={dashboard.teamName}
             onRestoreRevision={onRestoreRevision}
+            onSaveAsCopy={onSaveAsCopy}
           />
         </Suspense>
       )}
