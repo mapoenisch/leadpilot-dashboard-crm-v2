@@ -32,10 +32,11 @@ export const TileThresholdBadge: React.FC<TileThresholdBadgeProps> = React.memo(
         data-testid="tile-threshold-badge"
         data-threshold-stufe={stufe}
         role="status"
+        tabIndex={0}
         aria-label={`Schwellenwert: ${text}`}
         title={text}
         className={cn(
-          'inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-medium leading-none select-none',
+          'inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-medium leading-none select-none cursor-help focus:outline-none focus:ring-1 focus:ring-primary',
           colorClasses,
           className,
         )}

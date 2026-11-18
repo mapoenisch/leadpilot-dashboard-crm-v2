@@ -81,6 +81,80 @@ function formatGermanNumber(num: number | undefined): string {
   return String(num).replace('.', ',');
 }
 
+interface ThresholdNumberInputProps {
+  fieldKey: string;
+  label: string;
+  unit: string;
+  numericValue: number | undefined;
+  errorMsg?: string;
+  isCritical?: boolean;
+  onChangeField: (feld: string, value: number | undefined) => void;
+}
+
+function ThresholdNumberInput({
+  fieldKey,
+  label,
+  unit,
+  numericValue,
+  errorMsg,
+  isCritical = false,
+  onChangeField,
+}: ThresholdNumberInputProps) {
+  const [text, setText] = React.useState(() => formatGermanNumber(numericValue));
+
+  React.useEffect(() => {
+    if (parseGermanNumber(text) !== numericValue) {
+      setText(formatGermanNumber(numericValue));
+    }
+  }, [numericValue, text]);
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-[11px]">
+        <label
+          htmlFor={`threshold-input-${fieldKey}`}
+          className={isCritical ? 'text-rose-300 font-medium' : 'text-amber-300 font-medium'}
+        >
+          {label}
+        </label>
+        {unit && <span className="text-[10px] text-[var(--color-text-muted)]">({unit})</span>}
+      </div>
+      <div className="relative">
+        <input
+          id={`threshold-input-${fieldKey}`}
+          data-testid={`threshold-${fieldKey}-input`}
+          type="text"
+          inputMode="decimal"
+          value={text}
+          onChange={(e) => {
+            const next = e.target.value;
+            setText(next);
+            onChangeField(fieldKey, parseGermanNumber(next));
+          }}
+          aria-invalid={Boolean(errorMsg)}
+          aria-describedby={errorMsg ? `threshold-error-${fieldKey}` : undefined}
+          className={`h-7 w-full rounded border px-2 text-xs text-white outline-none bg-black/40 ${
+            errorMsg
+              ? 'border-rose-500 ring-1 ring-rose-500/50'
+              : isCritical
+                ? 'border-rose-500/40 focus:border-rose-400'
+                : 'border-amber-500/40 focus:border-amber-400'
+          }`}
+        />
+      </div>
+      {errorMsg && (
+        <p
+          id={`threshold-error-${fieldKey}`}
+          data-testid={`threshold-error-${fieldKey}`}
+          className="text-[10px] text-rose-400 leading-tight"
+        >
+          {errorMsg}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export const ThresholdFormFields: React.FC<ThresholdFormFieldsProps> = ({
   art,
   rule,
@@ -89,64 +163,18 @@ export const ThresholdFormFields: React.FC<ThresholdFormFieldsProps> = ({
   onChangeField,
   currentValueFormatted,
 }) => {
-  const renderNumberInput = (
-    fieldKey: keyof ThresholdRuleV2,
-    label: string,
-    isCritical = false,
-  ) => {
-    const errorMsg = fieldError?.feld === fieldKey ? fieldError.grund : undefined;
-    const val = rule[fieldKey] as number | undefined;
-
-    return (
-      <div className="space-y-1">
-        <div className="flex items-center justify-between text-[11px]">
-          <label
-            htmlFor={`threshold-input-${fieldKey}`}
-            className={isCritical ? 'text-rose-300 font-medium' : 'text-amber-300 font-medium'}
-          >
-            {label}
-          </label>
-          {unit && <span className="text-[10px] text-[var(--color-text-muted)]">({unit})</span>}
-        </div>
-        <div className="relative">
-          <input
-            id={`threshold-input-${fieldKey}`}
-            data-testid={`threshold-${fieldKey}-input`}
-            type="text"
-            inputMode="decimal"
-            defaultValue={formatGermanNumber(val)}
-            key={`${fieldKey}-${val ?? 'empty'}`}
-            onBlur={(e) => {
-              const parsed = parseGermanNumber(e.target.value);
-              onChangeField(fieldKey as string, parsed);
-            }}
-            onChange={(e) => {
-              const parsed = parseGermanNumber(e.target.value);
-              onChangeField(fieldKey as string, parsed);
-            }}
-            aria-invalid={Boolean(errorMsg)}
-            aria-describedby={errorMsg ? `threshold-error-${fieldKey}` : undefined}
-            className={`h-7 w-full rounded border px-2 text-xs text-white outline-none bg-black/40 ${
-              errorMsg
-                ? 'border-rose-500 ring-1 ring-rose-500/50'
-                : isCritical
-                  ? 'border-rose-500/40 focus:border-rose-400'
-                  : 'border-amber-500/40 focus:border-amber-400'
-            }`}
-          />
-        </div>
-        {errorMsg && (
-          <p
-            id={`threshold-error-${fieldKey}`}
-            data-testid={`threshold-error-${fieldKey}`}
-            className="text-[10px] text-rose-400 leading-tight"
-          >
-            {errorMsg}
-          </p>
-        )}
-      </div>
-    );
-  };
+  const renderInput = (fieldKey: keyof ThresholdRuleV2, label: string, isCritical = false) => (
+    <ThresholdNumberInput
+      key={fieldKey}
+      fieldKey={fieldKey}
+      label={label}
+      unit={unit}
+      numericValue={rule[fieldKey] as number | undefined}
+      errorMsg={fieldError?.feld === fieldKey ? fieldError.grund : undefined}
+      isCritical={isCritical}
+      onChangeField={onChangeField}
+    />
+  );
 
   return (
     <div className="space-y-3">
@@ -157,29 +185,22 @@ export const ThresholdFormFields: React.FC<ThresholdFormFieldsProps> = ({
         </p>
       )}
 
-      {art === 'hoch_ist_schlecht' && (
+      {(art === 'hoch_ist_schlecht' || art === 'niedrig_ist_schlecht') && (
         <div className="grid grid-cols-2 gap-2">
-          {renderNumberInput('warnung', 'Warnung ab')}
-          {renderNumberInput('kritisch', 'Kritisch ab (optional)', true)}
-        </div>
-      )}
-
-      {art === 'niedrig_ist_schlecht' && (
-        <div className="grid grid-cols-2 gap-2">
-          {renderNumberInput('warnung', 'Warnung ab')}
-          {renderNumberInput('kritisch', 'Kritisch ab (optional)', true)}
+          {renderInput('warnung', 'Warnung ab')}
+          {renderInput('kritisch', 'Kritisch ab (optional)', true)}
         </div>
       )}
 
       {art === 'zielbereich' && (
         <div className="space-y-2">
           <div className="grid grid-cols-2 gap-2">
-            {renderNumberInput('untenWarnung', 'Warnung unter')}
-            {renderNumberInput('obenWarnung', 'Warnung über')}
+            {renderInput('untenWarnung', 'Warnung unter')}
+            {renderInput('obenWarnung', 'Warnung über')}
           </div>
           <div className="grid grid-cols-2 gap-2">
-            {renderNumberInput('untenKritisch', 'Kritisch unter (opt.)', true)}
-            {renderNumberInput('obenKritisch', 'Kritisch über (opt.)', true)}
+            {renderInput('untenKritisch', 'Kritisch unter (opt.)', true)}
+            {renderInput('obenKritisch', 'Kritisch über (opt.)', true)}
           </div>
         </div>
       )}

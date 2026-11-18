@@ -1,4 +1,4 @@
-import { useState, useId } from 'react';
+import { useState, useEffect, useMemo, useId } from 'react';
 import type { DashboardTileConfigV2, TileThresholdRule } from '../../../model/dashboardConfigV2';
 import type { ActiveCatalogEntry, CatalogEntry } from '../../../model/dashboardCatalog';
 import {
@@ -12,7 +12,7 @@ import {
 import { THRESHOLD_MESSAGES } from '../../../model/thresholdMessages';
 import { formatTileValue } from '../../tileFormat';
 import { ThresholdArtRadioGroup, ThresholdFormFields } from './threshold/ThresholdFormFields';
-import { ThresholdLegacyAlerts } from './threshold/ThresholdLegacyAlerts';
+import { ThresholdLegacyAlerts, ThresholdLivePreview } from './threshold/ThresholdLegacyAlerts';
 
 export interface InspectorThresholdTabProps {
   selectedTile: DashboardTileConfigV2;
@@ -20,6 +20,7 @@ export interface InspectorThresholdTabProps {
   currentValue?: number | null;
   catalogEntry?: ActiveCatalogEntry | CatalogEntry;
   isReadOnly?: boolean;
+  tileDataState?: string;
 }
 
 export function InspectorThresholdTab({
@@ -28,26 +29,37 @@ export function InspectorThresholdTab({
   currentValue,
   catalogEntry,
   isReadOnly = false,
+  tileDataState,
 }: InspectorThresholdTabProps) {
   const formId = useId();
   const shape = (catalogEntry as ActiveCatalogEntry)?.shape;
   const isSingleValue = !shape || ['einzelwert', 'verhaeltnis', 'anteil'].includes(shape);
   const unit = (catalogEntry as ActiveCatalogEntry)?.unit ?? '';
 
-  const initialRule = selectedTile.threshold;
-  const normalizedInitial = initialRule
-    ? normalizeLegacyThresholdRule(initialRule, catalogEntry)
-    : null;
-  const isLegacy = Boolean(initialRule && !isThresholdRuleV2(initialRule));
+  const currentThreshold = selectedTile.threshold;
+  const normalizedInitial = useMemo(
+    () => (currentThreshold ? normalizeLegacyThresholdRule(currentThreshold, catalogEntry) : null),
+    [currentThreshold, catalogEntry],
+  );
+  const isLegacy = Boolean(currentThreshold && !isThresholdRuleV2(currentThreshold));
   const isInvalidLegacy = Boolean(
     isLegacy && normalizedInitial && 'ungueltig' in normalizedInitial,
   );
 
   const [draft, setDraft] = useState<Partial<ThresholdRuleV2>>(() => {
-    if (initialRule && isThresholdRuleV2(initialRule)) return { ...initialRule };
+    if (currentThreshold && isThresholdRuleV2(currentThreshold)) return { ...currentThreshold };
     if (normalizedInitial && 'regel' in normalizedInitial) return { ...normalizedInitial.regel };
-    return { formatVersion: 2, enabled: true, art: 'hoch_ist_schlecht', einheit: unit };
+    const enabled = Boolean(currentThreshold?.enabled);
+    return { formatVersion: 2, enabled, art: 'hoch_ist_schlecht', einheit: unit };
   });
+
+  useEffect(() => {
+    if (currentThreshold && isThresholdRuleV2(currentThreshold)) setDraft({ ...currentThreshold });
+    else if (normalizedInitial && 'regel' in normalizedInitial)
+      setDraft({ ...normalizedInitial.regel });
+    else if (!currentThreshold)
+      setDraft({ formatVersion: 2, enabled: false, art: 'hoch_ist_schlecht', einheit: unit });
+  }, [currentThreshold, normalizedInitial, unit]);
 
   if (!isSingleValue) {
     return (
@@ -63,8 +75,8 @@ export function InspectorThresholdTab({
     return (
       <div data-testid="tab-content-schwellenwerte" className="space-y-3 p-2 text-xs">
         <h4 className="font-medium text-white">Schwellenwert-Regel</h4>
-        {initialRule && isThresholdRuleV2(initialRule) && initialRule.enabled ? (
-          <p className="text-[var(--color-text-soft)]">{describeThresholdV2(initialRule)}</p>
+        {currentThreshold && isThresholdRuleV2(currentThreshold) && currentThreshold.enabled ? (
+          <p className="text-[var(--color-text-soft)]">{describeThresholdV2(currentThreshold)}</p>
         ) : (
           <p className="text-[var(--color-text-muted)]">Keine Schwellenwert-Überwachung aktiv.</p>
         )}
@@ -77,12 +89,12 @@ export function InspectorThresholdTab({
   const fieldError = !validation.ok
     ? { feld: validation.feld, grund: validation.grund }
     : undefined;
-  const isEnabled = Boolean(selectedTile.threshold?.enabled);
+  const isEnabled = Boolean(draft.enabled);
 
   const previewEval = evaluateThresholdV2(
     { ...draft, formatVersion: 2, enabled: true, einheit: unit },
     currentValue,
-    'ok',
+    tileDataState ?? 'bereit',
     unit,
   );
   const valFormatted =
@@ -98,18 +110,9 @@ export function InspectorThresholdTab({
           data-testid="threshold-enable-toggle"
           checked={isEnabled}
           onChange={(e) => {
-            if (e.target.checked) {
-              const newRule: ThresholdRuleV2 = {
-                formatVersion: 2,
-                enabled: true,
-                art: draft.art ?? 'hoch_ist_schlecht',
-                einheit: unit,
-              };
-              setDraft(newRule);
-              onTileThresholdChange(selectedTile.id, newRule);
-            } else {
-              onTileThresholdChange(selectedTile.id, undefined);
-            }
+            const checked = e.target.checked;
+            setDraft((p) => ({ ...p, enabled: checked }));
+            if (!checked) onTileThresholdChange(selectedTile.id, undefined);
           }}
           className="rounded border-[var(--color-border,#1b3d39)]"
         />
@@ -153,17 +156,11 @@ export function InspectorThresholdTab({
             onChangeField={(f, v) => setDraft((p) => ({ ...p, [f]: v }))}
           />
 
-          <div
-            data-testid="threshold-live-preview"
-            className="rounded border border-white/5 bg-white/5 p-2 text-xs"
-          >
-            <span className="text-[var(--color-text-muted)]">Live-Vorschau: </span>
-            <span className="font-medium text-white">
-              {currentValue !== null && currentValue !== undefined
-                ? `Mit aktuellem Wert (${valFormatted}): ${previewEval.text}`
-                : 'Kein aktueller Wert vorhanden'}
-            </span>
-          </div>
+          <ThresholdLivePreview
+            currentValue={currentValue}
+            valFormatted={valFormatted}
+            previewText={previewEval.text}
+          />
 
           <button
             type="button"

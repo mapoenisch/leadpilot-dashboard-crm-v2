@@ -366,6 +366,7 @@ function TileInspectorContent({
             onTileThresholdChange={onTileThresholdChange}
             catalogEntry={catalogEntry}
             currentValue={currentTileValue}
+            tileDataState={tileData?.state}
           />
         )}
         {activeTab === 'interaktion' && (

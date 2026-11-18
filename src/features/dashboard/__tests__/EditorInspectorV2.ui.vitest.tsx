@@ -109,9 +109,16 @@ describe('EditorInspectorV2', () => {
 
     const toggle = screen.getByTestId('threshold-enable-toggle');
     fireEvent.click(toggle);
+
+    const warnInput = screen.getByTestId('threshold-warnung-input');
+    fireEvent.change(warnInput, { target: { value: '1000' } });
+
+    const applyBtn = screen.getByTestId('threshold-apply-btn');
+    fireEvent.click(applyBtn);
+
     expect(onTileThresholdChange).toHaveBeenCalledWith(
       'tile-arr-001',
-      expect.objectContaining({ enabled: true }),
+      expect.objectContaining({ enabled: true, warnung: 1000 }),
     );
 
     // Tab Interaktion

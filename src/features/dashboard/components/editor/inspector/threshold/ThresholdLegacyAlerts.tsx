@@ -41,3 +41,27 @@ export function ThresholdLegacyAlerts({
     </>
   );
 }
+
+export function ThresholdLivePreview({
+  currentValue,
+  valFormatted,
+  previewText,
+}: {
+  currentValue: number | null | undefined;
+  valFormatted: string | null;
+  previewText: string;
+}) {
+  return (
+    <div
+      data-testid="threshold-live-preview"
+      className="rounded border border-white/5 bg-white/5 p-2 text-xs"
+    >
+      <span className="text-[var(--color-text-muted)]">Live-Vorschau: </span>
+      <span className="font-medium text-white">
+        {currentValue !== null && currentValue !== undefined
+          ? `Mit aktuellem Wert (${valFormatted}): ${previewText}`
+          : 'Kein aktueller Wert vorhanden'}
+      </span>
+    </div>
+  );
+}

@@ -59,12 +59,18 @@ describe('InspectorThresholdTab (Auftrag 166 / P13a)', () => {
 
     fireEvent.click(toggle);
 
-    expect(onTileThresholdChange).toHaveBeenCalledWith('t-1', {
-      formatVersion: 2,
-      enabled: true,
-      art: 'hoch_ist_schlecht',
-      einheit: 'EUR',
-    });
+    // Codex finding 3: Die Aktivierung bleibt zunächst lokal, unvollständige Regeln werden nicht unvalidiert in die Config geschrieben
+    expect(toggle).toBeChecked();
+    expect(onTileThresholdChange).not.toHaveBeenCalled();
+
+    // Eingabefelder sind sichtbar und leer
+    const warnInput = screen.getByTestId('threshold-warnung-input') as HTMLInputElement;
+    expect(warnInput).toBeVisible();
+    expect(warnInput.value).toBe('');
+
+    // Übernehmen ist noch gesperrt (da Warnwert fehlt)
+    const applyBtn = screen.getByTestId('threshold-apply-btn');
+    expect(applyBtn).toBeDisabled();
   });
 
   it('sperrt Uebernehmen bei widerspruechlichen Grenzen (Kritisch <= Warnung) und zeigt Fehler am Feld', () => {
@@ -238,5 +244,110 @@ describe('InspectorThresholdTab (Auftrag 166 / P13a)', () => {
       art: 'hoch_ist_schlecht',
       einheit: 'EUR',
     });
+  });
+
+  it('Codex Finding 1: behaelt den DOM-Fokus beim Eintippen mehrstelliger Werte', () => {
+    const tileWithRule: DashboardTileConfigV2 = {
+      ...mockTile,
+      threshold: {
+        formatVersion: 2,
+        enabled: true,
+        art: 'hoch_ist_schlecht',
+        einheit: 'EUR',
+      },
+    };
+
+    render(
+      <InspectorThresholdTab
+        selectedTile={tileWithRule}
+        onTileThresholdChange={vi.fn()}
+        catalogEntry={mockCatalogEntry}
+      />,
+    );
+
+    const warnInput = screen.getByTestId('threshold-warnung-input') as HTMLInputElement;
+    warnInput.focus();
+    expect(document.activeElement).toBe(warnInput);
+
+    // Erste Ziffer tippen
+    fireEvent.change(warnInput, { target: { value: '1' } });
+    expect(document.activeElement).toBe(warnInput);
+
+    // Zweite Ziffer tippen
+    fireEvent.change(warnInput, { target: { value: '10' } });
+    expect(document.activeElement).toBe(warnInput);
+    expect(warnInput.value).toBe('10');
+  });
+
+  it('Codex Finding 2: synchronisiert den Formularentwurf bei Undo/Redo von aussen', () => {
+    const tileA: DashboardTileConfigV2 = {
+      ...mockTile,
+      threshold: {
+        formatVersion: 2,
+        enabled: true,
+        art: 'hoch_ist_schlecht',
+        einheit: 'EUR',
+        warnung: 500,
+      },
+    };
+
+    const { rerender } = render(
+      <InspectorThresholdTab
+        selectedTile={tileA}
+        onTileThresholdChange={vi.fn()}
+        catalogEntry={mockCatalogEntry}
+      />,
+    );
+
+    const warnInput = screen.getByTestId('threshold-warnung-input') as HTMLInputElement;
+    expect(warnInput.value).toBe('500');
+
+    // Undo-Simulation: Parent reicht zurueckgesetzten Schwellenwert herein
+    const tileAfterUndo: DashboardTileConfigV2 = {
+      ...mockTile,
+      threshold: {
+        formatVersion: 2,
+        enabled: true,
+        art: 'hoch_ist_schlecht',
+        einheit: 'EUR',
+        warnung: 200,
+      },
+    };
+
+    rerender(
+      <InspectorThresholdTab
+        selectedTile={tileAfterUndo}
+        onTileThresholdChange={vi.fn()}
+        catalogEntry={mockCatalogEntry}
+      />,
+    );
+
+    expect(warnInput.value).toBe('200');
+  });
+
+  it('Codex Finding 4: beruecksichtigt den Datenzustand in der Live-Vorschau (z. B. veraltet)', () => {
+    const tileWithRule: DashboardTileConfigV2 = {
+      ...mockTile,
+      threshold: {
+        formatVersion: 2,
+        enabled: true,
+        art: 'hoch_ist_schlecht',
+        einheit: 'EUR',
+        warnung: 100,
+      },
+    };
+
+    render(
+      <InspectorThresholdTab
+        selectedTile={tileWithRule}
+        onTileThresholdChange={vi.fn()}
+        catalogEntry={mockCatalogEntry}
+        currentValue={1234}
+        tileDataState="veraltet"
+      />,
+    );
+
+    const preview = screen.getByTestId('threshold-live-preview');
+    expect(preview).toHaveTextContent('Kachel veraltet');
   });
 });

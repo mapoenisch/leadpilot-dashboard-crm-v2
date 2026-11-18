@@ -100,7 +100,7 @@ export function LazyDashboardTile({
       className="min-w-0 relative h-full w-full"
     >
       {hasBadge && (
-        <div className="absolute top-3.5 right-4 z-10 pointer-events-none">
+        <div className="absolute top-3.5 right-4 z-10 pointer-events-auto">
           <TileThresholdBadge evaluation={evaluation} />
         </div>
       )}
