@@ -33,6 +33,8 @@ export function RestoreRevisionDialogV2({
   const dialogRef = useModalA11y<HTMLDivElement>({
     isOpen,
     onClose: onCancel,
+    // Während laufender Wiederherstellung kein Abbruch per Escape (Anfrage liefe sonst weiter).
+    closeOnEscape: !isSubmitting,
   });
 
   if (!isOpen) return null;

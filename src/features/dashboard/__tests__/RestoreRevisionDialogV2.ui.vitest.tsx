@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen, fireEvent } from '@testing-library/react';
 import { RestoreRevisionDialogV2 } from '../components/editor/versions/RestoreRevisionDialogV2';
 
 describe('RestoreRevisionDialogV2', () => {
@@ -93,5 +93,39 @@ describe('RestoreRevisionDialogV2', () => {
     const discardBtn = screen.getAllByTestId('restore-discard-button')[1]!;
     fireEvent.click(discardBtn);
     expect(handleRestoreDiscard).toHaveBeenCalledWith({ saveDraftAsCopy: false });
+  });
+  it('sperrt Escape während laufender Wiederherstellung (Codex P2)', async () => {
+    let resolveRestore: () => void = () => {};
+    const handleRestore = vi.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveRestore = resolve;
+        }),
+    );
+    const handleCancel = vi.fn();
+
+    render(
+      <RestoreRevisionDialogV2
+        isOpen={true}
+        targetRevision={1}
+        currentRevision={2}
+        isDirty={false}
+        onConfirmRestore={handleRestore}
+        onCancel={handleCancel}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId('confirm-restore-button'));
+    expect(handleRestore).toHaveBeenCalledTimes(1);
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(handleCancel).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveRestore();
+    });
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(handleCancel).toHaveBeenCalledTimes(1);
   });
 });

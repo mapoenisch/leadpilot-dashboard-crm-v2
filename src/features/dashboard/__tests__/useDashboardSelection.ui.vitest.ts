@@ -202,6 +202,54 @@ describe('useDashboardSelection Hook Tests', () => {
     );
   });
 
+  it('öffnet vorgemerkten Import nicht bei Re-Render während laufender Speicherung (Codex P2)', async () => {
+    let resolveSave: (ok: boolean) => void = () => {};
+    const onSaveCurrent = vi.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveSave = resolve;
+        }),
+    );
+    const onOpenImportFirst = vi.fn();
+    const baseParams = {
+      currentDashboard: currentDash,
+      dashboards: mockDashboards,
+      isDirty: true,
+      onOpenDashboard: vi.fn(),
+      onCreateFromTemplate: vi.fn(),
+      onDuplicateCurrent: vi.fn(),
+      onDeleteDashboard: vi.fn(),
+      onSaveCurrent,
+    };
+
+    const { result, rerender } = renderHook(
+      ({ onOpenImport }: { onOpenImport: () => void }) =>
+        useDashboardSelection({ ...baseParams, onOpenImport }),
+      { initialProps: { onOpenImport: onOpenImportFirst } },
+    );
+
+    act(() => {
+      result.current.handleProtectedAction({ type: 'import' });
+    });
+
+    let savePromise: Promise<void> = Promise.resolve();
+    act(() => {
+      savePromise = result.current.handleSaveAndProceed();
+    });
+
+    // Container rendert während der Speicherung neu (neuer openImport-Callback)
+    const onOpenImportSecond = vi.fn();
+    rerender({ onOpenImport: onOpenImportSecond });
+    expect(onOpenImportFirst).not.toHaveBeenCalled();
+    expect(onOpenImportSecond).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveSave(false);
+      await savePromise;
+    });
+    expect(onOpenImportSecond).not.toHaveBeenCalled();
+  });
+
   it('bewahrt Folgeaktion über Speicher-Remount hinweg auf (P2 Finding 1)', async () => {
     const onSaveCurrent = vi.fn().mockResolvedValue(true);
 

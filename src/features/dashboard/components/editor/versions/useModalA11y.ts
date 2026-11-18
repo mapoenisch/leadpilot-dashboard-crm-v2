@@ -22,6 +22,13 @@ export function useModalA11y<T extends HTMLElement = HTMLDivElement>({
 }: UseModalA11yOptions) {
   const containerRef = useRef<T>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
+  // Aktuelle Werte per Ref, damit wechselnde Callbacks/Sperren den Fokus-Effekt nicht neu starten.
+  const onCloseRef = useRef(onClose);
+  const closeOnEscapeRef = useRef(closeOnEscape);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+    closeOnEscapeRef.current = closeOnEscape;
+  }, [onClose, closeOnEscape]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -48,10 +55,10 @@ export function useModalA11y<T extends HTMLElement = HTMLDivElement>({
     }, 50);
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (closeOnEscape && e.key === 'Escape') {
+      if (closeOnEscapeRef.current && e.key === 'Escape') {
         e.stopPropagation();
         e.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
 
@@ -99,7 +106,7 @@ export function useModalA11y<T extends HTMLElement = HTMLDivElement>({
         triggerRef.current.focus();
       }
     };
-  }, [isOpen, onClose, initialFocusSelector, closeOnEscape]);
+  }, [isOpen, initialFocusSelector]);
 
   return containerRef;
 }

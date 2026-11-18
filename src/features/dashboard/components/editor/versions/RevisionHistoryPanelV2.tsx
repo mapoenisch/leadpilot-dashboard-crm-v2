@@ -80,11 +80,16 @@ export function RevisionHistoryPanelV2({
 
   // Wiederherstellungs-Dialog
   const [restoreTargetRevision, setRestoreTargetRevision] = useState<number | null>(null);
+  const [isRestoring, setIsRestoring] = useState(false);
+  // Während laufender Wiederherstellung bleibt der Versionsbereich geschlossen-gesperrt.
+  const guardedClose = () => {
+    if (!isRestoring) onClose();
+  };
 
   const panelRef = useModalA11y<HTMLDivElement>({
     isOpen,
-    onClose,
-    closeOnEscape: restoreTargetRevision === null,
+    onClose: guardedClose,
+    closeOnEscape: restoreTargetRevision === null && !isRestoring,
   });
 
   if (!isOpen) return null;
@@ -160,7 +165,13 @@ export function RevisionHistoryPanelV2({
 
   const handleConfirmRestore = async (options: { saveDraftAsCopy: boolean }) => {
     if (restoreTargetRevision == null) return;
-    const success = await onRestoreRevision(restoreTargetRevision, options);
+    setIsRestoring(true);
+    let success = false;
+    try {
+      success = await onRestoreRevision(restoreTargetRevision, options);
+    } finally {
+      setIsRestoring(false);
+    }
     if (success) {
       setRestoreTargetRevision(null);
       setComparing(null);
@@ -187,7 +198,8 @@ export function RevisionHistoryPanelV2({
           <button
             type="button"
             data-testid="close-versions-panel"
-            onClick={onClose}
+            onClick={guardedClose}
+            disabled={isRestoring}
             className="rounded p-1 text-[var(--color-text-muted)] hover:text-white transition-colors focus:ring-1 focus:ring-primary"
             aria-label="Versionsbereich schließen"
           >

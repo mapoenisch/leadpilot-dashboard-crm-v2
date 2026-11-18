@@ -147,8 +147,12 @@ export function useDashboardSelection({
     }
   }, [pendingAction, executeAction]);
 
-  // Folgeaktion nach Mount (z. B. nach Speicher-Remount bei type === 'open') ausführen
+  // Folgeaktion nur einmal nach Mount (Remount nach erfolgreichem Speichern) ausführen, nie bei
+  // Re-Renders während laufender Speicherung (sonst Import trotz späterem Speicherfehler offen).
+  const followUpCheckedRef = useRef(false);
   useEffect(() => {
+    if (followUpCheckedRef.current) return;
+    followUpCheckedRef.current = true;
     const act = getPendingFollowUpSelectionAction();
     if (act) {
       if (act.type === 'new' || act.type === 'delete') {
