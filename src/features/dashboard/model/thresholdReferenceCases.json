@@ -1,0 +1,868 @@
+[
+  {
+    "id": "hoch-01",
+    "beschreibung": "hoch_ist_schlecht: Wert knapp unter Warnung -> normal",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 200,
+      "kritisch": 500
+    },
+    "wert": 199.99,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "normal" }
+  },
+  {
+    "id": "hoch-02",
+    "beschreibung": "hoch_ist_schlecht: Wert exakt auf Warnung -> warnung",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 200,
+      "kritisch": 500
+    },
+    "wert": 200,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "warnung", "grenze": 200 }
+  },
+  {
+    "id": "hoch-03",
+    "beschreibung": "hoch_ist_schlecht: Wert knapp ueber Warnung -> warnung",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 200,
+      "kritisch": 500
+    },
+    "wert": 200.01,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "warnung", "grenze": 200 }
+  },
+  {
+    "id": "hoch-04",
+    "beschreibung": "hoch_ist_schlecht: Wert knapp unter Kritisch -> warnung",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 200,
+      "kritisch": 500
+    },
+    "wert": 499.99,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "warnung", "grenze": 200 }
+  },
+  {
+    "id": "hoch-05",
+    "beschreibung": "hoch_ist_schlecht: Wert exakt auf Kritisch -> kritisch",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 200,
+      "kritisch": 500
+    },
+    "wert": 500,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "kritisch", "grenze": 500 }
+  },
+  {
+    "id": "hoch-06",
+    "beschreibung": "hoch_ist_schlecht: Wert ueber Kritisch -> kritisch",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 200,
+      "kritisch": 500
+    },
+    "wert": 500.01,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "kritisch", "grenze": 500 }
+  },
+  {
+    "id": "hoch-07",
+    "beschreibung": "hoch_ist_schlecht: Wert 0 -> normal",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 200,
+      "kritisch": 500
+    },
+    "wert": 0,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "normal" }
+  },
+  {
+    "id": "hoch-08",
+    "beschreibung": "hoch_ist_schlecht: negativer Wert (-50) -> normal",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 200,
+      "kritisch": 500
+    },
+    "wert": -50,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "normal" }
+  },
+  {
+    "id": "hoch-ohne-kritisch-01",
+    "beschreibung": "hoch_ist_schlecht ohne Kritisch: unter Warnung -> normal",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "%",
+      "warnung": 100
+    },
+    "wert": 99.9,
+    "zustand": "ok",
+    "einheit": "%",
+    "erwartet": { "stufe": "normal" }
+  },
+  {
+    "id": "hoch-ohne-kritisch-02",
+    "beschreibung": "hoch_ist_schlecht ohne Kritisch: exakt Warnung -> warnung",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "%",
+      "warnung": 100
+    },
+    "wert": 100,
+    "zustand": "ok",
+    "einheit": "%",
+    "erwartet": { "stufe": "warnung", "grenze": 100 }
+  },
+  {
+    "id": "hoch-ohne-kritisch-03",
+    "beschreibung": "hoch_ist_schlecht ohne Kritisch: ueber Warnung -> warnung",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "%",
+      "warnung": 100
+    },
+    "wert": 150,
+    "zustand": "ok",
+    "einheit": "%",
+    "erwartet": { "stufe": "warnung", "grenze": 100 }
+  },
+  {
+    "id": "niedrig-01",
+    "beschreibung": "niedrig_ist_schlecht: Wert knapp ueber Warnung -> normal",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "niedrig_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 50,
+      "kritisch": 20
+    },
+    "wert": 50.01,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "normal" }
+  },
+  {
+    "id": "niedrig-02",
+    "beschreibung": "niedrig_ist_schlecht: Wert exakt auf Warnung -> warnung",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "niedrig_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 50,
+      "kritisch": 20
+    },
+    "wert": 50,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "warnung", "grenze": 50 }
+  },
+  {
+    "id": "niedrig-03",
+    "beschreibung": "niedrig_ist_schlecht: Wert knapp unter Warnung -> warnung",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "niedrig_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 50,
+      "kritisch": 20
+    },
+    "wert": 49.99,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "warnung", "grenze": 50 }
+  },
+  {
+    "id": "niedrig-04",
+    "beschreibung": "niedrig_ist_schlecht: Wert knapp ueber Kritisch -> warnung",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "niedrig_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 50,
+      "kritisch": 20
+    },
+    "wert": 20.01,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "warnung", "grenze": 50 }
+  },
+  {
+    "id": "niedrig-05",
+    "beschreibung": "niedrig_ist_schlecht: Wert exakt auf Kritisch -> kritisch",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "niedrig_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 50,
+      "kritisch": 20
+    },
+    "wert": 20,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "kritisch", "grenze": 20 }
+  },
+  {
+    "id": "niedrig-06",
+    "beschreibung": "niedrig_ist_schlecht: Wert unter Kritisch -> kritisch",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "niedrig_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 50,
+      "kritisch": 20
+    },
+    "wert": 19.99,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "kritisch", "grenze": 20 }
+  },
+  {
+    "id": "niedrig-07",
+    "beschreibung": "niedrig_ist_schlecht: Wert 0 -> kritisch",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "niedrig_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 50,
+      "kritisch": 20
+    },
+    "wert": 0,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "kritisch", "grenze": 20 }
+  },
+  {
+    "id": "niedrig-08",
+    "beschreibung": "niedrig_ist_schlecht: negativer Wert (-10) -> kritisch",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "niedrig_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 50,
+      "kritisch": 20
+    },
+    "wert": -10,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "kritisch", "grenze": 20 }
+  },
+  {
+    "id": "niedrig-neg-01",
+    "beschreibung": "niedrig_ist_schlecht mit negativen Grenzen: ueber Warnung (-5) -> normal",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "niedrig_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": -10,
+      "kritisch": -30
+    },
+    "wert": -5,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "normal" }
+  },
+  {
+    "id": "niedrig-neg-02",
+    "beschreibung": "niedrig_ist_schlecht mit negativen Grenzen: exakt Warnung (-10) -> warnung",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "niedrig_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": -10,
+      "kritisch": -30
+    },
+    "wert": -10,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "warnung", "grenze": -10 }
+  },
+  {
+    "id": "niedrig-neg-03",
+    "beschreibung": "niedrig_ist_schlecht mit negativen Grenzen: zwischen Grenzen (-20) -> warnung",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "niedrig_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": -10,
+      "kritisch": -30
+    },
+    "wert": -20,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "warnung", "grenze": -10 }
+  },
+  {
+    "id": "niedrig-neg-04",
+    "beschreibung": "niedrig_ist_schlecht mit negativen Grenzen: exakt Kritisch (-30) -> kritisch",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "niedrig_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": -10,
+      "kritisch": -30
+    },
+    "wert": -30,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "kritisch", "grenze": -30 }
+  },
+  {
+    "id": "niedrig-neg-05",
+    "beschreibung": "niedrig_ist_schlecht mit negativen Grenzen: unter Kritisch (-40) -> kritisch",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "niedrig_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": -10,
+      "kritisch": -30
+    },
+    "wert": -40,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "kritisch", "grenze": -30 }
+  },
+  {
+    "id": "ziel-01",
+    "beschreibung": "zielbereich voll: unter untenKritisch -> kritisch",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "zielbereich",
+      "einheit": "%",
+      "untenKritisch": 10,
+      "untenWarnung": 20,
+      "obenWarnung": 80,
+      "obenKritisch": 90
+    },
+    "wert": 9,
+    "zustand": "ok",
+    "einheit": "%",
+    "erwartet": { "stufe": "kritisch", "grenze": 10 }
+  },
+  {
+    "id": "ziel-02",
+    "beschreibung": "zielbereich voll: exakt untenKritisch -> kritisch",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "zielbereich",
+      "einheit": "%",
+      "untenKritisch": 10,
+      "untenWarnung": 20,
+      "obenWarnung": 80,
+      "obenKritisch": 90
+    },
+    "wert": 10,
+    "zustand": "ok",
+    "einheit": "%",
+    "erwartet": { "stufe": "kritisch", "grenze": 10 }
+  },
+  {
+    "id": "ziel-03",
+    "beschreibung": "zielbereich voll: knapp ueber untenKritisch -> warnung",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "zielbereich",
+      "einheit": "%",
+      "untenKritisch": 10,
+      "untenWarnung": 20,
+      "obenWarnung": 80,
+      "obenKritisch": 90
+    },
+    "wert": 10.01,
+    "zustand": "ok",
+    "einheit": "%",
+    "erwartet": { "stufe": "warnung", "grenze": 20 }
+  },
+  {
+    "id": "ziel-04",
+    "beschreibung": "zielbereich voll: knapp unter untenWarnung -> warnung",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "zielbereich",
+      "einheit": "%",
+      "untenKritisch": 10,
+      "untenWarnung": 20,
+      "obenWarnung": 80,
+      "obenKritisch": 90
+    },
+    "wert": 19.99,
+    "zustand": "ok",
+    "einheit": "%",
+    "erwartet": { "stufe": "warnung", "grenze": 20 }
+  },
+  {
+    "id": "ziel-05",
+    "beschreibung": "zielbereich voll: exakt untenWarnung -> normal",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "zielbereich",
+      "einheit": "%",
+      "untenKritisch": 10,
+      "untenWarnung": 20,
+      "obenWarnung": 80,
+      "obenKritisch": 90
+    },
+    "wert": 20,
+    "zustand": "ok",
+    "einheit": "%",
+    "erwartet": { "stufe": "normal" }
+  },
+  {
+    "id": "ziel-06",
+    "beschreibung": "zielbereich voll: Mitte (50) -> normal",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "zielbereich",
+      "einheit": "%",
+      "untenKritisch": 10,
+      "untenWarnung": 20,
+      "obenWarnung": 80,
+      "obenKritisch": 90
+    },
+    "wert": 50,
+    "zustand": "ok",
+    "einheit": "%",
+    "erwartet": { "stufe": "normal" }
+  },
+  {
+    "id": "ziel-07",
+    "beschreibung": "zielbereich voll: exakt obenWarnung -> normal",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "zielbereich",
+      "einheit": "%",
+      "untenKritisch": 10,
+      "untenWarnung": 20,
+      "obenWarnung": 80,
+      "obenKritisch": 90
+    },
+    "wert": 80,
+    "zustand": "ok",
+    "einheit": "%",
+    "erwartet": { "stufe": "normal" }
+  },
+  {
+    "id": "ziel-08",
+    "beschreibung": "zielbereich voll: knapp ueber obenWarnung -> warnung",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "zielbereich",
+      "einheit": "%",
+      "untenKritisch": 10,
+      "untenWarnung": 20,
+      "obenWarnung": 80,
+      "obenKritisch": 90
+    },
+    "wert": 80.01,
+    "zustand": "ok",
+    "einheit": "%",
+    "erwartet": { "stufe": "warnung", "grenze": 80 }
+  },
+  {
+    "id": "ziel-09",
+    "beschreibung": "zielbereich voll: knapp unter obenKritisch -> warnung",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "zielbereich",
+      "einheit": "%",
+      "untenKritisch": 10,
+      "untenWarnung": 20,
+      "obenWarnung": 80,
+      "obenKritisch": 90
+    },
+    "wert": 89.99,
+    "zustand": "ok",
+    "einheit": "%",
+    "erwartet": { "stufe": "warnung", "grenze": 80 }
+  },
+  {
+    "id": "ziel-10",
+    "beschreibung": "zielbereich voll: exakt obenKritisch -> kritisch",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "zielbereich",
+      "einheit": "%",
+      "untenKritisch": 10,
+      "untenWarnung": 20,
+      "obenWarnung": 80,
+      "obenKritisch": 90
+    },
+    "wert": 90,
+    "zustand": "ok",
+    "einheit": "%",
+    "erwartet": { "stufe": "kritisch", "grenze": 90 }
+  },
+  {
+    "id": "ziel-11",
+    "beschreibung": "zielbereich voll: ueber obenKritisch -> kritisch",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "zielbereich",
+      "einheit": "%",
+      "untenKritisch": 10,
+      "untenWarnung": 20,
+      "obenWarnung": 80,
+      "obenKritisch": 90
+    },
+    "wert": 91,
+    "zustand": "ok",
+    "einheit": "%",
+    "erwartet": { "stufe": "kritisch", "grenze": 90 }
+  },
+  {
+    "id": "ziel-nur-warn-01",
+    "beschreibung": "zielbereich nur Warngrenzen: unter untenWarnung -> warnung",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "zielbereich",
+      "einheit": "x",
+      "untenWarnung": 15,
+      "obenWarnung": 25
+    },
+    "wert": 10,
+    "zustand": "ok",
+    "einheit": "x",
+    "erwartet": { "stufe": "warnung", "grenze": 15 }
+  },
+  {
+    "id": "ziel-nur-warn-02",
+    "beschreibung": "zielbereich nur Warngrenzen: exakt untenWarnung -> normal",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "zielbereich",
+      "einheit": "x",
+      "untenWarnung": 15,
+      "obenWarnung": 25
+    },
+    "wert": 15,
+    "zustand": "ok",
+    "einheit": "x",
+    "erwartet": { "stufe": "normal" }
+  },
+  {
+    "id": "ziel-nur-warn-03",
+    "beschreibung": "zielbereich nur Warngrenzen: Mitte (20) -> normal",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "zielbereich",
+      "einheit": "x",
+      "untenWarnung": 15,
+      "obenWarnung": 25
+    },
+    "wert": 20,
+    "zustand": "ok",
+    "einheit": "x",
+    "erwartet": { "stufe": "normal" }
+  },
+  {
+    "id": "ziel-nur-warn-04",
+    "beschreibung": "zielbereich nur Warngrenzen: exakt obenWarnung -> normal",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "zielbereich",
+      "einheit": "x",
+      "untenWarnung": 15,
+      "obenWarnung": 25
+    },
+    "wert": 25,
+    "zustand": "ok",
+    "einheit": "x",
+    "erwartet": { "stufe": "normal" }
+  },
+  {
+    "id": "ziel-nur-warn-05",
+    "beschreibung": "zielbereich nur Warngrenzen: ueber obenWarnung -> warnung",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "zielbereich",
+      "einheit": "x",
+      "untenWarnung": 15,
+      "obenWarnung": 25
+    },
+    "wert": 25.01,
+    "zustand": "ok",
+    "einheit": "x",
+    "erwartet": { "stufe": "warnung", "grenze": 25 }
+  },
+  {
+    "id": "daten-01",
+    "beschreibung": "Messwert null -> keine_daten",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 100
+    },
+    "wert": null,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "keine_daten" }
+  },
+  {
+    "id": "daten-02",
+    "beschreibung": "Messwert NaN -> nicht_bewertet",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 100
+    },
+    "wert": "NaN",
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "nicht_bewertet" }
+  },
+  {
+    "id": "daten-03",
+    "beschreibung": "Messwert Infinity -> nicht_bewertet",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 100
+    },
+    "wert": "Infinity",
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "nicht_bewertet" }
+  },
+  {
+    "id": "daten-04",
+    "beschreibung": "Messwert -Infinity -> nicht_bewertet",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 100
+    },
+    "wert": "-Infinity",
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "nicht_bewertet" }
+  },
+  {
+    "id": "zustand-01",
+    "beschreibung": "Kachelzustand fehler -> nicht_bewertet",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 100
+    },
+    "wert": 200,
+    "zustand": "fehler",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "nicht_bewertet" }
+  },
+  {
+    "id": "zustand-02",
+    "beschreibung": "Kachelzustand veraltet -> nicht_bewertet",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 100
+    },
+    "wert": 200,
+    "zustand": "veraltet",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "nicht_bewertet" }
+  },
+  {
+    "id": "zustand-03",
+    "beschreibung": "Kachelzustand offline -> nicht_bewertet",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 100
+    },
+    "wert": 200,
+    "zustand": "offline",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "nicht_bewertet" }
+  },
+  {
+    "id": "regel-inaktiv-01",
+    "beschreibung": "Regel nicht aktiviert (enabled: false) -> nicht_bewertet",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": false,
+      "art": "hoch_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 100
+    },
+    "wert": 200,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "nicht_bewertet" }
+  },
+  {
+    "id": "alt-gt-01",
+    "beschreibung": "Altregel gt: warnung 100, kritisch 200, wert 150 -> warnung",
+    "regel": { "enabled": true, "operator": "gt", "warningValue": 100, "criticalValue": 200 },
+    "wert": 150,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "warnung", "grenze": 100 }
+  },
+  {
+    "id": "alt-gte-01",
+    "beschreibung": "Altregel gte: warnung 100, wert 100 -> warnung",
+    "regel": { "enabled": true, "operator": "gte", "warningValue": 100 },
+    "wert": 100,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "warnung", "grenze": 100 }
+  },
+  {
+    "id": "alt-lt-01",
+    "beschreibung": "Altregel lt: warnung 50, kritisch 10, wert 50 -> warnung",
+    "regel": { "enabled": true, "operator": "lt", "warningValue": 50, "criticalValue": 10 },
+    "wert": 50,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "warnung", "grenze": 50 }
+  },
+  {
+    "id": "alt-lte-01",
+    "beschreibung": "Altregel lte: warnung 50, kritisch 10, wert 10 -> kritisch",
+    "regel": { "enabled": true, "operator": "lte", "warningValue": 50, "criticalValue": 10 },
+    "wert": 10,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "kritisch", "grenze": 10 }
+  },
+  {
+    "id": "alt-eq-01",
+    "beschreibung": "Altregel eq -> regel_ungueltig",
+    "regel": { "enabled": true, "operator": "eq", "warningValue": 100 },
+    "wert": 100,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "regel_ungueltig" }
+  },
+  {
+    "id": "alt-between-01",
+    "beschreibung": "Altregel between -> regel_ungueltig",
+    "regel": { "enabled": true, "operator": "between", "warningValue": 100, "criticalValue": 200 },
+    "wert": 150,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "regel_ungueltig" }
+  },
+  {
+    "id": "alt-invalid-01",
+    "beschreibung": "Altregel ohne warningValue -> regel_ungueltig",
+    "regel": { "enabled": true, "operator": "gt" },
+    "wert": 150,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "regel_ungueltig" }
+  },
+  {
+    "id": "alt-invalid-02",
+    "beschreibung": "Altregel mit kritisch <= warnung bei gt -> regel_ungueltig",
+    "regel": { "enabled": true, "operator": "gt", "warningValue": 200, "criticalValue": 100 },
+    "wert": 150,
+    "zustand": "ok",
+    "einheit": "EUR",
+    "erwartet": { "stufe": "regel_ungueltig" }
+  },
+  {
+    "id": "einheit-01",
+    "beschreibung": "Einheitenwechsel zwischen Regel (EUR) und Katalog (%) -> regel_ungueltig",
+    "regel": {
+      "formatVersion": 2,
+      "enabled": true,
+      "art": "hoch_ist_schlecht",
+      "einheit": "EUR",
+      "warnung": 100
+    },
+    "wert": 150,
+    "zustand": "ok",
+    "einheit": "%",
+    "erwartet": { "stufe": "regel_ungueltig" }
+  }
+]

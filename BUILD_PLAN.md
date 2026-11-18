@@ -2,7 +2,7 @@
 
 **Stand:** 18.11.2026
 
-**Aktueller Auftrag:** Auftrag 165 – Dashboard-Editor: Versionshistorie, Vergleich, Wiederherstellen, Import/Export (P12; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_165_VERSIONEN_VERGLEICH_IMPORT_EXPORT.md`; Branch `auftrag-165-versionen-import-export`; Builder Antigravity, Prüfer Codex; Status: PR ERÖFFNET). Zuletzt: 164 Restpunkte aus 161 (161R, schließt P10; PR #203), 163 Team-Freigaben in der Oberfläche (P11b; PR #202 gemergt als `2ab7cdc4`), 162 Team-Freigaben im Server (P11a; PR #197 gemergt als `00ab4db5`), 161 Analysezeitpunkt, Zeitfenster je Kachel, Fadenkreuz (P10b-2; PR #196).
+**Aktueller Auftrag:** Auftrag 166 – Dashboard-Editor: Schwellenwerte auf Kacheln, Alarmfähigkeit je KPI, Betriebsweg für Alarme (P13a; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_166_SCHWELLENWERTE_ALARMFAEHIGKEIT.md`; Branch `auftrag-166-schwellenwerte-alarmfaehigkeit`; Builder Antigravity, Prüfer Codex; Status: PR ERÖFFNET). Zuletzt: 165 Versionshistorie, Vergleich, Wiederherstellen, Import/Export (P12; PR #204 gemergt als `f38d0d21`), 164 Restpunkte aus 161 (161R, schließt P10; PR #203), 163 Team-Freigaben in der Oberfläche (P11b; PR #202 gemergt als `2ab7cdc4`), 162 Team-Freigaben im Server (P11a; PR #197 gemergt als `00ab4db5`), 161 Analysezeitpunkt, Zeitfenster je Kachel, Fadenkreuz (P10b-2; PR #196).
 
 **Betriebsregel Live-Feed:** Am 14.11.2026 durch Marc aufgehoben (Edge Function und Migrationen seit 14.11.2026 online; echte Kennzahlen dürfen über den mandantengebundenen Feed eingespeist werden).
 **Offen nach dem v3.1.0-Rollout (10./11.11.2026):**

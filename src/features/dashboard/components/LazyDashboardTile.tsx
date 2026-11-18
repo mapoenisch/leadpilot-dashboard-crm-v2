@@ -1,13 +1,18 @@
 // Executive Dashboard, Teilauftrag 5 (Auftrag 074): Kachel mit Lazy-Aktivierung. Daten werden erst
 // abgefragt, wenn die Kachel im Bereich war; Filter gelten erst bei Annäherung, damit außerhalb
 // des Bereichs keine Abfrage startet und unter einem neuen Filter keine alten Daten stehen.
-import { useEffect, useRef } from 'react';
+// Auftrag 166 (P13a): Schwellenwert-Bewertung und Badge-Anzeige auf der Kachel.
+import { useEffect, useMemo, useRef } from 'react';
+import { cn } from '@/lib/utils';
 import type { DashboardFilters, DashboardTileConfig } from '../model/dashboardConfig';
+import type { TileThresholdRule } from '../model/thresholdRuleV2';
+import { evaluateThresholdV2 } from '../model/thresholdRuleV2';
 import type { TileData } from '../data/dashboardData';
 import { activeEntryOf } from '../hooks/dashboardEditorReducer';
 import { useTileActivation } from '../hooks/useTileActivation';
 import type { ChartLoaders } from './charts/chartLoaders';
 import { DashboardTile } from './DashboardTile';
+import { TileThresholdBadge } from './TileThresholdBadge';
 
 export type TileDataHook = (
   tile: DashboardTileConfig,
@@ -26,6 +31,8 @@ export interface LazyDashboardTileProps {
   suspended?: boolean;
   onRetryChartLoad?: () => void;
   chartLoaders?: ChartLoaders;
+  /** Auftrag 166 (P13a): Schwellenwert-Regel der Kachel */
+  threshold?: TileThresholdRule;
 }
 
 export function LazyDashboardTile({
@@ -38,6 +45,7 @@ export function LazyDashboardTile({
   suspended = false,
   onRetryChartLoad,
   chartLoaders,
+  threshold,
 }: LazyDashboardTileProps) {
   const { ref, near, active, activate } = useTileActivation();
   const lastApplied = useRef(filters);
@@ -54,6 +62,34 @@ export function LazyDashboardTile({
     if (active) notify.current?.(tile.tileId);
   }, [active, tile.tileId]);
 
+  const entry = activeEntryOf(tile);
+  const effectiveThreshold = threshold ?? (tile as { threshold?: TileThresholdRule }).threshold;
+  const isSingleValue = entry
+    ? ['einzelwert', 'verhaeltnis', 'anteil'].includes(entry.shape)
+    : true;
+  const singleValue =
+    isSingleValue && data && (data.state === 'bereit' || data.state === 'veraltet')
+      ? data.value
+      : null;
+
+  const evaluation = useMemo(() => {
+    if (!effectiveThreshold || !isSingleValue) return undefined;
+    return evaluateThresholdV2(effectiveThreshold, singleValue, data?.state, entry?.unit);
+  }, [effectiveThreshold, isSingleValue, singleValue, data?.state, entry?.unit]);
+
+  const borderClass =
+    evaluation?.stufe === 'kritisch'
+      ? 'border-l-2 border-l-rose-500'
+      : evaluation?.stufe === 'warnung'
+        ? 'border-l-2 border-l-amber-400'
+        : '';
+
+  const hasBadge =
+    evaluation &&
+    (evaluation.stufe === 'warnung' ||
+      evaluation.stufe === 'kritisch' ||
+      evaluation.stufe === 'regel_ungueltig');
+
   return (
     <div
       ref={ref}
@@ -61,17 +97,23 @@ export function LazyDashboardTile({
       data-testid="lazy-tile"
       data-tile-id={tile.tileId}
       data-active={String(active)}
-      className="min-w-0"
+      className="min-w-0 relative h-full w-full"
     >
+      {hasBadge && (
+        <div className="absolute top-3.5 right-4 z-10 pointer-events-none">
+          <TileThresholdBadge evaluation={evaluation} />
+        </div>
+      )}
       <DashboardTile
         tile={tile}
-        entry={activeEntryOf(tile)}
+        entry={entry}
         data={data}
         onShowDetails={onShowDetails}
         detailsBlocked={detailsBlocked}
         onRetryChartLoad={onRetryChartLoad}
         chartLoaders={chartLoaders}
         dashboardFilters={filters}
+        className={cn(borderClass)}
       />
     </div>
   );

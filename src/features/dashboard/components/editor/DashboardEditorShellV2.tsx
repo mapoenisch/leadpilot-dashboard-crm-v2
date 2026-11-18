@@ -301,6 +301,7 @@ function DashboardEditorShellBody({
             onMoveTileToSection={sectionActions.handleMoveTileToSection}
             onExpandSection={(secId) => sectionActions.handleToggleCollapse(secId)}
             isSectionCollapsed={sectionActions.isSectionCollapsed}
+            useData={useData}
           />
         )}
       </div>

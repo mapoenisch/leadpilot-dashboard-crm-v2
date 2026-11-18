@@ -320,6 +320,7 @@ export function CanvasTileCard({
           useData={useData}
           onShowDetails={onShowDetails}
           detailsBlocked={!isPreviewMode}
+          threshold={tile.threshold}
         />
       </div>
     </div>

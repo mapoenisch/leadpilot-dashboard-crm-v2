@@ -47,11 +47,17 @@ export function DashboardEditorPreviewV2() {
     return new URLSearchParams(window.location.search).get('versionen') === '1';
   });
 
+  const [schwellenwerteScenario] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return new URLSearchParams(window.location.search).get('schwellenwerte') === '1';
+  });
+
   const [dashboards, setDashboards] = useState<AccessibleDashboardListItemV2[]>(() =>
-    initPreviewDashboards(Boolean(versionenScenario), teamsScenario),
+    initPreviewDashboards(Boolean(versionenScenario), teamsScenario, schwellenwerteScenario),
   );
 
   const [activeDashboardId, setActiveDashboardId] = useState<string>(() => {
+    if (schwellenwerteScenario) return 'preview_thresholds_dashboard';
     if (versionenScenario) return PREVIEW_VERSIONS_DASHBOARD_ID;
     if (teamsScenario === 'entzogen') return 'preview_team_dash_write';
     return 'preview_v2_dashboard';
@@ -69,7 +75,7 @@ export function DashboardEditorPreviewV2() {
   const [liveStore] = useState(() => createPreviewLiveStore(liveScenario));
 
   const [config, setConfig] = useState<DashboardConfigV2>(() =>
-    initPreviewConfig(Boolean(versionenScenario), teamsScenario),
+    initPreviewConfig(Boolean(versionenScenario), teamsScenario, schwellenwerteScenario),
   );
 
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
