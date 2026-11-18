@@ -9,10 +9,10 @@ import {
   ScrollableChart,
   SLIDER_LABEL,
   SLIDER_ROW_CLASS,
-  useActiveDatum,
 } from './ChartReadout';
 import { CHART_VIEWBOX } from './chartTypes';
 import type { TimeDepthChartProps } from './chartTypes';
+import { useCrosshairController } from '../../time/useCrosshair';
 import {
   areaPath,
   formatAxis,
@@ -33,6 +33,7 @@ export interface DepthLineChartProps extends TimeDepthChartProps {
 
 export function DepthLineChart({
   idPrefix,
+  tileId: propTileId,
   data,
   unit,
   period,
@@ -42,7 +43,13 @@ export function DepthLineChart({
   stableLegend = false,
   filled = false,
 }: DepthLineChartProps) {
-  const [active, setActive] = useActiveDatum(data);
+  const tileId = propTileId ?? idPrefix;
+  const {
+    activeIndex: active,
+    isAnnouncing,
+    handleSelect,
+    handleClear,
+  } = useCrosshairController(data, tileId);
   const scale = useMemo(() => {
     const valid = data
       .map((d) => d.value)
@@ -95,7 +102,7 @@ export function DepthLineChart({
           aria-label={`${title}: ${filled ? 'Fläche' : 'Linie'}`}
           aria-describedby={summaryId}
           className="block h-auto w-full min-w-[560px]"
-          onMouseLeave={() => setActive(null)}
+          onMouseLeave={handleClear}
         >
           <defs>
             <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
@@ -246,7 +253,8 @@ export function DepthLineChart({
                   width={slot}
                   height={AREA.height}
                   fill="transparent"
-                  onMouseEnter={() => setActive(point.index)}
+                  onMouseEnter={() => handleSelect(point.index)}
+                  onPointerDown={() => handleSelect(point.index, true)}
                 />
               </g>
             );
@@ -271,6 +279,7 @@ export function DepthLineChart({
         formatValue={formatValue}
         period={period}
         stableHeight={stableLegend}
+        announce={isAnnouncing}
       />
       <label className={SLIDER_ROW_CLASS}>
         <span>{SLIDER_LABEL}</span>
@@ -282,7 +291,21 @@ export function DepthLineChart({
           value={active ?? 0}
           // Ohne Auswahl steht der Regler sichtbar auf dem ersten Zeitpunkt: mit Fokus wird er auch
           // tatsächlich gewählt, damit der erste Pfeiltastendruck nicht einen Monat überspringt.
-          onFocus={() => setActive((current) => current ?? 0)}
+          onFocus={() => handleSelect(active ?? 0, true)}
+          onBlur={handleClear}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              handleClear();
+            } else if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
+              event.preventDefault();
+              const next = Math.min(data.length - 1, (active ?? 0) + 1);
+              handleSelect(next, true);
+            } else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
+              event.preventDefault();
+              const next = Math.max(0, (active ?? 0) - 1);
+              handleSelect(next, true);
+            }
+          }}
           aria-valuetext={
             activeEntry
               ? activeEntry.value === null
@@ -294,7 +317,7 @@ export function DepthLineChart({
                 : `${activeEntry.label}: ${formatDe(activeEntry.value)} ${unit}`
               : 'kein Zeitpunkt gewählt'
           }
-          onChange={(event) => setActive(Number(event.target.value))}
+          onChange={(event) => handleSelect(Number(event.target.value), true)}
           className="min-w-0 flex-1 accent-[#00d9c6]"
         />
       </label>

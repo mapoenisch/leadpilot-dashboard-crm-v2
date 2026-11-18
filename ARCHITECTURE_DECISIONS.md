@@ -2013,6 +2013,12 @@ Artefakt-/Versionsabgleichs.
 - **Dynamischer Rechteentzug (`LP_TEAM_ACCESS_REVOKED`):** Verliert ein Nutzer während der Bearbeitung die Berechtigung am Team-Dashboard, fängt der Dialog `TeamAccessRevokedDialogV2` den Fehler beim Speichern ab. Ungespeicherte Entwurfsänderungen können verlustfrei als neue persönliche Kopie gesichert oder verworfen werden.
 - **Teamverwaltung unter `/admin/teams`:** Die Administration von Dashboard-Teams und ihren Mitgliedern (`DashboardTeamsPage`, `TeamFormDialog`, `TeamMembersPanel`) ist als administrative Route (`/admin/teams`) exklusiv für Organisations-Admins (`session?.role === 'admin'`) realisiert.
 
+## C10. Dashboard V2 Zeitreihen, Analysezeitpunkt & Fadenkreuz-Kopplung (Auftrag 161 / 164, 2026-11-18)
+
+- **Migration `20261120_dashboard_query_window.sql` & `query.window`:** Einführung kachelspezifischer Zeitfenster (`tile.query.window`) mit strikter Validierung in TypeScript und serverseitig im Konfigurationsprüfer `dashboard_config_v2_invalid_reason`. Höchstfenster je Datenquelle und Auflösung sind fest verankert (z. B. CRM-Flussgrößen Tag $\le$ 30 Tage, Woche $\le$ 26 Wochen, Monat $\le$ 12 Monate).
+- **Zeitpunkt-Regel (Auftrag 161 §2.1 Nr. 2):** Der Analysezeitpunkt (Modus `zeitpunkt`, `timeControl.asOf`) steuert alle zeitgesteuerten Kacheln deterministisch an. Alle Zeitfenster (`query.window` oder globales `window`) enden am Stichtag `asOf` statt am flüchtigen `now()`. Kacheln ohne belegte Historie weisen transparent „kein Stand gespeichert“ aus; feste Kennzahlen werden als „zeitunabhängiger Wert“ deklariert.
+- **Fadenkreuz-Store mit Selektor-Abo (`useCrosshair.ts`):** Entkopplung des geteilten Fadenkreuzes über React 18 `useSyncExternalStore` mit memoisierten Selektoren. Diagramme abonnieren gezielt nur den aktiven Datenpunkt oder Zeitstempel. Maus- und Touch-Scrubbing werden über `requestAnimationFrame` gedrosselt, während diskrete Tastatur-Events (Pfeiltasten, Escape) sofort ausgeführt werden. Unbeteiligte Kacheln (ohne Zeitachse oder in anderen Sektionen) rendern bei Fadenkreuzbewegungen nachweislich nicht neu (0 Re-Renderings im Zähltest). Barrierefreies Readout kündigt nur von der aktuell fokussierten Quellkachel an (`aria-live="polite"`), während mitlaufende Kacheln stummgeschaltet bleiben (`aria-live="off"`).
+
 ---
 ---
 
@@ -2088,6 +2094,7 @@ Fassungen mit widersprüchlicher „Nächste Entscheidungsnummer“ — **1224, 
 | 2026-09-26 | Revision zu B18 (Auftrag 069 / G67): 32 statische Inhaltsseiten wieder als Original-WebP aus v2.2.0 mit unsichtbarer Textschicht; Regeln „kein Ganzseiten-WebP“ (G52–G55) und G66-Design-Gate zurückgenommen; Rückweg zu v2.3.1 per Schalter `PAGE_PRESENTATION` und unverändertem Tag ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_069_V2_3_2_BILDSEITEN_WIEDERHERSTELLUNG.md)). |
 | 2026-10-19 | Revision zu B18 (Paket G3 / Auftrag 104): alle 32 Inhaltsseiten als echte Seiten, `PAGE_PRESENTATION = 'html'`, keine unsichtbare Zweitfassung mehr aktiv; Rückweg je Seite über `'bild'` + `HTML_PAGES` ([Auftrag](docs/auftraege/ANTIGRAVITY_AUFTRAG_104_G3_BILDSEITEN_ABSCHLUSS.md)). |
 | 2026-11-17 | AUFTRAG 163 (P11b) — Dashboard-Editor: Team-Freigaben in der Oberfläche (Gruppierter Switcher, serverseitige Leseansicht, Teilen als Team-Kopie, Schutz vor Rechteentzug, Teamverwaltung unter `/admin/teams`). Gate-Screenshots und E2E grün. |
+| 2026-11-18 | AUFTRAG 161/164 (P10b-2 & 161R) — Dashboard-Editor: Zeitreihen-Restpunkte & Fadenkreuz-Kopplung (Selektor-Abo `useSyncExternalStore`, Drosselung, Barrierefreiheit, E2E-Spec `editor-time-point.spec.ts`, 30 Screenshots 161, Fach-Doku). Phase P10 abgeschlossen. |
 
 ## D5. MASTERSTATUS
 

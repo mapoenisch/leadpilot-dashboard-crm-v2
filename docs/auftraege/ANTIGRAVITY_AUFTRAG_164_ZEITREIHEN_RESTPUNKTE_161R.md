@@ -9,7 +9,7 @@
 **Baseline:** aktueller `main` beim Start (der Builder nennt den Commit im BUILD_LOG).
 **Branch:** `auftrag-164-zeitreihen-restpunkte` (Detailauftrag) bzw. ein neuer Umsetzungsbranch mit demselben Präfix.
 **Builder:** Antigravity (oder ein anderer von Marc benannter Agent). **Prüfer:** Codex auf GitHub oder ein anderer Agent, der nicht gebaut hat (`CLAUDE.md` §4.1). **Merge:** Marc.
-**Status:** OFFEN.
+**Status:** IN UMSETZUNG.
 
 ---
 
@@ -82,16 +82,16 @@ Bei Bedarf außerhalb dieser Liste: stoppen und im PR begründen (`CLAUDE.md` §
 
 ## 5. Tasks
 
-- [ ] **T0 Einstieg:** Baseline, Ist-Tabelle §1 prüfen, `size-limit` und Zeilenzahlen notieren.
-- [ ] **T1 Rot-Nachweise:** §3 Nr. 8 (a)–(c).
-- [ ] **T2 Selektor-Hook:** 2.1 Nr. 4.
-- [ ] **T3 Auslösen:** Maus, Touch, Tastatur, Frame-Drosselung (2.1 Nr. 1).
-- [ ] **T4 Mitlaufen:** Linie, Abschnittszuordnung bei verschiedenen Auflösungen, Ablesezeile, ARIA (2.1 Nr. 2–3, 7).
-- [ ] **T5 Leistung:** Render-Zähltest, eingeklappte Sektionen (2.1 Nr. 5); Gegenprobe Diagramme ohne Zeitachse und V1 (2.1 Nr. 6).
-- [ ] **T6 E2E:** 2.2 Nr. 8.
-- [ ] **T7 Screenshots:** 2.2 Nr. 9.
-- [ ] **T8 Doku:** 2.3.
-- [ ] **T9 Abschluss:** Pflicht-Verifikation (§7), Schutzbereichs-Diff, BUILD_LOG-Eintrag (inkl. Hinweis, dass der Codex-Befund aus PR #196 damit tatsächlich behoben ist), PR öffnen, Review anfordern.
+- [x] **T0 Einstieg:** Baseline, Ist-Tabelle §1 prüfen, `size-limit` und Zeilenzahlen notieren.
+- [x] **T1 Rot-Nachweise:** §3 Nr. 8 (a)–(c).
+- [x] **T2 Selektor-Hook:** 2.1 Nr. 4.
+- [x] **T3 Auslösen:** Maus, Touch, Tastatur, Frame-Drosselung (2.1 Nr. 1).
+- [x] **T4 Mitlaufen:** Linie, Abschnittszuordnung bei verschiedenen Auflösungen, Ablesezeile, ARIA (2.1 Nr. 2–3, 7).
+- [x] **T5 Leistung:** Render-Zähltest, eingeklappte Sektionen (2.1 Nr. 5); Gegenprobe Diagramme ohne Zeitachse und V1 (2.1 Nr. 6).
+- [x] **T6 E2E:** 2.2 Nr. 8.
+- [x] **T7 Screenshots:** 2.2 Nr. 9.
+- [x] **T8 Doku:** 2.3.
+- [x] **T9 Abschluss:** Pflicht-Verifikation (§7), Schutzbereichs-Diff, BUILD_LOG-Eintrag (inkl. Hinweis, dass der Codex-Befund aus PR #196 damit tatsächlich behoben ist), PR öffnen, Review anfordern.
 
 ## 6. Abnahme
 

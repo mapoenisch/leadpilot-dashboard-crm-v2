@@ -163,3 +163,15 @@ Inspector (Abschnitt Daten) und Bibliothek zeigen zusätzlich den Historientext 
 ### Nachtrag 16.11.2026 (Auftrag 160 / P10b-1): Integration mit Server-Zeitreihen
 
 Mit Auftrag 160 (P10b-1) wurde `resumeCrmRefresh.ts` so erweitert, dass beim Fortsetzen aus der Pause neben `['dashboardData']` auch `['dashboardTimeSeries']` für die aktive Organisation gezielt invalidiert wird. Zeitreihen-Kacheln frieren bei Pause den aktuellen Stand ein und zeigen die Datenstandzeile gemäß `TileStandLine.tsx`.
+
+---
+
+### Nachtrag 18.11.2026 (Auftrag 161/164 – P10): Analysezeitpunkt (Modus `zeitpunkt`)
+
+Mit Auftrag 161 und Restpunkte-Auftrag 164 wurde der Zeitsteuerungsmodus `zeitpunkt` (Historischer Analysezeitpunkt / Time-Travel) vollständig verankert:
+- **Auswahl & Interaktion:** Über die Symbolleiste (Dialog `TimePointDialog.tsx`) kann ein Analysezeitpunkt (Datum/Uhrzeit oder Schnellwahl: Gestern, Letzter Monatsletzter, Quartalsende, Jahresende) gewählt werden.
+- **Zustand & Semantik:** Im Modus `zeitpunkt` ist `timeControl.asOf` (ISO-8601 UTC) gesetzt. Alle Zeitreihen-Kacheln verhalten sich deterministisch relativ zu `asOf`. Historische Zeitfenster enden an `asOf` statt an `now()`.
+- **Statusanzeige:** Eine Statusleiste signalisiert gut sichtbar „Ansicht zum DD.MM.YYYY, HH:mm“ mit einer Aktion „Zurück zu Live“.
+- **Abgrenzung:** Das manuelle Pausieren (`timeControl.paused`) friert Live-Feeds ein; der Modus `zeitpunkt` springt dagegen explizit auf einen historischen Stichtag `asOf`.
+- **Fadenkreuz-Kopplung:** Über `useCrosshair.ts` synchronisieren alle sichtbaren Diagramme ein gemeinsames Fadenkreuz über ein Selektor-Abo (`useSyncExternalStore`), ohne unbeteiligte Kacheln neu zu rendern.
+

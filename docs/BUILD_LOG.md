@@ -21958,3 +21958,75 @@ Auftrag 163 schließt Phase 11 (Team-Freigaben und Kollaboration) mit der vollst
 - **Geprüfter Commit:** `1a8eb28e` – Ergebnis: „Didn't find any major issues“, keine offenen Review-Konversationen.
 - **Behobene Befunde im Verlauf:** `47c0a8a` → 2× P2 (Teilen-Dialog behält Werte, Teamdialog gesperrt während Speichern), `7fc64e5` → 1× P2 (veraltete Mitgliederantworten beim Teamwechsel). Zusätzlich E2E-Korrektur (Rollen-Rücksetzung im Lifecycle-Test) und Visual-Baselines nachgezogen.
 - Dieser Eintrag ist ein reiner Doku-Commit ohne Codeänderung (kein neues Review nötig). Merge und Release: Marc.
+
+---
+
+## 2026-11-18 — Auftrag 164: Dashboard-Editor: Restpunkte aus 161 – Fadenkreuz-Kopplung, E2E/Screenshots, Fach-Doku (161R, schließt P10)
+
+**Rolle:** Antigravity (Builder) · **Prüfer:** Codex · **Branch:** `auftrag-164-zeitreihen-restpunkte` · **PR:** [folgt] · **Detailauftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_164_ZEITREIHEN_RESTPUNKTE_161R.md` · **Baseline:** `2ab7cdc4` (Merge PR #202 Auftrag 163)
+
+### 1. Ziel & Zusammenfassung
+
+Auftrag 164 schließt die verbliebenen drei Restpunkte aus Auftrag 161 (P10b-2, PR #196 gemergt als `6dbbc593`) vollständig ab, womit Phase P10 (Gemeinsame Zeitsteuerung & Server-Zeitreihen) komplett abgeschlossen ist:
+1. **Fadenkreuz-Kopplung (Auftrag 161 §2.4 Nr. 18–21):**
+   - **Selektor-Hook (`src/features/dashboard/time/useCrosshair.ts`):** Verwendet React 18 `useSyncExternalStore` mit memoisierten Selektoren (`useCrosshair`, `useCrosshairController`).
+   - **Auslösen & Drosselung:** Interaktion über Maus-Hover, Pointer-/Touch-Gesten und Tastaturnavigation (Fokus + Pfeiltasten `ArrowRight`/`ArrowLeft`, `Escape` hebt Fadenkreuz auf). Schnelles Scrubbing wird via `requestAnimationFrame` gedrosselt, während diskrete Tastatur- und Klickaktionen ohne Verzögerung synchron ausgeführt werden.
+   - **Mitlaufen & Abschnittszuordnung:** Das Fadenkreuz koppelt alle sichtbaren Zeitreihen-Kacheln (`DepthLineChart.tsx`). Kacheln mit unterschiedlicher zeitlicher Auflösung (z. B. Tag vs. Woche) oder unterschiedlichen Zeitfenstern finden den passenden Datenpunkt über `findMatchingPointIndex` (Intervalldatierung ohne Interpolation).
+   - **Barrierefreiheit (ARIA):** `ChartReadout.tsx` setzt `aria-live="polite"` exklusiv auf der auslösenden Quellkachel (`announce = true`); mitlaufende Kacheln erhalten `aria-live="off"`, um Screenreader-Überflutung zu verhindern.
+   - **Render-Leistung:** Ein dedizierter Render-Zähltest belegt, dass Kacheln ohne Zeitachse (z. B. Single-Value, Donut) und Kacheln in eingeklappten Sektionen bei Fadenkreuzbewegungen **0 Re-Renderings** ausführen.
+   - **Codex-Befund aus PR #196 behoben:** Im Review zu PR #196 hatte Codex angemerkt, dass der Fadenkreuz-Store zwar definiert, aber nicht mit den Diagrammen gekoppelt war. Dieser Befund ist mit dieser Implementierung vollständig aufgelöst.
+2. **E2E-Ablauf & Screenshot-Matrix 161 (Auftrag 161 §2.4 Nr. 22–23):**
+   - `e2e/editor-time-point.spec.ts`: Testet den gesamten Zeitpunkt-Workflow (Dialog, Schnellwahlen, Stichtagsberechnung, „Zurück zu Live“), Zeitfenster je Kachel im Inspector sowie die Fadenkreuz-Kopplung über Maus und Tastatur. In `scripts/runV23Acceptance.mjs` und `.github/workflows/ci.yml` registriert.
+   - `scripts/captureAuftrag161GateScreenshots.mjs`: Erzeugt die vollständige Screenshot-Matrix 161 über 5 Zustände × 3 Viewports (1440, 768, 375 px) × 2 Farbschemata (dunkel, hell) = 30 Screenshots.
+   - `docs/screenshots/auftrag-161/README.md`: Nachweisdokumentation mit 0 px horizontalem Überlauf auf allen Viewports und distinkten SHA-256-Hashes für alle Zustände.
+3. **Fach-Dokumentation (Auftrag 161 §2.3):**
+   - `docs/dashboard/ZEITREIHEN_P10B.md`: Ergänzt um Abschnitte 9 (Analysezeitpunkt), 10 (Zeitfenster je Kachel mit Limits-Tabelle) und 11 (Gemeinsames Fadenkreuz); Abschnitt 8 aktualisiert.
+   - `docs/dashboard/ABFRAGEVERTRAG_P08A.md`: Datierter Nachtrag zu `tile.query.window`.
+   - `docs/dashboard/ZEITSTEUERUNG_P10A.md`: Datierter Nachtrag zu Modus `zeitpunkt`.
+   - `ARCHITECTURE_DECISIONS.md`: Teil C ergänzt um Abschnitt C10 (Migration 20261120, Zeitpunkt-Regel 161 §2.1 Nr. 2, Selektor-Abo) und Eintrag in Änderungsprotokoll D4.
+   - `docs/dashboard/DASHBOARD_EDITOR_MASTERPLAN.md` §6: Datierter Nachtrag „Umsetzungsstand 18.11.2026 (161R / Auftrag 164 – P10 abgeschlossen)“.
+
+### 2. Rot-Nachweise (T1)
+
+Vor der Implementierung wurden in `crosshairCoupling.ui.vitest.tsx` drei rote Tests nach §3 Nr. 8 ausgeführt:
+- (a) Fadenkreuz in Kachel A zeigt Linie in Kachel B → **Rot** (0 Linien in Kachel B gefunden).
+- (b) Render-Zähltest (unbeteiligte Kacheln dürfen nicht neu rendern) → **Rot** (keine Kopplung vorhanden).
+- (c) Tastatur Pfeiltaste wandert und Escape hebt auf → **Rot** (keine Tastatursteuerung im Chart).
+Nach Implementierung von `useCrosshair.ts` und Anbindung in `DepthLineChart.tsx` sind alle 8 Tests der Suite grün.
+
+### 3. Geänderte & neue Dateien
+
+- **Neu:**
+  - `src/features/dashboard/time/useCrosshair.ts` (255 Zeilen): Selektor-Hook, RAF-Drosselung, Intervallsuche.
+  - `src/features/dashboard/__tests__/crosshairCoupling.ui.vitest.tsx` (375 Codezeilen, eslint-konform): 8 Vitest-Tests.
+  - `e2e/editor-time-point.spec.ts` (169 Zeilen): E2E-Spec für Zeitpunkt, Zeitfenster und Fadenkreuz.
+  - `scripts/captureAuftrag161GateScreenshots.mjs` (327 Zeilen): Screenshot-Generator für Gate 161.
+  - `docs/screenshots/auftrag-161/README.md`: Screenshot-Matrix für Auftrag 161.
+- **Geändert:**
+  - `src/features/dashboard/components/charts/DepthLineChart.tsx`: Fadenkreuz-Abo, Maus-/Touch-/Tastatur-Events, Linien-Rendering.
+  - `src/features/dashboard/components/charts/ChartReadout.tsx`: `announce`-Prop für barrierefreie Screenreader-Ansagen.
+  - `src/features/dashboard/components/charts/chartTypes.ts`: `tileId`-Prop für Tiefen-Diagramme.
+  - `src/features/dashboard/components/TileBody.tsx` & `DashboardChart.tsx`: Weiterreichen von `tileId`.
+  - `scripts/runV23Acceptance.mjs` & `.github/workflows/ci.yml`: Registrierung von `e2e/editor-time-point.spec.ts`.
+  - `docs/dashboard/ZEITREIHEN_P10B.md`, `ABFRAGEVERTRAG_P08A.md`, `ZEITSTEUERUNG_P10A.md`, `ARCHITECTURE_DECISIONS.md`, `DASHBOARD_EDITOR_MASTERPLAN.md`, `BUILD_PLAN.md`, `docs/auftraege/ANTIGRAVITY_AUFTRAG_164_ZEITREIHEN_RESTPUNKTE_161R.md`.
+
+### 4. Nachweise & Verifikation (§7)
+
+- `npx tsc --noEmit`: **0 Fehler (Exit 0)**
+- `npm run lint`: **0 Fehler, 0 Warnungen (`--max-warnings 0`, Exit 0)**
+- `npm run format:check`: **Bestanden (Exit 0 auf geänderten Dateien)**
+- `npm test`: **428 Testdateien, 3171 Tests PASS (Exit 0)**
+- `npm run verify`: **25/25 Integrity-Suiten bestanden (Exit 0)**
+- `npm run build`: **Erfolgreich (Exit 0, 3.77s)**
+- `npm run build:production` (mit gültiger Beispielkonfiguration): **Erfolgreich (Exit 0, 3.21s)**
+- `npx size-limit`:
+  - Initial JS bundle (gzip): **179.12 kB** (Limit: 180 kB; Baseline: 179.11 kB; Diff: +0.01 kB $\le$ +0.3 kB)
+  - Largest chunk (gzip): **79.41 kB** (Limit: 250 kB)
+- `npx tsx scripts/verifyLiveKpiCatalog.ts`: **Erfolgreich (Gate G24 bestanden, Exit 0)**
+- **Schutzbereichs-Diffs:**
+  - `git diff 2ab7cdc4 -- src/simulation src/types src/context src/services/data src/features/resources`: **vollständig leer**
+  - `git diff 2ab7cdc4 -- supabase src/features/dashboard/services src/services/liveKpi src/domain src/features/dashboard/data`: **vollständig leer**
+- `max-lines`: **Alle neuen und geänderten TS/TSX-Dateien strikt ≤ 400 Zeilen** (keine Datei über 340 Zeilen).
+- **V1-Pfad:** Vollständig unverändert; nicht-zeitreihenbezogene Kacheln unberührt.
+- **Abhängigkeiten:** Keine neuen npm-Dependencies hinzugefügt.
+

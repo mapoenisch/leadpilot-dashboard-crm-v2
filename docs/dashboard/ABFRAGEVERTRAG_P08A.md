@@ -123,3 +123,14 @@ public.dashboard_crm_pipeline_overview(p_pipeline TEXT DEFAULT NULL) RETURNS JSO
 - **Freie Zeitfenster:** Dynamische Datumsfilterung (z. B. nach `closeDate` oder `stage_entered_at`) ist Gegenstand von **P10**.
 - **Erweiterte Transformationen / Benutzerfilter:** Komplexe Filteroperatoren (`filters`) sind Gegenstand von **P14**.
 - **Schwellwertalarme:** Alarmierung auf Kacheln ist Gegenstand von **P13**.
+
+---
+
+## 7. Nachtrag (18.11.2026, Auftrag 161/164 – P10): Kachelspezifisches Zeitfenster (`query.window`)
+
+Mit den Aufträgen 161 und 164 (P10b-2 und Restpunkte) wurde der Abfragevertrag um `tile.query.window` erweitert:
+- **Konfiguration:** Kacheln können optional über `tile.query.window` ein kachelspezifisches Zeitfenster festlegen (`7d`, `30d`, `90d`, `12m`, `custom` etc.).
+- **Fallback:** Fehlt `tile.query.window`, gilt das globale Zeitfenster des Dashboards (`dashboard.timeControl.window`).
+- **Analysezeitpunkt:** Bei gesetztem `timeControl.asOf` (Modus `zeitpunkt`) werden Zeitfenster deterministisch relativ zum Ankerzeitpunkt `asOf` berechnet (statt relativ zu `now()`).
+- **Validierung & Grenzen:** Höchstfenster je Datenquelle und Auflösung sind in TypeScript und SQL (Migration `20261120_dashboard_query_window.sql`) einheitlich validiert (siehe `ZEITREIHEN_P10B.md` §10).
+

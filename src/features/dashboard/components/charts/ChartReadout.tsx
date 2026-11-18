@@ -76,6 +76,8 @@ export interface ReadoutProps {
   extra?: string;
   /** Dashboard-Kacheln: feste, intern scrollende Höhe; lange Zeitangaben verschieben nichts. */
   stableHeight?: boolean;
+  /** Kündigt Änderungen per aria-live="polite" an (Auftrag 164 §2.1 Nr. 3; mitlaufende Kacheln setzen false). */
+  announce?: boolean;
 }
 
 /** Feste Höhe der Ablesezeile (drei Textzeilen); Überlauf scrollt, siehe `ChartReadout`. */
@@ -89,6 +91,7 @@ export function ChartReadout({
   formatValue,
   extra,
   stableHeight = false,
+  announce = true,
 }: ReadoutProps) {
   const timeEntry = entry as TimeDatumInput | null;
   const isNull = entry ? entry.value === null : false;
@@ -108,7 +111,7 @@ export function ChartReadout({
   return (
     <p
       role="status"
-      aria-live="polite"
+      aria-live={announce ? 'polite' : 'off'}
       data-testid="chart-readout"
       tabIndex={stableHeight ? 0 : undefined}
       className={cn(

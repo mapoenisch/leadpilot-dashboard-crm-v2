@@ -4,6 +4,8 @@ import type { DatumInput, TimeDatumInput } from './depthGeometry';
 export interface DepthChartProps {
   /** Eindeutige ID je Kachel: SVG-Verläufe und Filter dürfen sich zwischen Kacheln nicht beeinflussen. */
   idPrefix: string;
+  /** Optionale Kachel-ID für gemeinsamen Fadenkreuz-Store (Auftrag 164). */
+  tileId?: string;
   data: readonly DatumInput[];
   unit: string;
   /** Zeitraum für den Tooltip, z. B. „Q3 2026“. */
