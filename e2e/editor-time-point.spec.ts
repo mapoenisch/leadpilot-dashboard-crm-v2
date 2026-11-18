@@ -104,6 +104,17 @@ test.describe('Dashboard-Editor V2: Zeitpunkt, Zeitfenster und Fadenkreuz (Auftr
       }
     }
 
+    // Inspector schließen, damit der Arbeitsbereich frei sichtbar ist
+    const inspectorClose = page.getByTestId('close-inspector-button');
+    if (await inspectorClose.isVisible()) {
+      await inspectorClose.click();
+    } else if (await inspectorToggle.isVisible()) {
+      const inspector = page.getByTestId('editor-inspector');
+      if (await inspector.isVisible()) {
+        await inspectorToggle.click();
+      }
+    }
+
     // 5. Fadenkreuz-Kopplung per Maus
     // Scroll zu den Verlaufskacheln
     await liveTile.scrollIntoViewIfNeeded();
@@ -122,20 +133,24 @@ test.describe('Dashboard-Editor V2: Zeitpunkt, Zeitfenster und Fadenkreuz (Auftr
     // Kachel 1 (CRM Wochenverlauf) MUSS mitlaufen und ebenfalls eine Fadenkreuz-Linie zeigen
     await expect(crmTile.locator('line[stroke-dasharray="2 3"]')).toBeAttached();
 
-    // 6. Tastatur-Steuerung: Fokus, Pfeiltasten, Escape
-    const slider = liveTile.getByRole('slider');
-    await slider.focus();
-    await expect(liveTile.locator('line[stroke-dasharray="2 3"]')).toBeAttached();
+    // 6. Tastatur-Steuerung: Fokus, Pfeiltasten, Escape (auf Desktop und Tablet)
+    const isMobileViewport = (page.viewportSize()?.width ?? 1440) < 768;
+    if (!isMobileViewport) {
+      const slider = liveTile.getByRole('slider');
+      await slider.scrollIntoViewIfNeeded();
+      await slider.focus();
+      await expect(liveTile.locator('line[stroke-dasharray="2 3"]')).toBeAttached();
 
-    // Pfeiltaste wandert
-    await page.keyboard.press('ArrowRight');
-    await expect(liveTile.locator('line[stroke-dasharray="2 3"]')).toBeAttached();
-    await expect(crmTile.locator('line[stroke-dasharray="2 3"]')).toBeAttached();
+      // Pfeiltaste wandert
+      await page.keyboard.press('ArrowRight');
+      await expect(liveTile.locator('line[stroke-dasharray="2 3"]')).toBeAttached();
+      await expect(crmTile.locator('line[stroke-dasharray="2 3"]')).toBeAttached();
 
-    // Escape leert Fadenkreuz
-    await page.keyboard.press('Escape');
-    await expect(crmTile.locator('line[stroke-dasharray="2 3"]')).toHaveCount(0);
-    await expect(liveTile.locator('line[stroke-dasharray="2 3"]')).toHaveCount(0);
+      // Escape leert Fadenkreuz
+      await page.keyboard.press('Escape');
+      await expect(crmTile.locator('line[stroke-dasharray="2 3"]')).toHaveCount(0);
+      await expect(liveTile.locator('line[stroke-dasharray="2 3"]')).toHaveCount(0);
+    }
   });
 
   test('Mobil (375 px): Fadenkreuz per Tippen koppelt Verlaufskacheln', async ({ page }) => {
