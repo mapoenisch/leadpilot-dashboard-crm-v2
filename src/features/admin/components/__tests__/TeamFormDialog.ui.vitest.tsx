@@ -78,4 +78,27 @@ describe('TeamFormDialog', () => {
     expect(screen.getByTestId('team-form-submit-button')).toBeDisabled();
     expect(screen.getByText('Wird angelegt...')).toBeInTheDocument();
   });
+
+  it('sperrt Abbrechen und Absenden, solange die Anfrage läuft', async () => {
+    const onClose = vi.fn();
+    let resolveSubmit: (v: { ok: boolean }) => void = () => {};
+    const onSubmit = vi.fn().mockImplementation(
+      () =>
+        new Promise<{ ok: boolean }>((resolve) => {
+          resolveSubmit = resolve;
+        }),
+    );
+
+    render(<TeamFormDialog open={true} onClose={onClose} onSubmit={onSubmit} />);
+    fireEvent.change(screen.getByTestId('team-name-input'), { target: { value: 'Vertrieb' } });
+    fireEvent.click(screen.getByTestId('team-form-submit-button'));
+
+    await waitFor(() => expect(screen.getByTestId('team-form-submit-button')).toBeDisabled());
+    expect(screen.getByRole('button', { name: 'Abbrechen' })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }));
+    expect(onClose).not.toHaveBeenCalled();
+
+    resolveSubmit({ ok: true });
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+  });
 });

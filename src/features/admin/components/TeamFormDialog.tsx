@@ -30,8 +30,12 @@ export function TeamFormDialog({
   onClose,
   initialData,
   onSubmit,
-  isSaving = false,
+  isSaving: isSavingProp = false,
 }: TeamFormDialogProps) {
+  // Eigener Speicherzustand: Der Dialog bleibt gesperrt, bis die Anfrage beendet ist,
+  // auch wenn die aufrufende Seite keinen isSaving-Wert liefert.
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSaving = isSavingProp || isSubmitting;
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -66,11 +70,16 @@ export function TeamFormDialog({
     if (isSubmitDisabled) return;
 
     setError(null);
-    const res = await onSubmit(trimmedName, trimmedDesc ? trimmedDesc : null);
-    if (!res.ok) {
-      setError(getDashboardTeamErrorMessage(res.error, 'team'));
-    } else {
-      onClose();
+    setIsSubmitting(true);
+    try {
+      const res = await onSubmit(trimmedName, trimmedDesc ? trimmedDesc : null);
+      if (!res.ok) {
+        setError(getDashboardTeamErrorMessage(res.error, 'team'));
+      } else {
+        onClose();
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

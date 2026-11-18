@@ -222,4 +222,42 @@ describe('Auftrag 163 - ShareWithTeamDialogV2 & dashboardTeamMessages', () => {
       expect(onClose).toHaveBeenCalled();
     });
   });
+
+  it('behält Titel und Zielteam, wenn sich der Dashboard-Titel bei geöffnetem Dialog ändert', async () => {
+    const twoWritable: DashboardTeamV2[] = [
+      ...mockTeams,
+      { ...mockTeams[0]!, id: 'team-write-2', name: 'Vertrieb Süd' },
+    ];
+    const onShare = vi.fn();
+    const onClose = vi.fn();
+    const { rerender } = render(
+      <ShareWithTeamDialogV2
+        open={true}
+        onClose={onClose}
+        currentDashboard={mockDashboard}
+        onShare={onShare}
+        teams={twoWritable}
+      />,
+    );
+
+    fireEvent.change(screen.getByTestId('share-title-input'), {
+      target: { value: 'Eigener Titel' },
+    });
+    fireEvent.change(screen.getByTestId('share-team-select'), {
+      target: { value: 'team-write-2' },
+    });
+
+    rerender(
+      <ShareWithTeamDialogV2
+        open={true}
+        onClose={onClose}
+        currentDashboard={{ ...mockDashboard, title: 'Gespeicherter Titel', revision: 3 }}
+        onShare={onShare}
+        teams={twoWritable}
+      />,
+    );
+
+    expect(screen.getByTestId('share-title-input')).toHaveValue('Eigener Titel');
+    expect(screen.getByTestId('share-team-select')).toHaveValue('team-write-2');
+  });
 });

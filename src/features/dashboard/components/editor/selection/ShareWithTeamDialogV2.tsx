@@ -2,7 +2,7 @@
 // Dialog zum Teilen eines Dashboards mit einem Team als unabhängige Team-Kopie (§2.1 Nr. 3 & §2.4 Nr. 20).
 // Zielteams sind nur Teams mit Schreibrecht (canWrite === true).
 
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import type {
@@ -49,19 +49,28 @@ export function ShareWithTeamDialogV2({
   const teamSelectId = useId();
   const titleInputId = useId();
 
+  // Titel des Dashboards beim Öffnen übernehmen; spätere Titeländerungen (z. B. durch
+  // „Speichern & teilen“) dürfen bereits bearbeitete Dialogwerte nicht zurücksetzen.
+  const latestTitleRef = useRef(currentDashboard.title);
+  latestTitleRef.current = currentDashboard.title;
+
+  const selectFirstWritableIfNeeded = (list: DashboardTeamV2[]) => {
+    const writable = list.filter((t) => t.canWrite);
+    setSelectedTeamId((prev) =>
+      prev && writable.some((t) => t.id === prev) ? prev : (writable[0]?.id ?? ''),
+    );
+  };
+
   // Teams laden, falls nicht über Props bereitgestellt
   useEffect(() => {
     if (!open) return;
 
-    setTitle(currentDashboard.title);
+    setTitle(latestTitleRef.current);
     setError(null);
 
     if (providedTeams) {
       setTeams(providedTeams);
-      const writable = providedTeams.filter((t) => t.canWrite);
-      if (writable.length > 0 && writable[0]) {
-        setSelectedTeamId(writable[0].id);
-      }
+      selectFirstWritableIfNeeded(providedTeams);
       return;
     }
 
@@ -73,10 +82,7 @@ export function ShareWithTeamDialogV2({
         if (!isMounted) return;
         if (res.ok) {
           setTeams(res.value);
-          const writable = res.value.filter((t) => t.canWrite);
-          if (writable.length > 0 && writable[0]) {
-            setSelectedTeamId(writable[0].id);
-          }
+          selectFirstWritableIfNeeded(res.value);
         } else {
           setError(getDashboardTeamErrorMessage(res.error, 'team'));
         }
@@ -92,7 +98,8 @@ export function ShareWithTeamDialogV2({
     return () => {
       isMounted = false;
     };
-  }, [open, providedTeams, currentDashboard.title]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, providedTeams, currentDashboard.id]);
 
   const handleClose = () => {
     if (!isSaving) {
