@@ -42,6 +42,8 @@ export function DepthLineChart({
   formatValue,
   stableLegend = false,
   filled = false,
+  resolution,
+  windowEnd,
 }: DepthLineChartProps) {
   const tileId = propTileId ?? idPrefix;
   const {
@@ -49,7 +51,7 @@ export function DepthLineChart({
     isAnnouncing,
     handleSelect,
     handleClear,
-  } = useCrosshairController(data, tileId);
+  } = useCrosshairController(data, tileId, { resolution, windowEnd });
   const scale = useMemo(() => {
     const valid = data
       .map((d) => d.value)

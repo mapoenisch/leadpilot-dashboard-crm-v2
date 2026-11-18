@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { useOptionalTimeControl } from './TimeControlProvider';
 import type { CrosshairState, CrosshairStore } from './crosshairStore';
 import type { DatumInput, TimeDatumInput } from '../components/charts/depthGeometry';
+import type { TimeSeriesResolution } from '../data/dashboardData';
+import { subtractBerlin } from '../data/resolveTimeSeries';
 
 const INITIAL_CROSSHAIR: CrosshairState = Object.freeze({
   at: null,
@@ -11,6 +13,11 @@ const INITIAL_CROSSHAIR: CrosshairState = Object.freeze({
 }) as CrosshairState;
 
 const NOOP_SUBSCRIBE = () => () => {};
+
+export interface MatchPointOptions {
+  resolution?: TimeSeriesResolution;
+  windowEnd?: string;
+}
 
 /**
  * Findet den Index des Abschnitts, der den Zielzeitpunkt enthält (Auftrag 161 §2.1 Nr. 5).
@@ -20,6 +27,7 @@ const NOOP_SUBSCRIBE = () => () => {};
 export function findMatchingPointIndex(
   data: readonly (DatumInput | TimeDatumInput)[],
   targetAt: string | null,
+  options?: MatchPointOptions,
 ): number | null {
   if (!targetAt || !data || data.length === 0) return null;
   const targetTime = new Date(targetAt).getTime();
@@ -46,12 +54,40 @@ export function findMatchingPointIndex(
     }
   }
 
-  // Letzter Abschnitt: [times[n-1], times[n-1] + lastStep)
-  const lastStep = n > 1 ? times[n - 1]! - times[n - 2]! : 0;
-  if (n === 1) {
-    return targetTime === times[0] ? 0 : null;
+  // Letzter Abschnitt:
+  // Bestimme das Abschnittsende aus den Zeitreihenmetadaten (Auflösung und tatsächliches Fensterende),
+  // statt die Schrittweite aus dem Abstand vorheriger Punkte zu schätzen.
+  const lastEntry = data[n - 1];
+  const lastAt =
+    lastEntry && 'at' in lastEntry && typeof lastEntry.at === 'string' ? lastEntry.at : null;
+  let lastBucketEnd: number | null = null;
+  if (options?.resolution && lastAt) {
+    try {
+      const nextDate = subtractBerlin(lastAt, -1, options.resolution);
+      const ms = nextDate.getTime();
+      if (!Number.isNaN(ms)) {
+        lastBucketEnd = ms;
+      }
+    } catch {
+      // Ungültiges Format: Fallback greift unten
+    }
   }
-  if (targetTime >= times[n - 1]! && targetTime < times[n - 1]! + lastStep) {
+  if (options?.windowEnd) {
+    const windowEndMs = new Date(options.windowEnd).getTime();
+    if (!Number.isNaN(windowEndMs)) {
+      lastBucketEnd = lastBucketEnd !== null ? Math.min(lastBucketEnd, windowEndMs) : windowEndMs;
+    }
+  }
+
+  if (lastBucketEnd === null) {
+    if (n === 1) {
+      return targetTime === times[0] ? 0 : null;
+    }
+    const lastStep = times[n - 1]! - times[n - 2]!;
+    lastBucketEnd = times[n - 1]! + lastStep;
+  }
+
+  if (targetTime >= times[n - 1]! && targetTime < lastBucketEnd) {
     return n - 1;
   }
 
@@ -175,12 +211,18 @@ export interface CrosshairControllerResult {
   hasTimeAxis: boolean;
 }
 
+export interface UseCrosshairOptions {
+  resolution?: TimeSeriesResolution;
+  windowEnd?: string;
+}
+
 /**
  * Steuert die aktive Position und Kopplung fuer eine Diagrammkachel.
  */
 export function useCrosshairController(
   data: readonly (DatumInput | TimeDatumInput)[],
   tileId: string,
+  options?: UseCrosshairOptions,
 ): CrosshairControllerResult {
   const hasTimeAxis = useMemo(() => {
     return data.some(
@@ -204,6 +246,7 @@ export function useCrosshairController(
 
   const { state: crosshair, store, setCrosshair, clearCrosshair } = useCrosshair(selector, isEqual);
   const [localActive, setLocalActive] = useState<number | null>(null);
+  const [localAt, setLocalAt] = useState<string | null>(null);
   const throttler = useMemo(() => createRafThrottler(), []);
 
   // Aufraeumen bei Unmount
@@ -217,6 +260,7 @@ export function useCrosshairController(
       if (hasTimeAxis) {
         const item = data[index];
         const at = item && 'at' in item && typeof item.at === 'string' ? item.at : null;
+        setLocalAt(at);
         if (immediate) {
           throttler.cancel();
           setCrosshair(at, tileId);
@@ -230,6 +274,7 @@ export function useCrosshairController(
 
   const handleClear = useCallback(() => {
     setLocalActive(null);
+    setLocalAt(null);
     throttler.cancel();
     if (hasTimeAxis) {
       // P2-Schutz: Leere den globalen Store nur, wenn diese Kachel noch die Quelle ist.
@@ -242,14 +287,28 @@ export function useCrosshairController(
     }
   }, [hasTimeAxis, throttler, store, tileId, clearCrosshair]);
 
+  const resolution = options?.resolution;
+  const windowEnd = options?.windowEnd;
+
   const activeIndex = useMemo(() => {
     if (!hasTimeAxis) return localActive;
-    if (crosshair.isSource) return localActive;
-    if (crosshair.at !== null) return findMatchingPointIndex(data, crosshair.at);
+    // Ohne TimeControlProvider (z. B. Standalone oder V1): lokale Auswahl beibehalten
+    if (!store) {
+      if (localAt !== null) {
+        return findMatchingPointIndex(data, localAt, { resolution, windowEnd });
+      }
+      return localActive;
+    }
+    // Mit Store: Quellauswahl und mitlaufende Kacheln einheitlich am gespeicherten
+    // Zeitpunkt verankern. Fällt der Zeitpunkt weg oder liegt außerhalb des Kachelfensters,
+    // liefert findMatchingPointIndex null.
+    if (crosshair.at !== null) {
+      return findMatchingPointIndex(data, crosshair.at, { resolution, windowEnd });
+    }
     return null;
-  }, [hasTimeAxis, crosshair.isSource, crosshair.at, localActive, data]);
+  }, [hasTimeAxis, store, crosshair.at, localAt, localActive, data, resolution, windowEnd]);
 
-  const isAnnouncing = !hasTimeAxis || crosshair.isSource;
+  const isAnnouncing = !store || !hasTimeAxis || crosshair.isSource;
 
   return {
     activeIndex,

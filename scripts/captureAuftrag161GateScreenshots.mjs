@@ -42,10 +42,16 @@ async function addCrmHistoryTile(page) {
   await page.getByTestId('library-tab-crm').click();
   const button = page.getByTestId('add-tile-btn-crm.phaseneintritte_verlauf');
   await button.waitFor({ state: 'visible', timeout: 5000 });
+  const beforeCount = await page.locator('[data-testid^="canvas-tile-"]').count();
   await button.click();
-  const addedTile = page.locator('[data-testid^="canvas-tile-"]').last();
-  await addedTile.scrollIntoViewIfNeeded();
+  const tiles = page.locator('[data-testid^="canvas-tile-"]');
+  await tiles.nth(beforeCount).waitFor({ state: 'visible', timeout: 5000 });
+  const addedTile = tiles.last();
+  const testId = await addedTile.getAttribute('data-testid');
+  const boundTile = page.locator(`[data-testid="${testId}"]`);
+  await boundTile.scrollIntoViewIfNeeded();
   await page.waitForTimeout(400);
+  return boundTile;
 }
 
 async function addLiveHistoryTile(page) {
@@ -53,10 +59,16 @@ async function addLiveHistoryTile(page) {
   await page.getByTestId('library-tab-live').click();
   const button = page.getByTestId('add-tile-btn-live.arr.verlauf');
   await button.waitFor({ state: 'visible', timeout: 5000 });
+  const beforeCount = await page.locator('[data-testid^="canvas-tile-"]').count();
   await button.click();
-  const addedTile = page.locator('[data-testid^="canvas-tile-"]').last();
-  await addedTile.scrollIntoViewIfNeeded();
+  const tiles = page.locator('[data-testid^="canvas-tile-"]');
+  await tiles.nth(beforeCount).waitFor({ state: 'visible', timeout: 5000 });
+  const addedTile = tiles.last();
+  const testId = await addedTile.getAttribute('data-testid');
+  const boundTile = page.locator(`[data-testid="${testId}"]`);
+  await boundTile.scrollIntoViewIfNeeded();
   await page.waitForTimeout(400);
+  return boundTile;
 }
 
 async function ensureInspectorOpen(page) {
@@ -115,15 +127,29 @@ const SCENARIOS = [
     path: '/dashboard-vorschau.html?bereich=editor_v2',
     prepare: async (page) => {
       await page.waitForSelector('[data-testid="dashboard-editor-shell-v2"]', { timeout: 15000 });
-      await addCrmHistoryTile(page);
-      await addLiveHistoryTile(page);
-      const crmTile = page.locator('[data-testid^="canvas-tile-"]').first();
+      const crmTile = await addCrmHistoryTile(page);
+      const liveTile = await addLiveHistoryTile(page);
       await crmTile.scrollIntoViewIfNeeded();
-      const hitRects = crmTile.locator('rect[fill="transparent"]');
+      await crmTile
+        .locator('[data-testid="depth-line-chart"]')
+        .waitFor({ state: 'visible', timeout: 5000 });
+      await liveTile
+        .locator('[data-testid="depth-line-chart"]')
+        .waitFor({ state: 'visible', timeout: 5000 });
+      const hitRects = liveTile.locator('rect[fill="transparent"]');
       const count = await hitRects.count();
       if (count > 0) {
         await hitRects.nth(Math.floor(count / 2)).hover();
         await page.waitForTimeout(300);
+        // Sicherstellen, dass Fadenkreuze in beiden Verlaufskacheln aktiv gerendert sind
+        await crmTile
+          .locator('line[stroke-dasharray="2 3"]')
+          .first()
+          .waitFor({ state: 'attached', timeout: 3000 });
+        await liveTile
+          .locator('line[stroke-dasharray="2 3"]')
+          .first()
+          .waitFor({ state: 'attached', timeout: 3000 });
       }
     },
   },

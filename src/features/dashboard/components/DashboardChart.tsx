@@ -314,7 +314,6 @@ function LazyChart({
               tileId={tileId}
               data={rows as unknown as readonly DatumInput[]}
               unit={data.unit}
-
               period={period}
               title={title}
               reducedMotion={reducedMotion}
@@ -322,6 +321,8 @@ function LazyChart({
               solid={view === 'kreis'}
               formatValue={formatValue}
               stableLegend
+              resolution={data.timeSeries?.resolution}
+              windowEnd={data.timeSeries?.to}
             />
           </div>
         </Suspense>

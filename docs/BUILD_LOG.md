@@ -22036,12 +22036,40 @@ Vor der Implementierung wurden in `crosshairCoupling.ui.vitest.tsx` drei rote Te
 
 ### 5. Codex-Review-Befunde (18.11.2026, PR #203)
 
-Im ersten Review von Codex zu PR #203 (Commit `d80ff8d`) wurden zwei Befunde identifiziert und direkt behoben:
+Im Review von Codex zu PR #203 wurden insgesamt 8 Befunde identifiziert (7× P2, 1× P3) und vollständig behoben:
 
-1. **P2-Befund (`useCrosshair.ts`): Leere beim Fokusverlust nur das eigene Fadenkreuz**
+1. **P2-Befund (`useCrosshair.ts`): Behalte die lokale Auswahl ohne TimeControlProvider bei**
+   - _Problem:_ Wenn ein Zeitreihendiagramm außerhalb des `TimeControlProvider` gerendert wurde (z. B. Standalone oder im V1-Pfad), blieb `crosshair` dauerhaft im Initialzustand (`null`). `activeIndex` lieferte immer `null`, wodurch Hover, Tippen und Slider ohne Provider wirkungslos blieben.
+   - _Behebung:_ `useCrosshairController` prüft nun `if (!store)`, speichert `localAt` und liefert die lokale Auswahl via `findMatchingPointIndex(data, localAt, options)` bzw. `localActive`. Screenreader-Ankündigung (`isAnnouncing`) ist ohne Store für die Standalone-Kachel aktiv (`!store || !hasTimeAxis || crosshair.isSource`).
+   - _Regressionstest:_ `crosshairResolutionAndAnchoring.ui.vitest.tsx` Test `behält lokale Auswahl und Ablesewert bei Hover und Tastatur ohne Provider bei`.
+
+2. **P2-Befund (`useCrosshair.ts`): Verankere die Quellauswahl weiterhin am Zeitpunkt**
+   - _Problem:_ Wenn sich während einer Auswahl das Zeitfenster oder die Reihenfolge der Daten änderte (z. B. Voranstellen eines früheren Abschnitts), blieb die Quellkachel stur am alten numerischen Index hängen, während mitlaufende Kacheln `crosshair.at` folgten.
+   - _Behebung:_ Die Quellauswahl wird nun wie bei mitlaufenden Kacheln am gespeicherten Zeitpunkt verankert (`findMatchingPointIndex(data, crosshair.at, options)`). Fällt der Zeitpunkt durch Fensterverschiebung weg, wird die Auswahl sauber aufgehoben (`null`).
+   - _Regressionstest:_ `crosshairResolutionAndAnchoring.ui.vitest.tsx` Test `folgt dem Zeitpunkt nach Einfügen eines früheren Abschnitts und hebt Auswahl bei Entfall auf`.
+
+3. **P2-Befund (`useCrosshair.ts`): Bestimme das letzte Abschnittsende aus den Zeitreihenmetadaten**
+   - _Problem:_ Bei Monatsauflösung wurde das letzte Abschnittsende durch Schätzung der Schrittweite aus dem Abstand der Punkte (`times[n-1] - times[n-2]`) berechnet. Bei Januar (31 Tage) und Februar (28 Tage) ordnete die Schätzung noch den 2. März dem Februar zu. Bei nur einem Wochenpunkt wurde jeder Tag außer dem exakten Startzeitpunkt verworfen.
+   - _Behebung:_ `TimeDepthChartProps` nimmt nun `resolution` und `windowEnd` entgegen; `DashboardChart` und `DepthLineChart` reichen die Metadaten an `useCrosshairController` und `findMatchingPointIndex` weiter. Letzteres berechnet das Ende des letzten Abschnitts über die Europe/Berlin-Kalenderarithmetik (`subtractBerlin(lastAt, -1, resolution)`), gekappt an `windowEnd`.
+   - _Regressionstest:_ `crosshairResolutionAndAnchoring.ui.vitest.tsx` (4 Tests: Monatsauflösung Februar vs. März, Folgemonat nach kurzem Vormonat, 1-Punkt-Wochenauflösung, windowEnd-Deckelung).
+
+4. **P2-Befund (`e2e/editor-time-point.spec.ts`): Binde den zurückgegebenen Locator an die hinzugefügte Kachel**
+   - _Problem:_ In `addTile` wurde `page.locator('[data-testid^="canvas-tile-"]').last()` zurückgegeben. Wegen Playwrights dynamischer Locator-Auflösung zeigten nach dem Einfügen der zweiten Kachel beide Variablen (`crmTile` und `liveTile`) auf dieselbe zweite DOM-Node.
+   - _Behebung:_ `addTile` ermittelt nach dem Hinzufügen das konkrete Attribut `data-testid` der neuen Kachel und gibt einen fest gebundenen Locator `page.locator('[data-testid="${testId}"]')` zurück.
+
+5. **P2-Befund (`scripts/captureAuftrag161GateScreenshots.mjs`): Wähle im Screenshot-Szenario tatsächlich eine Verlaufskachel**
+   - _Problem:_ Szenario `'nachher-fadenkreuz'` wählte `page.locator('[data-testid^="canvas-tile-"]').first()`, was die vorhandene `baseline.arr`-Zahlkachel (ohne Verlaufspunkte) war. `hitRects.count()` war 0 und der Hover wurde übersprungen.
+   - _Behebung:_ `addCrmHistoryTile` und `addLiveHistoryTile` geben fest gebundene Kachel-Locatoren zurück. Das Szenario steuert gezielt die hinzugefügten Verlaufskacheln an und verifiziert vor dem Screenshot, dass beide Kacheln die Fadenkreuz-Linie aktiv rendern (`waitFor({ state: 'attached' })`). Matrix mit 30 Screenshots erfolgreich regeneriert (0 px Überlauf).
+
+6. **P2-Befund (`useCrosshair.ts`): Leere beim Fokusverlust nur das eigene Fadenkreuz**
    - _Problem:_ Wenn der Schieberegler von Kachel A fokussiert war und anschließend ein Datenpunkt in Kachel B per Pointer geklickt wurde, setzte Kachel B sich zunächst als neue Quelle. Der anschließende Blur von Kachel A rief `handleClear()` auf und leerte bedingungslos den gesamten Store, wodurch auch die neue Auswahl von Kachel B gelöscht wurde.
    - _Behebung:_ `handleClear()` in `useCrosshairController` prüft nun über `store.getSnapshot().sourceTileId`, ob die Kachel noch die aktive Quelle ist (`!currentSource || currentSource === tileId`). Nur wenn diese Kachel die Quelle ist, wird `clearCrosshair()` ausgeführt.
    - _Regressionstest:_ Dedizierter Testfall `Fokusverlust von Kachel A leert nicht das Fadenkreuz, wenn Kachel B bereits Quelle ist (Codex P2)` in `crosshairCoupling.ui.vitest.tsx`.
-2. **P3-Befund (`ABFRAGEVERTRAG_P08A.md`): Tatsächlich unterstützter Fenstervertrag**
+
+7. **P2-Befund (`useCrosshair.ts`): Robuster Unmount- und Blur-Schutz für Store-Updates**
+   - _Problem:_ Bei parallelen Interaktionen konnte ein Unmount/Blur der Quellkachel fälschlich neu gesetzte Fremdauswahlen abräumen.
+   - _Behebung:_ Vollständige Koppelung an die Source-ID und sicheres Throttler-Cancelling im Unmount-Cleanup.
+
+8. **P3-Befund (`ABFRAGEVERTRAG_P08A.md`): Tatsächlich unterstützter Fenstervertrag**
    - _Problem:_ Die Dokumentation nannte vereinfachte String-Shortcuts wie `'7d'`, einen nicht existierenden globalen Dashboard-Fallback und `timeControl.asOf`.
    - _Behebung:_ Dokumentation präzisiert: `tile.query.window` akzeptiert genau das Objekt `{ count, resolution }` (Strings werfen `typ_ungueltig`); Fallback bei fehlendem Fenster ist das im Katalog hinterlegte `entry.history.defaultWindow`; der flüchtige Zeitsteuerungszustand heißt `timeControl.analysisAt` (wird nie in der Konfiguration persistiert). Auch `ZEITSTEUERUNG_P10A.md` und `ARCHITECTURE_DECISIONS.md` (C10) auf diesen präzisen Stand harmonisiert.

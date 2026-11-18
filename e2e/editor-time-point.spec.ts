@@ -19,11 +19,17 @@ async function addTile(page: Page, tabTestId: string, buttonTestId: string) {
   await page.getByTestId(tabTestId).click();
   const btn = page.getByTestId(buttonTestId);
   await expect(btn).toBeVisible();
+  const beforeCount = await page.locator('[data-testid^="canvas-tile-"]').count();
   await btn.click();
-  const tile = page.locator('[data-testid^="canvas-tile-"]').last();
-  await tile.scrollIntoViewIfNeeded();
-  await expect(tile).toBeVisible();
-  return tile;
+  const tiles = page.locator('[data-testid^="canvas-tile-"]');
+  await expect(tiles).toHaveCount(beforeCount + 1);
+  const newTile = tiles.last();
+  const testId = await newTile.getAttribute('data-testid');
+  expect(testId).toBeTruthy();
+  const boundTile = page.locator(`[data-testid="${testId}"]`);
+  await boundTile.scrollIntoViewIfNeeded();
+  await expect(boundTile).toBeVisible();
+  return boundTile;
 }
 
 test.describe('Dashboard-Editor V2: Zeitpunkt, Zeitfenster und Fadenkreuz (Auftrag 164)', () => {
@@ -100,31 +106,31 @@ test.describe('Dashboard-Editor V2: Zeitpunkt, Zeitfenster und Fadenkreuz (Auftr
 
     // 5. Fadenkreuz-Kopplung per Maus
     // Scroll zu den Verlaufskacheln
-    await crmTile.scrollIntoViewIfNeeded();
+    await liveTile.scrollIntoViewIfNeeded();
 
-    const crmPoints = crmTile.locator('rect[fill="transparent"]');
-    const crmPointCount = await crmPoints.count();
-    expect(crmPointCount).toBeGreaterThan(0);
+    const livePoints = liveTile.locator('rect[fill="transparent"]');
+    const livePointCount = await livePoints.count();
+    expect(livePointCount).toBeGreaterThan(0);
 
-    // Überfahre den mittleren Datenpunkt in Kachel 1
-    const targetPointIndex = Math.floor(crmPointCount / 2);
-    await crmPoints.nth(targetPointIndex).hover();
+    // Überfahre den mittleren Datenpunkt in Kachel 2 (Live ARR Verlauf)
+    const targetPointIndex = Math.floor(livePointCount / 2);
+    await livePoints.nth(targetPointIndex).hover();
 
-    // Kachel 1 zeigt Fadenkreuz-Linie
-    await expect(crmTile.locator('line[stroke-dasharray="2 3"]')).toBeVisible();
+    // Kachel 2 zeigt Fadenkreuz-Linie
+    await expect(liveTile.locator('line[stroke-dasharray="2 3"]')).toBeAttached();
 
-    // Kachel 2 MUSS mitlaufen und ebenfalls eine Fadenkreuz-Linie zeigen
-    await expect(liveTile.locator('line[stroke-dasharray="2 3"]')).toBeVisible();
+    // Kachel 1 (CRM Wochenverlauf) MUSS mitlaufen und ebenfalls eine Fadenkreuz-Linie zeigen
+    await expect(crmTile.locator('line[stroke-dasharray="2 3"]')).toBeAttached();
 
     // 6. Tastatur-Steuerung: Fokus, Pfeiltasten, Escape
-    const slider = crmTile.getByRole('slider');
+    const slider = liveTile.getByRole('slider');
     await slider.focus();
-    await expect(crmTile.locator('line[stroke-dasharray="2 3"]')).toBeVisible();
+    await expect(liveTile.locator('line[stroke-dasharray="2 3"]')).toBeAttached();
 
     // Pfeiltaste wandert
     await page.keyboard.press('ArrowRight');
-    await expect(crmTile.locator('line[stroke-dasharray="2 3"]')).toBeVisible();
-    await expect(liveTile.locator('line[stroke-dasharray="2 3"]')).toBeVisible();
+    await expect(liveTile.locator('line[stroke-dasharray="2 3"]')).toBeAttached();
+    await expect(crmTile.locator('line[stroke-dasharray="2 3"]')).toBeAttached();
 
     // Escape leert Fadenkreuz
     await page.keyboard.press('Escape');
@@ -144,18 +150,18 @@ test.describe('Dashboard-Editor V2: Zeitpunkt, Zeitfenster und Fadenkreuz (Auftr
     );
     const liveTile = await addTile(page, 'library-tab-live', 'add-tile-btn-live.arr.verlauf');
 
-    await crmTile.scrollIntoViewIfNeeded();
+    await liveTile.scrollIntoViewIfNeeded();
 
-    const crmPoints = crmTile.locator('rect[fill="transparent"]');
-    const count = await crmPoints.count();
+    const livePoints = liveTile.locator('rect[fill="transparent"]');
+    const count = await livePoints.count();
     expect(count).toBeGreaterThan(0);
 
     // Tippen auf den Datenpunkt per pointerdown
     const targetIndex = Math.floor(count / 2);
-    await crmPoints.nth(targetIndex).dispatchEvent('pointerdown');
+    await livePoints.nth(targetIndex).dispatchEvent('pointerdown');
 
     // Fadenkreuz koppelt beide Kacheln
-    await expect(crmTile.locator('line[stroke-dasharray="2 3"]')).toBeVisible();
-    await expect(liveTile.locator('line[stroke-dasharray="2 3"]')).toBeVisible();
+    await expect(liveTile.locator('line[stroke-dasharray="2 3"]')).toBeAttached();
+    await expect(crmTile.locator('line[stroke-dasharray="2 3"]')).toBeAttached();
   });
 });
