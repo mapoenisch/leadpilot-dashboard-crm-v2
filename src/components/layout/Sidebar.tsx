@@ -255,6 +255,13 @@ export function Sidebar({
               onClick={handleLinkClick}
             />
             <NavItem
+              to="/admin/teams"
+              dataTestId="nav-item-admin-teams"
+              label="Dashboard-Teams"
+              active={currentRoute.id === 's-admin-teams'}
+              onClick={handleLinkClick}
+            />
+            <NavItem
               to="/admin/audit"
               dataTestId="nav-item-admin-audit"
               label="Audit-Log"

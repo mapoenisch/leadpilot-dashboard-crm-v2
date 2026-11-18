@@ -7,6 +7,7 @@ import { useOrganization } from '@/auth/organizationContext';
 import { DashboardWorkspace } from '../components/DashboardWorkspace';
 import { DashboardEditorShellV2 } from '../components/editor/DashboardEditorShellV2';
 import { DashboardConflictDialogV2 } from '../components/editor/DashboardConflictDialogV2';
+import { TeamAccessRevokedDialogV2 } from '../components/editor/TeamAccessRevokedDialogV2';
 import { useBrowserBackGuard } from '../hooks/useBrowserBackGuard';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useDashboardNavigation } from '../hooks/useDashboardNavigation';
@@ -21,6 +22,8 @@ import { TimeControlProvider } from '../time/TimeControlProvider';
 import { invalidateCrmOverviewQueries } from '../time/resumeCrmRefresh';
 import { useTimeControlledData } from '../time/useTimeControlledData';
 
+import { Info } from 'lucide-react';
+import { getDashboardTeamErrorMessage } from '../model/dashboardTeamMessages';
 import { DashboardDeletedDialogV2 } from '../components/editor/DashboardDeletedDialogV2';
 
 export const RETURN_ANNOUNCEMENT = 'Zurück im Dashboard. Die Filter deiner Sitzung gelten weiter.';
@@ -49,6 +52,11 @@ function PersonalExecutiveDashboardV2Container({
   const [showDeletedDialog, setShowDeletedDialog] = useState(false);
   const [deletedDraft, setDeletedDraft] = useState<DashboardConfigV2 | null>(null);
   const [deletedDialogError, setDeletedDialogError] = useState<string | null>(null);
+  const [showRevokedDialog, setShowRevokedDialog] = useState(false);
+  const [revokedDraft, setRevokedDraft] = useState<DashboardConfigV2 | null>(null);
+  const [readOnlyCopyError, setReadOnlyCopyError] = useState<string | null>(null);
+  const [isCopyingPersonal, setIsCopyingPersonal] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   if (v2Storage.status === 'laden' || !v2Storage.dashboard) {
     return (
@@ -64,7 +72,10 @@ function PersonalExecutiveDashboardV2Container({
   const handleSave = async (cfg: DashboardConfigV2): Promise<boolean> => {
     const res = await v2Storage.save(cfg);
     if (!res.ok) {
-      if (res.error.kind === 'konflikt') {
+      if (res.error.kind === 'team_zugriff_entzogen') {
+        setRevokedDraft(cfg);
+        setShowRevokedDialog(true);
+      } else if (res.error.kind === 'konflikt') {
         setConflictDraft(cfg);
         setConflictDialogError(null);
         setShowConflictDialog(true);
@@ -83,6 +94,7 @@ function PersonalExecutiveDashboardV2Container({
     setConflictDraft(null);
     setConflictDialogError(null);
     await v2Storage.reload();
+    setReloadKey((k) => k + 1);
   };
 
   const handleSaveAsCopyConflict = async () => {
@@ -126,13 +138,88 @@ function PersonalExecutiveDashboardV2Container({
     setDeletedDraft(null);
     setDeletedDialogError(null);
     await v2Storage.reload();
+    setReloadKey((k) => k + 1);
+  };
+
+  const handleSaveAsPersonalCopyFromRevoked = async () => {
+    if (!revokedDraft) return;
+    const res = await v2Storage.saveAsNewPersonalCopy(revokedDraft);
+    if (res.ok) {
+      setShowRevokedDialog(false);
+      setRevokedDraft(null);
+    }
+  };
+
+  const handleSaveAsPersonalCopy = async () => {
+    if (isCopyingPersonal || v2Storage.isSaving) return;
+    setIsCopyingPersonal(true);
+    setReadOnlyCopyError(null);
+    try {
+      const res = await v2Storage.duplicateCurrent(undefined, { scope: 'personal' });
+      if (!res.ok) {
+        const msg =
+          res.error?.kind === 'obergrenze_erreicht'
+            ? 'Maximale Anzahl von 20 persönlichen Dashboards erreicht. Bitte löschen Sie ein anderes Dashboard.'
+            : 'Persönliche Kopie konnte nicht erstellt werden.';
+        setReadOnlyCopyError(msg);
+      }
+    } finally {
+      setIsCopyingPersonal(false);
+    }
+  };
+
+  const handleDiscardAndReloadFromRevoked = async () => {
+    setShowRevokedDialog(false);
+    setRevokedDraft(null);
+    await v2Storage.reload();
+    setReloadKey((k) => k + 1);
   };
 
   return (
     <>
+      {v2Storage.fallbackNotice && (
+        <div
+          role="status"
+          data-testid="dashboard-fallback-notice"
+          className="flex items-center justify-between border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-200"
+        >
+          <div className="flex items-center gap-2">
+            <Info className="h-4 w-4 shrink-0 text-amber-400" aria-hidden="true" />
+            <span>{v2Storage.fallbackNotice}</span>
+          </div>
+          <button
+            type="button"
+            data-testid="dismiss-fallback-notice"
+            onClick={v2Storage.clearFallbackNotice}
+            className="text-xs text-amber-300 hover:text-white"
+          >
+            Ausblenden
+          </button>
+        </div>
+      )}
+      {v2Storage.error && (
+        <div
+          role="alert"
+          data-testid="dashboard-storage-error-notice"
+          className="flex items-center justify-between border-b border-rose-500/30 bg-rose-500/10 px-4 py-2 text-xs text-rose-200"
+        >
+          <div className="flex items-center gap-2">
+            <Info className="h-4 w-4 shrink-0 text-rose-400" aria-hidden="true" />
+            <span>{getDashboardTeamErrorMessage(v2Storage.error)}</span>
+          </div>
+          <button
+            type="button"
+            data-testid="dismiss-storage-error-notice"
+            onClick={v2Storage.clearError}
+            className="text-xs text-rose-300 hover:text-white"
+          >
+            Ausblenden
+          </button>
+        </div>
+      )}
       <TimeControlProvider key={v2Storage.dashboard.id}>
         <DashboardEditorShellV2
-          key={`${v2Storage.dashboard.id}_${v2Storage.dashboard.revision}`}
+          key={`${v2Storage.dashboard.id}_${reloadKey}`}
           initialConfig={v2Storage.dashboard.config}
           useData={useTimeControlledData}
           onSave={handleSave}
@@ -148,6 +235,10 @@ function PersonalExecutiveDashboardV2Container({
           onCreateFromTemplate={v2Storage.createFromTemplate}
           onDuplicateCurrent={v2Storage.duplicateCurrent}
           onDeleteDashboard={v2Storage.deleteDashboard}
+          onShareWithTeam={v2Storage.shareWithTeam}
+          onSaveAsPersonalCopy={handleSaveAsPersonalCopy}
+          isSavingPersonalCopy={isCopyingPersonal || v2Storage.isSaving}
+          readOnlyCopyError={readOnlyCopyError}
           onRefreshList={v2Storage.refreshList}
           listError={v2Storage.listError}
         />
@@ -156,6 +247,7 @@ function PersonalExecutiveDashboardV2Container({
         open={showConflictDialog}
         isSaving={v2Storage.isSaving}
         error={conflictDialogError}
+        scope={v2Storage.dashboard.scope}
         onReload={handleReloadConflict}
         onSaveAsCopy={handleSaveAsCopyConflict}
         onStay={() => {
@@ -173,6 +265,13 @@ function PersonalExecutiveDashboardV2Container({
           setShowDeletedDialog(false);
           setDeletedDialogError(null);
         }}
+      />
+      <TeamAccessRevokedDialogV2
+        open={showRevokedDialog}
+        dashboardTitle={v2Storage.dashboard.title}
+        isSaving={v2Storage.isSaving}
+        onSaveAsPersonalCopy={handleSaveAsPersonalCopyFromRevoked}
+        onDiscardAndReload={handleDiscardAndReloadFromRevoked}
       />
     </>
   );

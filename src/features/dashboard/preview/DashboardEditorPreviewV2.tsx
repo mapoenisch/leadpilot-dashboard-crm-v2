@@ -1,15 +1,16 @@
-// Executive Dashboard V2 (Auftrag 148 & 158 / P05 & P09b):
+// Executive Dashboard V2 (Auftrag 148 & 158 / P05 & P09b, Auftrag 163 / P11b):
 // Vorschau-Komponente für den visuellen Dashboard-Editor V2 ohne Anmeldung.
-// Unterstützt Vorlagen, Sektionen und Dashboard-Auswahl mit drei Dashboards für den Screenshot-Harness.
+// Unterstützt Vorlagen, Sektionen, Dashboard-Auswahl und Team-Freigaben (&teams=1 / &teams=entzogen).
 
 import { useCallback, useState } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import { DashboardEditorShellV2 } from '../components/editor/DashboardEditorShellV2';
+import { TeamAccessRevokedDialogV2 } from '../components/editor/TeamAccessRevokedDialogV2';
 import { DEFAULT_DASHBOARD_CONFIG } from '../model/defaultDashboard';
 import { migrateV1ToV2 } from '../model/dashboardMigrationV1V2';
 import type { DashboardConfigV2 } from '../model/dashboardConfigV2';
 import type {
-  PersonalDashboardListItemV2,
+  AccessibleDashboardListItemV2,
   StoredDashboardV2Row,
 } from '../services/dashboardStorageV2Types';
 import { useEditorPreviewData } from './editorPreviewData';
@@ -17,46 +18,36 @@ import { buildDerivedDashboardTitle } from '../model/dashboardTitles';
 import { useTimeControlledSource } from '../time/useTimeControlledData';
 import { createPreviewLiveStore, parsePreviewLiveScenario } from './previewLiveStore';
 import type { TileDataHook } from '../components/LazyDashboardTile';
+import {
+  INITIAL_PREVIEW_DASHBOARDS,
+  INITIAL_TEAM_DASHBOARDS,
+  PREVIEW_TEAMS,
+} from './previewTeamDashboards';
 
 /** Vorschau-Daten mit derselben gemeinsamen Zeitsteuerung wie der echte V2-Pfad. */
 const usePreviewDataTimeControlled: TileDataHook = (tile, filters, options) =>
   useTimeControlledSource(useEditorPreviewData, tile, filters, options);
 
-const INITIAL_PREVIEW_DASHBOARDS: PersonalDashboardListItemV2[] = [
-  {
-    id: 'preview_v2_dashboard',
-    title: 'Executive Dashboard (V2 Beta)',
-    scope: 'personal',
-    revision: 3,
-    tileCount: 9,
-    sectionCount: 0,
-    updatedAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'preview_sales_dashboard',
-    title: 'Vertrieb & Pipeline',
-    scope: 'personal',
-    revision: 1,
-    tileCount: 9,
-    sectionCount: 2,
-    updatedAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'preview_finance_dashboard',
-    title: 'Finanzen & Unit Economics',
-    scope: 'personal',
-    revision: 2,
-    tileCount: 10,
-    sectionCount: 2,
-    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
-
 export function DashboardEditorPreviewV2() {
-  const [dashboards, setDashboards] = useState<PersonalDashboardListItemV2[]>(
-    INITIAL_PREVIEW_DASHBOARDS,
-  );
-  const [activeDashboardId, setActiveDashboardId] = useState<string>('preview_v2_dashboard');
+  const [teamsScenario] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    return new URLSearchParams(window.location.search).get('teams');
+  });
+
+  const [dashboards, setDashboards] = useState<AccessibleDashboardListItemV2[]>(() => {
+    if (teamsScenario === '1' || teamsScenario === 'entzogen') {
+      return [...INITIAL_PREVIEW_DASHBOARDS, ...INITIAL_TEAM_DASHBOARDS];
+    }
+    return INITIAL_PREVIEW_DASHBOARDS;
+  });
+
+  const [activeDashboardId, setActiveDashboardId] = useState<string>(() => {
+    if (teamsScenario === 'entzogen') return 'preview_team_dash_write';
+    return 'preview_v2_dashboard';
+  });
+
+  const [showRevokedDialog, setShowRevokedDialog] = useState(false);
+
   const [liveScenario] = useState(() => {
     const value =
       typeof window !== 'undefined'
@@ -67,9 +58,13 @@ export function DashboardEditorPreviewV2() {
   const [liveStore] = useState(() => createPreviewLiveStore(liveScenario));
 
   const [config, setConfig] = useState<DashboardConfigV2>(() => {
+    const isEntzogen = teamsScenario === 'entzogen';
+    const baseId = isEntzogen ? 'preview_team_dash_write' : 'preview_v2_dashboard';
+    const baseTitle = isEntzogen ? 'Team Nord Vertrieb' : 'Executive Dashboard (V2 Beta)';
+
     const base = migrateV1ToV2(DEFAULT_DASHBOARD_CONFIG, {
-      id: 'preview_v2_dashboard',
-      title: 'Executive Dashboard (V2 Beta)',
+      id: baseId,
+      title: baseTitle,
       ownerUserId: 'demo-user-preview',
       organizationId: 'demo-org-preview',
     });
@@ -105,10 +100,16 @@ export function DashboardEditorPreviewV2() {
   });
 
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [revokedDraftConfig, setRevokedDraftConfig] = useState<DashboardConfigV2 | null>(null);
 
   const handleSave = useCallback(
     async (newConfig: DashboardConfigV2): Promise<boolean> => {
       await new Promise((resolve) => setTimeout(resolve, 300));
+      if (teamsScenario === 'entzogen') {
+        setRevokedDraftConfig(newConfig);
+        setShowRevokedDialog(true);
+        return false;
+      }
       setConfig(newConfig);
       setDashboards((prev) =>
         prev.map((d) =>
@@ -127,7 +128,7 @@ export function DashboardEditorPreviewV2() {
       setTimeout(() => setSaveMessage(null), 3000);
       return true;
     },
-    [activeDashboardId],
+    [activeDashboardId, teamsScenario],
   );
 
   const handleOpenDashboard = useCallback(
@@ -139,6 +140,8 @@ export function DashboardEditorPreviewV2() {
           ...prev,
           id,
           title: target.title,
+          scope: target.scope,
+          teamId: target.scope === 'team' && target.teamId ? target.teamId : undefined,
         }));
       }
       return true;
@@ -146,47 +149,104 @@ export function DashboardEditorPreviewV2() {
     [dashboards],
   );
 
-  const handleCreateFromTemplate = useCallback(async (templateId: string, title?: string) => {
-    const { getDashboardTemplateV2ById } = await import('../model/dashboardTemplatesV2');
-    const template = getDashboardTemplateV2ById(templateId);
-    const newTitle = title?.trim() || template?.name || 'Neues Dashboard';
-    const newId = 'preview_' + Math.random().toString(36).slice(2, 8);
-    const now = new Date().toISOString();
-
-    const newListItem: PersonalDashboardListItemV2 = {
-      id: newId,
-      title: newTitle,
-      scope: 'personal',
-      revision: 1,
-      tileCount: template?.tileCount ?? 0,
-      sectionCount: template?.sectionCount ?? 0,
-      updatedAt: now,
-    };
-
-    setDashboards((prev) => [newListItem, ...prev]);
-    setActiveDashboardId(newId);
-    if (template) {
-      const built = template.build({
-        id: newId,
-        title: newTitle,
-        ownerUserId: 'demo-user-preview',
-        organizationId: 'demo-org-preview',
-      });
-      setConfig(built);
-    }
-    return { ok: true, value: { dashboardId: newId, revision: 1, updatedAt: now } };
-  }, []);
-
-  const handleDuplicateCurrent = useCallback(
-    async (title?: string) => {
-      const targetTitle = title?.trim() || buildDerivedDashboardTitle(config.title, ' (Kopie)');
+  const handleCreateFromTemplate = useCallback(
+    async (
+      templateId: string,
+      title?: string,
+      target?: { scope: 'personal' | 'team'; teamId?: string },
+    ) => {
+      const { getDashboardTemplateV2ById } = await import('../model/dashboardTemplatesV2');
+      const template = getDashboardTemplateV2ById(templateId);
+      const newTitle = title?.trim() || template?.name || 'Neues Dashboard';
       const newId = 'preview_' + Math.random().toString(36).slice(2, 8);
       const now = new Date().toISOString();
+      const scope = target?.scope ?? 'personal';
+      const targetTeam =
+        scope === 'team' ? PREVIEW_TEAMS.find((t) => t.id === target?.teamId) : null;
 
-      const newListItem: PersonalDashboardListItemV2 = {
+      const newListItem: AccessibleDashboardListItemV2 = {
+        id: newId,
+        title: newTitle,
+        scope,
+        teamId: scope === 'team' ? (target?.teamId ?? null) : null,
+        teamName: targetTeam ? targetTeam.name : null,
+        canWrite: true,
+        revision: 1,
+        tileCount: template?.tileCount ?? 0,
+        sectionCount: template?.sectionCount ?? 0,
+        updatedAt: now,
+      };
+
+      setDashboards((prev) => [newListItem, ...prev]);
+      setActiveDashboardId(newId);
+      if (template) {
+        const built = template.build({
+          id: newId,
+          title: newTitle,
+          ownerUserId: 'demo-user-preview',
+          organizationId: 'demo-org-preview',
+        });
+        setConfig(built);
+      }
+      return { ok: true, value: { dashboardId: newId, revision: 1, updatedAt: now } };
+    },
+    [],
+  );
+
+  const handleDuplicateCurrent = useCallback(
+    async (
+      title?: string,
+      target?: { scope: 'personal' | 'team'; teamId?: string },
+      sourceConfig?: DashboardConfigV2,
+    ) => {
+      const base = sourceConfig ?? config;
+      const targetTitle = title?.trim() || buildDerivedDashboardTitle(base.title, ' (Kopie)');
+      const newId = 'preview_' + Math.random().toString(36).slice(2, 8);
+      const now = new Date().toISOString();
+      const scope = target?.scope ?? 'personal';
+      const targetTeam =
+        scope === 'team' ? PREVIEW_TEAMS.find((t) => t.id === target?.teamId) : null;
+
+      const newListItem: AccessibleDashboardListItemV2 = {
         id: newId,
         title: targetTitle,
-        scope: 'personal',
+        scope,
+        teamId: scope === 'team' ? (target?.teamId ?? null) : null,
+        teamName: targetTeam ? targetTeam.name : null,
+        canWrite: true,
+        revision: 1,
+        tileCount: base.tiles.length,
+        sectionCount: base.sections?.length ?? 0,
+        updatedAt: now,
+      };
+
+      setDashboards((prev) => [newListItem, ...prev]);
+      setActiveDashboardId(newId);
+      setConfig({
+        ...base,
+        id: newId,
+        title: targetTitle,
+        scope,
+        teamId: scope === 'team' && target?.teamId ? target.teamId : undefined,
+      });
+      return { ok: true, value: { dashboardId: newId, revision: 1, updatedAt: now } };
+    },
+    [config],
+  );
+
+  const handleShareWithTeam = useCallback(
+    async (teamId: string, title: string) => {
+      const targetTeam = PREVIEW_TEAMS.find((t) => t.id === teamId);
+      const newId = 'preview_team_' + Math.random().toString(36).slice(2, 8);
+      const now = new Date().toISOString();
+
+      const newListItem: AccessibleDashboardListItemV2 = {
+        id: newId,
+        title,
+        scope: 'team',
+        teamId,
+        teamName: targetTeam?.name ?? 'Team',
+        canWrite: true,
         revision: 1,
         tileCount: config.tiles.length,
         sectionCount: config.sections?.length ?? 0,
@@ -198,9 +258,11 @@ export function DashboardEditorPreviewV2() {
       setConfig((prev) => ({
         ...prev,
         id: newId,
-        title: targetTitle,
+        title,
+        scope: 'team',
+        teamId,
       }));
-      return { ok: true, value: { dashboardId: newId, revision: 1, updatedAt: now } };
+      return { ok: true };
     },
     [config],
   );
@@ -219,13 +281,17 @@ export function DashboardEditorPreviewV2() {
     [dashboards],
   );
 
+  const currentItem = dashboards.find((d) => d.id === activeDashboardId);
   const currentStored: StoredDashboardV2Row = {
     id: activeDashboardId,
     title: config.title,
-    scope: 'personal',
-    revision: 1,
+    scope: currentItem?.scope ?? 'personal',
+    revision: currentItem?.revision ?? 1,
     config,
     updatedAt: new Date().toISOString(),
+    teamId: currentItem?.scope === 'team' ? currentItem.teamId : undefined,
+    teamName: currentItem?.scope === 'team' ? currentItem.teamName : undefined,
+    canWrite: currentItem ? (currentItem.canWrite ?? true) : true,
   };
 
   return (
@@ -242,7 +308,9 @@ export function DashboardEditorPreviewV2() {
           >
             Beta-Vorschau
           </Badge>
-          <span>Dashboard-Editor V2 (P09b) • Vorschau mit 3 Dashboards und Vorlagenauswahl</span>
+          <span>
+            Dashboard-Editor V2 (P09b/P11b) • Vorschau mit Vorlagenauswahl und Team-Freigaben
+          </span>
         </div>
         {saveMessage && (
           <span className="font-semibold text-emerald-400 animate-fade-in">{saveMessage}</span>
@@ -269,8 +337,28 @@ export function DashboardEditorPreviewV2() {
           onCreateFromTemplate={handleCreateFromTemplate}
           onDuplicateCurrent={handleDuplicateCurrent}
           onDeleteDashboard={handleDeleteDashboard}
+          onShareWithTeam={handleShareWithTeam}
+          onSaveAsPersonalCopy={async () => {
+            await handleDuplicateCurrent(buildDerivedDashboardTitle(config.title, ' (Kopie)'));
+          }}
         />
       </div>
+
+      <TeamAccessRevokedDialogV2
+        open={showRevokedDialog}
+        dashboardTitle={config.title}
+        onSaveAsPersonalCopy={async () => {
+          const draft = revokedDraftConfig ?? config;
+          const copyTitle = buildDerivedDashboardTitle(draft.title, ' (Persönliche Kopie)');
+          await handleDuplicateCurrent(copyTitle, { scope: 'personal' }, draft);
+          setShowRevokedDialog(false);
+          setRevokedDraftConfig(null);
+        }}
+        onDiscardAndReload={() => {
+          setShowRevokedDialog(false);
+          setRevokedDraftConfig(null);
+        }}
+      />
     </div>
   );
 }

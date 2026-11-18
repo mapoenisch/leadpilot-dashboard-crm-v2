@@ -1,42 +1,47 @@
 // Auftrag 158 (P09b): Dialog zur Neuanlage eines Dashboards aus einer V2-Vorlage.
 // Dynamischer Import der Vorlagen für optimales Code-Splitting (P09b §2.5 Nr. 30).
 
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { cn } from '@/lib/utils';
 import type {
+  AccessibleDashboardListItemV2,
   DashboardV2StorageError,
   PersonalDashboardListItemV2,
 } from '../../../services/dashboardStorageV2Types';
 import type { DashboardTemplateV2 } from '../../../model/dashboardTemplatesV2';
 import {
   MAX_DASHBOARD_TITLE_LENGTH,
+  MAX_PERSONAL_DASHBOARDS,
   buildDerivedDashboardTitle,
 } from '../../../model/dashboardTitles';
 import { useEscapeToClose } from '../../UnsavedChangesDialog';
+
+import type { DashboardTeamV2 } from '../../../services/dashboardStorageV2Types';
+import { listDashboardTeamsV2 } from '../../../services/dashboardTeamsV2';
+import { getDashboardTeamErrorMessage } from '../../../model/dashboardTeamMessages';
+
+export type CreateDashboardTarget = { scope: 'personal' } | { scope: 'team'; teamId: string };
 
 export type CreateDashboardResult = boolean | { ok: boolean; error?: DashboardV2StorageError };
 
 export interface NewDashboardDialogV2Props {
   open: boolean;
   onClose: () => void;
-  existingDashboards: PersonalDashboardListItemV2[];
-  onCreate: (templateId: string, title: string) => Promise<CreateDashboardResult>;
+  existingDashboards: (AccessibleDashboardListItemV2 | PersonalDashboardListItemV2)[];
+  onCreate: (
+    templateId: string,
+    title: string,
+    target?: CreateDashboardTarget,
+  ) => Promise<CreateDashboardResult>;
   isSaving?: boolean;
+  teams?: DashboardTeamV2[];
 }
 
 function getCreateErrorMessage(error?: DashboardV2StorageError): string {
   if (!error) return 'Das Dashboard konnte nicht angelegt werden.';
-  switch (error.kind) {
-    case 'obergrenze_erreicht':
-      return 'Die Obergrenze von 20 Dashboards wurde erreicht. Bitte lösche ein bestehendes Dashboard.';
-    case 'nicht_berechtigt':
-    case 'keine_mitgliedschaft':
-      return 'Keine Berechtigung zum Anlegen eines neuen Dashboards.';
-    default:
-      return 'Das Dashboard konnte nicht angelegt werden.';
-  }
+  return getDashboardTeamErrorMessage(error, 'dashboard');
 }
 
 function computeUniqueTitle(baseName: string, existingTitles: Set<string>): string {
@@ -60,13 +65,38 @@ export function NewDashboardDialogV2({
   existingDashboards,
   onCreate,
   isSaving = false,
+  teams: providedTeams,
 }: NewDashboardDialogV2Props) {
   const [templates, setTemplates] = useState<readonly DashboardTemplateV2[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('executive');
   const [title, setTitle] = useState('');
   const [userHasEditedTitle, setUserHasEditedTitle] = useState(false);
+  const [hasUserSelectedTarget, setHasUserSelectedTarget] = useState(false);
+  const [targetValue, setTargetValue] = useState<string>('personal');
+  const [teams, setTeams] = useState<DashboardTeamV2[]>(providedTeams ?? []);
   const [error, setError] = useState<string | null>(null);
   const titleInputId = useId();
+  const targetSelectId = useId();
+
+  // Teams laden, falls nicht über Props bereitgestellt
+  useEffect(() => {
+    if (!open) return;
+    if (providedTeams) {
+      setTeams(providedTeams);
+      return;
+    }
+    let isMounted = true;
+    listDashboardTeamsV2()
+      .then((res) => {
+        if (isMounted && res.ok) {
+          setTeams(res.value);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [open, providedTeams]);
 
   // Dynamischer Import der Vorlagen erst beim Öffnen des Dialogs (P09b §2.5 Nr. 30)
   useEffect(() => {
@@ -82,7 +112,25 @@ export function NewDashboardDialogV2({
     };
   }, [open]);
 
-  // Vorbelegung des Titels beim Öffnen oder Vorlagenwechsel
+  const writableTeams = useMemo(() => teams.filter((t) => t.canWrite), [teams]);
+  const isPersonalLimitReached =
+    existingDashboards.filter((d) => d.scope !== 'team').length >= MAX_PERSONAL_DASHBOARDS;
+  const isTargetBlocked = targetValue === 'personal' && isPersonalLimitReached;
+
+  // Zielauswahl vorbesetzen: Nur beim Öffnen oder nach dem Laden der Teams, falls Nutzer noch nichts gewählt hat
+  useEffect(() => {
+    if (!open) {
+      setHasUserSelectedTarget(false);
+      setTargetValue('personal');
+      return;
+    }
+    if (!hasUserSelectedTarget) {
+      const defaultToTeam = isPersonalLimitReached && writableTeams.length > 0 && writableTeams[0];
+      setTargetValue(defaultToTeam ? `team:${defaultToTeam.id}` : 'personal');
+    }
+  }, [open, isPersonalLimitReached, writableTeams, hasUserSelectedTarget]);
+
+  // Vorbelegung des Titels beim Öffnen oder Vorlagenwechsel (unabhängig vom Ziel)
   useEffect(() => {
     if (!open) {
       setUserHasEditedTitle(false);
@@ -108,7 +156,7 @@ export function NewDashboardDialogV2({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSaving) return;
+    if (isSaving || isTargetBlocked) return;
     const trimmed = title.trim();
     if (!trimmed) {
       setError('Bitte gib einen Titel für das Dashboard ein.');
@@ -120,7 +168,12 @@ export function NewDashboardDialogV2({
     }
 
     setError(null);
-    const res = await onCreate(selectedTemplateId, trimmed);
+    const target: CreateDashboardTarget | undefined =
+      targetValue === 'personal' ? undefined : { scope: 'team', teamId: targetValue.slice(5) };
+
+    const res = target
+      ? await onCreate(selectedTemplateId, trimmed, target)
+      : await onCreate(selectedTemplateId, trimmed);
     if (typeof res === 'boolean') {
       if (!res) setError('Das Dashboard konnte nicht angelegt werden.');
     } else if (res && !res.ok) {
@@ -146,7 +199,7 @@ export function NewDashboardDialogV2({
           </Button>
           <Button
             data-testid="create-dashboard-submit-button"
-            disabled={isSaving || !title.trim()}
+            disabled={isSaving || !title.trim() || isTargetBlocked}
             onClick={handleSubmit}
             className="w-full sm:w-auto"
           >
@@ -167,6 +220,47 @@ export function NewDashboardDialogV2({
             className="rounded border border-error/40 bg-error/10 p-2.5 text-xs text-error"
           >
             {error}
+          </div>
+        )}
+
+        {isTargetBlocked && (
+          <div
+            role="alert"
+            data-testid="new-dashboard-target-blocked"
+            className="rounded border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300"
+          >
+            Das Limit von {MAX_PERSONAL_DASHBOARDS} persönlichen Dashboards ist erreicht. Wähle ein
+            Team als Ziel.
+          </div>
+        )}
+
+        {/* Zielauswahl (§2.4 Nr. 21) */}
+        {writableTeams.length > 0 && (
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor={targetSelectId}
+              className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+            >
+              Bereich
+            </label>
+            <select
+              id={targetSelectId}
+              data-testid="new-dashboard-target-select"
+              value={targetValue}
+              onChange={(e) => {
+                setHasUserSelectedTarget(true);
+                setTargetValue(e.target.value);
+              }}
+              disabled={isSaving}
+              className="h-9 w-full rounded border border-[var(--color-border,#1b3d39)] bg-[var(--color-surface,#0c1e1c)] px-3 text-sm text-white outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="personal">Persönlich</option>
+              {writableTeams.map((team) => (
+                <option key={team.id} value={`team:${team.id}`}>
+                  Team: {team.name}
+                </option>
+              ))}
+            </select>
           </div>
         )}
 

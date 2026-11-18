@@ -263,6 +263,12 @@ export const APP_ROUTES = [
     categoryLabel: 'Administration',
   },
   {
+    id: 's-admin-teams',
+    path: '/admin/teams',
+    title: 'Dashboard-Teams',
+    categoryLabel: 'Administration',
+  },
+  {
     id: 's-admin-audit',
     path: '/admin/audit',
     title: 'Audit-Log',
@@ -327,7 +333,12 @@ if (import.meta.env.DEV) {
     }
   }
 
-  const adminRouteIds = new Set(['s-admin-members', 's-admin-audit', 's-admin-health']);
+  const adminRouteIds = new Set([
+    's-admin-members',
+    's-admin-teams',
+    's-admin-audit',
+    's-admin-health',
+  ]);
   const standardRoutes = APP_ROUTES.filter((r) => !adminRouteIds.has(r.id));
   if (standardRoutes.length !== allNavIds.size) {
     logger.error(

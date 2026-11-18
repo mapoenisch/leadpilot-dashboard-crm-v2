@@ -331,4 +331,51 @@ describe('NewDashboardDialogV2 UI-Tests', () => {
     const input = screen.getByTestId('new-dashboard-title-input');
     expect(input).toBeDisabled();
   });
+
+  it('prüft Obergrenze zielabhängig und blockiert persönliches Ziel bei 20 Dashboards', async () => {
+    const onCreate = vi.fn().mockResolvedValue(true);
+    const onClose = vi.fn();
+    const twentyPersonal = Array.from({ length: 20 }, (_, i) => ({
+      id: `p-${i}`,
+      title: `Personal ${i}`,
+      scope: 'personal' as const,
+      canWrite: true,
+      revision: 1,
+      tileCount: 0,
+      sectionCount: 0,
+      updatedAt: new Date().toISOString(),
+    }));
+
+    render(
+      <NewDashboardDialogV2
+        open={true}
+        onClose={onClose}
+        existingDashboards={twentyPersonal}
+        onCreate={onCreate}
+        teams={[
+          {
+            id: 't-1',
+            name: 'Vertrieb',
+            description: null,
+            canWrite: true,
+            isMember: true,
+            memberCount: 2,
+            dashboardCount: 1,
+          },
+        ]}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('new-dashboard-target-select')).toHaveValue('team:t-1');
+    });
+
+    // Wählt man manuell "personal", wird der Submit gesperrt und der Hinweis angezeigt
+    fireEvent.change(screen.getByTestId('new-dashboard-target-select'), {
+      target: { value: 'personal' },
+    });
+
+    expect(screen.getByTestId('new-dashboard-target-blocked')).toBeInTheDocument();
+    expect(screen.getByTestId('create-dashboard-submit-button')).toBeDisabled();
+  });
 });

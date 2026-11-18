@@ -12,6 +12,7 @@ import {
   getPendingFollowUpSelectionAction,
   getPendingPostSwitchAnnouncement,
   getPendingPostSwitchError,
+  saveBeforeAction,
   setPendingFocusTriggerOnMount,
   setPendingFollowUpSelectionAction,
   setPendingPostSwitchAnnouncement,
@@ -31,6 +32,7 @@ export function useDashboardSelection({
   onDuplicateCurrent,
   onDeleteDashboard,
   onSaveCurrent,
+  onShareWithTeam,
 }: UseDashboardSelectionParams) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeDialog, setActiveDialog] = useState<ActiveDialogType>(() => {
@@ -56,13 +58,12 @@ export function useDashboardSelection({
   const triggerButtonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const isLimitReached = dashboards.length >= MAX_PERSONAL_DASHBOARDS;
-  const isOnlyOneDashboard = dashboards.length <= 1;
+  const personalCount = dashboards.filter((d) => d.scope !== 'team').length;
+  const isLimitReached = personalCount >= MAX_PERSONAL_DASHBOARDS;
+  const isOnlyOneDashboard = personalCount <= 1;
 
   const returnFocusToTrigger = useCallback(() => {
-    requestAnimationFrame(() => {
-      triggerButtonRef.current?.focus();
-    });
+    requestAnimationFrame(() => triggerButtonRef.current?.focus());
   }, []);
 
   // Fokus & Fehler nach Shell-Remount auf den Auswahlknopf zurücksetzen (Codex P2)
@@ -80,9 +81,7 @@ export function useDashboardSelection({
     returnFocusToTrigger();
   }, [returnFocusToTrigger]);
 
-  const announce = useCallback((msg: string) => {
-    setAnnouncement(msg);
-  }, []);
+  const announce = useCallback((msg: string) => setAnnouncement(msg), []);
 
   const executeAction = useCallback(
     async (action: PendingSelectionAction) => {
@@ -169,18 +168,14 @@ export function useDashboardSelection({
     const saved = await onSaveCurrent();
     if (!isMountedRef.current) return;
     setIsProcessing(false);
-    if (!saved) {
-      setPendingFollowUpSelectionAction(null);
-      setShowUnsavedConfirm(false);
-      setPendingAction(null);
-      return;
-    }
     setShowUnsavedConfirm(false);
     setPendingAction(null);
-    const followUp = getPendingFollowUpSelectionAction();
-    if (followUp) {
-      await executeAction(followUp);
+    if (!saved) {
+      setPendingFollowUpSelectionAction(null);
+      return;
     }
+    const followUp = getPendingFollowUpSelectionAction();
+    if (followUp) await executeAction(followUp);
   }, [onSaveCurrent, pendingAction, executeAction]);
 
   // Dialog-Aktionen
@@ -188,6 +183,7 @@ export function useDashboardSelection({
     async (
       templateId: string,
       title?: string,
+      target?: { scope: 'personal' | 'team'; teamId?: string },
     ): Promise<{ ok: boolean; error?: DashboardV2StorageError }> => {
       setIsProcessing(true);
       setErrorText(null);
@@ -195,10 +191,11 @@ export function useDashboardSelection({
       setPendingPostSwitchAnnouncement(`Dashboard ‚${targetTitle}‘ angelegt`);
       setPendingFocusTriggerOnMount(true);
 
-      const res = (await onCreateFromTemplate(templateId, title)) as {
-        ok: boolean;
-        error?: DashboardV2StorageError;
-      };
+      const res = (
+        target?.scope === 'team'
+          ? await onCreateFromTemplate(templateId, title, target)
+          : await onCreateFromTemplate(templateId, title)
+      ) as { ok: boolean; error?: DashboardV2StorageError };
 
       if (!isMountedRef.current) return res;
 
@@ -223,21 +220,19 @@ export function useDashboardSelection({
     async (
       title?: string,
       saveFirst = false,
+      target?: { scope: 'personal' | 'team'; teamId?: string },
     ): Promise<{ ok: boolean; error?: DashboardV2StorageError }> => {
       setIsProcessing(true);
       setErrorText(null);
-      if (saveFirst && isDirty) {
-        const saved = await onSaveCurrent();
-        if (!saved) {
+      if (saveFirst) {
+        const sRes = await saveBeforeAction(
+          isDirty,
+          onSaveCurrent,
+          'Ungespeicherte Änderungen konnten vor dem Duplizieren nicht gesichert werden.',
+        );
+        if (!sRes.ok) {
           setIsProcessing(false);
-          return {
-            ok: false,
-            error: {
-              kind: 'konflikt',
-              detail:
-                'Ungespeicherte Änderungen konnten vor dem Duplizieren nicht gesichert werden.',
-            },
-          };
+          return sRes;
         }
       }
 
@@ -245,10 +240,11 @@ export function useDashboardSelection({
       setPendingPostSwitchAnnouncement(`Dashboard ‚${targetTitle}‘ angelegt`);
       setPendingFocusTriggerOnMount(true);
 
-      const res = (await onDuplicateCurrent(title)) as {
-        ok: boolean;
-        error?: DashboardV2StorageError;
-      };
+      const res = (
+        target?.scope === 'team'
+          ? await onDuplicateCurrent(title, target)
+          : await onDuplicateCurrent(title)
+      ) as { ok: boolean; error?: DashboardV2StorageError };
 
       if (!isMountedRef.current) return res;
 
@@ -267,13 +263,52 @@ export function useDashboardSelection({
       return { ok: false, error: res.error };
     },
     [
-      isDirty,
-      onSaveCurrent,
       currentDashboard.title,
+      isDirty,
       onDuplicateCurrent,
+      onSaveCurrent,
       announce,
       returnFocusToTrigger,
     ],
+  );
+
+  const handleShareWithTeam = useCallback(
+    async (
+      teamId: string,
+      title: string,
+      saveFirst = false,
+    ): Promise<{ ok: boolean; error?: DashboardV2StorageError }> => {
+      if (!onShareWithTeam) {
+        return { ok: false, error: { kind: 'nicht_verfuegbar' } };
+      }
+      setIsProcessing(true);
+      setErrorText(null);
+      if (saveFirst) {
+        const sRes = await saveBeforeAction(
+          isDirty,
+          onSaveCurrent,
+          'Ungespeicherte Änderungen konnten vor dem Teilen nicht gesichert werden.',
+        );
+        if (!sRes.ok) {
+          setIsProcessing(false);
+          return sRes;
+        }
+      }
+      const res = (await onShareWithTeam(teamId, title, saveFirst)) as {
+        ok: boolean;
+        error?: DashboardV2StorageError;
+      };
+      if (!isMountedRef.current) return res;
+      setIsProcessing(false);
+      if (res.ok) {
+        setActiveDialog(null);
+        announce(`Dashboard ‚${title}‘ mit Team geteilt`);
+        returnFocusToTrigger();
+        return { ok: true };
+      }
+      return { ok: false, error: res.error };
+    },
+    [onShareWithTeam, isDirty, onSaveCurrent, announce, returnFocusToTrigger],
   );
 
   const handleDelete = useCallback(async (): Promise<{
@@ -295,22 +330,18 @@ export function useDashboardSelection({
       const remaining = dashboards.find((d) => d.id === res.nextDashboardId);
       const msg = `Dashboard ‚${deletedTitle}‘ gelöscht, ‚${remaining?.title ?? 'Nächstes'}‘ geöffnet`;
       setPendingPostSwitchAnnouncement(msg);
-    }
-
-    if (!isMountedRef.current) return res;
-
-    setIsProcessing(false);
-    if (res.ok) {
+      if (!isMountedRef.current) return res;
+      setIsProcessing(false);
       setPendingPostSwitchAnnouncement(null);
       setPendingFocusTriggerOnMount(false);
       setActiveDialog(null);
-      const remaining = dashboards.find((d) => d.id === res.nextDashboardId);
-      const msg = `Dashboard ‚${deletedTitle}‘ gelöscht, ‚${remaining?.title ?? 'Nächstes'}‘ geöffnet`;
       announce(msg);
       returnFocusToTrigger();
       return { ok: true };
     }
 
+    if (!isMountedRef.current) return res;
+    setIsProcessing(false);
     setPendingPostSwitchAnnouncement(null);
     setPendingFocusTriggerOnMount(false);
     return { ok: false, error: res.error };
@@ -360,5 +391,6 @@ export function useDashboardSelection({
     handleCreate,
     handleDuplicate,
     handleDelete,
+    handleShareWithTeam,
   };
 }

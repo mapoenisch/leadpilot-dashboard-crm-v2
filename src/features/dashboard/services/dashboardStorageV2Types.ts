@@ -20,6 +20,7 @@ export type DashboardV2StorageError =
   | { kind: 'team_name_vergeben' }
   | { kind: 'team_grenze' }
   | { kind: 'mitglied_nicht_in_org' }
+  | { kind: 'server_funktion_fehlt' }
   | { kind: 'technisch' };
 
 export type StorageResult<T> =
@@ -32,6 +33,9 @@ export interface StoredDashboardV2Row {
   revision: number;
   config: DashboardConfigV2;
   updatedAt: string;
+  teamId?: string | null;
+  teamName?: string | null;
+  canWrite?: boolean;
 }
 
 export interface PersonalDashboardListItemV2 {
@@ -175,6 +179,14 @@ export function classifyDashboardV2Error(
   if (status === 401 || SESSION_CODES.has(error?.code ?? '') || /jwt expired/i.test(message)) {
     return { kind: 'sitzung_abgelaufen' };
   }
+  if (
+    error?.code === 'PGRST202' ||
+    error?.code === '42883' ||
+    message.includes('PGRST202') ||
+    message.includes('42883')
+  ) {
+    return { kind: 'server_funktion_fehlt' };
+  }
   return { kind: 'technisch' };
 }
 
@@ -223,16 +235,27 @@ export type DeleteV2Result =
 export interface UseDashboardV2StorageResult {
   status: 'laden' | 'bereit' | 'fehler';
   dashboard: StoredDashboardV2Row | null;
-  dashboards: PersonalDashboardListItemV2[];
+  dashboards: AccessibleDashboardListItemV2[];
   error: DashboardV2StorageError | null;
   listError: DashboardV2StorageError | null;
+  fallbackNotice?: string | null;
+  clearFallbackNotice?: () => void;
+  clearError?: () => void;
   isSaving: boolean;
   save: (config: DashboardConfigV2, changeSummary?: string) => Promise<SaveV2Result>;
   reload: (explicitDashboardId?: string) => Promise<void>;
   refreshList: () => Promise<void>;
   openDashboard: (id: string) => Promise<boolean>;
-  createFromTemplate: (templateId: string, title?: string) => Promise<SaveV2Result>;
-  duplicateCurrent: (title?: string) => Promise<SaveV2Result>;
+  createFromTemplate: (
+    templateId: string,
+    title?: string,
+    target?: { scope: 'personal' | 'team'; teamId?: string },
+  ) => Promise<SaveV2Result>;
+  duplicateCurrent: (
+    title?: string,
+    target?: { scope: 'personal' | 'team'; teamId?: string },
+  ) => Promise<SaveV2Result>;
   deleteDashboard: (id: string) => Promise<DeleteV2Result>;
   saveAsNewPersonalCopy: (config: DashboardConfigV2, title?: string) => Promise<SaveV2Result>;
+  shareWithTeam?: (teamId: string, title: string) => Promise<SaveV2Result>;
 }

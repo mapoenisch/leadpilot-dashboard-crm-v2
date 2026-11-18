@@ -2,7 +2,7 @@
 
 **Stand:** 17.11.2026
 
-**Aktueller Auftrag:** Auftrag 163 – Dashboard-Editor: Team-Freigaben in der Oberfläche – Auswahl, Leseansicht, Kopieren, Rechteentzug, Teamverwaltung (P11b; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_163_TEAM_FREIGABEN_OBERFLAECHE.md`; Branch `auftrag-163-team-freigaben-oberflaeche`; Builder Antigravity, Prüfer Codex; Status: OFFEN; Voraussetzung für den Deploy: Migration 20261122 auf Hosted). Zuletzt: 162 Team-Freigaben im Server (P11a; PR #197 gemergt als `00ab4db5`), Sicherheitskorrektur FIX_DASHBOARD_REVISIONS_SCOPE (PR #198), 161 Analysezeitpunkt, Zeitfenster je Kachel, Fadenkreuz (P10b-2; PR #196, **teilweise umgesetzt** – Fadenkreuz-Kopplung, E2E/Screenshots und Fach-Doku offen, siehe BUILD_LOG 17.11.2026).
+**Aktueller Auftrag:** Auftrag 163 – Dashboard-Editor: Team-Freigaben in der Oberfläche – Auswahl, Leseansicht, Kopieren, Rechteentzug, Teamverwaltung (P11b; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_163_TEAM_FREIGABEN_OBERFLAECHE.md`; Branch `auftrag-163-team-freigaben-oberflaeche`; Builder Antigravity, Prüfer Codex; Status: PRÜFBEREIT / IN PR; Voraussetzung für den Deploy: Migration 20261122 auf Hosted). Zuletzt: 162 Team-Freigaben im Server (P11a; PR #197 gemergt als `00ab4db5`), Sicherheitskorrektur FIX_DASHBOARD_REVISIONS_SCOPE (PR #198), 161 Analysezeitpunkt, Zeitfenster je Kachel, Fadenkreuz (P10b-2; PR #196, **teilweise umgesetzt** – Fadenkreuz-Kopplung, E2E/Screenshots und Fach-Doku offen, siehe BUILD_LOG 17.11.2026).
 
 **Betriebsregel Live-Feed:** Am 14.11.2026 durch Marc aufgehoben (Edge Function und Migrationen seit 14.11.2026 online; echte Kennzahlen dürfen über den mandantengebundenen Feed eingespeist werden).
 **Offen nach dem v3.1.0-Rollout (10./11.11.2026):**
