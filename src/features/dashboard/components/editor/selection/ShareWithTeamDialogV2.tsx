@@ -98,7 +98,6 @@ export function ShareWithTeamDialogV2({
     return () => {
       isMounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, providedTeams, currentDashboard.id]);
 
   const handleClose = () => {
