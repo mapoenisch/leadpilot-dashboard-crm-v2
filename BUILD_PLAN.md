@@ -4,6 +4,10 @@
 
 **Aktueller Auftrag:** Auftrag 166 – Dashboard-Editor: Schwellenwerte auf Kacheln, Alarmfähigkeit je KPI, Betriebsweg für Alarme (P13a; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_166_SCHWELLENWERTE_ALARMFAEHIGKEIT.md`; Branch `auftrag-166-schwellenwerte-alarmfaehigkeit`; Builder Antigravity, Prüfer Codex; Status: PR ERÖFFNET). Zuletzt: 165 Versionshistorie, Vergleich, Wiederherstellen, Import/Export (P12; PR #204 gemergt als `f38d0d21`), 164 Restpunkte aus 161 (161R, schließt P10; PR #203), 163 Team-Freigaben in der Oberfläche (P11b; PR #202 gemergt als `2ab7cdc4`), 162 Team-Freigaben im Server (P11a; PR #197 gemergt als `00ab4db5`), 161 Analysezeitpunkt, Zeitfenster je Kachel, Fadenkreuz (P10b-2; PR #196).
 
+**Zielversion (festgelegt 18.11.2026, Marc):** `v3.2.0` – umfasst alles seit `v3.1.0` (10.11.2026) bis einschließlich P13 (Aufträge 151–168: Dashboard-Editor V2 mit Raster, Panel-Editor, Sektionen, Vorlagen, Zeitsteuerung, Server-Zeitreihen, Team-Freigaben, Versionen/Import/Export, Schwellenwerte, Server-Alarme). Neue Funktionen ohne Bruch bestehender Daten → Minor-Sprung. Release, Tag und Anheben von `package.json` macht Marc nach Merge von 168. Folgeplanung: P14–P15 → `v3.3.0`; P16 (neuer Editor wird Standard) → `v4.0.0`.
+
+**Entscheidungen Marc 18.11.2026 (Empfehlungen angenommen):** Datenalter Live-Werte für Alarme 24 h (Auftrag 167 §2.1 Nr. 4, Anzeige in 168); Aufbewahrung Alarmereignisse 12 Monate (167 §2.1 Nr. 15); Erwartungsbänder nach Verfahren in Auftrag 170 §8. P17/P18 (Aufträge 175–178) werden erst nach P16 entschieden.
+
 **Betriebsregel Live-Feed:** Am 14.11.2026 durch Marc aufgehoben (Edge Function und Migrationen seit 14.11.2026 online; echte Kennzahlen dürfen über den mandantengebundenen Feed eingespeist werden).
 **Offen nach dem v3.1.0-Rollout (10./11.11.2026):**
 
