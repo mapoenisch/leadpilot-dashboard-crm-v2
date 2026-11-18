@@ -158,6 +158,13 @@ interface TileInspectorContentProps extends Omit<EditorInspectorV2Props, 'select
   selectedTile: DashboardTileConfigV2;
 }
 
+const noopTileDataHook: import('../LazyDashboardTile').TileDataHook = (t) => ({
+  catalogId: t.catalogId,
+  state: 'nicht_verfuegbar',
+  reason: 'katalog_inaktiv',
+  message: '',
+});
+
 function TileInspectorContent({
   selectedTile,
   config,
@@ -170,19 +177,17 @@ function TileInspectorContent({
   onMoveTileToSection,
   onExpandSection,
   isSectionCollapsed,
-  useData,
+  useData = noopTileDataHook,
   currentValue,
 }: TileInspectorContentProps) {
   const [activeTab, setActiveTab] = useState<InspectorTab>('darstellung');
 
   const catalogEntry = getCatalogEntry(selectedTile.catalogId) as ActiveCatalogEntry | undefined;
 
-  const tileData = useData
-    ? // eslint-disable-next-line react-hooks/rules-of-hooks -- useData is an optional hook passed via props
-      useData(convertV2TileToV1(selectedTile, config.globalTimeframe, config.globalPipeline), {
-        pipeline: config.globalPipeline,
-      })
-    : null;
+  const tileData = useData(
+    convertV2TileToV1(selectedTile, config.globalTimeframe, config.globalPipeline),
+    { pipeline: config.globalPipeline },
+  );
 
   const currentTileValue =
     currentValue !== undefined
