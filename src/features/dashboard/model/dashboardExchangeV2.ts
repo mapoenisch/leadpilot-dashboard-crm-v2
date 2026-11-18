@@ -159,6 +159,36 @@ export function parseDashboardImportV2(
 
   const dashObj = rawDashboard as Record<string, unknown>;
 
+  // Validierung von Kacheln, Sektionen und Variablen vor dem Aufbau
+  if (!('tiles' in dashObj) || !Array.isArray(dashObj['tiles'])) {
+    return {
+      ok: false,
+      grund: DASHBOARD_VERSION_MESSAGES.invalidConfig('tiles muss ein Array sein'),
+    };
+  }
+  if (
+    'sections' in dashObj &&
+    dashObj['sections'] !== undefined &&
+    !Array.isArray(dashObj['sections'])
+  ) {
+    return {
+      ok: false,
+      grund: DASHBOARD_VERSION_MESSAGES.invalidConfig('sections muss ein Array sein'),
+    };
+  }
+  if (
+    'variables' in dashObj &&
+    dashObj['variables'] !== undefined &&
+    (typeof dashObj['variables'] !== 'object' ||
+      Array.isArray(dashObj['variables']) ||
+      dashObj['variables'] === null)
+  ) {
+    return {
+      ok: false,
+      grund: DASHBOARD_VERSION_MESSAGES.invalidConfig('variables muss ein Objekt sein'),
+    };
+  }
+
   // 6. Neue Konfiguration aus Daten + Sitzungskontext aufbauen
   const newConfig: DashboardConfigV2 = {
     version: 2,
@@ -172,7 +202,7 @@ export function parseDashboardImportV2(
     ...(typeof dashObj['globalPipeline'] === 'string'
       ? { globalPipeline: dashObj['globalPipeline'] }
       : {}),
-    tiles: Array.isArray(dashObj['tiles']) ? (dashObj['tiles'] as DashboardConfigV2['tiles']) : [],
+    tiles: dashObj['tiles'] as DashboardConfigV2['tiles'],
     ...(Array.isArray(dashObj['sections'])
       ? { sections: dashObj['sections'] as DashboardConfigV2['sections'] }
       : {}),

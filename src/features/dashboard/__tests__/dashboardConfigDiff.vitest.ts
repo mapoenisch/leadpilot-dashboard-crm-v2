@@ -136,6 +136,32 @@ describe('dashboardConfigDiff', () => {
     expect(pfade).toContain('timeframeOverride');
   });
 
+  it('erkennt das Umordnen von Sektionen als Änderung mit pfad order', () => {
+    const configWithSectionsA: DashboardConfigV2 = {
+      ...baseConfig,
+      sections: [
+        { id: 'sec_1', title: 'Erste Sektion', collapsed: false, tileIds: ['t1'] },
+        { id: 'sec_2', title: 'Zweite Sektion', collapsed: false, tileIds: ['t2'] },
+      ],
+    };
+
+    const configWithSectionsB: DashboardConfigV2 = {
+      ...baseConfig,
+      sections: [
+        { id: 'sec_2', title: 'Zweite Sektion', collapsed: false, tileIds: ['t2'] },
+        { id: 'sec_1', title: 'Erste Sektion', collapsed: false, tileIds: ['t1'] },
+      ],
+    };
+
+    const diff = diffDashboardConfigsV2(configWithSectionsA, configWithSectionsB);
+    expect(diff.length).toBe(2);
+    expect(diff.every((d) => d.bereich === 'sektion' && d.art === 'geaendert')).toBe(true);
+    const sec1Diff = diff.find((d) => d.id === 'sec_1');
+    expect(sec1Diff?.pfade).toEqual([{ pfad: 'order', alt: 0, neu: 1 }]);
+    const sec2Diff = diff.find((d) => d.id === 'sec_2');
+    expect(sec2Diff?.pfade).toEqual([{ pfad: 'order', alt: 1, neu: 0 }]);
+  });
+
   it('Leistungsmessung: 24 Kacheln und 6 Sektionen im Schnitt unter 20 ms', () => {
     const tiles24A = Array.from({ length: 24 }, (_, i) => ({
       id: `tile_${i}`,

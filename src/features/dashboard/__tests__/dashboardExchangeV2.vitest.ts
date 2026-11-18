@@ -161,6 +161,54 @@ describe('dashboardExchangeV2', () => {
       expect(result.config.id).not.toBe('dash_export_1');
       expect(result.config.metadata).toEqual({});
     });
+
+    it('lehnt Import ab wenn tiles kein Array ist (Codex P2)', () => {
+      const invalidEnvelope = {
+        format: 'leadpilot-dashboard',
+        formatVersion: 1,
+        exportedAt: new Date().toISOString(),
+        dashboard: {
+          title: 'Ungültig',
+          tiles: { invalid: true },
+        },
+      };
+      const result = parseDashboardImportV2(JSON.stringify(invalidEnvelope), defaultSession);
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.grund).toContain('tiles muss ein Array sein');
+    });
+
+    it('lehnt Import ab wenn sections kein Array oder variables kein Objekt ist', () => {
+      const envelopeBadSec = {
+        format: 'leadpilot-dashboard',
+        formatVersion: 1,
+        exportedAt: new Date().toISOString(),
+        dashboard: {
+          title: 'Ungültig',
+          tiles: [],
+          sections: 'kein-array',
+        },
+      };
+      const resultSec = parseDashboardImportV2(JSON.stringify(envelopeBadSec), defaultSession);
+      expect(resultSec.ok).toBe(false);
+      if (resultSec.ok) return;
+      expect(resultSec.grund).toContain('sections muss ein Array sein');
+
+      const envelopeBadVars = {
+        format: 'leadpilot-dashboard',
+        formatVersion: 1,
+        exportedAt: new Date().toISOString(),
+        dashboard: {
+          title: 'Ungültig',
+          tiles: [],
+          variables: ['kein-objekt'],
+        },
+      };
+      const resultVars = parseDashboardImportV2(JSON.stringify(envelopeBadVars), defaultSession);
+      expect(resultVars.ok).toBe(false);
+      if (resultVars.ok) return;
+      expect(resultVars.grund).toContain('variables muss ein Objekt sein');
+    });
   });
 
   describe('Rundlauf (Export -> Import)', () => {

@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { AlertTriangle, RotateCcw, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { DASHBOARD_VERSION_MESSAGES } from '../../../model/dashboardVersionMessages';
+import { useModalA11y } from './useModalA11y';
 
 export interface RestoreRevisionDialogV2Props {
   isOpen: boolean;
@@ -29,6 +30,11 @@ export function RestoreRevisionDialogV2({
 }: RestoreRevisionDialogV2Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const dialogRef = useModalA11y<HTMLDivElement>({
+    isOpen,
+    onClose: onCancel,
+  });
+
   if (!isOpen) return null;
 
   const nextRevision = currentRevision + 1;
@@ -45,11 +51,13 @@ export function RestoreRevisionDialogV2({
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="restore-dialog-title"
+      tabIndex={-1}
       data-testid="restore-revision-dialog"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm outline-none"
     >
       <div className="w-full max-w-md rounded-lg border border-[var(--color-border,#1b3d39)] bg-[var(--color-bg-deep,#051413)] p-6 shadow-xl text-[var(--color-text-soft,#e6f3f1)] space-y-4">
         {/* Titel */}

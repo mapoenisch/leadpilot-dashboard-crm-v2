@@ -128,6 +128,11 @@ export function diffDashboardConfigsV2(
       });
     } else {
       const secPfade: DiffPfad[] = [];
+      const altIdx = altSections.findIndex((sec) => sec.id === s.id);
+      const neuIdx = neuSections.findIndex((sec) => sec.id === s.id);
+      if (altIdx !== -1 && neuIdx !== -1 && altIdx !== neuIdx) {
+        secPfade.push({ pfad: 'order', alt: altIdx, neu: neuIdx });
+      }
       if (altSec.title !== s.title) {
         secPfade.push({ pfad: 'title', alt: altSec.title, neu: s.title });
       }
