@@ -31,7 +31,7 @@
    - `nur_v2` (kein V1).
 2. **Inhaltlicher Vergleich** für `v1_geaendert`/`beide_geaendert`: Die App übersetzt die aktuelle V1-Konfiguration mit `migrateV1ToV2` und vergleicht sie mit dem Diff aus 165 (`dashboardConfigDiff.ts`) gegen die V2-Kopie. Ergebnis als Liste („Kachel X neu in V1“, „Reihenfolge geändert“).
 3. **Entscheidung je Nutzer** in einer Admin-Ansicht „Umstellung vorbereiten“ (nur Admin): „V1-Stand übernehmen (neue V2-Revision)“, „V2-Pilot behalten“, „später entscheiden“. Übernehmen erzeugt eine **neue Revision** (nie Überschreiben), `change_summary = 'Übernahme aus altem Editor (V1-Revision N)'`, aktualisiert `last_migrated_revision`, Audit-Eintrag. Ein erneuter Abgleich danach zeigt `gleich`.
-4. **Keine stille Übernahme:** Ohne Entscheidung ändert sich nichts. Die Entscheidung wird gespeichert (`dashboard_rollout_decisions`: Nutzer, Ergebnis-Klasse, Entscheidung, Admin, Zeitpunkt) und ist Voraussetzung für 174.
+4. **Keine stille Übernahme:** Ohne Entscheidung ändert sich nichts. Die Entscheidung wird in `dashboard_rollout_decisions` gespeichert und bindet zwingend die geprüften Revisionsstände ein: `(organization_id, user_id, ergebnis_klasse, entscheidung, v1_revision, v2_revision, entschieden_von_user_id, entschieden_at)`. Eine Entscheidung ist nur exakt für dieses Revisionspaar gültig: Weicht bei einer späteren Prüfung oder beim Rollout (174) die aktuelle V1-Revision oder V2-Revision des Dashboards von den gespeicherten Werten ab (z. B. weil der Nutzer V1 erneut editiert hat), verfällt die Gültigkeit der Entscheidung automatisch (Ergebnis-Klasse wird neu berechnet, Status „erneute Entscheidung erforderlich“). Dies ist zwingende Voraussetzung für den Stufenrollout in 174.
 
 ### 2.2 Gesamtabnahme
 
