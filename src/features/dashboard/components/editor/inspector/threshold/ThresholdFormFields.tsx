@@ -207,3 +207,29 @@ export const ThresholdFormFields: React.FC<ThresholdFormFieldsProps> = ({
     </div>
   );
 };
+
+export function cleanThresholdRule(draft: Partial<ThresholdRuleV2>, unit: string): ThresholdRuleV2 {
+  const art = draft.art ?? 'hoch_ist_schlecht';
+  const base = {
+    formatVersion: 2 as const,
+    enabled: draft.enabled ?? true,
+    art,
+    einheit: unit,
+  };
+  if (art === 'zielbereich') {
+    return {
+      ...base,
+      art: 'zielbereich',
+      ...(draft.untenWarnung !== undefined && { untenWarnung: draft.untenWarnung }),
+      ...(draft.obenWarnung !== undefined && { obenWarnung: draft.obenWarnung }),
+      ...(draft.untenKritisch !== undefined && { untenKritisch: draft.untenKritisch }),
+      ...(draft.obenKritisch !== undefined && { obenKritisch: draft.obenKritisch }),
+    };
+  }
+  return {
+    ...base,
+    art,
+    ...(draft.warnung !== undefined && { warnung: draft.warnung }),
+    ...(draft.kritisch !== undefined && { kritisch: draft.kritisch }),
+  };
+}

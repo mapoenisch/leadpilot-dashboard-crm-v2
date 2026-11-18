@@ -394,4 +394,57 @@ describe('InspectorThresholdTab (Auftrag 166 / P13a)', () => {
       warnung: 100,
     });
   });
+
+  it('Codex Review 3 Finding: entfernt inaktive Zahlenfelder beim Wechsel der Regelart', () => {
+    const onTileThresholdChange = vi.fn();
+    const tileWithRule: DashboardTileConfigV2 = {
+      ...mockTile,
+      threshold: {
+        formatVersion: 2,
+        enabled: true,
+        art: 'hoch_ist_schlecht',
+        einheit: 'EUR',
+        warnung: 100,
+      },
+    };
+
+    render(
+      <InspectorThresholdTab
+        selectedTile={tileWithRule}
+        onTileThresholdChange={onTileThresholdChange}
+        catalogEntry={mockCatalogEntry}
+      />,
+    );
+
+    const kritInput = screen.getByTestId('threshold-kritisch-input') as HTMLInputElement;
+    fireEvent.change(kritInput, { target: { value: '500,0,0' } });
+
+    // Wechsel zu Zielbereich
+    const zielbereichRadio = screen.getByTestId('threshold-art-zielbereich');
+    fireEvent.click(zielbereichRadio);
+
+    // Zielbereich ausfuellen
+    fireEvent.change(screen.getByTestId('threshold-untenWarnung-input'), {
+      target: { value: '50' },
+    });
+    fireEvent.change(screen.getByTestId('threshold-obenWarnung-input'), {
+      target: { value: '150' },
+    });
+
+    const applyBtn = screen.getByTestId('threshold-apply-btn');
+    expect(applyBtn).not.toBeDisabled();
+    fireEvent.click(applyBtn);
+
+    expect(onTileThresholdChange).toHaveBeenCalledWith('t-1', {
+      formatVersion: 2,
+      enabled: true,
+      art: 'zielbereich',
+      einheit: 'EUR',
+      untenWarnung: 50,
+      obenWarnung: 150,
+    });
+    const emittedRule = onTileThresholdChange.mock.calls[0]![1];
+    expect(emittedRule).not.toHaveProperty('kritisch');
+    expect(emittedRule).not.toHaveProperty('warnung');
+  });
 });

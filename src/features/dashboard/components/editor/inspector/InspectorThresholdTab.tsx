@@ -11,7 +11,11 @@ import {
 } from '../../../model/thresholdRuleV2';
 import { THRESHOLD_MESSAGES } from '../../../model/thresholdMessages';
 import { formatTileValue } from '../../tileFormat';
-import { ThresholdArtRadioGroup, ThresholdFormFields } from './threshold/ThresholdFormFields';
+import {
+  cleanThresholdRule,
+  ThresholdArtRadioGroup,
+  ThresholdFormFields,
+} from './threshold/ThresholdFormFields';
 import { ThresholdLegacyAlerts, ThresholdLivePreview } from './threshold/ThresholdLegacyAlerts';
 
 export interface InspectorThresholdTabProps {
@@ -84,7 +88,8 @@ export function InspectorThresholdTab({
     );
   }
 
-  const validation = validateThresholdRuleV2(draft, catalogEntry);
+  const cleanedRule = cleanThresholdRule(draft, unit);
+  const validation = validateThresholdRuleV2(cleanedRule, catalogEntry);
   const isValid = validation.ok;
   const fieldError = !validation.ok
     ? { feld: validation.feld, grund: validation.grund }
@@ -92,7 +97,7 @@ export function InspectorThresholdTab({
   const isEnabled = Boolean(draft.enabled);
 
   const previewEval = evaluateThresholdV2(
-    { ...draft, formatVersion: 2, enabled: true, einheit: unit },
+    cleanedRule,
     currentValue,
     tileDataState ?? 'bereit',
     unit,
@@ -144,7 +149,7 @@ export function InspectorThresholdTab({
           <ThresholdArtRadioGroup
             formId={formId}
             art={draft.art ?? 'hoch_ist_schlecht'}
-            onChange={(art) => setDraft((p) => ({ ...p, art }))}
+            onChange={(art) => setDraft((p) => cleanThresholdRule({ ...p, art }, unit))}
           />
 
           <ThresholdFormFields
@@ -166,15 +171,7 @@ export function InspectorThresholdTab({
             type="button"
             data-testid="threshold-apply-btn"
             disabled={!isValid}
-            onClick={() =>
-              isValid &&
-              onTileThresholdChange(selectedTile.id, {
-                ...draft,
-                formatVersion: 2,
-                enabled: true,
-                einheit: unit,
-              } as ThresholdRuleV2)
-            }
+            onClick={() => isValid && onTileThresholdChange(selectedTile.id, cleanedRule)}
             className={`w-full rounded py-1.5 text-xs font-semibold ${
               isValid
                 ? 'bg-primary text-black hover:bg-primary/90 cursor-pointer'
