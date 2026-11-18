@@ -1,9 +1,12 @@
 // Gemeinsame Typen und Farben der Tiefen-Diagramme (Designprobe, Teilauftrag 0).
 import type { DatumInput, TimeDatumInput } from './depthGeometry';
+import type { TimeSeriesResolution } from '../../data/dashboardData';
 
 export interface DepthChartProps {
   /** Eindeutige ID je Kachel: SVG-Verläufe und Filter dürfen sich zwischen Kacheln nicht beeinflussen. */
   idPrefix: string;
+  /** Optionale Kachel-ID für gemeinsamen Fadenkreuz-Store (Auftrag 164). */
+  tileId?: string;
   data: readonly DatumInput[];
   unit: string;
   /** Zeitraum für den Tooltip, z. B. „Q3 2026“. */
@@ -26,6 +29,8 @@ export interface DepthChartProps {
 
 export interface TimeDepthChartProps extends Omit<DepthChartProps, 'data'> {
   data: readonly (DatumInput | TimeDatumInput)[];
+  resolution?: TimeSeriesResolution;
+  windowEnd?: string;
 }
 
 export type DepthBarChartProps = TimeDepthChartProps;

@@ -136,8 +136,44 @@ GRANT EXECUTE ON FUNCTION public.dashboard_time_series TO authenticated, service
 
 ## 8. Bewusste Grenzen
 
-- **Kein Time-Travel in P10b-1:** Feste Fenster laut Katalog; frei konfigurierbare Rolling Windows folgen in Auftrag 161.
-- **Kein synchrones Crosshair:** Folgt in Auftrag 161.
+- **Kein Time-Travel in P10b-1:** Feste Fenster laut Katalog; frei konfigurierbare Rolling Windows folgen in Auftrag 161 (*erledigt mit 161/164*).
+- **Kein synchrones Crosshair:** Folgt in Auftrag 161 (*erledigt mit 161/164*).
 - **Keine Bestands-Rekonstruktion:** Historische Bestände bleiben nicht rekonstruierbar.
 - **Keine Alarme:** Schwellenwert-Alarme und Benachrichtigungen folgen in P13.
 - **Keine Vergleichsbänder:** Vorjahres- oder Budget-Bänder folgen in P14.
+
+---
+
+## 9. Analysezeitpunkt (Auftrag 161/164)
+
+- **Modus `zeitpunkt`:** `TimeControlMode` unterstützt `'live' | 'pausiert' | 'zeitpunkt'`. Setzt einen gemeinsamen historischen Analysezeitpunkt `analysisAt` (z. B. gestern 24:00 Uhr Berliner Zeit).
+- **Einfrieren & Verläufe:** Verlaufskacheln laden Zeitreihen mit Endpunkt `now = analysisAt` (`timeSeriesWindow`). Kacheln mit `history.kind === 'puffer'` oder `'keine'` zeigen den erklärten Hinweis: *„Für [Datum] ist kein Stand gespeichert.“* Kacheln mit festen Stammdaten (`kind === 'fest'`) zeigen ihren Wert unverändert mit dem Hinweis *„Referenzwert · zeitunabhängiger Wert“*.
+- **Bedienung:** `TimeControlMenuV2` bietet Schnellauswahl (Gestern, Letzte Woche, Letzter Monat) und `input type="datetime-local"`. Im aktiven Zeitpunkt-Modus erscheint das Banner *„Ansicht zum [Zeitpunkt]“* mit dem Schalter *„Zurück zu Live“*.
+
+---
+
+## 10. Zeitfenster je Kachel (Rolling Windows, Auftrag 161/164)
+
+- **Optionales Abfragefeld:** `tile.query.window: { count: number; resolution: 'stunde' | 'tag' | 'woche' | 'monat' }`.
+- Überschreibt `entry.history.defaultWindow` bei Kennzahlen mit `history.kind === 'ereignisse'`.
+- **Höchstwerte je Quelle und Auflösung (validiert in `tileQuery.ts` und Migration `20261120`):**
+
+| Quelle | Erlaubte Auflösungen | Höchstwert `count` | Bemerkung |
+|---|---|---|---|
+| CRM (`deal_stage_events`) | `tag` | 366 | Maximal 1 Kalenderjahr |
+| CRM (`deal_stage_events`) | `woche` | 260 | Maximal 5 Jahre |
+| CRM (`deal_stage_events`) | `monat` | 120 | Maximal 10 Jahre |
+| Live (`live_kpi_events`) | `stunde` | 168 | Maximal 7 Tage (1 Woche) |
+| Live (`live_kpi_events`) | `tag` | 90 | Maximal 90 Tage |
+
+*Hinweis:* Stundenauflösung ist für CRM-Verläufe unzulässig. Wochen- und Monatsauflösung sind für Live-Verläufe unzulässig. Allgemeine Strukturgrenze: `count >= 1` und `count <= 400`.
+
+---
+
+## 11. Gemeinsames Fadenkreuz (Auftrag 161/164)
+
+- **Zweck:** Synchrone Verlaufsablesung über alle sichtbaren Verlaufskacheln eines Dashboards.
+- **Store & Selektor:** `crosshairStore.ts` wird über `useCrosshair.ts` mit `useSyncExternalStore` abonniert. Selektor liefert `{ at, isSource }`. Nicht-Verlaufskacheln und eingeklappte Sektionen abonnieren nicht und rendern bei Fadenkreuz-Bewegung nicht neu (Leistungsnachweis §2.1 Nr. 5).
+- **Auslösen:** Maus-Hover, Touch/Tippen (`pointerdown`) und Tastatur-Fokus (Schieberegler). Pfeiltasten Links/Rechts wandern im fokussierten Diagramm; `Escape`, Verlassen (`mouseleave`) und Fokusverlust (`blur`) leeren das Fadenkreuz. Schnelle Mausbewegungen werden per `requestAnimationFrame` auf höchstens einmal je Frame gedrosselt.
+- **Abschnittszuordnung (keine Interpolation):** Bei unterschiedlichen Auflösungen (z. B. Tag vs. Woche) zeigt jede Verlaufskachel den Abschnitt, der den gemeinsamen Zeitpunkt enthält (`Abschnittsbeginn <= Zeitpunkt < nächster Abschnittsbeginn`). Liegt der Zeitpunkt außerhalb des Kachelfensters, zeigt die Kachel keine Linie und keinen Tooltip-Wert.
+- **Barrierefreiheit (Screenreader-Schutz):** Nur die auslösende Kachel kündigt Änderungen per `aria-live="polite"` an. Alle mitlaufenden Kacheln schalten die Ansage stumm (`aria-live="off"`), um Screenreader-Überflutung zu verhindern.

@@ -34,6 +34,8 @@ export interface DashboardChartProps {
   period: string;
   /** Eindeutig je Kachel: SVG-Verläufe und Filter dürfen sich nicht gegenseitig beeinflussen. */
   idPrefix: string;
+  /** Optionale Kachel-ID für gemeinsamen Fadenkreuz-Store (Auftrag 164). */
+  tileId?: string;
   onRetryChartLoad: () => void;
   /** Nur für Tests: Nachladefunktionen ersetzen. */
   loaders?: ChartLoaders;
@@ -260,6 +262,7 @@ function LazyChart({
   title,
   period,
   idPrefix,
+  tileId,
   onRetryChartLoad,
   loaders = DEFAULT_CHART_LOADERS,
 }: DashboardChartProps & {
@@ -308,9 +311,9 @@ function LazyChart({
           >
             <Chart
               idPrefix={idPrefix}
+              tileId={tileId}
               data={rows as unknown as readonly DatumInput[]}
               unit={data.unit}
-
               period={period}
               title={title}
               reducedMotion={reducedMotion}
@@ -318,6 +321,8 @@ function LazyChart({
               solid={view === 'kreis'}
               formatValue={formatValue}
               stableLegend
+              resolution={data.timeSeries?.resolution}
+              windowEnd={data.timeSeries?.to}
             />
           </div>
         </Suspense>

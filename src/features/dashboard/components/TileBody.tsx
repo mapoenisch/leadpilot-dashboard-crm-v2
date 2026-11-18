@@ -152,6 +152,7 @@ export function TileBody({
       title={title}
       period={period}
       idPrefix={idPrefix}
+      tileId={tile.tileId}
       onRetryChartLoad={onRetryChartLoad}
       loaders={chartLoaders}
     />

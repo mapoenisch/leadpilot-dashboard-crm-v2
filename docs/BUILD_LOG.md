@@ -21815,6 +21815,7 @@ Keine Oberflächenänderungen (UI folgt in Auftrag 163 / P11b).
 ### 3. T1 Rot-Nachweise
 
 Vor der Implementierung der Migration und Dienstschicht wurden die 4 Pflicht-Rotfälle verifiziert:
+
 - **(a) Team-Mitglied liest Team-Revisionen:** Vor 162 warf `get_dashboard_v2_revisions` `LP_DASHBOARD_NOT_FOUND` für alle Team-Dashboards (Schutz aus PR #198). Rot gegen Soll, da Teammitglieder und Admins ab P11 Leserecht besitzen.
 - **(b) Manager legt Team-Dashboard an:** Vor 162 warf `create_dashboard_v2` bei `scope = 'team'` `LP_TEAM_DASHBOARDS_LOCKED_UNTIL_P11`. Rot gegen Soll.
 - **(c) Rechteentzug beim Speichern:** Vor 162 gab es weder `LP_TEAM_ACCESS_REVOKED` noch eine dynamische Prüfung gegen `dashboard_team_members`.
@@ -21825,6 +21826,7 @@ Vor der Implementierung der Migration und Dienstschicht wurden die 4 Pflicht-Rot
 ### 4. T10 Sicherheitsvorprüfung
 
 Zeile-für-Zeile-Prüfung aller Hilfsfunktionen und RPCs:
+
 1. **Rechteprüfung vor jeder Wirkung:** Jede schreibende RPC (`create_dashboard_team_v2`, `update_dashboard_team_v2`, `delete_dashboard_team_v2`, `add_dashboard_team_member_v2`, `remove_dashboard_team_member_v2`, `save_dashboard_v2`, `restore_dashboard_revision_v2`, `delete_team_dashboard_v2`, `copy_dashboard_v2`) prüft Authentifizierung und Berechtigung vor jeder Abfrage- oder Mutationsoperation.
 2. **`search_path` gesetzt:** Alle Funktionen besitzen `SET search_path = public, pg_temp` und deklarieren `SECURITY DEFINER`.
 3. **Keine dynamische SQL:** Sämtliche Datenbankzugriffe erfolgen über statische, typisierte SQL-Statements ohne `EXECUTE` oder String-Konkatenation.
@@ -21879,7 +21881,6 @@ Zeile-für-Zeile-Prüfung aller Hilfsfunktionen und RPCs:
 3. **Rückweg / Rollback:**
    Die Migration ist rein additiv bzw. überschreibt bestehende Funktionen idempotenterweise (`CREATE OR REPLACE FUNCTION`). Bei einem Rollback werden die vorherigen Fassungen der Funktionen aus Migration `20261113_dashboard_v2_storage_and_revisions.sql` und `20261121_dashboard_revisions_scope_guard.sql` erneut eingespielt.
 
-
 ---
 
 ## 2026-11-17 — Auftrag 163: Dashboard-Editor: Team-Freigaben in der Oberfläche (P11b)
@@ -21889,6 +21890,7 @@ Zeile-für-Zeile-Prüfung aller Hilfsfunktionen und RPCs:
 ### 1. Ziel & Zusammenfassung
 
 Auftrag 163 schließt Phase 11 (Team-Freigaben und Kollaboration) mit der vollständigen UI-Integration ab:
+
 - **Gruppierter Switcher:** Persönliche Dashboards, teamspezifische Abschnitte und Vorlagen mit Metadaten (Titel, Kachelanzahl, Sektionen, Stand, Berechtigungs-Badges).
 - **Leseansicht:** Abgeleitet rein aus serverseitigem `canWrite === false` mit breitem Hinweisbalken (`ReadOnlyNoticeV2`), gesperrten/ausgeblendeten Editor-Aktionen und der Möglichkeit, eine persönliche Arbeitskopie anzulegen.
 - **Teilen als unabhängige Team-Kopie:** Dialog `ShareWithTeamDialogV2` teilt persönliche Dashboards als eigenständige Kopie in ein beschreibbares Zielteam (`copyDashboardV2`).
@@ -21958,3 +21960,121 @@ Auftrag 163 schließt Phase 11 (Team-Freigaben und Kollaboration) mit der vollst
 - **Geprüfter Commit:** `1a8eb28e` – Ergebnis: „Didn't find any major issues“, keine offenen Review-Konversationen.
 - **Behobene Befunde im Verlauf:** `47c0a8a` → 2× P2 (Teilen-Dialog behält Werte, Teamdialog gesperrt während Speichern), `7fc64e5` → 1× P2 (veraltete Mitgliederantworten beim Teamwechsel). Zusätzlich E2E-Korrektur (Rollen-Rücksetzung im Lifecycle-Test) und Visual-Baselines nachgezogen.
 - Dieser Eintrag ist ein reiner Doku-Commit ohne Codeänderung (kein neues Review nötig). Merge und Release: Marc.
+
+---
+
+## 2026-11-18 — Auftrag 164: Dashboard-Editor: Restpunkte aus 161 – Fadenkreuz-Kopplung, E2E/Screenshots, Fach-Doku (161R, schließt P10)
+
+**Rolle:** Antigravity (Builder) · **Prüfer:** Codex · **Branch:** `auftrag-164-zeitreihen-restpunkte` · **PR:** #203 · **Detailauftrag:** `docs/auftraege/ANTIGRAVITY_AUFTRAG_164_ZEITREIHEN_RESTPUNKTE_161R.md` · **Baseline:** `2ab7cdc4` (Merge PR #202 Auftrag 163)
+
+### 1. Ziel & Zusammenfassung
+
+Auftrag 164 schließt die verbliebenen drei Restpunkte aus Auftrag 161 (P10b-2, PR #196 gemergt als `6dbbc593`) vollständig ab, womit Phase P10 (Gemeinsame Zeitsteuerung & Server-Zeitreihen) komplett abgeschlossen ist:
+
+1. **Fadenkreuz-Kopplung (Auftrag 161 §2.4 Nr. 18–21):**
+   - **Selektor-Hook (`src/features/dashboard/time/useCrosshair.ts`):** Verwendet React 18 `useSyncExternalStore` mit memoisierten Selektoren (`useCrosshair`, `useCrosshairController`).
+   - **Auslösen & Drosselung:** Interaktion über Maus-Hover, Pointer-/Touch-Gesten und Tastaturnavigation (Fokus + Pfeiltasten `ArrowRight`/`ArrowLeft`, `Escape` hebt Fadenkreuz auf). Schnelles Scrubbing wird via `requestAnimationFrame` gedrosselt, während diskrete Tastatur- und Klickaktionen ohne Verzögerung synchron ausgeführt werden.
+   - **Mitlaufen & Abschnittszuordnung:** Das Fadenkreuz koppelt alle sichtbaren Zeitreihen-Kacheln (`DepthLineChart.tsx`). Kacheln mit unterschiedlicher zeitlicher Auflösung (z. B. Tag vs. Woche) oder unterschiedlichen Zeitfenstern finden den passenden Datenpunkt über `findMatchingPointIndex` (Intervalldatierung ohne Interpolation).
+   - **Barrierefreiheit (ARIA):** `ChartReadout.tsx` setzt `aria-live="polite"` exklusiv auf der auslösenden Quellkachel (`announce = true`); mitlaufende Kacheln erhalten `aria-live="off"`, um Screenreader-Überflutung zu verhindern.
+   - **Render-Leistung:** Ein dedizierter Render-Zähltest belegt, dass Kacheln ohne Zeitachse (z. B. Single-Value, Donut) und Kacheln in eingeklappten Sektionen bei Fadenkreuzbewegungen **0 Re-Renderings** ausführen.
+   - **Codex-Befund aus PR #196 behoben:** Im Review zu PR #196 hatte Codex angemerkt, dass der Fadenkreuz-Store zwar definiert, aber nicht mit den Diagrammen gekoppelt war. Dieser Befund ist mit dieser Implementierung vollständig aufgelöst.
+2. **E2E-Ablauf & Screenshot-Matrix 161 (Auftrag 161 §2.4 Nr. 22–23):**
+   - `e2e/editor-time-point.spec.ts`: Testet den gesamten Zeitpunkt-Workflow (Dialog, Schnellwahlen, Stichtagsberechnung, „Zurück zu Live“), Zeitfenster je Kachel im Inspector sowie die Fadenkreuz-Kopplung über Maus und Tastatur. In `scripts/runV23Acceptance.mjs` und `.github/workflows/ci.yml` registriert.
+   - `scripts/captureAuftrag161GateScreenshots.mjs`: Erzeugt die vollständige Screenshot-Matrix 161 über 5 Zustände × 3 Viewports (1440, 768, 375 px) × 2 Farbschemata (dunkel, hell) = 30 Screenshots.
+   - `docs/screenshots/auftrag-161/README.md`: Nachweisdokumentation mit 0 px horizontalem Überlauf auf allen Viewports und distinkten SHA-256-Hashes für alle Zustände.
+3. **Fach-Dokumentation (Auftrag 161 §2.3):**
+   - `docs/dashboard/ZEITREIHEN_P10B.md`: Ergänzt um Abschnitte 9 (Analysezeitpunkt), 10 (Zeitfenster je Kachel mit Limits-Tabelle) und 11 (Gemeinsames Fadenkreuz); Abschnitt 8 aktualisiert.
+   - `docs/dashboard/ABFRAGEVERTRAG_P08A.md`: Datierter Nachtrag zu `tile.query.window`.
+   - `docs/dashboard/ZEITSTEUERUNG_P10A.md`: Datierter Nachtrag zu Modus `zeitpunkt`.
+   - `ARCHITECTURE_DECISIONS.md`: Teil C ergänzt um Abschnitt C10 (Migration 20261120, Zeitpunkt-Regel 161 §2.1 Nr. 2, Selektor-Abo) und Eintrag in Änderungsprotokoll D4.
+   - `docs/dashboard/DASHBOARD_EDITOR_MASTERPLAN.md` §6: Datierter Nachtrag „Umsetzungsstand 18.11.2026 (161R / Auftrag 164 – P10 abgeschlossen)“.
+
+### 2. Rot-Nachweise (T1)
+
+Vor der Implementierung wurden in `crosshairCoupling.ui.vitest.tsx` drei rote Tests nach §3 Nr. 8 ausgeführt:
+
+- (a) Fadenkreuz in Kachel A zeigt Linie in Kachel B → **Rot** (0 Linien in Kachel B gefunden).
+- (b) Render-Zähltest (unbeteiligte Kacheln dürfen nicht neu rendern) → **Rot** (keine Kopplung vorhanden).
+- (c) Tastatur Pfeiltaste wandert und Escape hebt auf → **Rot** (keine Tastatursteuerung im Chart).
+  Nach Implementierung von `useCrosshair.ts` und Anbindung in `DepthLineChart.tsx` sind alle 8 Tests der Suite grün.
+
+### 3. Geänderte & neue Dateien
+
+- **Neu:**
+  - `src/features/dashboard/time/useCrosshair.ts` (255 Zeilen): Selektor-Hook, RAF-Drosselung, Intervallsuche.
+  - `src/features/dashboard/__tests__/crosshairCoupling.ui.vitest.tsx` (375 Codezeilen, eslint-konform): 8 Vitest-Tests.
+  - `e2e/editor-time-point.spec.ts` (169 Zeilen): E2E-Spec für Zeitpunkt, Zeitfenster und Fadenkreuz.
+  - `scripts/captureAuftrag161GateScreenshots.mjs` (327 Zeilen): Screenshot-Generator für Gate 161.
+  - `docs/screenshots/auftrag-161/README.md`: Screenshot-Matrix für Auftrag 161.
+- **Geändert:**
+  - `src/features/dashboard/components/charts/DepthLineChart.tsx`: Fadenkreuz-Abo, Maus-/Touch-/Tastatur-Events, Linien-Rendering.
+  - `src/features/dashboard/components/charts/ChartReadout.tsx`: `announce`-Prop für barrierefreie Screenreader-Ansagen.
+  - `src/features/dashboard/components/charts/chartTypes.ts`: `tileId`-Prop für Tiefen-Diagramme.
+  - `src/features/dashboard/components/TileBody.tsx` & `DashboardChart.tsx`: Weiterreichen von `tileId`.
+  - `scripts/runV23Acceptance.mjs` & `.github/workflows/ci.yml`: Registrierung von `e2e/editor-time-point.spec.ts`.
+  - `docs/dashboard/ZEITREIHEN_P10B.md`, `ABFRAGEVERTRAG_P08A.md`, `ZEITSTEUERUNG_P10A.md`, `ARCHITECTURE_DECISIONS.md`, `DASHBOARD_EDITOR_MASTERPLAN.md`, `BUILD_PLAN.md`, `docs/auftraege/ANTIGRAVITY_AUFTRAG_164_ZEITREIHEN_RESTPUNKTE_161R.md`.
+
+### 4. Nachweise & Verifikation (§7)
+
+- `npx tsc --noEmit`: **0 Fehler (Exit 0)**
+- `npm run lint`: **0 Fehler, 0 Warnungen (`--max-warnings 0`, Exit 0)**
+- `npm run format:check`: **Bestanden (Exit 0 auf geänderten Dateien)**
+- `npm test`: **428 Testdateien, 3171 Tests PASS (Exit 0)**
+- `npm run verify`: **25/25 Integrity-Suiten bestanden (Exit 0)**
+- `npm run build`: **Erfolgreich (Exit 0, 3.77s)**
+- `npm run build:production` (mit gültiger Beispielkonfiguration): **Erfolgreich (Exit 0, 3.21s)**
+- `npx size-limit`:
+  - Initial JS bundle (gzip): **179.12 kB** (Limit: 180 kB; Baseline: 179.11 kB; Diff: +0.01 kB $\le$ +0.3 kB)
+  - Largest chunk (gzip): **79.41 kB** (Limit: 250 kB)
+- `npx tsx scripts/verifyLiveKpiCatalog.ts`: **Erfolgreich (Gate G24 bestanden, Exit 0)**
+- **Schutzbereichs-Diffs:**
+  - `git diff 2ab7cdc4 -- src/simulation src/types src/context src/services/data src/features/resources`: **vollständig leer**
+  - `git diff 2ab7cdc4 -- supabase src/features/dashboard/services src/services/liveKpi src/domain src/features/dashboard/data`: **vollständig leer**
+- `max-lines`: **Alle neuen und geänderten TS/TSX-Dateien strikt ≤ 400 Zeilen** (keine Datei über 340 Zeilen).
+- **V1-Pfad:** Vollständig unverändert; nicht-zeitreihenbezogene Kacheln unberührt.
+- **Abhängigkeiten:** Keine neuen npm-Dependencies hinzugefügt.
+
+### 5. Codex-Review-Befunde (18.11.2026, PR #203)
+
+Im Review von Codex zu PR #203 wurden insgesamt 8 Befunde identifiziert (7× P2, 1× P3) und vollständig behoben:
+
+1. **P2-Befund (`useCrosshair.ts`): Behalte die lokale Auswahl ohne TimeControlProvider bei**
+   - _Problem:_ Wenn ein Zeitreihendiagramm außerhalb des `TimeControlProvider` gerendert wurde (z. B. Standalone oder im V1-Pfad), blieb `crosshair` dauerhaft im Initialzustand (`null`). `activeIndex` lieferte immer `null`, wodurch Hover, Tippen und Slider ohne Provider wirkungslos blieben.
+   - _Behebung:_ `useCrosshairController` prüft nun `if (!store)`, speichert `localAt` und liefert die lokale Auswahl via `findMatchingPointIndex(data, localAt, options)` bzw. `localActive`. Screenreader-Ankündigung (`isAnnouncing`) ist ohne Store für die Standalone-Kachel aktiv (`!store || !hasTimeAxis || crosshair.isSource`).
+   - _Regressionstest:_ `crosshairResolutionAndAnchoring.ui.vitest.tsx` Test `behält lokale Auswahl und Ablesewert bei Hover und Tastatur ohne Provider bei`.
+
+2. **P2-Befund (`useCrosshair.ts`): Verankere die Quellauswahl weiterhin am Zeitpunkt**
+   - _Problem:_ Wenn sich während einer Auswahl das Zeitfenster oder die Reihenfolge der Daten änderte (z. B. Voranstellen eines früheren Abschnitts), blieb die Quellkachel stur am alten numerischen Index hängen, während mitlaufende Kacheln `crosshair.at` folgten.
+   - _Behebung:_ Die Quellauswahl wird nun wie bei mitlaufenden Kacheln am gespeicherten Zeitpunkt verankert (`findMatchingPointIndex(data, crosshair.at, options)`). Fällt der Zeitpunkt durch Fensterverschiebung weg, wird die Auswahl sauber aufgehoben (`null`).
+   - _Regressionstest:_ `crosshairResolutionAndAnchoring.ui.vitest.tsx` Test `folgt dem Zeitpunkt nach Einfügen eines früheren Abschnitts und hebt Auswahl bei Entfall auf`.
+
+3. **P2-Befund (`useCrosshair.ts`): Bestimme das letzte Abschnittsende aus den Zeitreihenmetadaten**
+   - _Problem:_ Bei Monatsauflösung wurde das letzte Abschnittsende durch Schätzung der Schrittweite aus dem Abstand der Punkte (`times[n-1] - times[n-2]`) berechnet. Bei Januar (31 Tage) und Februar (28 Tage) ordnete die Schätzung noch den 2. März dem Februar zu. Bei nur einem Wochenpunkt wurde jeder Tag außer dem exakten Startzeitpunkt verworfen.
+   - _Behebung:_ `TimeDepthChartProps` nimmt nun `resolution` und `windowEnd` entgegen; `DashboardChart` und `DepthLineChart` reichen die Metadaten an `useCrosshairController` und `findMatchingPointIndex` weiter. Letzteres berechnet das Ende des letzten Abschnitts über die Europe/Berlin-Kalenderarithmetik (`subtractBerlin(lastAt, -1, resolution)`), gekappt an `windowEnd`.
+   - _Regressionstest:_ `crosshairResolutionAndAnchoring.ui.vitest.tsx` (4 Tests: Monatsauflösung Februar vs. März, Folgemonat nach kurzem Vormonat, 1-Punkt-Wochenauflösung, windowEnd-Deckelung).
+
+4. **P2-Befund (`e2e/editor-time-point.spec.ts`): Binde den zurückgegebenen Locator an die hinzugefügte Kachel**
+   - _Problem:_ In `addTile` wurde `page.locator('[data-testid^="canvas-tile-"]').last()` zurückgegeben. Wegen Playwrights dynamischer Locator-Auflösung zeigten nach dem Einfügen der zweiten Kachel beide Variablen (`crmTile` und `liveTile`) auf dieselbe zweite DOM-Node.
+   - _Behebung:_ `addTile` ermittelt nach dem Hinzufügen das konkrete Attribut `data-testid` der neuen Kachel und gibt einen fest gebundenen Locator `page.locator('[data-testid="${testId}"]')` zurück.
+
+5. **P2-Befund (`scripts/captureAuftrag161GateScreenshots.mjs`): Wähle im Screenshot-Szenario tatsächlich eine Verlaufskachel**
+   - _Problem:_ Szenario `'nachher-fadenkreuz'` wählte `page.locator('[data-testid^="canvas-tile-"]').first()`, was die vorhandene `baseline.arr`-Zahlkachel (ohne Verlaufspunkte) war. `hitRects.count()` war 0 und der Hover wurde übersprungen.
+   - _Behebung:_ `addCrmHistoryTile` und `addLiveHistoryTile` geben fest gebundene Kachel-Locatoren zurück. Das Szenario steuert gezielt die hinzugefügten Verlaufskacheln an und verifiziert vor dem Screenshot, dass beide Kacheln die Fadenkreuz-Linie aktiv rendern (`waitFor({ state: 'attached' })`). Matrix mit 30 Screenshots erfolgreich regeneriert (0 px Überlauf).
+
+6. **P2-Befund (`useCrosshair.ts`): Leere beim Fokusverlust nur das eigene Fadenkreuz**
+   - _Problem:_ Wenn der Schieberegler von Kachel A fokussiert war und anschließend ein Datenpunkt in Kachel B per Pointer geklickt wurde, setzte Kachel B sich zunächst als neue Quelle. Der anschließende Blur von Kachel A rief `handleClear()` auf und leerte bedingungslos den gesamten Store, wodurch auch die neue Auswahl von Kachel B gelöscht wurde.
+   - _Behebung:_ `handleClear()` in `useCrosshairController` prüft nun über `store.getSnapshot().sourceTileId`, ob die Kachel noch die aktive Quelle ist (`!currentSource || currentSource === tileId`). Nur wenn diese Kachel die Quelle ist, wird `clearCrosshair()` ausgeführt.
+   - _Regressionstest:_ Dedizierter Testfall `Fokusverlust von Kachel A leert nicht das Fadenkreuz, wenn Kachel B bereits Quelle ist (Codex P2)` in `crosshairCoupling.ui.vitest.tsx`.
+
+7. **P2-Befund (`useCrosshair.ts`): Robuster Unmount- und Blur-Schutz für Store-Updates**
+   - _Problem:_ Bei parallelen Interaktionen konnte ein Unmount/Blur der Quellkachel fälschlich neu gesetzte Fremdauswahlen abräumen.
+   - _Behebung:_ Vollständige Koppelung an die Source-ID und sicheres Throttler-Cancelling im Unmount-Cleanup.
+
+8. **P3-Befund (`ABFRAGEVERTRAG_P08A.md`): Tatsächlich unterstützter Fenstervertrag**
+   - _Problem:_ Die Dokumentation nannte vereinfachte String-Shortcuts wie `'7d'`, einen nicht existierenden globalen Dashboard-Fallback und `timeControl.asOf`.
+   - _Behebung:_ Dokumentation präzisiert: `tile.query.window` akzeptiert genau das Objekt `{ count, resolution }` (Strings werfen `typ_ungueltig`); Fallback bei fehlendem Fenster ist das im Katalog hinterlegte `entry.history.defaultWindow`; der flüchtige Zeitsteuerungszustand heißt `timeControl.analysisAt` (wird nie in der Konfiguration persistiert). Auch `ZEITSTEUERUNG_P10A.md` und `ARCHITECTURE_DECISIONS.md` (C10) auf diesen präzisen Stand harmonisiert.
+
+9. **P2-Befund (`useCrosshair.ts`): Verankere auch die lokale Auswahl weiterhin am stabilen Schlüssel**
+   - _Problem:_ Wenn sich bei einem Diagramm ohne `at`-Zeitachse (z. B. V1-Pfad oder kategorische Daten) die Daten durch Refresh oder Filterwechsel verschoben, blieb die Auswahl am numerischen Index hängen. Entfiel ein Eintrag temporär, wurde er bei seiner späteren Rückkehr ungewollt wieder ausgewählt.
+   - _Behebung:_ `useCrosshairController` speichert `localLabel` statt des numerischen Index und ermittelt `activeIndex` über `data.findIndex((e) => e.label === localLabel)`. Entfällt das Label aus den Daten, wird der Zustand über einen `useEffect` explizit auf `null` zurückgesetzt.
+   - _Regressionstest:_ `crosshairResolutionAndAnchoring.ui.vitest.tsx` Test `bewahrt Auswahl über Label bei Datenverschiebungen, löscht bei Wegfall und wählt bei Rückkehr nicht ungewollt neu`.
