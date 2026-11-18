@@ -103,7 +103,7 @@ Nicht jede Kennzahl ist für Schwellenwerte geeignet. In [alarmEntries.ts](file:
 
 | Status             | Anzahl | Kriterium & Beispiele                                                                                                                                   |
 | ------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pruefbar`         | 16     | Skalare Einzelwerte mit eindeutiger Zielrichtung (z. B. `baseline.arr`, `baseline.ebitda`, `baseline.umsatz`, `crm.lead_velocity`)                      |
+| `pruefbar`         | 16     | Skalare Einzelwerte mit eindeutiger Zielrichtung (4 CRM-Pipeline- und 12 Live-Kennzahlen, z. B. `crm.pipeline_wert`, `crm.deals_anzahl`, `live.system.cpu_auslastung`; `baseline.*` als Planwerte für Alarme ausgeschlossen) |
 | `ausgeschlossen`   | 13     | Rein qualitative Kennzahlen oder zusammengesetzte Übersichten ohne Grenzwerte (z. B. `uebersicht.roadmap`, `uebersicht.meilensteine`, `crm.team_deals`) |
 | `nicht_einzelwert` | 33     | Zeitreihen, Verläufe, Phasen-Funnel oder Anteilsverteilungen (z. B. `baseline.arr_verlauf`, `crm.deal_flow_historie`, `crm.phaseneintritte_verlauf`)    |
 
@@ -113,6 +113,9 @@ _„Schwellenwerte können nur auf Einzelwert-Kacheln (Zahl, Gauge, Sparkline) �
 ---
 
 ## 6. Architekturentscheidung: Betriebsweg für Alarme (18.11.2026)
+
+> [!NOTE]
+> **Revision 18.11.2026 (Auftrag 167):** Der hier beschriebene Out-of-Process Worker entspricht nicht Marcs Entscheidung. Maßgeblich ist Auftrag 166 §8: `pg_cron` in der Datenbank, 5 Minuten, Ausfallhinweis ab 15 Minuten, Alarmregeln nur Manager/Admin.
 
 Am 18.11.2026 hat Marc Pönisch die verbindliche Architekturentscheidung für den späteren Server-Alarmierungsbetrieb getroffen:
 

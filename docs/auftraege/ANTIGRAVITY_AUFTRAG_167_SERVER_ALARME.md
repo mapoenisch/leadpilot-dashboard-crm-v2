@@ -170,18 +170,18 @@ Bei Bedarf außerhalb dieser Liste: stoppen und im PR begründen (`CLAUDE.md` §
 
 Reihenfolge je Block: Tests zuerst, dann Umsetzung.
 
-- [ ] **T0 Einstieg:** Baseline festlegen, Ist-Tabelle §1 prüfen, `pg_cron` lokal prüfen (2.2 Nr. 16), exakte JSON-Schlüssel von `dashboard_crm_pipeline_overview` je CRM-Kennzahl und Katalogeinheit je alarmfähiger ID notieren, Schreibrechte-Helfer aus 162 benennen, `size-limit` notieren.
-- [ ] **T1 Doku-Korrektur 166:** 2.5 Nr. 32 als eigener Commit.
-- [ ] **T2 Rot-Nachweise:** §3 Nr. 8 (a)–(e).
-- [ ] **T3 Tabellen, RLS, Not-Aus, Lebenszeichen:** 2.2 Nr. 17–18, 2.1 Nr. 13–14.
-- [ ] **T4 Bewertungsfunktion und generierte Parität:** 2.2 Nr. 20 (`alarm_evaluate_threshold`), 2.3 Nr. 25–26.
-- [ ] **T5 Werte und CRM-Kern:** 2.2 Nr. 19, `alarm_kpi_value`, Paritäts-Fixtures 2.4 Nr. 27; danach Matrix 2.3 Nr. 23–24.
-- [ ] **T6 Auswertung:** `evaluate_dashboard_alarms` mit 2.1 Nr. 5–9, 11–12; pgTAP 2.4 Nr. 28.
-- [ ] **T7 RPCs und Rechte:** 2.2 Nr. 21, Negativtests.
-- [ ] **T8 Aufbewahrung und Einplanung:** 2.2 Nr. 22, `cron.schedule` (Nr. 20).
-- [ ] **T9 Leistung:** 2.4 Nr. 30.
-- [ ] **T10 Doku:** 2.5 Nr. 33–36.
-- [ ] **T11 Abschluss:** Pflicht-Verifikation (§7), Schutzbereichs-Diff, BUILD_LOG-Eintrag mit Smoke für Marc (lokal: `supabase db reset`, eine Regel per SQL-Konsole als Manager anlegen, `SELECT public.evaluate_dashboard_alarms(now())` zweimal mit 15 Minuten Abstand über `p_now`, Ereignis in `list_dashboard_alarm_events` sehen), PR öffnen, Review anfordern.
+- [x] **T0 Einstieg:** Baseline festlegen, Ist-Tabelle §1 prüfen, `pg_cron` lokal prüfen (2.2 Nr. 16), exakte JSON-Schlüssel von `dashboard_crm_pipeline_overview` je CRM-Kennzahl und Katalogeinheit je alarmfähiger ID notieren, Schreibrechte-Helfer aus 162 benennen, `size-limit` notieren.
+- [x] **T1 Doku-Korrektur 166:** 2.5 Nr. 32 als eigener Commit.
+- [x] **T2 Rot-Nachweise:** §3 Nr. 8 (a)–(e).
+- [x] **T3 Tabellen, RLS, Not-Aus, Lebenszeichen:** 2.2 Nr. 17–18, 2.1 Nr. 13–14.
+- [x] **T4 Bewertungsfunktion und generierte Parität:** 2.2 Nr. 20 (`alarm_evaluate_threshold`), 2.3 Nr. 25–26.
+- [x] **T5 Werte und CRM-Kern:** 2.2 Nr. 19, `alarm_kpi_value`, Paritäts-Fixtures 2.4 Nr. 27; danach Matrix 2.3 Nr. 23–24.
+- [x] **T6 Auswertung:** `evaluate_dashboard_alarms` mit 2.1 Nr. 5–9, 11–12; pgTAP 2.4 Nr. 28.
+- [x] **T7 RPCs und Rechte:** 2.2 Nr. 21, Negativtests.
+- [x] **T8 Aufbewahrung und Einplanung:** 2.2 Nr. 22, `cron.schedule` (Nr. 20).
+- [x] **T9 Leistung:** 2.4 Nr. 30.
+- [x] **T10 Doku:** 2.5 Nr. 33–36.
+- [x] **T11 Abschluss:** Pflicht-Verifikation (§7), Schutzbereichs-Diff, BUILD_LOG-Eintrag mit Smoke für Marc (lokal: `supabase db reset`, eine Regel per SQL-Konsole als Manager anlegen, `SELECT public.evaluate_dashboard_alarms(now())` zweimal mit 15 Minuten Abstand über `p_now`, Ereignis in `list_dashboard_alarm_events` sehen), PR öffnen, Review anfordern.
 
 ## 6. Abnahme
 

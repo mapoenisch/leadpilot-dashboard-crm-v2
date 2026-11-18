@@ -1,0 +1,18 @@
+[
+  { "id": "crm.pipeline_deals", "name": "Pipeline Deals", "unit": "Stück", "type": "crm" },
+  { "id": "crm.pipeline_volumen", "name": "Pipeline Volumen", "unit": "EUR", "type": "crm" },
+  { "id": "crm.pipeline_gewonnen", "name": "Gewonnenes Volumen", "unit": "EUR", "type": "crm" },
+  { "id": "crm.pipeline_offen", "name": "Offenes Volumen", "unit": "EUR", "type": "crm" },
+  { "id": "live.arr", "name": "Live ARR", "unit": "EUR", "type": "live" },
+  { "id": "live.mrr", "name": "Live MRR", "unit": "EUR", "type": "live" },
+  { "id": "live.pipeline_coverage", "name": "Live Pipeline Coverage", "unit": "x", "type": "live" },
+  { "id": "live.arr_direct", "name": "Live ARR Direct", "unit": "EUR", "type": "live" },
+  { "id": "live.arr_partner", "name": "Live ARR Partner", "unit": "EUR", "type": "live" },
+  { "id": "live.arr_outbound", "name": "Live ARR Outbound", "unit": "EUR", "type": "live" },
+  { "id": "live.arr_other", "name": "Live ARR Other", "unit": "EUR", "type": "live" },
+  { "id": "live.pipeline_leads", "name": "Live Pipeline Leads", "unit": "Stück", "type": "live" },
+  { "id": "live.pipeline_mql", "name": "Live Pipeline MQL", "unit": "Stück", "type": "live" },
+  { "id": "live.pipeline_sql", "name": "Live Pipeline SQL", "unit": "Stück", "type": "live" },
+  { "id": "live.pipeline_offers", "name": "Live Pipeline Offers", "unit": "Stück", "type": "live" },
+  { "id": "live.pipeline_won", "name": "Live Pipeline Won", "unit": "Stück", "type": "live" }
+]

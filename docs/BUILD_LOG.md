@@ -22290,3 +22290,112 @@ Mit Auftrag 166 (Phase P13a des Masterplans) wird die kachelspezifische Schwelle
 - **Dateigrößen:** Alle geänderten Dateien streng ≤ 400 Zeilen (`InspectorThresholdTab.tsx` 197 ≤ 200).
 - **Schutzbereiche:** 0 Änderungen in `src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources` und `supabase`.
 
+---
+
+## 2026-11-24 — Auftrag 167: Dashboard-Editor: Server-Alarme mit pg_cron, Paritätsnachweis, Lebenszeichen, Revisions-Aufbewahrung (P13b)
+
+**Rolle:** Builder (Antigravity) · **Prüfer:** Codex / MarcReview · **Branch:** `auftrag-167-server-alarme` · **Basis:** Merge von PR #205 (`c138ce2e`)
+
+Mit Auftrag 167 (Phase P13b des Masterplans) wird die serverseitige Alarmauswertung in der Supabase-PostgreSQL-Datenbank via `pg_cron` realisiert. Die Auswertung erfolgt vollkommen unabhängig von geöffneten Browsern. Zeitgleich werden die Client-/Server-Parität für 16 Kennzahlen, die gemeinsame CRM-Berechnungsfunktion, der Lebenszeichen-Mechanismus sowie die 12-monatige Aufbewahrung von Dashboard-Revisionen und Alarmereignissen etabliert.
+
+### 1. Richtigstellung des Betriebswegs (Entscheidung Marc)
+- In Auftrag 166 (§6) war versehentlich ein Out-of-Process Worker dokumentiert.
+- **Richtigstellung:** Gemäß Auftrag 166 §8 ist `pg_cron` in der Datenbank die verbindliche Ausführungsarchitektur (alle 5 Minuten `evaluate_dashboard_alarms()`, Ausfallhinweis ab 15 Minuten Verzug via `alarm_worker_status()`, Alarmregeln ausschließlich für Rollen `manager` und `admin`).
+- Die Dokumentation in `docs/dashboard/SCHWELLENWERTE_P13A.md` (§6), `docs/dashboard/DASHBOARD_EDITOR_MASTERPLAN.md` (§9.2), `ARCHITECTURE_DECISIONS.md` (Teil D4) und `docs/dashboard/ALARME_P13B.md` wurde entsprechend datiert richtiggestellt; historische Entwurfszeilen blieben erhalten.
+
+### 2. T2 Rot-Nachweise (Vorab-Prüfungen vor Implementierung)
+- **(a) pgTAP `dashboard_alarms.sql`:** Auswertung von Referenzfall `hoch-02` gegen `alarm_evaluate_threshold` sowie `evaluate_dashboard_alarms` vor Erstellung der Migration ausgeführt → **ROT** (Funktionen `alarm_evaluate_threshold` und `evaluate_dashboard_alarms` existierten nicht).
+- **(b) pgTAP `dashboard_alarms.sql`:** 10 Läufe auf gleicher Stufe erzeugen genau 1 Ereignis → **ROT** (Tabelle `dashboard_alarm_events` und Hysterese-Logik fehlten).
+- **(c) pgTAP `dashboard_alarm_rules_rights.sql`:** Viewer legt Regel an → **ROT** (RPC `create_dashboard_alarm_rule` fehlte).
+- **(d) Vitest `alarmParity.vitest.ts`:** Jede `alarmfaehig`-ID hat Paritätsfall und Server-Eintrag → **ROT** (Status `alarmfaehig` und Fixtures fehlten).
+- **(e) pgTAP `dashboard_revision_retention.sql`:** 130 Revisionen aufbewahren und bereinigen → **ROT** (Funktion `cleanup_dashboard_revisions` fehlte).
+
+### 3. Server-Architektur & Migration (`20261124_dashboard_alarms.sql`)
+- **Tabellen & Mandantenisolation:**
+  - `alarm_settings`: Globale Not-Aus-Steuerung (`is_paused`), Schwellenwerte für Lebenszeichen.
+  - `dashboard_alarm_rules`: Alarmregeln bezogen auf Kacheln (`dashboard_id`, `tile_id`, `rule` im V2-Format). RLS erlaubt SELECT für Mandantenmitglieder; INSERT/UPDATE/DELETE nur über RLS-geprüfte RPCs für `manager` und `admin`.
+  - `dashboard_alarm_state`: Aktueller Auswertungszustand je Regel (`aktueller_zustand`, `bestaetigter_zustand`, `letzter_wert`, `aufeinanderfolgende_laeufe`, `letzter_zustandswechsel`).
+  - `dashboard_alarm_events`: Unveränderliches Ereignisprotokoll (Append-Only) bei bestätigtem Zustandswechsel.
+  - `alarm_worker_runs`: Protokollierung jedes Ausführungslaufs (Dauer, geprüfte Regeln, erzeugte Ereignisse, Fehler).
+- **Gemeinsame CRM-Fachfunktion:**
+  - `dashboard_crm_pipeline_overview_for_org(p_org_id, p_pipeline)` extrahiert die Pipeline-Berechnung als wiederverwendbaren Kern.
+  - Sowohl die interaktive Benutzeroberfläche (`dashboard_crm_pipeline_overview`) als auch der Alarm-Worker (`alarm_kpi_value`) greifen auf denselben Code zu.
+- **KPI-Wertauflöser (`alarm_kpi_value`):**
+  - Unterstützt 16 Kennzahlen (4 CRM-Pipeline-Kennzahlen + 12 Live-Kennzahlen).
+  - **24-Stunden-Datenfrische (Entscheidung Marc 18.11.2026):** Für Live-KPIs werden Messwerte nur berücksichtigt, wenn sie jünger als 24 Stunden sind; andernfalls wird `NULL` zurückgegeben (`keine_daten`), um Fehlalarme bei Feed-Ausfällen zu verhindern.
+- **Bewertungsfunktion (`alarm_evaluate_threshold`):**
+  - Implementiert dieselbe Logik wie `thresholdRuleV2.ts` in TypeScript.
+  - Verlustfreie automatische Normalisierung alter V1-Regeln (`gte`, `gt`, `lte`, `lt`, `eq`, `between`).
+  - Überladung für `TEXT`-Eingaben fängt ungültige Werte wie `'NaN'`, `'Infinity'`, `'-Infinity'` robust ab.
+- **Auswertungs-Engine (`evaluate_dashboard_alarms`):**
+  - Berücksichtigt Hysterese (`mindestdauer_laeufe`, Standard 2 Läufe) und Abklingzeit (`abklingzeit_sekunden`).
+  - **Eskalations-Override:** Wechsel auf `kritisch` eskalieren sofort ohne Hysterese-Verzögerung.
+  - **Rechteverlust:** Verliert der Regelersteller die Manager-/Admin-Rolle oder verlässt die Organisation, wird die Regel automatisch pausiert (`LP_ALARM_CREATOR_INACTIVE`).
+- **Überwachung & Lebenszeichen:**
+  - `alarm_worker_status()` liefert `ok`, `ueberfaellig` (ab 15 Minuten Verzug) oder `pausiert`.
+  - `alarm_settings.is_paused` ermöglicht einen organisationsweiten oder globalen Not-Aus ohne Code-Änderung.
+- **Aufbewahrungs-Bereinigung (Entscheidung Marc 18.11.2026):**
+  - `cleanup_dashboard_revisions()`: Behält für jedes Dashboard die neuesten 100 Revisionen sowie Revision 1 und historische Wiederherstellungsquellen dauerhaft; ältere Revisionen werden nach 12 Monaten gelöscht.
+  - `cleanup_dashboard_alarm_events()`: Löscht Alarmereignisse, die älter als 12 Monate sind.
+- **`pg_cron`-Einplanung:**
+  - Job `dashboard-alarms-eval` (`*/5 * * * *`, alle 5 Minuten) aktiv.
+  - Job `dashboard-daily-cleanup` (`0 3 * * *`, täglich um 03:00) angelegt und via `cron.alter_job(..., active := false)` inaktiviert (vom Betreiber manuell aktivierbar).
+
+### 4. Client-/Server-Parität & Fixtures
+- `src/features/dashboard/model/alarmCapability.ts`: Neuer Status `'alarmfaehig'` für verifizierte Kennzahlen.
+- `src/features/dashboard/model/catalog/alarmEntries.ts`: Alle 16 geprüften KPIs auf `alarmfaehig` angehoben (16 alarmfähig, 0 prüfbar, 13 ausgeschlossen, 33 nicht_einzelwert).
+- `supabase/tests/fixtures/alarm_parity/alarm_kpis.json`: 16 Kennzahlen-Definitionen mit Einheiten, Quell-Tabellen und Standard-Schwellenwerten.
+- `supabase/tests/fixtures/alarm_parity/alarm_parity_cases.json`: 17 strukturierte Testfälle für Randwert- und Stufenprüfungen.
+- `scripts/generateAlarmParitySql.ts`: Generiert `supabase/tests/dashboard_alarm_parity.sql` mit 90 Tests (57 Referenzfälle + 17 Paritätsfälle + 16 KPI-Verfügbarkeiten). Flag `--check` sichert CI-Synchronität ab.
+- `src/features/dashboard/__tests__/alarmParity.vitest.ts`: Vitest-Gegenstück zur Absicherung der TypeScript-Evaluierung gegen dieselben Fixtures.
+
+### 5. Leistungsmessung (Benchmark)
+- Benchmark-Skript `scripts/measureAlarmRun.sql`:
+  - Test-Setup: 200 aktive Alarmregeln über 5 Mandantenorganisationen mit realistischen Schwellenwerten und CRM-/Live-Daten.
+  - Ausführungszeit von `evaluate_dashboard_alarms()`: **16 ms**.
+  - Erfüllung des Leistungsbudgets (< 2.000 ms): Weit unterboten (Faktor 125 schneller als gefordert).
+
+### 6. Smoke-Test-Anleitung für Marc (Lokal & Hosted)
+1. **Lokal ausführen:**
+   ```bash
+   npx supabase db reset
+   ```
+2. **Alarmregel per SQL anlegen:**
+   ```sql
+   -- Als berechtigter Manager/Admin in Organization 1:
+   SELECT public.create_dashboard_alarm_rule(
+     p_dashboard_id := (SELECT id FROM public.dashboards WHERE organization_id = '00000000-0000-0000-0000-000000000001' LIMIT 1),
+     p_tile_id := 'test-tile-arr',
+     p_rule := '{"art": "niedrig_ist_schlecht", "warnung": 50000, "kritisch": 20000}'::jsonb
+   );
+   ```
+3. **Ersten Lauf simulieren:**
+   ```sql
+   SELECT public.evaluate_dashboard_alarms(now());
+   -- Status und State prüfen:
+   SELECT public.alarm_worker_status();
+   SELECT rule_id, aktueller_zustand, bestaetigter_zustand FROM public.dashboard_alarm_state;
+   ```
+4. **Zweiten Lauf nach 15 Minuten simulieren (Bestätigung & Ereignis):**
+   ```sql
+   SELECT public.evaluate_dashboard_alarms(now() + interval '15 minutes');
+   -- Ereignis abfragen:
+   SELECT * FROM public.list_dashboard_alarm_events(10, 0);
+   ```
+5. **Not-Aus testen:**
+   ```sql
+   UPDATE public.alarm_settings SET is_paused = true;
+   SELECT public.alarm_worker_status(); -- Liefert 'pausiert'
+   UPDATE public.alarm_settings SET is_paused = false;
+   ```
+
+### 7. Qualitätssicherung & Verifikation
+- `npx supabase test db`: **24 Testdateien, 607 Tests PASS (100% GRÜN)**.
+- `npm test`: **449 Testdateien, 3371 Tests PASS (100% GRÜN)**.
+- `npx tsc --noEmit`: 0 Fehler.
+- `npm run verify`: Alle Prüfungen bestanden.
+- `npm run build`: Erfolgreich in 3.60s.
+- `npx size-limit`: Initial JS bundle 179.37 kB (< 180 kB Budget), Largest chunk 79.41 kB (< 250 kB Budget).
+- **Schutzbereiche:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` ist absolut leer.
+
+
