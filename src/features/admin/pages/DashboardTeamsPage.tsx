@@ -260,6 +260,7 @@ export function DashboardTeamsPage() {
       {/* Mitglieder-Detailbereich (§2.5 Nr. 26) */}
       {selectedTeam && (
         <TeamMembersPanel
+          key={selectedTeam.id}
           team={selectedTeam}
           onClose={() => setSelectedTeam(null)}
           onTeamUpdated={loadTeams}

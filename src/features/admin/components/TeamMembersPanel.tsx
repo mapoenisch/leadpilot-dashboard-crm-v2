@@ -1,7 +1,7 @@
 // Executive Dashboard V2 (Auftrag 163 / P11b):
 // Detailbereich zur Verwaltung der Mitglieder eines Teams (§2.5 Nr. 26).
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
@@ -32,7 +32,12 @@ export function TeamMembersPanel({ team, onClose, onTeamUpdated }: TeamMembersPa
   const [error, setError] = useState<string | null>(null);
   const [removeTarget, setRemoveTarget] = useState<DashboardTeamMemberV2 | null>(null);
 
+  // Nur die jüngste Ladeanfrage darf den Zustand setzen (Teamwechsel bei langsamer Antwort).
+  const latestRequestRef = useRef(0);
+
   const loadData = useCallback(async () => {
+    const requestId = ++latestRequestRef.current;
+    const isStale = () => requestId !== latestRequestRef.current;
     setIsLoading(true);
     setError(null);
     try {
@@ -40,6 +45,7 @@ export function TeamMembersPanel({ team, onClose, onTeamUpdated }: TeamMembersPa
         listDashboardTeamMembersV2(team.id),
         memberService.listMembersAndInvitations(),
       ]);
+      if (isStale()) return;
 
       if (membersRes.ok) {
         setMembers(membersRes.value);
@@ -49,9 +55,10 @@ export function TeamMembersPanel({ team, onClose, onTeamUpdated }: TeamMembersPa
 
       setOrgMembers(orgData.members);
     } catch {
+      if (isStale()) return;
       setError('Mitgliederdaten konnten nicht geladen werden.');
     } finally {
-      setIsLoading(false);
+      if (!isStale()) setIsLoading(false);
     }
   }, [team.id]);
 

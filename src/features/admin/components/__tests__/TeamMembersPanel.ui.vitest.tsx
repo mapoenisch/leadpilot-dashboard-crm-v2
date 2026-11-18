@@ -160,4 +160,46 @@ describe('TeamMembersPanel', () => {
       expect(addDashboardTeamMemberV2).toHaveBeenCalledWith('team-1', 'u3');
     });
   });
+
+  it('verwirft eine veraltete Mitgliederantwort nach einem Teamwechsel', async () => {
+    const member = (userId: string, email: string) => ({
+      userId,
+      email,
+      teamRole: 'member' as const,
+      orgRole: 'member' as const,
+      orgStatus: 'active' as const,
+      createdAt: '2026-11-20T10:00:00Z',
+    });
+    type MembersResult = Awaited<ReturnType<typeof listDashboardTeamMembersV2>>;
+    let resolveTeamA: (v: MembersResult) => void = () => {};
+    vi.mocked(listDashboardTeamMembersV2).mockImplementation((teamId: string) =>
+      teamId === 'team-1'
+        ? new Promise<MembersResult>((resolve) => {
+            resolveTeamA = resolve;
+          })
+        : Promise.resolve({ ok: true, value: [member('u-b', 'team-b@test.de')] }),
+    );
+    vi.mocked(memberService.listMembersAndInvitations).mockResolvedValue({
+      members: [],
+      invitations: [],
+    } as unknown as Awaited<ReturnType<typeof memberService.listMembersAndInvitations>>);
+
+    const { rerender } = render(
+      <TeamMembersPanel team={mockTeam} onClose={vi.fn()} onTeamUpdated={vi.fn()} />,
+    );
+    rerender(
+      <TeamMembersPanel
+        team={{ ...mockTeam, id: 'team-2', name: 'Vertrieb Süd' }}
+        onClose={vi.fn()}
+        onTeamUpdated={vi.fn()}
+      />,
+    );
+    await waitFor(() => expect(screen.getByText('team-b@test.de')).toBeInTheDocument());
+
+    resolveTeamA({ ok: true, value: [member('u-a', 'team-a@test.de')] });
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(screen.queryByText('team-a@test.de')).not.toBeInTheDocument();
+    expect(screen.getByText('team-b@test.de')).toBeInTheDocument();
+  });
 });
