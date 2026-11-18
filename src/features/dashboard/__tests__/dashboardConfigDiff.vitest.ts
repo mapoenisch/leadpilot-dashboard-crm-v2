@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { logger } from '../../../services/logger';
 import type { DashboardConfigV2 } from '../model/dashboardConfigV2';
 import { diffDashboardConfigsV2, summarizeDiffV2 } from '../model/dashboardConfigDiff';
 
@@ -159,8 +160,7 @@ describe('dashboardConfigDiff', () => {
     }
 
     const avgMs = times.reduce((a, b) => a + b, 0) / runs;
-    // eslint-disable-next-line no-console -- Leistungsnachweis aus Auftrag 165 2.5 Nr. 31
-    console.log(
+    logger.info(
       `[Leistungsmessung diffDashboardConfigsV2] 24 Kacheln, 6 Sektionen: Mittel über ${runs} Läufe = ${avgMs.toFixed(3)} ms`,
     );
     expect(avgMs).toBeLessThan(20);
