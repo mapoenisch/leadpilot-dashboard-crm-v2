@@ -162,6 +162,38 @@ describe('dashboardConfigDiff', () => {
     expect(sec2Diff?.pfade).toEqual([{ pfad: 'order', alt: 1, neu: 0 }]);
   });
 
+  it('erkennt Dashboard-Ebene Änderungen und formatiert die Zusammenfassung präzise', () => {
+    const dashNeu: DashboardConfigV2 = {
+      ...baseConfig,
+      title: 'Neuer Dashboard Titel',
+      globalTimeframe: 'letzte_7_tage',
+      globalPipeline: 'pipeline_enterprise',
+      variables: { currency: 'USD' },
+      tiles: [
+        {
+          ...baseConfig.tiles[0]!,
+          presentation: 'progress',
+          pipelineOverride: 'pipe_b',
+          aggregationOverride: 'mittelwert',
+          drilldownUrl: '/details',
+          layouts: { desktop: { x: 1, y: 1, w: 4, h: 4 } },
+          query: { metricId: 'baseline.mrr' },
+        },
+      ],
+      sections: [{ id: 'sec_1', title: 'Sektion Neu', collapsed: true, tileIds: ['tile_1'] }],
+    };
+
+    const diff = diffDashboardConfigsV2(baseConfig, dashNeu);
+    expect(diff.length).toBeGreaterThan(0);
+
+    const summary = summarizeDiffV2(diff);
+    expect(summary).toContain('Titel geändert');
+    expect(summary).toContain('Zeitraum geändert');
+    expect(summary).toContain('Pipeline geändert');
+    expect(summary).toContain('Variablen geändert');
+    expect(summary).toContain('Kachel');
+  });
+
   it('Leistungsmessung: 24 Kacheln und 6 Sektionen im Schnitt unter 20 ms', () => {
     const tiles24A = Array.from({ length: 24 }, (_, i) => ({
       id: `tile_${i}`,
@@ -214,5 +246,76 @@ describe('dashboardConfigDiff', () => {
       `[Leistungsmessung diffDashboardConfigsV2] 24 Kacheln, 6 Sektionen: Mittel über ${runs} Läufe = ${avgMs.toFixed(3)} ms`,
     );
     expect(avgMs).toBeLessThan(20);
+  });
+
+  it('erfasst Kacheln und Sektionen hinzugefügt, entfernt, verschoben und Randfälle', () => {
+    const configA: DashboardConfigV2 = {
+      ...baseConfig,
+      sections: [
+        { id: 'sec_1', title: '', collapsed: false, tileIds: ['tile_1'] },
+        { id: 'sec_2', title: 'Sektion 2', collapsed: false, tileIds: [] },
+      ],
+      tiles: [
+        {
+          id: 'tile_1',
+          catalogId: 'baseline.arr',
+          title: '',
+          presentation: 'zahl',
+          layouts: { desktop: { x: 0, y: 0, w: 3, h: 3 } },
+        },
+        {
+          id: 'tile_to_delete',
+          catalogId: 'baseline.mrr',
+          title: 'Zu löschen',
+          presentation: 'zahl',
+          layouts: { desktop: { x: 3, y: 0, w: 3, h: 3 } },
+        },
+      ],
+    };
+
+    const configB: DashboardConfigV2 = {
+      ...baseConfig,
+      sections: [
+        { id: 'sec_2', title: 'Sektion 2', collapsed: true, tileIds: ['tile_1'] }, // order gewechselt, collapsed geändert, tileId hinzugefügt
+        { id: 'sec_added', title: '', collapsed: false, tileIds: ['tile_new'] }, // neue Sektion ohne Titel
+      ],
+      tiles: [
+        {
+          id: 'tile_1',
+          catalogId: 'baseline.churn',
+          title: 'Titel neu',
+          presentation: 'trend',
+          layouts: { desktop: { x: 0, y: 0, w: 6, h: 3 } },
+          timeframeOverride: 'letzte_7_tage',
+          displayOptions: { showLegend: true },
+          threshold: { enabled: true, operator: 'gt', warningValue: 100 },
+        },
+        {
+          id: 'tile_new',
+          catalogId: 'baseline.leads',
+          title: '',
+          presentation: 'balken',
+          layouts: { desktop: { x: 6, y: 0, w: 3, h: 3 } },
+        },
+      ],
+    };
+
+    const diff = diffDashboardConfigsV2(configA, configB);
+    expect(diff.length).toBeGreaterThan(0);
+
+    const summary = summarizeDiffV2(diff);
+    expect(summary).toContain('Sektion hinzugefügt');
+    expect(summary).toContain('Sektion entfernt');
+    expect(summary).toContain('Sektion geändert');
+    expect(summary).toContain('Kachel hinzugefügt');
+    expect(summary).toContain('Kachel entfernt');
+    expect(
+      diff.some(
+        (d) =>
+          d.bereich === 'sektion' &&
+          d.art === 'geaendert' &&
+          d.pfade.some((p) => p.pfad === 'order'),
+      ),
+    ).toBe(true);
   });
 });

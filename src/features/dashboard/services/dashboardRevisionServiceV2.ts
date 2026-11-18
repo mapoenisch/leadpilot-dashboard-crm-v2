@@ -24,6 +24,9 @@ function failTechnically<T>(cause: unknown): StorageResult<T> {
 export async function getDashboardV2Revisions(
   dashboardId: string,
 ): Promise<StorageResult<DashboardV2RevisionRow[]>> {
+  if (!dashboardId || !dashboardId.trim()) {
+    return { ok: false, error: { kind: 'ungueltig', detail: 'Ungültige Dashboard-ID' } };
+  }
   if (!isSupabaseConfigured || !supabase || inMemoryStore.has(dashboardId)) {
     const entry = inMemoryStore.get(dashboardId);
     return {
@@ -79,6 +82,9 @@ export async function listDashboardV2RevisionsPage(params: {
   beforeRevision?: number | null;
   limit?: number;
 }): Promise<StorageResult<DashboardV2RevisionPageItem[]>> {
+  if (!params.dashboardId || !params.dashboardId.trim()) {
+    return { ok: false, error: { kind: 'ungueltig', detail: 'Ungültige Dashboard-ID' } };
+  }
   if (!isSupabaseConfigured || !supabase || inMemoryStore.has(params.dashboardId)) {
     const entry = inMemoryStore.get(params.dashboardId);
     if (!entry) {
@@ -161,6 +167,12 @@ export async function getDashboardV2RevisionDetail(params: {
   dashboardId: string;
   revision: number;
 }): Promise<StorageResult<DashboardV2RevisionDetail>> {
+  if (!params.dashboardId || !params.dashboardId.trim() || params.revision < 1) {
+    return {
+      ok: false,
+      error: { kind: 'ungueltig', detail: 'Ungültige Dashboard-ID oder Revision' },
+    };
+  }
   if (!isSupabaseConfigured || !supabase || inMemoryStore.has(params.dashboardId)) {
     const entry = inMemoryStore.get(params.dashboardId);
     if (!entry) {
@@ -235,6 +247,17 @@ export async function restoreDashboardV2Revision(params: {
   targetRevision: number;
   expectedRevision?: number;
 }): Promise<StorageResult<SavedDashboardV2Result>> {
+  if (
+    !params.dashboardId ||
+    !params.dashboardId.trim() ||
+    params.targetRevision < 1 ||
+    (params.expectedRevision !== undefined && params.expectedRevision < 1)
+  ) {
+    return {
+      ok: false,
+      error: { kind: 'ungueltig', detail: 'Ungültige Parameter für Wiederherstellung' },
+    };
+  }
   if (!isSupabaseConfigured || !supabase || inMemoryStore.has(params.dashboardId)) {
     const entry = inMemoryStore.get(params.dashboardId);
     if (!entry) return { ok: false, error: { kind: 'nicht_gefunden' } };

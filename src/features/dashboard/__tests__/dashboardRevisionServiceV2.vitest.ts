@@ -184,4 +184,92 @@ describe('dashboardRevisionServiceV2', () => {
     if (!revs.ok) return;
     expect(revs.value[0]?.changeSummary).toBe('Wiederherstellung von Revision 1');
   });
+
+  it('fängt ungültige Parameter und fehlende Einträge sicher ab', async () => {
+    // getDashboardV2Revisions mit leerer ID
+    const emptyRevs = await getDashboardV2Revisions('');
+    expect(emptyRevs.ok).toBe(false);
+    if (!emptyRevs.ok) expect(emptyRevs.error.kind).toBe('ungueltig');
+
+    // getDashboardV2RevisionDetail mit ungültiger Revision
+    const invalidRev = await getDashboardV2RevisionDetail({ dashboardId: 'dash_1', revision: 0 });
+    expect(invalidRev.ok).toBe(false);
+    if (!invalidRev.ok) expect(invalidRev.error.kind).toBe('ungueltig');
+
+    // getDashboardV2RevisionDetail mit leerer DashboardId
+    const emptyDash = await getDashboardV2RevisionDetail({ dashboardId: '', revision: 1 });
+    expect(emptyDash.ok).toBe(false);
+    if (!emptyDash.ok) expect(emptyDash.error.kind).toBe('ungueltig');
+
+    // restoreDashboardV2Revision mit ungültigen Parametern
+    const invalidRestore1 = await restoreDashboardV2Revision({
+      dashboardId: '',
+      targetRevision: 1,
+      expectedRevision: 1,
+    });
+    expect(invalidRestore1.ok).toBe(false);
+    if (!invalidRestore1.ok) expect(invalidRestore1.error.kind).toBe('ungueltig');
+
+    const invalidRestore2 = await restoreDashboardV2Revision({
+      dashboardId: 'dash_1',
+      targetRevision: 0,
+      expectedRevision: 1,
+    });
+    expect(invalidRestore2.ok).toBe(false);
+    if (!invalidRestore2.ok) expect(invalidRestore2.error.kind).toBe('ungueltig');
+
+    const invalidRestore3 = await restoreDashboardV2Revision({
+      dashboardId: 'dash_1',
+      targetRevision: 1,
+      expectedRevision: 0,
+    });
+    expect(invalidRestore3.ok).toBe(false);
+    if (!invalidRestore3.ok) expect(invalidRestore3.error.kind).toBe('ungueltig');
+
+    // restore auf nicht existentes Dashboard
+    const notFoundRestore = await restoreDashboardV2Revision({
+      dashboardId: 'nicht_existent',
+      targetRevision: 1,
+      expectedRevision: 1,
+    });
+    expect(notFoundRestore.ok).toBe(false);
+    if (!notFoundRestore.ok) expect(notFoundRestore.error.kind).toBe('nicht_gefunden');
+
+    // restore auf existierendes Dashboard aber nicht existierende targetRevision
+    const config = makeConfig('dash_restore_edge');
+    await createDashboardV2({ title: config.title, config });
+
+    const revNotFoundRestore = await restoreDashboardV2Revision({
+      dashboardId: 'dash_restore_edge',
+      targetRevision: 99,
+      expectedRevision: 1,
+    });
+    expect(revNotFoundRestore.ok).toBe(false);
+    if (!revNotFoundRestore.ok) expect(revNotFoundRestore.error.kind).toBe('nicht_gefunden');
+
+    // restore ohne expectedRevision (nimmt automatisch entry.row.revision)
+    const defaultExpectedRestore = await restoreDashboardV2Revision({
+      dashboardId: 'dash_restore_edge',
+      targetRevision: 1,
+    });
+    expect(defaultExpectedRestore.ok).toBe(true);
+
+    // detail für existierendes Dashboard aber unbekannte Revision
+    const detailUnknown = await getDashboardV2RevisionDetail({
+      dashboardId: 'dash_restore_edge',
+      revision: 88,
+    });
+    expect(detailUnknown.ok).toBe(false);
+    if (!detailUnknown.ok) expect(detailUnknown.error.kind).toBe('nicht_gefunden');
+
+    // getDashboardV2Revisions mit ungültiger / leerer ID
+    const whitespaceRevs = await getDashboardV2Revisions('   ');
+    expect(whitespaceRevs.ok).toBe(false);
+    if (!whitespaceRevs.ok) expect(whitespaceRevs.error.kind).toBe('ungueltig');
+
+    // getDashboardV2Revisions für unbekanntes Dashboard liefert leeres Array
+    const unknownRevs = await getDashboardV2Revisions('unbekannt');
+    expect(unknownRevs.ok).toBe(true);
+    if (unknownRevs.ok) expect(unknownRevs.value).toEqual([]);
+  });
 });

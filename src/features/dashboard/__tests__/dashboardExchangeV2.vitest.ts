@@ -225,5 +225,62 @@ describe('dashboardExchangeV2', () => {
       expect(imported.config.tiles).toEqual(sampleConfig.tiles);
       expect(imported.config.sections).toEqual(sampleConfig.sections);
     });
+
+    it('exportiert und importiert globale Pipeline und Variablen', () => {
+      const configWithMore: DashboardConfigV2 = {
+        ...sampleConfig,
+        globalPipeline: 'pipeline_enterprise',
+        variables: { currency: 'EUR' },
+      };
+      const exported = buildDashboardExportV2(configWithMore, { sourceRevision: 5 });
+      expect(exported.dashboard.globalPipeline).toBe('pipeline_enterprise');
+      expect(exported.dashboard.variables).toEqual({ currency: 'EUR' });
+
+      const imported = parseDashboardImportV2(JSON.stringify(exported), defaultSession);
+      expect(imported.ok).toBe(true);
+      if (imported.ok) {
+        expect(imported.config.globalPipeline).toBe('pipeline_enterprise');
+        expect(imported.config.variables).toEqual({ currency: 'EUR' });
+      }
+    });
+
+    it('weist fehlerhafte Hüllen und Array-Wurzeln ab', () => {
+      // JSON Array als Wurzel
+      const resArr = parseDashboardImportV2('[1, 2, 3]', defaultSession);
+      expect(resArr.ok).toBe(false);
+
+      // Falsches Format
+      const resFormat = parseDashboardImportV2(
+        JSON.stringify({ format: 'other', formatVersion: 1, dashboard: {} }),
+        defaultSession,
+      );
+      expect(resFormat.ok).toBe(false);
+
+      // Falsche Format-Version
+      const resVer = parseDashboardImportV2(
+        JSON.stringify({ format: 'leadpilot-dashboard', formatVersion: 2, dashboard: {} }),
+        defaultSession,
+      );
+      expect(resVer.ok).toBe(false);
+
+      // Dashboard ist Array
+      const resDashArr = parseDashboardImportV2(
+        JSON.stringify({ format: 'leadpilot-dashboard', formatVersion: 1, dashboard: [] }),
+        defaultSession,
+      );
+      expect(resDashArr.ok).toBe(false);
+
+      // Prototype Pollution in verschachteltem Array
+      const resPollutionArr = parseDashboardImportV2(
+        JSON.stringify({
+          format: 'leadpilot-dashboard',
+          formatVersion: 1,
+          items: [{ constructor: 'bad' }],
+          dashboard: {},
+        }),
+        defaultSession,
+      );
+      expect(resPollutionArr.ok).toBe(false);
+    });
   });
 });
