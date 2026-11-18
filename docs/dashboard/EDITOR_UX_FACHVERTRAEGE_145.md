@@ -347,7 +347,15 @@ Befindet sich ein Kachelwert in einem Schwellenwert-Zustand, passt der Renderer 
 ### 8.3 Entkopplung von Client-Visualisierung und Server-Scheduler
 
 - **Phase A (Haupt-Editor / P02–P08):** Das Frontend evaluiert Schwellenwerte live anhand der abgerufenen KPI-Werte. Beim Rendern der Kachel wird der Wert gegen die Schwellenwerte geprüft und das Status-Badge gesetzt.
-- **Phase B (Server-Alarmbetrieb / P13):** Die Schwellenwert-Definition wird in einem separaten Tabellenfeld persistent abgelegt, sodass ein späterer Server-Worker (pg_cron / Edge Function) dieselbe Regel bei geschlossenem Browser auswerten kann.
+- **Phase B (Server-Alarmbetrieb / P13):** Die Schwellenwert-Definition wird in einem separaten Tabellenfeld persistent abgelegt, sodass ein späterer Server-Worker dieselbe Regel bei geschlossenem Browser auswerten kann.
+
+### 8.4 Nachtrag: Umgesetzt in Auftrag 166 (P13a, 18.11.2026)
+
+In Auftrag 166 (P13a) wurde das Schwellenwert- und Alarmmodell verbindlich spezifiziert und browserseitig umgesetzt:
+1. **Regelmodell V2 (`ThresholdRuleV2`):** Drei klare Regelarten (`hoch_ist_schlecht`, `niedrig_ist_schlecht`, `zielbereich`) ersetzen die uneindeutigen Alt-Operatoren.
+2. **Kachel-Indikator:** Kompaktes Status-Badge (`TileThresholdBadge`) mit barrierefreiem Kontrast (amber-300, rose-300, sky-300) und 0 px Überlauf.
+3. **Alarmfähigkeits-Matrix:** Vollständige Typisierung aller 62 aktiven Katalog-KPIs (16 prüfbar, 13 ausgeschlossen, 33 nicht_einzelwert).
+4. **Betriebsweg-Entscheidung (Marc, 18.11.2026):** Festlegung auf einen **Out-of-Process Worker** (Golang oder Node CLI als Cron-Dienst) für den späteren Server-Alarmbetrieb. Supabase Database Triggers / `pg_cron` / Edge Functions wurden verworfen, um DB-Kopplung und Timeouts zu vermeiden. Details siehe `docs/dashboard/SCHWELLENWERTE_P13A.md`.
 
 ---
 

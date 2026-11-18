@@ -3,8 +3,8 @@
 // Zeigt bei Deselektion die Dashboard-Übersicht und bei Kachelauswahl
 // 4 strukturierte Tabs: Daten & Filter, Darstellung, Schwellenwerte, Interaktion.
 
-import { useState } from 'react';
-import { ChevronRight, Database, Sliders, Sparkles, X } from 'lucide-react';
+import { useState, useSyncExternalStore } from 'react';
+import { ChevronRight, Sliders, X } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
@@ -20,6 +20,9 @@ import type {
   TileThresholdRule,
 } from '../../model/dashboardConfigV2';
 import { getSectionForTile } from '../../model/dashboardSections';
+import { useOptionalTimeControl } from '../../time/TimeControlProvider';
+import { convertV2TileToV1 } from './canvas/CanvasTileCard';
+import { InspectorEmptyState } from './inspector/InspectorEmptyState';
 import {
   InspectorDataTab,
   InspectorInteractionTab,
@@ -38,49 +41,18 @@ export interface EditorInspectorV2Props {
   onTileDrilldownChange?: (tileId: string, url: string | undefined) => void;
   onOpenPanelEditor?: (tileId: string) => void;
   onClose?: () => void;
-  className?: string;
   onMoveTileToSection?: (tileId: string, targetSectionId: string | null) => void;
   onExpandSection?: (sectionId: string) => void;
   isSectionCollapsed?: (sectionId: string) => boolean;
+  useData?: import('../LazyDashboardTile').TileDataHook;
+  currentValue?: number | null;
+  className?: string;
 }
 
 type InspectorTab = 'daten' | 'darstellung' | 'schwellenwerte' | 'interaktion';
 
-export function EditorInspectorV2({
-  selectedTile,
-  config,
-  onDeselect,
-  onTileTitleChange,
-  onTileViewChange,
-  onTileOverrideChange,
-  onTileThresholdChange,
-  onTileDrilldownChange,
-  onOpenPanelEditor,
-  onClose,
-  className,
-  onMoveTileToSection,
-  onExpandSection,
-  isSectionCollapsed,
-}: EditorInspectorV2Props) {
-  const [activeTab, setActiveTab] = useState<InspectorTab>('darstellung');
-
-  const catalogEntry = selectedTile
-    ? (getCatalogEntry(selectedTile.catalogId) as ActiveCatalogEntry | undefined)
-    : undefined;
-
-  const supportedViews = catalogEntry?.shape
-    ? (VIEWS_BY_SHAPE[catalogEntry.shape] ?? ['zahl'])
-    : (['zahl', 'tabelle', 'saeulen', 'balken', 'linie'] as DashboardView[]);
-
-  const tileSection = selectedTile
-    ? getSectionForTile(config.sections, selectedTile.id)
-    : undefined;
-
-  const isCollapsed = tileSection
-    ? isSectionCollapsed
-      ? isSectionCollapsed(tileSection.id)
-      : tileSection.collapsed
-    : false;
+export function EditorInspectorV2(props: EditorInspectorV2Props) {
+  const { selectedTile, config, onDeselect, onClose, className } = props;
 
   return (
     <aside
@@ -124,237 +96,261 @@ export function EditorInspectorV2({
         </div>
       </div>
 
-      {/* Inhalt: Leerzustand wenn keine Kachel ausgewählt ist */}
+      {/* Inhalt: Leerzustand oder Kachel-Inspektion */}
       {!selectedTile ? (
-        <div data-testid="inspector-empty-state" className="flex-1 overflow-y-auto p-4 space-y-4">
-          <div className="rounded-lg border border-[var(--color-border,#1b3d39)] bg-black/20 p-3.5 space-y-2.5">
-            <h4 className="m-0 text-xs font-semibold text-white flex items-center gap-1.5">
-              <Database className="h-3.5 w-3.5 text-primary" />
-              <span>Übersicht</span>
-            </h4>
-            <div className="space-y-1.5 text-xs text-[var(--color-text-soft,#e6f3f1)]">
-              <div className="flex justify-between">
-                <span className="text-[var(--color-text-muted)]">Titel:</span>
-                <span className="font-medium text-white">{config.title}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--color-text-muted)]">Scope:</span>
-                <span className="capitalize">{config.scope}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--color-text-muted)]">Standard-Zeitraum:</span>
-                <span>{config.globalTimeframe}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--color-text-muted)]">Aktive Kacheln:</span>
-                <span className="font-semibold text-primary">{config.tiles.length} / 24</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-white/5 bg-white/5 p-3.5 space-y-2">
-            <h5 className="m-0 text-xs font-semibold text-[var(--color-text-muted)] flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-              <span>Tipps & Tastaturkürzel</span>
-            </h5>
-            <ul className="m-0 list-disc pl-4 text-[11px] leading-relaxed text-[var(--color-text-muted)] space-y-1">
-              <li>Klicke auf eine Kachel auf dem Canvas, um ihre Parameter hier zu bearbeiten.</li>
-              <li>
-                Drücke <kbd className="rounded bg-black/40 px-1 py-0.5 text-white">Esc</kbd>, um die
-                Auswahl aufzuheben.
-              </li>
-              <li>
-                Wähle <kbd className="rounded bg-black/40 px-1 py-0.5 text-white">Cmd+Z</kbd> /{' '}
-                <kbd className="rounded bg-black/40 px-1 py-0.5 text-white">Ctrl+Z</kbd> für Undo.
-              </li>
-              <li>Nutze den Vorschau-Schalter oben rechts, um das fertige Dashboard zu prüfen.</li>
-            </ul>
-          </div>
-        </div>
+        <InspectorEmptyState config={config} />
       ) : (
-        /* Kachel-Inspektion mit 4 Tabs */
-        <div data-testid="inspector-tile-content" className="flex flex-1 flex-col overflow-hidden">
-          {/* Kachel-Info Banner */}
-          <div className="border-b border-[var(--color-border,#1b3d39)] bg-black/20 px-3 py-2">
-            <div className="flex items-center justify-between">
-              <span className="truncate text-xs font-semibold text-white">
-                {selectedTile.title}
-              </span>
-              <Badge variant="neutral" className="text-[9px] border-primary/30 text-primary">
-                {selectedTile.catalogId}
-              </Badge>
-            </div>
-          </div>
-
-          {/* Sektions-Warnung bei eingeklappter Kachel (Auftrag 157 §2.4 Nr. 23) */}
-          {isCollapsed && tileSection && (
-            <div
-              data-testid="inspector-tile-collapsed-warning"
-              className="flex items-center justify-between gap-2 border-b border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300"
-            >
-              <span className="truncate">
-                Kachel liegt in eingeklappter Sektion „{tileSection.title}“
-              </span>
-              {onExpandSection && (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  data-testid="inspector-expand-section-btn"
-                  onClick={() => onExpandSection(tileSection.id)}
-                  className="h-6 px-2 text-[11px] shrink-0 border-amber-500/40 text-amber-200 hover:bg-amber-500/20"
-                >
-                  Sektion ausklappen
-                </Button>
-              )}
-            </div>
-          )}
-
-          {/* Sektion-Auswahlfeld (Auftrag 157 §2.4 Nr. 19) */}
-          {config.sections && config.sections.length > 0 && (
-            <div className="border-b border-[var(--color-border,#1b3d39)] bg-black/10 px-3 py-2 flex items-center justify-between gap-2">
-              <label
-                htmlFor="inspector-section-select"
-                className="text-xs text-[var(--color-text-muted)] shrink-0"
-              >
-                Sektion:
-              </label>
-              <select
-                id="inspector-section-select"
-                data-testid="inspector-section-select"
-                value={tileSection?.id ?? ''}
-                onChange={(e) => {
-                  const val = e.target.value === '' ? null : e.target.value;
-                  onMoveTileToSection?.(selectedTile.id, val);
-                }}
-                className="h-7 flex-1 rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-2 text-xs text-white outline-none focus:border-primary truncate cursor-pointer"
-              >
-                <option value="">Ohne Sektion</option>
-                {config.sections.map((sec) => (
-                  <option key={sec.id} value={sec.id}>
-                    {sec.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Tab-Leiste */}
-          <div
-            className="flex border-b border-[var(--color-border,#1b3d39)] bg-black/30 px-1"
-            role="tablist"
-          >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'darstellung'}
-              data-testid="inspector-tab-darstellung"
-              onClick={() => setActiveTab('darstellung')}
-              className={cn(
-                'flex-1 py-2 text-center text-[11px] font-medium border-b-2 transition-colors',
-                activeTab === 'darstellung'
-                  ? 'border-primary text-primary font-semibold'
-                  : 'border-transparent text-[var(--color-text-muted)] hover:text-white',
-              )}
-            >
-              Darstellung
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'daten'}
-              data-testid="inspector-tab-daten"
-              onClick={() => setActiveTab('daten')}
-              className={cn(
-                'flex-1 py-2 text-center text-[11px] font-medium border-b-2 transition-colors',
-                activeTab === 'daten'
-                  ? 'border-primary text-primary font-semibold'
-                  : 'border-transparent text-[var(--color-text-muted)] hover:text-white',
-              )}
-            >
-              Daten
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'schwellenwerte'}
-              data-testid="inspector-tab-schwellenwerte"
-              onClick={() => setActiveTab('schwellenwerte')}
-              className={cn(
-                'flex-1 py-2 text-center text-[11px] font-medium border-b-2 transition-colors',
-                activeTab === 'schwellenwerte'
-                  ? 'border-primary text-primary font-semibold'
-                  : 'border-transparent text-[var(--color-text-muted)] hover:text-white',
-              )}
-            >
-              Alarme
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === 'interaktion'}
-              data-testid="inspector-tab-interaktion"
-              onClick={() => setActiveTab('interaktion')}
-              className={cn(
-                'flex-1 py-2 text-center text-[11px] font-medium border-b-2 transition-colors',
-                activeTab === 'interaktion'
-                  ? 'border-primary text-primary font-semibold'
-                  : 'border-transparent text-[var(--color-text-muted)] hover:text-white',
-              )}
-            >
-              Interaktion
-            </button>
-          </div>
-
-          {/* Tab-Panels */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {activeTab === 'darstellung' && (
-              <InspectorPresentationTab
-                selectedTile={selectedTile}
-                supportedViews={supportedViews}
-                onTileTitleChange={onTileTitleChange}
-                onTileViewChange={onTileViewChange}
-                onTileOverrideChange={onTileOverrideChange}
-              />
-            )}
-            {activeTab === 'daten' && (
-              <InspectorDataTab
-                selectedTile={selectedTile}
-                catalogEntry={catalogEntry}
-                onTileOverrideChange={onTileOverrideChange}
-                isCollapsed={isCollapsed}
-                globalPipeline={config.globalPipeline}
-              />
-            )}
-            {activeTab === 'schwellenwerte' && (
-              <InspectorThresholdTab
-                selectedTile={selectedTile}
-                onTileThresholdChange={onTileThresholdChange}
-              />
-            )}
-            {activeTab === 'interaktion' && (
-              <InspectorInteractionTab
-                selectedTile={selectedTile}
-                onTileDrilldownChange={onTileDrilldownChange}
-              />
-            )}
-          </div>
-
-          {/* Footer Action: Panel-Editor */}
-          <div className="border-t border-[var(--color-border,#1b3d39)] p-3">
-            <Button
-              type="button"
-              variant="secondary"
-              data-testid="open-panel-editor-btn"
-              onClick={() => onOpenPanelEditor?.(selectedTile.id)}
-              className="w-full justify-between text-xs border-primary/30 text-primary hover:bg-primary hover:text-black"
-            >
-              <span>Im Panel-Editor öffnen</span>
-              <ChevronRight className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        </div>
+        <TileInspectorContent key={selectedTile.id} {...props} selectedTile={selectedTile} />
       )}
     </aside>
+  );
+}
+
+interface TileInspectorContentProps extends Omit<EditorInspectorV2Props, 'selectedTile'> {
+  selectedTile: DashboardTileConfigV2;
+}
+
+const noopTileDataHook: import('../LazyDashboardTile').TileDataHook = (t) => ({
+  catalogId: t.catalogId,
+  state: 'nicht_verfuegbar',
+  reason: 'katalog_inaktiv',
+  message: '',
+});
+
+function TileInspectorContent({
+  selectedTile,
+  config,
+  onTileTitleChange,
+  onTileViewChange,
+  onTileOverrideChange,
+  onTileThresholdChange,
+  onTileDrilldownChange,
+  onOpenPanelEditor,
+  onMoveTileToSection,
+  onExpandSection,
+  isSectionCollapsed,
+  useData = noopTileDataHook,
+  currentValue,
+}: TileInspectorContentProps) {
+  const [activeTab, setActiveTab] = useState<InspectorTab>('darstellung');
+
+  const catalogEntry = getCatalogEntry(selectedTile.catalogId) as ActiveCatalogEntry | undefined;
+
+  const timeControl = useOptionalTimeControl();
+  const displayedTileData = useSyncExternalStore(
+    (cb) => timeControl?.tileDataStore.subscribe(selectedTile.id, cb) ?? (() => {}),
+    () => timeControl?.tileDataStore.get(selectedTile.id),
+  );
+
+  const fallbackTileData = useData(
+    convertV2TileToV1(selectedTile, config.globalTimeframe, config.globalPipeline),
+    { pipeline: config.globalPipeline },
+    { enabled: !displayedTileData },
+  );
+
+  const tileData = displayedTileData ?? fallbackTileData;
+
+  const currentTileValue =
+    currentValue !== undefined
+      ? currentValue
+      : tileData && 'value' in tileData
+        ? ((tileData as { value?: number | null }).value ?? null)
+        : null;
+
+  const supportedViews = catalogEntry?.shape
+    ? (VIEWS_BY_SHAPE[catalogEntry.shape] ?? ['zahl'])
+    : (['zahl', 'tabelle', 'saeulen', 'balken', 'linie'] as DashboardView[]);
+
+  const tileSection = getSectionForTile(config.sections, selectedTile.id);
+
+  const isCollapsed = tileSection
+    ? isSectionCollapsed
+      ? isSectionCollapsed(tileSection.id)
+      : tileSection.collapsed
+    : false;
+
+  return (
+    <div data-testid="inspector-tile-content" className="flex flex-1 flex-col overflow-hidden">
+      {/* Kachel-Info Banner */}
+      <div className="border-b border-[var(--color-border,#1b3d39)] bg-black/20 px-3 py-2">
+        <div className="flex items-center justify-between">
+          <span className="truncate text-xs font-semibold text-white">{selectedTile.title}</span>
+          <Badge variant="neutral" className="text-[9px] border-primary/30 text-primary">
+            {selectedTile.catalogId}
+          </Badge>
+        </div>
+      </div>
+
+      {/* Sektions-Warnung bei eingeklappter Kachel (Auftrag 157 §2.4 Nr. 23) */}
+      {isCollapsed && tileSection && (
+        <div
+          data-testid="inspector-tile-collapsed-warning"
+          className="flex items-center justify-between gap-2 border-b border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300"
+        >
+          <span className="truncate">
+            Kachel liegt in eingeklappter Sektion „{tileSection.title}“
+          </span>
+          {onExpandSection && (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              data-testid="inspector-expand-section-btn"
+              onClick={() => onExpandSection(tileSection.id)}
+              className="h-6 px-2 text-[11px] shrink-0 border-amber-500/40 text-amber-200 hover:bg-amber-500/20"
+            >
+              Sektion ausklappen
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* Sektion-Auswahlfeld (Auftrag 157 §2.4 Nr. 19) */}
+      {config.sections && config.sections.length > 0 && (
+        <div className="border-b border-[var(--color-border,#1b3d39)] bg-black/10 px-3 py-2 flex items-center justify-between gap-2">
+          <label
+            htmlFor="inspector-section-select"
+            className="text-xs text-[var(--color-text-muted)] shrink-0"
+          >
+            Sektion:
+          </label>
+          <select
+            id="inspector-section-select"
+            data-testid="inspector-section-select"
+            value={tileSection?.id ?? ''}
+            onChange={(e) => {
+              const val = e.target.value === '' ? null : e.target.value;
+              onMoveTileToSection?.(selectedTile.id, val);
+            }}
+            className="h-7 flex-1 rounded border border-[var(--color-border,#1b3d39)] bg-black/40 px-2 text-xs text-white outline-none focus:border-primary truncate cursor-pointer"
+          >
+            <option value="">Ohne Sektion</option>
+            {config.sections.map((sec) => (
+              <option key={sec.id} value={sec.id}>
+                {sec.title}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Tab-Leiste */}
+      <div
+        className="flex border-b border-[var(--color-border,#1b3d39)] bg-black/30 px-1"
+        role="tablist"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'darstellung'}
+          data-testid="inspector-tab-darstellung"
+          onClick={() => setActiveTab('darstellung')}
+          className={cn(
+            'flex-1 py-2 text-center text-[11px] font-medium border-b-2 transition-colors',
+            activeTab === 'darstellung'
+              ? 'border-primary text-primary font-semibold'
+              : 'border-transparent text-[var(--color-text-muted)] hover:text-white',
+          )}
+        >
+          Darstellung
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'daten'}
+          data-testid="inspector-tab-daten"
+          onClick={() => setActiveTab('daten')}
+          className={cn(
+            'flex-1 py-2 text-center text-[11px] font-medium border-b-2 transition-colors',
+            activeTab === 'daten'
+              ? 'border-primary text-primary font-semibold'
+              : 'border-transparent text-[var(--color-text-muted)] hover:text-white',
+          )}
+        >
+          Daten
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'schwellenwerte'}
+          data-testid="inspector-tab-schwellenwerte"
+          onClick={() => setActiveTab('schwellenwerte')}
+          className={cn(
+            'flex-1 py-2 text-center text-[11px] font-medium border-b-2 transition-colors',
+            activeTab === 'schwellenwerte'
+              ? 'border-primary text-primary font-semibold'
+              : 'border-transparent text-[var(--color-text-muted)] hover:text-white',
+          )}
+        >
+          Alarme
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === 'interaktion'}
+          data-testid="inspector-tab-interaktion"
+          onClick={() => setActiveTab('interaktion')}
+          className={cn(
+            'flex-1 py-2 text-center text-[11px] font-medium border-b-2 transition-colors',
+            activeTab === 'interaktion'
+              ? 'border-primary text-primary font-semibold'
+              : 'border-transparent text-[var(--color-text-muted)] hover:text-white',
+          )}
+        >
+          Interaktion
+        </button>
+      </div>
+
+      {/* Tab-Panels */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {activeTab === 'darstellung' && (
+          <InspectorPresentationTab
+            selectedTile={selectedTile}
+            supportedViews={supportedViews}
+            onTileTitleChange={onTileTitleChange}
+            onTileViewChange={onTileViewChange}
+            onTileOverrideChange={onTileOverrideChange}
+          />
+        )}
+        {activeTab === 'daten' && (
+          <InspectorDataTab
+            selectedTile={selectedTile}
+            catalogEntry={catalogEntry}
+            onTileOverrideChange={onTileOverrideChange}
+            isCollapsed={isCollapsed}
+            globalPipeline={config.globalPipeline}
+          />
+        )}
+        {activeTab === 'schwellenwerte' && (
+          <InspectorThresholdTab
+            selectedTile={selectedTile}
+            onTileThresholdChange={onTileThresholdChange}
+            catalogEntry={catalogEntry}
+            currentValue={currentTileValue}
+            tileDataState={tileData?.state}
+          />
+        )}
+        {activeTab === 'interaktion' && (
+          <InspectorInteractionTab
+            selectedTile={selectedTile}
+            onTileDrilldownChange={onTileDrilldownChange}
+          />
+        )}
+      </div>
+
+      {/* Footer Action: Panel-Editor */}
+      <div className="border-t border-[var(--color-border,#1b3d39)] p-3">
+        <Button
+          type="button"
+          variant="secondary"
+          data-testid="open-panel-editor-btn"
+          onClick={() => onOpenPanelEditor?.(selectedTile.id)}
+          className="w-full justify-between text-xs border-primary/30 text-primary hover:bg-primary hover:text-black"
+        >
+          <span>Im Panel-Editor öffnen</span>
+          <ChevronRight className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+    </div>
   );
 }

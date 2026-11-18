@@ -18,6 +18,11 @@ import { inMemoryStore } from '../services/dashboardInMemoryStoreV2';
 import { PREVIEW_VERSIONS_DASHBOARD_ID, initPreviewVersionsStore } from './previewRevisions';
 import { migrateV1ToV2 } from '../model/dashboardMigrationV1V2';
 import { DEFAULT_DASHBOARD_CONFIG } from '../model/defaultDashboard';
+import {
+  PREVIEW_THRESHOLDS_DASHBOARD_ID,
+  createPreviewThresholdsConfig,
+  createPreviewThresholdsListItem,
+} from './previewThresholds';
 
 export type PreviewDashboardSaveResult =
   | {
@@ -37,6 +42,20 @@ export async function savePreviewDashboardDraft(params: {
   dashboardId: string;
   config: DashboardConfigV2;
 }): Promise<PreviewDashboardSaveResult> {
+  if (
+    typeof window !== 'undefined' &&
+    window.sessionStorage &&
+    params.dashboardId === PREVIEW_THRESHOLDS_DASHBOARD_ID
+  ) {
+    try {
+      window.sessionStorage.setItem(
+        'dashboard-preview-thresholds-config',
+        JSON.stringify(params.config),
+      );
+    } catch {
+      /* ignore */
+    }
+  }
   const entry = inMemoryStore.get(params.dashboardId);
   if (!entry) {
     return {
@@ -77,7 +96,17 @@ export async function savePreviewDashboardDraft(params: {
 export function initPreviewDashboards(
   versionenScenario: boolean,
   teamsScenario: string | null,
+  schwellenwerteScenario?: boolean,
 ): AccessibleDashboardListItemV2[] {
+  if (schwellenwerteScenario) {
+    const isViewer = teamsScenario === '1' || teamsScenario === 'viewer';
+    const threshItem = createPreviewThresholdsListItem(!isViewer);
+    const rest =
+      teamsScenario === '1' || teamsScenario === 'entzogen'
+        ? [...INITIAL_PREVIEW_DASHBOARDS, ...INITIAL_TEAM_DASHBOARDS]
+        : INITIAL_PREVIEW_DASHBOARDS;
+    return [threshItem, ...rest];
+  }
   if (versionenScenario) {
     const { currentConfig } = initPreviewVersionsStore();
     const base: AccessibleDashboardListItemV2[] = [
@@ -220,7 +249,19 @@ export function sharePreviewWithTeam(
 export function initPreviewConfig(
   versionenScenario: boolean,
   teamsScenario: string | null,
+  schwellenwerteScenario?: boolean,
 ): DashboardConfigV2 {
+  if (schwellenwerteScenario) {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      try {
+        const stored = window.sessionStorage.getItem('dashboard-preview-thresholds-config');
+        if (stored) return JSON.parse(stored) as DashboardConfigV2;
+      } catch {
+        /* ignore */
+      }
+    }
+    return createPreviewThresholdsConfig();
+  }
   if (versionenScenario) {
     const entry = inMemoryStore.get(PREVIEW_VERSIONS_DASHBOARD_ID);
     if (entry) return entry.row.config;

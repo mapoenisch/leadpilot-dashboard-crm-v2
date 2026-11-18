@@ -179,6 +179,18 @@ export const useEditorPreviewData: TileDataHook = (
     scope: getScopeForLayer(catalogEntry.source.layer),
     effectiveFilter: resolveEffectiveFilter(tile, catalogEntry, filters),
   };
+  if (tile.tileId === 'preview_tile_keine_daten') {
+    return { ...base, state: 'keine_daten', value: null, series: null };
+  }
+  if (tile.tileId === 'preview_tile_nicht_bewertet') {
+    return {
+      ...base,
+      state: 'veraltet',
+      value: 1234,
+      series: [{ label: catalogEntry.name, value: 1234 }],
+      asOf: '2026-11-10T12:00:00Z',
+    };
+  }
   if (catalogEntry.source.layer === 'kombination') {
     return ready
       ? { ...base, ...combinationFor(catalogEntry) }

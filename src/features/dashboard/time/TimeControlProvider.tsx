@@ -15,6 +15,7 @@ import {
   type TimeControlState,
 } from './timeControl';
 import { createCrosshairStore, type CrosshairStore } from './crosshairStore';
+import { createTileDataStore, type TileDataStore } from './tileDataStore';
 
 export interface TimeControlValue {
   state: TimeControlState;
@@ -26,6 +27,8 @@ export interface TimeControlValue {
   setTimePoint: (at: string, now?: string) => void;
   /** Geteilter Fadenkreuz-Store für synchrone Zeitreihen-Ablesung. */
   crosshairStore: CrosshairStore;
+  /** Geteilter Datenstand-Store für synchrone Kachel-Inspector-Anzeige. */
+  tileDataStore: TileDataStore;
 }
 
 const TimeControlContext = createContext<TimeControlValue | null>(null);
@@ -40,6 +43,7 @@ export function TimeControlProvider({
 }) {
   const [state, dispatch] = useReducer(timeControlReducer, initialState);
   const crosshairStore = useMemo(() => createCrosshairStore(), []);
+  const tileDataStore = useMemo(() => createTileDataStore(), []);
 
   // Beim Wechsel des Zeitmodus Fadenkreuz leeren (Auftrag 161 §2.4 Nr. 17)
   useEffect(() => {
@@ -66,8 +70,8 @@ export function TimeControlProvider({
   }, []);
 
   const value = useMemo<TimeControlValue>(
-    () => ({ state, pause, resume, setTimePoint, crosshairStore }),
-    [state, pause, resume, setTimePoint, crosshairStore],
+    () => ({ state, pause, resume, setTimePoint, crosshairStore, tileDataStore }),
+    [state, pause, resume, setTimePoint, crosshairStore, tileDataStore],
   );
 
   return <TimeControlContext.Provider value={value}>{children}</TimeControlContext.Provider>;

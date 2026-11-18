@@ -38,6 +38,7 @@ export const E2E_PARALLEL = [
   'e2e/semantic-routes.spec.ts',
   'e2e/team-dashboards-preview.spec.ts',
   'e2e/dashboard-versions-preview.spec.ts',
+  'e2e/dashboard-thresholds-preview.spec.ts',
   'e2e/tenant-isolation.spec.ts',
   'e2e/visual.spec.ts',
 ];

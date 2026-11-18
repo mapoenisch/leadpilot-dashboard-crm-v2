@@ -30,6 +30,15 @@ describe('previewDashboardMutations', () => {
 
     const listDefault = initPreviewDashboards(false, null);
     expect(listDefault.length).toBeGreaterThan(0);
+
+    const listThresholds = initPreviewDashboards(false, null, true);
+    expect(listThresholds.length).toBeGreaterThan(0);
+    expect(listThresholds[0]?.id).toBe('preview_thresholds_dashboard');
+    expect(listThresholds[0]?.canWrite).toBe(true);
+
+    const listThresholdsViewer = initPreviewDashboards(false, '1', true);
+    expect(listThresholdsViewer[0]?.id).toBe('preview_thresholds_dashboard');
+    expect(listThresholdsViewer[0]?.canWrite).toBe(false);
   });
 
   it('createPreviewFromTemplate legt neues Dashboard an', async () => {
@@ -101,6 +110,10 @@ describe('previewDashboardMutations', () => {
 
     const configDefault = initPreviewConfig(false, null);
     expect(configDefault.id).toBe('preview_v2_dashboard');
+
+    const configThresholds = initPreviewConfig(false, null, true);
+    expect(configThresholds.id).toBe('preview_thresholds_dashboard');
+    expect(configThresholds.tiles).toHaveLength(8);
   });
 
   it('createPreviewImportDashboard speichert importiertes Dashboard im InMemoryStore', () => {

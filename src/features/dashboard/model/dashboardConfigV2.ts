@@ -56,15 +56,13 @@ export interface TileQueryConfig {
   window?: { count: number; resolution: 'stunde' | 'tag' | 'woche' | 'monat' };
 }
 
-/** Schwellenwert-Regel einer Kachel */
-export interface TileThresholdRule {
-  enabled: boolean;
-  operator: 'gt' | 'lt' | 'gte' | 'lte' | 'eq' | 'between';
-  warningValue?: number;
-  criticalValue?: number;
-  secondaryWarningValue?: number;
-  secondaryCriticalValue?: number;
-}
+import {
+  validateThresholdRuleForm,
+  type LegacyTileThresholdRule,
+  type ThresholdRuleV2,
+  type TileThresholdRule,
+} from './thresholdRuleV2';
+export type { LegacyTileThresholdRule, ThresholdRuleV2, TileThresholdRule };
 
 /** Konfiguration einer einzelnen Kachel (V2) */
 export interface DashboardTileConfigV2 {
@@ -306,6 +304,13 @@ export function validateDashboardConfigV2(
           ok: false,
           error: `tiles[${i}].layouts.mobile muss 1 Spalte (x=0, w=1) haben`,
         };
+      }
+    }
+
+    if (t.threshold !== undefined) {
+      const thRes = validateThresholdRuleForm(t.threshold);
+      if (!thRes.ok) {
+        return { ok: false, error: `tiles[${i}].${thRes.error}` };
       }
     }
   }

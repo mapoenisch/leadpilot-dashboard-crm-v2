@@ -22240,3 +22240,53 @@ Gemäß §2.5 Nr. 31 wurde der Vergleich zweier komplexer Konfigurationen (24 Ka
 
 - **Codex P2 `DashboardEditorPreviewV2.tsx:112` (Vorschau-Speicherstände ohne Revision):** `handleSave` aktualisierte nur React-State und Liste, nicht den `inMemoryStore`; beim Wechsel zu einem anderen Dashboard und zurück lud `handleOpenDashboard` die ursprüngliche Konfiguration, bestätigte Änderungen gingen verloren und erschienen nie in der Historie. Neu: `savePreviewDashboardDraft()` in `previewDashboardMutations.ts` schreibt den Entwurf über `saveDashboardV2` in den gemeinsamen In-Memory-Revisionsspeicher, wenn das Dashboard dort liegt (`versionen=1`, Import, Entwurf-Kopie) – mit `normalizeDashboardLayouts` und `user_edited` wie im echten Pfad. `handleSave` übernimmt Config und Listeneintrag inklusive neuer Revisionsnummer; bei einem Speicherfehler bleibt der Editor offen (`return false`). Reine Props-Vorschau-Dashboards ohne Store-Eintrag verhalten sich unverändert. Regressionstest in `DashboardEditorPreviewV2.ui.vitest.tsx` (rot gegen `11a1163d`).
 - **Verifikation:** lint, `tsc --noEmit`, format:check, `npm test` (442 Dateien / 3264 Tests), `npm run verify` (25/25 Suites), `npm run build` grün. Schutzbereichs-Diff gegen `origin/main` leer. Geänderte Quelldateien ≤ 400 Zeilen (`DashboardEditorPreviewV2.tsx` 391, `previewDashboardMutations.ts` 333).
+
+---
+
+## 2026-11-18 — Auftrag 166: Dashboard-Editor: Schwellenwerte auf Kacheln, Alarmfähigkeit je KPI, Betriebsweg für Alarme (P13a)
+
+**Rolle:** Builder (Antigravity) · **Prüfer:** Codex · **Branch:** `auftrag-166-schwellenwerte-alarmfaehigkeit` · **Basis:** Merge von PR #204 (`f38d0d215c2cf2f047a36ea8388c3fdb40ae9c28`)
+
+Mit Auftrag 166 (Phase P13a des Masterplans) wird die kachelspezifische Schwellenwert-Logik im V2-Dashboard-Editor formalisiert, typisiert und in der Benutzeroberfläche verankert. Gemäß Marcs Vorgabe werden in diesem Schritt noch keine serverseitigen Hintergrund-Alarme ausgeführt, sondern das deklarative Datenmodell, die visuelle Kachel-Auswertung, die Alarmfähigkeits-Matrix im Katalog und die architektonische Entscheidung für den späteren Server-Betriebsweg festgelegt.
+
+### 1. Regelmodell V2 & Auswertung (`thresholdRuleV2.ts`, `thresholdMessages.ts`)
+- **Regelarten (`ThresholdArt`):**
+  - `hoch_ist_schlecht`: Normalwert `< warnung`, Warnung ab `warnung`, Kritisch ab `kritisch`. Validierung fordert zwingend `warnung < kritisch`.
+  - `niedrig_ist_schlecht`: Normalwert `> warnung`, Warnung ab `warnung`, Kritisch ab `kritisch`. Validierung fordert zwingend `warnung > kritisch`.
+  - `zielbereich`: Normalwert innerhalb des Korridors; Warnung/Kritisch bei Verlassen nach oben (`obenWarnung`, `obenKritisch`) oder unten (`untenWarnung`, `untenKritisch`).
+- **Auswertungsstufen (`ThresholdEvaluationLevel`):** `normal`, `warnung`, `kritisch`, `keine_daten`, `nicht_bewertet`, `regel_ungueltig`.
+- **Auswertungsreihenfolge:** `regel_ungueltig` wird vor dem Null-Wert-Check geprüft, sodass fehlerhafte Regeln auch bei ladenden/fehlenden Daten sofort als prüfbedürftig markiert werden.
+- **57 Referenzfälle:** Vollständig abgedeckt in `thresholdReferenceCases.json` und über 67 Tests in `thresholdRuleV2.vitest.ts` verifiziert.
+
+### 2. Abwärtskompatibilität & Migration (`dashboardConfigV2.ts`)
+- Vorhandene V1-Regeln mit Operatoren (`gte`, `gt`, `lte`, `lt`) werden transparent in V2-Regeln überführt.
+- Der uneindeutige Operator `between` wird als `regel_ungueltig` eingestuft und zeigt das Badge „Schwellenwert prüfen“ zur manuellen Reparatur.
+- Bestandsanalyse: In allen bestehenden Dashboard-Presets und Vorlagen gibt es 0 Kacheln mit `between`.
+
+### 3. Alarmfähigkeits-Matrix (`alarmCapability.ts`, `alarmEntries.ts`)
+- Alle 62 aktiven Katalogeinträge wurden typisiert:
+  - **16 prüfbar:** Skalare Einzelwerte mit eindeutiger Zielrichtung (ARR, EBITDA, Umsatz, Lead Velocity etc.).
+  - **13 ausgeschlossen:** Qualitative Übersichten, Meilensteine, Roadmap etc.
+  - **33 nicht_einzelwert:** Zeitreihen, Verläufe, Anteile, Trichter.
+- Automatische Verifikation über `scripts/verifyAlarmCapability.ts`.
+
+### 4. Benutzeroberfläche (Kachel & Inspector)
+- **`TileThresholdBadge.tsx`:** Barrierefreies Status-Badge auf der Kachel (amber-300 bei Warnung, rose-300 bei Kritisch, sky-300 bei Regelprüfung).
+- **`LazyDashboardTile.tsx` & `CanvasTileCard.tsx`:** Integration des Schwellenwertes bei maximal 1 Zeile Zuwachs (`CanvasTileCard.tsx` wuchs von 327 auf 328 Zeilen, Limit ≤ 337).
+- **`InspectorThresholdTab.tsx` (197 Zeilen ≤ 200):** Tab „Alarme“ im Inspector mit Aktivierungsschalter, Radio-Auswahl der Regelart, formatierten Eingabefeldern in Landessprache (Komma als Dezimaltrenner), Live-Validierungsfehlern und Sperrhinweis für Zeitreihen-Kacheln.
+- **Fix Hook-Regeln in `EditorInspectorV2.tsx`:** Aufteilung in `EditorInspectorV2` und `TileInspectorContent`, wodurch der konditionale Hook-Aufruf von `useData` (React Error #310) dauerhaft eliminiert wurde.
+
+### 5. Architekturentscheidung: Betriebsweg für Alarme (Marc, 18.11.2026)
+- **Beschluss:** Out-of-Process Worker (Golang oder Node CLI als eigenständiger Cron-Dienst) für den späteren Server-Alarmierungsbetrieb.
+- **Verworfen:** Supabase Database Triggers / `pg_cron` / Edge Functions zur Vermeidung von DB-Kopplung und Timeouts.
+- Dokumentiert in `docs/dashboard/SCHWELLENWERTE_P13A.md`, `docs/dashboard/DASHBOARD_EDITOR_MASTERPLAN.md` (§6 & §9.2), `docs/dashboard/EDITOR_UX_FACHVERTRAEGE_145.md` (§8) und `ARCHITECTURE_DECISIONS.md`.
+
+### 6. Qualitätssicherung & Nachweise
+- **Tests:** 124 Vitest-Dateien (1166 Tests grün), keine Regressionen.
+- **E2E:** `e2e/dashboard-thresholds-preview.spec.ts` auf allen 3 Viewports (1440, 768, 375) erfolgreich.
+- **a11y:** `e2e/a11y.spec.ts` 36/36 Tests grün, keine neuen Verstöße.
+- **Screenshots:** 36 Screenshots über 6 Szenarien × 3 Viewports × 2 Themes mit 0 px Überlauf in `docs/screenshots/auftrag-166/README.md`.
+- **Bundle:** `size-limit` 170.18 kB gzipped (Grenze < 180 kB).
+- **Dateigrößen:** Alle geänderten Dateien streng ≤ 400 Zeilen (`InspectorThresholdTab.tsx` 197 ≤ 200).
+- **Schutzbereiche:** 0 Änderungen in `src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources` und `supabase`.
+
