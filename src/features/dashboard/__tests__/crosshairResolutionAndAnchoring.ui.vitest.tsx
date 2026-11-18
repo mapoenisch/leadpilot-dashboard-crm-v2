@@ -212,3 +212,86 @@ describe('Verankerung der Quellauswahl am Zeitpunkt (Codex P2 Befund 2)', () => 
     );
   });
 });
+
+describe('Verankerung der lokalen Auswahl an stabilen Schlüsseln ohne Zeitachse (Codex P2)', () => {
+  const INITIAL_CATEGORIES = [
+    { label: 'Stufe B', value: 20 },
+    { label: 'Stufe C', value: 30 },
+  ];
+
+  const PREPENDED_CATEGORIES = [
+    { label: 'Stufe A', value: 10 },
+    { label: 'Stufe B', value: 20 },
+    { label: 'Stufe C', value: 30 },
+  ];
+
+  const REMOVED_CATEGORIES = [
+    { label: 'Stufe A', value: 10 },
+    { label: 'Stufe B', value: 20 },
+  ];
+
+  function DynamicCategoriesWrapper() {
+    const [dataset, setDataset] = useState(INITIAL_CATEGORIES);
+    return (
+      <div>
+        <button
+          type="button"
+          data-testid="prepend-cat-btn"
+          onClick={() => setDataset(PREPENDED_CATEGORIES)}
+        >
+          Prepend
+        </button>
+        <button
+          type="button"
+          data-testid="remove-cat-btn"
+          onClick={() => setDataset(REMOVED_CATEGORIES)}
+        >
+          Remove C
+        </button>
+        <button
+          type="button"
+          data-testid="restore-cat-btn"
+          onClick={() => setDataset(PREPENDED_CATEGORIES)}
+        >
+          Restore C
+        </button>
+        <DepthLineChart
+          idPrefix="dynamic-cat-tile"
+          tileId="dynamic-cat-tile"
+          data={dataset}
+          unit="Stk"
+          period="Aktuell"
+          title="Funnel"
+          reducedMotion
+        />
+      </div>
+    );
+  }
+
+  it('bewahrt Auswahl über Label bei Datenverschiebungen, löscht bei Wegfall und wählt bei Rückkehr nicht ungewollt neu', () => {
+    render(<DynamicCategoriesWrapper />);
+
+    // 1. Auswahl auf 'Stufe C' (Index 1)
+    const hitRects = document.querySelectorAll('rect[fill="transparent"]');
+    expect(hitRects.length).toBe(2);
+    fireEvent.mouseEnter(hitRects[1]!);
+    expect(screen.getByTestId('chart-readout').textContent).toContain('Stufe C');
+
+    // 2. Prepend: 'Stufe A' voranstellen -> 'Stufe C' ist nun Index 2
+    fireEvent.click(screen.getByTestId('prepend-cat-btn'));
+    expect(screen.getByTestId('chart-readout').textContent).toContain('Stufe C');
+    expect(screen.getByTestId('chart-readout').textContent).toContain('30 Stk');
+
+    // 3. Remove: 'Stufe C' entfällt -> Auswahl muss explizit gelöscht sein
+    fireEvent.click(screen.getByTestId('remove-cat-btn'));
+    expect(screen.getByTestId('chart-readout').textContent).toContain(
+      'Datenpunkt wählen oder darüberfahren',
+    );
+
+    // 4. Restore: 'Stufe C' kehrt zurück -> darf NICHT ungewollt wieder ausgewählt werden
+    fireEvent.click(screen.getByTestId('restore-cat-btn'));
+    expect(screen.getByTestId('chart-readout').textContent).toContain(
+      'Datenpunkt wählen oder darüberfahren',
+    );
+  });
+});

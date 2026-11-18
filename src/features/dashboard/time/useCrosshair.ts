@@ -245,7 +245,7 @@ export function useCrosshairController(
   );
 
   const { state: crosshair, store, setCrosshair, clearCrosshair } = useCrosshair(selector, isEqual);
-  const [localActive, setLocalActive] = useState<number | null>(null);
+  const [localLabel, setLocalLabel] = useState<string | null>(null);
   const [localAt, setLocalAt] = useState<string | null>(null);
   const throttler = useMemo(() => createRafThrottler(), []);
 
@@ -254,11 +254,19 @@ export function useCrosshairController(
     return () => throttler.cancel();
   }, [throttler]);
 
+  // Wenn ausgewählte Schlüssel durch Filter- oder Datenwechsel entfallen, Zustand explizit leeren
+  useEffect(() => {
+    if (localLabel !== null && !data.some((entry) => entry.label === localLabel)) {
+      setLocalLabel(null);
+    }
+  }, [data, localLabel]);
+
   const handleSelect = useCallback(
     (index: number, immediate = false) => {
-      setLocalActive(index);
+      const item = data[index];
+      const label = item?.label ?? null;
+      setLocalLabel(label);
       if (hasTimeAxis) {
-        const item = data[index];
         const at = item && 'at' in item && typeof item.at === 'string' ? item.at : null;
         setLocalAt(at);
         if (immediate) {
@@ -273,7 +281,7 @@ export function useCrosshairController(
   );
 
   const handleClear = useCallback(() => {
-    setLocalActive(null);
+    setLocalLabel(null);
     setLocalAt(null);
     throttler.cancel();
     if (hasTimeAxis) {
@@ -291,13 +299,21 @@ export function useCrosshairController(
   const windowEnd = options?.windowEnd;
 
   const activeIndex = useMemo(() => {
-    if (!hasTimeAxis) return localActive;
+    if (!hasTimeAxis) {
+      if (localLabel === null) return null;
+      const idx = data.findIndex((entry) => entry.label === localLabel);
+      return idx >= 0 ? idx : null;
+    }
     // Ohne TimeControlProvider (z. B. Standalone oder V1): lokale Auswahl beibehalten
     if (!store) {
       if (localAt !== null) {
         return findMatchingPointIndex(data, localAt, { resolution, windowEnd });
       }
-      return localActive;
+      if (localLabel !== null) {
+        const idx = data.findIndex((entry) => entry.label === localLabel);
+        return idx >= 0 ? idx : null;
+      }
+      return null;
     }
     // Mit Store: Quellauswahl und mitlaufende Kacheln einheitlich am gespeicherten
     // Zeitpunkt verankern. Fällt der Zeitpunkt weg oder liegt außerhalb des Kachelfensters,
@@ -306,7 +322,7 @@ export function useCrosshairController(
       return findMatchingPointIndex(data, crosshair.at, { resolution, windowEnd });
     }
     return null;
-  }, [hasTimeAxis, store, crosshair.at, localAt, localActive, data, resolution, windowEnd]);
+  }, [hasTimeAxis, store, crosshair.at, localAt, localLabel, data, resolution, windowEnd]);
 
   const isAnnouncing = !store || !hasTimeAxis || crosshair.isSource;
 

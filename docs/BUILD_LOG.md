@@ -22073,3 +22073,8 @@ Im Review von Codex zu PR #203 wurden insgesamt 8 Befunde identifiziert (7× P2,
 8. **P3-Befund (`ABFRAGEVERTRAG_P08A.md`): Tatsächlich unterstützter Fenstervertrag**
    - _Problem:_ Die Dokumentation nannte vereinfachte String-Shortcuts wie `'7d'`, einen nicht existierenden globalen Dashboard-Fallback und `timeControl.asOf`.
    - _Behebung:_ Dokumentation präzisiert: `tile.query.window` akzeptiert genau das Objekt `{ count, resolution }` (Strings werfen `typ_ungueltig`); Fallback bei fehlendem Fenster ist das im Katalog hinterlegte `entry.history.defaultWindow`; der flüchtige Zeitsteuerungszustand heißt `timeControl.analysisAt` (wird nie in der Konfiguration persistiert). Auch `ZEITSTEUERUNG_P10A.md` und `ARCHITECTURE_DECISIONS.md` (C10) auf diesen präzisen Stand harmonisiert.
+
+9. **P2-Befund (`useCrosshair.ts`): Verankere auch die lokale Auswahl weiterhin am stabilen Schlüssel**
+   - _Problem:_ Wenn sich bei einem Diagramm ohne `at`-Zeitachse (z. B. V1-Pfad oder kategorische Daten) die Daten durch Refresh oder Filterwechsel verschoben, blieb die Auswahl am numerischen Index hängen. Entfiel ein Eintrag temporär, wurde er bei seiner späteren Rückkehr ungewollt wieder ausgewählt.
+   - _Behebung:_ `useCrosshairController` speichert `localLabel` statt des numerischen Index und ermittelt `activeIndex` über `data.findIndex((e) => e.label === localLabel)`. Entfällt das Label aus den Daten, wird der Zustand über einen `useEffect` explizit auf `null` zurückgesetzt.
+   - _Regressionstest:_ `crosshairResolutionAndAnchoring.ui.vitest.tsx` Test `bewahrt Auswahl über Label bei Datenverschiebungen, löscht bei Wegfall und wählt bei Rückkehr nicht ungewollt neu`.
