@@ -67,6 +67,26 @@ export interface DashboardV2RevisionRow {
   changeSummary: string | null;
 }
 
+export interface DashboardV2RevisionPageItem {
+  revision: number;
+  title: string;
+  createdByUserId: string;
+  createdByIsSelf: boolean;
+  createdByName: string | null;
+  createdByActive: boolean;
+  createdAt: string;
+  changeSummary: string | null;
+}
+
+export interface DashboardV2RevisionDetail {
+  revision: number;
+  title: string;
+  config: DashboardConfigV2;
+  createdByUserId: string;
+  createdAt: string;
+  changeSummary: string | null;
+}
+
 export interface SavedDashboardV2Result {
   dashboardId: string;
   revision: number;

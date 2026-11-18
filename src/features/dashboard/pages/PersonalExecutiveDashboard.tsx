@@ -6,8 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useOrganization } from '@/auth/organizationContext';
 import { DashboardWorkspace } from '../components/DashboardWorkspace';
 import { DashboardEditorShellV2 } from '../components/editor/DashboardEditorShellV2';
-import { DashboardConflictDialogV2 } from '../components/editor/DashboardConflictDialogV2';
-import { TeamAccessRevokedDialogV2 } from '../components/editor/TeamAccessRevokedDialogV2';
+import { PersonalDashboardDialogsV2 } from '../components/editor/PersonalDashboardDialogsV2';
 import { useBrowserBackGuard } from '../hooks/useBrowserBackGuard';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { useDashboardNavigation } from '../hooks/useDashboardNavigation';
@@ -24,7 +23,8 @@ import { useTimeControlledData } from '../time/useTimeControlledData';
 
 import { Info } from 'lucide-react';
 import { getDashboardTeamErrorMessage } from '../model/dashboardTeamMessages';
-import { DashboardDeletedDialogV2 } from '../components/editor/DashboardDeletedDialogV2';
+import { useDashboardImport } from '../components/editor/selection/useDashboardImport';
+import { restoreDashboardV2Revision } from '../services/dashboardStorageV2';
 
 export const RETURN_ANNOUNCEMENT = 'Zurück im Dashboard. Die Filter deiner Sitzung gelten weiter.';
 export const RETURN_MISSING_ANNOUNCEMENT =
@@ -57,6 +57,36 @@ function PersonalExecutiveDashboardV2Container({
   const [readOnlyCopyError, setReadOnlyCopyError] = useState<string | null>(null);
   const [isCopyingPersonal, setIsCopyingPersonal] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [isVersionsOpen, setIsVersionsOpen] = useState(false);
+  const [versionsContext, setVersionsContext] = useState<{
+    isDirty: boolean;
+    draftConfig?: DashboardConfigV2;
+  } | null>(null);
+
+  const personalCount = (v2Storage.dashboards ?? []).filter((d) => d.scope === 'personal').length;
+  const dashboardImport = useDashboardImport({
+    userId: userId ?? 'anonymous',
+    organizationId: organizationId ?? 'default-org',
+    personalCount,
+    onOpenDashboard: v2Storage.openDashboard,
+    onRefreshList: v2Storage.refreshList,
+  });
+
+  const handleRestoreRevision = async (targetRevision: number): Promise<boolean> => {
+    if (!v2Storage.dashboard) return false;
+    const res = await restoreDashboardV2Revision({
+      dashboardId: v2Storage.dashboard.id,
+      targetRevision,
+      expectedRevision: v2Storage.dashboard.revision,
+    });
+    if (res.ok) {
+      setIsVersionsOpen(false);
+      await v2Storage.reload();
+      setReloadKey((k) => k + 1);
+      return true;
+    }
+    return false;
+  };
 
   if (v2Storage.status === 'laden' || !v2Storage.dashboard) {
     return (
@@ -241,37 +271,58 @@ function PersonalExecutiveDashboardV2Container({
           readOnlyCopyError={readOnlyCopyError}
           onRefreshList={v2Storage.refreshList}
           listError={v2Storage.listError}
+          onOpenVersions={(ctx) => {
+            setVersionsContext(ctx ?? null);
+            setIsVersionsOpen(true);
+          }}
+          onOpenImport={dashboardImport.openImport}
         />
       </TimeControlProvider>
-      <DashboardConflictDialogV2
-        open={showConflictDialog}
+      <PersonalDashboardDialogsV2
+        showConflict={showConflictDialog}
         isSaving={v2Storage.isSaving}
-        error={conflictDialogError}
-        scope={v2Storage.dashboard.scope}
-        onReload={handleReloadConflict}
-        onSaveAsCopy={handleSaveAsCopyConflict}
-        onStay={() => {
+        conflictError={conflictDialogError}
+        dashboard={v2Storage.dashboard}
+        onReloadConflict={handleReloadConflict}
+        onSaveAsCopyConflict={handleSaveAsCopyConflict}
+        onStayConflict={() => {
           setShowConflictDialog(false);
           setConflictDialogError(null);
         }}
-      />
-      <DashboardDeletedDialogV2
-        open={showDeletedDialog}
-        isSaving={v2Storage.isSaving}
-        error={deletedDialogError}
-        onSaveAsNew={handleSaveAsNewFromDeleted}
-        onOpenOther={handleOpenOtherFromDeleted}
-        onStay={() => {
+        showDeleted={showDeletedDialog}
+        deletedError={deletedDialogError}
+        onSaveAsNewFromDeleted={handleSaveAsNewFromDeleted}
+        onOpenOtherFromDeleted={handleOpenOtherFromDeleted}
+        onStayDeleted={() => {
           setShowDeletedDialog(false);
           setDeletedDialogError(null);
         }}
-      />
-      <TeamAccessRevokedDialogV2
-        open={showRevokedDialog}
-        dashboardTitle={v2Storage.dashboard.title}
-        isSaving={v2Storage.isSaving}
-        onSaveAsPersonalCopy={handleSaveAsPersonalCopyFromRevoked}
-        onDiscardAndReload={handleDiscardAndReloadFromRevoked}
+        showRevoked={showRevokedDialog}
+        onSaveAsPersonalCopyFromRevoked={handleSaveAsPersonalCopyFromRevoked}
+        onDiscardAndReloadFromRevoked={handleDiscardAndReloadFromRevoked}
+        isVersionsOpen={isVersionsOpen}
+        userId={userId}
+        isDirty={versionsContext?.isDirty ?? false}
+        draftConfig={versionsContext?.draftConfig}
+        onCloseVersions={() => {
+          setIsVersionsOpen(false);
+          setVersionsContext(null);
+        }}
+        onRestoreRevision={handleRestoreRevision}
+        isImportOpen={dashboardImport.isOpen}
+        importFile={dashboardImport.file}
+        importParseResult={dashboardImport.parseResult}
+        importTitle={dashboardImport.title}
+        onImportTitleChange={dashboardImport.setTitle}
+        importTargetScope={dashboardImport.targetScope}
+        importTargetTeamId={dashboardImport.targetTeamId}
+        onImportTargetChange={dashboardImport.setTargetScope}
+        importTeams={dashboardImport.teams}
+        isImportSubmitting={dashboardImport.isSubmitting}
+        importSubmitError={dashboardImport.submitError}
+        onImportFileSelect={dashboardImport.handleFileSelect}
+        onConfirmImport={dashboardImport.executeImport}
+        onCloseImport={dashboardImport.closeImport}
       />
     </>
   );

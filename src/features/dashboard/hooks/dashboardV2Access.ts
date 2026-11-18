@@ -18,6 +18,7 @@ import {
 } from '../services/dashboardStorageV2';
 import { listPersonalDashboardsV2 } from '../services/dashboardSelectionV2';
 import { listAccessibleDashboardsV2, loadDashboardV2 } from '../services/dashboardSharingV2';
+import { listDashboardTeamsV2 } from '../services/dashboardTeamsV2';
 import type { DashboardConfigV2 } from '../model/dashboardConfigV2';
 
 /**
@@ -86,6 +87,14 @@ export async function fetchDashboardById(
   const res = await loadDashboardV2(dashboardId);
   if (res.ok) {
     const loaded = res.value;
+    let teamName: string | null = null;
+    if (loaded.teamId) {
+      const teamsRes = await listDashboardTeamsV2();
+      if (teamsRes.ok) {
+        const found = teamsRes.value.find((t) => t.id === loaded.teamId);
+        if (found) teamName = found.name;
+      }
+    }
     return {
       ok: true,
       value: {
@@ -96,7 +105,7 @@ export async function fetchDashboardById(
         config: loaded.config,
         updatedAt: loaded.updatedAt,
         teamId: loaded.teamId,
-        teamName: null,
+        teamName,
         canWrite: loaded.canWrite,
       },
     };

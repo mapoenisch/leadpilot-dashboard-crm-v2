@@ -59,6 +59,8 @@ export interface DashboardEditorShellV2Props {
   onShareWithTeam?: (teamId: string, title: string) => Promise<{ ok: boolean; error?: unknown }>;
   onRefreshList?: () => Promise<void>;
   listError?: import('../../services/dashboardStorageV2Types').DashboardV2StorageError | null;
+  onOpenVersions?: (context?: { isDirty: boolean; draftConfig: DashboardConfigV2 }) => void;
+  onOpenImport?: () => void;
 }
 
 export function DashboardEditorShellV2(props: DashboardEditorShellV2Props) {
@@ -98,6 +100,8 @@ function DashboardEditorShellBody({
   onShareWithTeam,
   onRefreshList,
   listError,
+  onOpenVersions,
+  onOpenImport,
 }: DashboardEditorShellV2Props) {
   const isReadOnly = explicitReadOnly ?? currentStoredDashboard?.canWrite === false;
   const isDesktop = typeof window === 'undefined' || window.innerWidth >= 1024;
@@ -217,6 +221,8 @@ function DashboardEditorShellBody({
         onShareWithTeam={onShareWithTeam}
         onRefreshList={onRefreshList}
         listError={listError}
+        onOpenVersions={onOpenVersions}
+        onOpenImport={onOpenImport}
       />
 
       {/* LESEANSICHT-HINWEISBALKEN (Auftrag 163 §2.1 Nr. 2) */}

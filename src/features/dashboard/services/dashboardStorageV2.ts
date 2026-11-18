@@ -45,7 +45,7 @@ export { resetInMemoryDashboardV2Storage };
 export async function loadPersonalDashboardV2(
   dashboardId?: string,
 ): Promise<StorageResult<StoredDashboardV2Row | null>> {
-  if (!isSupabaseConfigured || !supabase) {
+  if (!isSupabaseConfigured || !supabase || (dashboardId && inMemoryStore.has(dashboardId))) {
     const first = getInMemoryDashboard(dashboardId);
     return { ok: true, value: first };
   }
@@ -242,6 +242,7 @@ export async function createDashboardV2(params: {
           createdByUserId: config.ownerUserId || 'mock_user',
           createdAt: now,
           changeSummary: 'Dashboard initial erstellt',
+          config: JSON.parse(JSON.stringify(stored.config)),
         },
       ],
     });
@@ -302,7 +303,7 @@ export async function saveDashboardV2(params: {
     return { ok: false, error: { kind: 'ungueltig', detail: valid.error } };
   }
 
-  if (!isSupabaseConfigured || !supabase) {
+  if (!isSupabaseConfigured || !supabase || inMemoryStore.has(params.dashboardId)) {
     const existing = inMemoryStore.get(params.dashboardId);
     if (!existing) {
       if (params.expectedRevision === 0) {
@@ -341,6 +342,7 @@ export async function saveDashboardV2(params: {
       createdByUserId: config.ownerUserId || 'mock_user',
       createdAt: now,
       changeSummary: params.changeSummary ?? null,
+      config: JSON.parse(JSON.stringify(existing.row.config)),
     });
 
     return {

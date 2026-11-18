@@ -8,7 +8,7 @@
 **Baseline:** aktueller `main` beim Start (der Builder nennt den Commit im BUILD_LOG).
 **Branch:** `auftrag-165-versionen-import-export`.
 **Builder:** Antigravity (oder ein anderer von Marc benannter Agent). **Prüfer:** Codex auf GitHub oder ein anderer Agent, der nicht gebaut hat (`CLAUDE.md` §4.1). **Merge, Hosted-Migration und Deploy:** Marc.
-**Status:** OFFEN.
+**Status:** IN PR (Bereit zur Abnahme).
 
 ---
 
@@ -135,21 +135,21 @@ Bei Bedarf außerhalb dieser Liste: stoppen und im PR begründen (`CLAUDE.md` §
 
 Reihenfolge je Block: Tests zuerst, dann Umsetzung.
 
-- [ ] **T0 Einstieg:** Baseline festlegen, Ist-Tabelle §1 prüfen, Zeilenzahlen der Grenzdateien, `size-limit` und Anzahl pgTAP-Tests als Ausgangswert notieren, lokale Supabase starten (`supabase start`, `supabase db reset`).
-- [ ] **T1 Rot-Nachweise:** §3 Nr. 9 (a)–(e), Ergebnisse im BUILD_LOG.
-- [ ] **T2 Server:** Migration und pgTAP (2.2), `supabase test db` grün, bestehende Tests unverändert.
-- [ ] **T3 Dienste und In-Memory-Restore:** 2.3 Nr. 14–15.
-- [ ] **T4 Diff-Modell:** 2.3 Nr. 16, Leistungsmessung 2.5 Nr. 31.
-- [ ] **T5 Austausch-Modell:** 2.3 Nr. 17, Rundlauf-Test.
-- [ ] **T6 Auslagerung ohne Verhaltensänderung:** Kopfleiste, ggf. Auswahl-Hook; bestehende Tests unverändert grün, Zeilenzahlen nachweisen.
-- [ ] **T7 Versionsbereich und Vergleich:** 2.4 Nr. 18–20, Autorenanzeige, Paging, Rückfall 2.4 Nr. 24.
-- [ ] **T8 Wiederherstellen:** 2.4 Nr. 21, Entwurfsschutz, Fehlerreihenfolge.
-- [ ] **T9 Export und Import:** 2.4 Nr. 19 (Export), Nr. 22 (Import).
-- [ ] **T10 Vorschau-Szenario und E2E:** 2.5 Nr. 25, 27–29.
-- [ ] **T11 Bundle- und A11y-Gegenprobe:** `size-limit` vorher/nachher, `a11y.spec.ts`.
-- [ ] **T12 Screenshots:** 2.5 Nr. 32.
-- [ ] **T13 Doku:** 2.6.
-- [ ] **T14 Abschluss:** Pflicht-Verifikation (§7), Schutzbereichs-Diff, BUILD_LOG-Eintrag inklusive Deployment-Anleitung für Marc (erst Migration 20261123 auf Hosted, dann App; Smoke im Browser: Dashboard zweimal speichern, „Versionen“ öffnen, Revision 1 mit aktuellem Stand vergleichen, Revision 1 wiederherstellen und neue Revision oben sehen, aktuellen Stand exportieren und die Datei als neues persönliches Dashboard importieren), PR öffnen, Review anfordern.
+- [x] **T0 Einstieg:** Baseline festlegen, Ist-Tabelle §1 prüfen, Zeilenzahlen der Grenzdateien, `size-limit` und Anzahl pgTAP-Tests als Ausgangswert notieren, lokale Supabase starten (`supabase start`, `supabase db reset`).
+- [x] **T1 Rot-Nachweise:** §3 Nr. 9 (a)–(e), Ergebnisse im BUILD_LOG.
+- [x] **T2 Server:** Migration und pgTAP (2.2), `supabase test db` grün, bestehende Tests unverändert.
+- [x] **T3 Dienste und In-Memory-Restore:** 2.3 Nr. 14–15.
+- [x] **T4 Diff-Modell:** 2.3 Nr. 16, Leistungsmessung 2.5 Nr. 31.
+- [x] **T5 Austausch-Modell:** 2.3 Nr. 17, Rundlauf-Test.
+- [x] **T6 Auslagerung ohne Verhaltensänderung:** Kopfleiste, ggf. Auswahl-Hook; bestehende Tests unverändert grün, Zeilenzahlen nachweisen.
+- [x] **T7 Versionsbereich und Vergleich:** 2.4 Nr. 18–20, Autorenanzeige, Paging, Rückfall 2.4 Nr. 24.
+- [x] **T8 Wiederherstellen:** 2.4 Nr. 21, Entwurfsschutz, Fehlerreihenfolge.
+- [x] **T9 Export und Import:** 2.4 Nr. 19 (Export), Nr. 22 (Import).
+- [x] **T10 Vorschau-Szenario und E2E:** 2.5 Nr. 25, 27–29.
+- [x] **T11 Bundle- und A11y-Gegenprobe:** `size-limit` vorher/nachher, `a11y.spec.ts`.
+- [x] **T12 Screenshots:** 2.5 Nr. 32.
+- [x] **T13 Doku:** 2.6.
+- [x] **T14 Abschluss:** Pflicht-Verifikation (§7), Schutzbereichs-Diff, BUILD_LOG-Eintrag inklusive Deployment-Anleitung für Marc (erst Migration 20261123 auf Hosted, dann App; Smoke im Browser: Dashboard zweimal speichern, „Versionen“ öffnen, Revision 1 mit aktuellem Stand vergleichen, Revision 1 wiederherstellen und neue Revision oben sehen, aktuellen Stand exportieren und die Datei als neues persönliches Dashboard importieren), PR öffnen, Review anfordern.
 
 ## 6. Abnahme
 

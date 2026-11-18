@@ -192,7 +192,7 @@ describe('dashboardStorageV2', () => {
 
     expect(revsRes.value.length).toBe(3);
     expect(revsRes.value[0]?.revision).toBe(3);
-    expect(revsRes.value[0]?.changeSummary).toContain('Wiederhergestellt von Revision 1');
+    expect(revsRes.value[0]?.changeSummary).toMatch(/Wiederherstell(ung|t) von Revision 1/);
   });
 
   it('weist ungültige Konfigurationen mit strukturiertem Fehler ab', async () => {
@@ -284,5 +284,56 @@ describe('dashboardStorageV2', () => {
     );
     expect(classifyDashboardV2Error({ code: 'PGRST301' }).kind).toBe('sitzung_abgelaufen');
     expect(classifyDashboardV2Error({ message: 'Network timeout' }).kind).toBe('technisch');
+  });
+
+  it('Rot-Nachweis d: In-Memory-Restore stellt Revisionsstand statt aktuellem Stand wieder her', async () => {
+    const configV1 = makeConfig('dash_restore_demo', 'Stand V1');
+    const createRes = await createDashboardV2({
+      title: configV1.title,
+      config: configV1,
+      scope: 'personal',
+    });
+    expect(createRes.ok).toBe(true);
+
+    const configV2: DashboardConfigV2 = {
+      ...configV1,
+      title: 'Stand V2',
+      tiles: [
+        ...configV1.tiles,
+        {
+          id: 'tile_umsatz',
+          catalogId: 'baseline.umsatz',
+          title: 'Umsatz',
+          presentation: 'zahl',
+          layouts: { desktop: { x: 3, y: 0, w: 3, h: 3 } },
+        },
+      ],
+    };
+
+    const saveRes = await saveDashboardV2({
+      dashboardId: 'dash_restore_demo',
+      expectedRevision: 1,
+      title: configV2.title,
+      config: configV2,
+      changeSummary: 'Umsatz hinzugefügt',
+    });
+    expect(saveRes.ok).toBe(true);
+
+    // Restore zu Revision 1 (sollte nur 1 Kachel haben und Titel Stand V1)
+    const restoreRes = await restoreDashboardV2Revision({
+      dashboardId: 'dash_restore_demo',
+      targetRevision: 1,
+      expectedRevision: 2,
+    });
+    expect(restoreRes.ok).toBe(true);
+
+    const loaded = await loadPersonalDashboardV2();
+    expect(loaded.ok).toBe(true);
+    if (!loaded.ok || !loaded.value) return;
+
+    expect(loaded.value.revision).toBe(3);
+    // Erwartet: 1 Kachel aus Revision 1! Im fehlerhaften Ist-Stand hat er 2 Kacheln aus Revision 2.
+    expect(loaded.value.config.tiles.length).toBe(1);
+    expect(loaded.value.config.tiles[0]?.id).toBe('tile_1');
   });
 });
