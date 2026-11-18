@@ -76,23 +76,28 @@ function PersonalExecutiveDashboardV2Container({
     options?: { saveDraftAsCopy: boolean },
   ): Promise<boolean> => {
     if (!v2Storage.dashboard) return false;
+    const originalDashboardId = v2Storage.dashboard.id;
     const currentDraft = versionsContext?.draftConfig || v2Storage.dashboard.config;
     if (options?.saveDraftAsCopy && versionsContext?.draftConfig) {
       const copyRes = await v2Storage.saveAsNewPersonalCopy(
         versionsContext.draftConfig,
         `${versionsContext.draftConfig.title} (Entwurf-Kopie)`,
       );
-      if (!copyRes.ok) return false;
+      if (!copyRes.ok) {
+        handleStorageError(copyRes.error.kind, currentDraft);
+        return false;
+      }
     }
     const res = await restoreDashboardV2Revision({
-      dashboardId: v2Storage.dashboard.id,
+      dashboardId: originalDashboardId,
       targetRevision,
       expectedRevision: v2Storage.dashboard.revision,
     });
     if (res.ok) {
       setIsVersionsOpen(false);
       setVersionsContext(null);
-      await v2Storage.reload();
+      await v2Storage.openDashboard(originalDashboardId);
+      await v2Storage.refreshList();
       setReloadKey((k) => k + 1);
       return true;
     }

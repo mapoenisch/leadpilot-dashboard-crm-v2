@@ -292,7 +292,6 @@ describe('RevisionHistoryPanelV2', () => {
     fireEvent.click(confirmBtn);
 
     await waitFor(() => {
-      expect(handleSaveAsCopy).toHaveBeenCalledTimes(1);
       expect(handleRestore).toHaveBeenCalledWith(1, { saveDraftAsCopy: true });
     });
   });

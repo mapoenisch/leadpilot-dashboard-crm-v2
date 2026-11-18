@@ -124,6 +124,75 @@ describe('useDashboardImport', () => {
     expect(onRefresh).toHaveBeenCalledTimes(1);
   });
 
+  it('sperrt das Schließen während laufender Übermittlung (kein Abbruch mit späterem Wechsel)', async () => {
+    const onOpen = vi.fn().mockResolvedValue(true);
+    let resolveCreate: (v: unknown) => void = () => {};
+    const mockCreate = vi.fn(
+      () =>
+        new Promise((resolve) => {
+          resolveCreate = resolve;
+        }),
+    );
+
+    const { result } = renderHook(() =>
+      useDashboardImport({
+        userId: 'usr_me',
+        organizationId: 'org_1',
+        teams: [],
+        onOpenDashboard: onOpen,
+        createDashboardFn: mockCreate as never,
+      }),
+    );
+
+    const content = JSON.stringify(buildDashboardExportV2(sampleConfig, { sourceRevision: 1 }));
+    const file = new File([content], 'export.json', { type: 'application/json' });
+    file.text = async () => content;
+
+    await act(async () => {
+      await result.current.openImport();
+    });
+    await act(async () => {
+      await result.current.handleFileSelect(file);
+    });
+
+    let pending: Promise<boolean> = Promise.resolve(false);
+    act(() => {
+      pending = result.current.executeImport();
+    });
+    expect(result.current.isSubmitting).toBe(true);
+
+    // Abbrechen während der Übermittlung bleibt wirkungslos
+    act(() => {
+      result.current.closeImport();
+    });
+    expect(result.current.isOpen).toBe(true);
+
+    // Doppelte Übermittlung wird verhindert
+    let second = true;
+    await act(async () => {
+      second = await result.current.executeImport();
+    });
+    expect(second).toBe(false);
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveCreate({ ok: true, value: { dashboardId: 'dash_new', revision: 1 } });
+      await pending;
+    });
+    expect(result.current.isSubmitting).toBe(false);
+    expect(result.current.isOpen).toBe(false);
+    expect(onOpen).toHaveBeenCalledWith('dash_new');
+
+    // Nach Abschluss ist Schließen wieder möglich
+    await act(async () => {
+      await result.current.openImport();
+    });
+    act(() => {
+      result.current.closeImport();
+    });
+    expect(result.current.isOpen).toBe(false);
+  });
+
   it('blockiert Import wenn persönliches Limit von 20 erreicht ist', async () => {
     const mockCreate = vi.fn();
     const { result } = renderHook(() =>

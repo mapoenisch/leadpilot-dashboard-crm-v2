@@ -72,6 +72,7 @@ export function DashboardEditorPreviewV2() {
 
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [revokedDraftConfig, setRevokedDraftConfig] = useState<DashboardConfigV2 | null>(null);
+  const [previewKey, setPreviewKey] = useState(0);
 
   const handleSave = useCallback(
     async (newConfig: DashboardConfigV2): Promise<boolean> => {
@@ -237,6 +238,7 @@ export function DashboardEditorPreviewV2() {
         const entry = inMemoryStore.get(activeDashboardId);
         if (entry) {
           setConfig(entry.row.config);
+          setPreviewKey((k) => k + 1);
           setDashboards((prev) =>
             prev.map((d) =>
               d.id === activeDashboardId
@@ -313,6 +315,7 @@ export function DashboardEditorPreviewV2() {
       {/* Die 4-Zonen-Shell; Höhe minus Vorschau-Banner, damit die Statusleiste sichtbar bleibt. */}
       <div className="h-[calc(100vh-1.75rem)] overflow-hidden">
         <DashboardEditorShellV2
+          key={`preview-${activeDashboardId}-${previewKey}`}
           className="h-full"
           initialConfig={config}
           useData={usePreviewDataTimeControlled}

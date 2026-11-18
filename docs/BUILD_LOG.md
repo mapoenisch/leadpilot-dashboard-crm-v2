@@ -22205,3 +22205,10 @@ Gemäß §2.5 Nr. 31 wurde der Vergleich zweier komplexer Konfigurationen (24 Ka
    - Bei Revision 1 auf „Wiederherstellen“ klicken: Bestätigungsdialog mit Entwurfsschutz öffnet sich; bestätigen → neue Revision oben wird angelegt und geladen.
    - Oben auf „Aktuellen Stand exportieren“ klicken: `.json`-Datei wird heruntergeladen.
    - Dashboard-Switcher öffnen → „Aus Datei importieren …“ wählen → heruntergeladene Datei einfügen → Vorschau prüfen → „Importieren“ klicken → Neues persönliches Dashboard wird angelegt und geöffnet.
+
+### 8. Nacharbeit nach Codex-Review (Head `0bdee516`)
+
+- **CI `test` (Runs bis `44333413938`):** Fehlschlag war die globale Branch-Coverage (78,12 % < 80 %), kein Testfehler. Mit `0bdee516` behoben; lokal nach dieser Nacharbeit 80,03 % Branches, 442 Testdateien / 3257 Tests grün.
+- **Wiederherstellen mit Entwurfs-Kopie:** Die Kopie wurde doppelt angelegt (Panel und Container riefen beide `saveAsNewPersonalCopy`). Jetzt legt nur noch der Container die Kopie an; ein Fehler beim Kopieren läuft über `handleStorageError`. Nach dem Wiederherstellen wird ausdrücklich das ursprüngliche Dashboard geöffnet (`openDashboard(originalDashboardId)` + `refreshList`), nicht die eben angelegte Kopie. Die Vorschau-Route remountet die Editor-Shell nach dem Wiederherstellen (`previewKey`), damit der wiederhergestellte Stand sichtbar wird.
+- **Codex P2 `useDashboardImport.ts:171` (Abbruch während laufendem Import):** Schließen ist während der Übermittlung gesperrt (`isSubmittingRef`, `closeImport` wirkungslos; „Abbrechen“ und Schließen-Symbol im Dialog `disabled`). Escape läuft über denselben `closeImport`. Zusätzlich verhindert die Sperre eine doppelte Übermittlung. Regressionstest in `useDashboardImport.ui.vitest.ts`.
+- **Verifikation:** `npm run lint`, `npx tsc --noEmit`, `npm run format:check`, `npm run verify:quality-budget`, `npm run test:coverage`, `npm run verify`, `npm run build` grün. Schutzbereichs-Diff gegen `origin/main` leer. Alle geänderten Dateien ≤ 400 Zeilen.

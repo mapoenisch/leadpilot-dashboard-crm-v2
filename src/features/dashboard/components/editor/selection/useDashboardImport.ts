@@ -76,14 +76,23 @@ export function useDashboardImport({
   }, [providedTeams]);
 
   const fileReadSeqRef = useRef(0);
+  // Sperrt das Schließen, solange die Speicheranfrage läuft: Ein „Abbrechen“ während
+  // der Übermittlung würde sonst den Dialog schließen, der anschließende automatische
+  // Dashboard-Wechsel aber trotzdem ohne erneuten Entwurfsschutz ausgeführt.
+  const isSubmittingRef = useRef(false);
 
-  const closeImport = useCallback(() => {
+  const resetImport = useCallback(() => {
     fileReadSeqRef.current += 1;
     setIsOpen(false);
     setFile(null);
     setParseResult(null);
     setSubmitError(null);
   }, []);
+
+  const closeImport = useCallback(() => {
+    if (isSubmittingRef.current) return;
+    resetImport();
+  }, [resetImport]);
 
   const handleFileSelect = useCallback(
     async (selectedFile: File) => {
@@ -137,6 +146,7 @@ export function useDashboardImport({
 
   const executeImport = useCallback(async (): Promise<boolean> => {
     if (!parseResult || !parseResult.ok) return false;
+    if (isSubmittingRef.current) return false;
 
     // Obergrenze vor dem Senden prüfen
     if (targetScope === 'personal' && personalCount >= 20) {
@@ -144,6 +154,7 @@ export function useDashboardImport({
       return false;
     }
 
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
     setSubmitError(null);
 
@@ -156,17 +167,21 @@ export function useDashboardImport({
     };
 
     const createFn = createDashboardFn ?? createDashboardV2;
-    const res = await createFn({
-      title: finalConfig.title,
-      config: finalConfig,
-      scope: targetScope,
-      teamId: targetScope === 'team' ? targetTeamId : undefined,
-    });
-
-    setIsSubmitting(false);
+    let res: StorageResult<SavedDashboardV2Result>;
+    try {
+      res = await createFn({
+        title: finalConfig.title,
+        config: finalConfig,
+        scope: targetScope,
+        teamId: targetScope === 'team' ? targetTeamId : undefined,
+      });
+    } finally {
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
+    }
 
     if (res.ok) {
-      closeImport();
+      resetImport();
       if (onRefreshList) await onRefreshList();
       if (onOpenDashboard) await onOpenDashboard(res.value.dashboardId);
       return true;
@@ -181,7 +196,7 @@ export function useDashboardImport({
     title,
     targetTeamId,
     createDashboardFn,
-    closeImport,
+    resetImport,
     onRefreshList,
     onOpenDashboard,
   ]);

@@ -109,6 +109,7 @@ export function ImportDashboardDialogV2({
             type="button"
             data-testid="close-import-dialog"
             onClick={onClose}
+            disabled={isSubmitting}
             className="rounded p-1 text-[var(--color-text-muted)] hover:text-white transition-colors"
             aria-label="Dialog schließen"
           >
@@ -278,6 +279,7 @@ export function ImportDashboardDialogV2({
             variant="secondary"
             size="sm"
             onClick={onClose}
+            disabled={isSubmitting}
             className="text-xs"
           >
             Abbrechen
