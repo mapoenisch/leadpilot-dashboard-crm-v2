@@ -211,6 +211,7 @@ export function createPreviewImportDashboard(params: {
   config: DashboardConfigV2;
   scope?: 'personal' | 'team';
   teamId?: string;
+  changeSummary?: string;
 }): { listItem: AccessibleDashboardListItemV2; dashboardId: string } {
   const newId = 'preview_imported_' + Math.random().toString(36).slice(2, 8);
   const now = new Date().toISOString();
@@ -246,11 +247,27 @@ export function createPreviewImportDashboard(params: {
         title: params.title,
         createdByUserId: 'demo-user-preview',
         createdAt: now,
-        changeSummary: 'Aus Datei importiert',
+        changeSummary: params.changeSummary ?? 'Aus Datei importiert',
         config: { ...params.config, id: newId, title: params.title },
       },
     ],
   });
 
   return { listItem, dashboardId: newId };
+}
+
+/**
+ * Sichert einen ungespeicherten Entwurf vor dem Wiederherstellen als persönliche Kopie
+ * (mit der tatsächlichen Entwurfskonfiguration), ohne das aktive Dashboard zu wechseln.
+ */
+export function savePreviewDraftCopy(
+  draftConfig: DashboardConfigV2,
+): AccessibleDashboardListItemV2 {
+  const { listItem } = createPreviewImportDashboard({
+    title: buildDerivedDashboardTitle(draftConfig.title, ' (Entwurf-Kopie)'),
+    config: { ...draftConfig, scope: 'personal', teamId: undefined },
+    scope: 'personal',
+    changeSummary: 'Entwurf vor Wiederherstellung gesichert',
+  });
+  return listItem;
 }

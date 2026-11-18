@@ -28,6 +28,7 @@ import {
   initPreviewConfig,
   initPreviewDashboards,
   createPreviewImportDashboard,
+  savePreviewDraftCopy,
 } from './previewDashboardMutations';
 
 /** Vorschau-Daten mit derselben gemeinsamen Zeitsteuerung wie der echte V2-Pfad. */
@@ -222,13 +223,9 @@ export function DashboardEditorPreviewV2() {
   const handleRestoreRevision = useCallback(
     async (targetRevision: number, options?: { saveDraftAsCopy: boolean }): Promise<boolean> => {
       if (options?.saveDraftAsCopy && versionsContext?.draftConfig) {
-        await handleCreateFromTemplate(
-          'custom',
-          `${versionsContext.draftConfig.title} (Entwurf-Kopie)`,
-          {
-            scope: 'personal',
-          },
-        );
+        // Entwurf als echte Kopie sichern; das ursprüngliche Dashboard bleibt aktiv.
+        const listItem = savePreviewDraftCopy(versionsContext.draftConfig);
+        setDashboards((prev) => [listItem, ...prev]);
       }
       const res = await restoreDashboardV2Revision({
         dashboardId: activeDashboardId,
@@ -259,7 +256,7 @@ export function DashboardEditorPreviewV2() {
       }
       return false;
     },
-    [activeDashboardId, versionsContext?.draftConfig, handleCreateFromTemplate],
+    [activeDashboardId, versionsContext?.draftConfig],
   );
 
   const dashboardImport = useDashboardImport({

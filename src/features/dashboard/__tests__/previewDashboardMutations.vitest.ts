@@ -6,6 +6,7 @@ import {
   sharePreviewWithTeam,
   initPreviewConfig,
   createPreviewImportDashboard,
+  savePreviewDraftCopy,
 } from '../preview/previewDashboardMutations';
 import { initPreviewVersionsStore } from '../preview/previewRevisions';
 import { inMemoryStore } from '../services/dashboardInMemoryStoreV2';
@@ -124,5 +125,33 @@ describe('previewDashboardMutations', () => {
     expect(res.listItem.title).toBe('Importiertes Dashboard');
     expect(res.listItem.scope).toBe('team');
     expect(inMemoryStore.has(res.dashboardId)).toBe(true);
+  });
+  it('savePreviewDraftCopy sichert die tatsächliche Entwurfskonfiguration als persönliche Kopie (Codex P2)', () => {
+    const draft: DashboardConfigV2 = {
+      version: 2,
+      id: 'dash_team',
+      title: 'Team Board',
+      scope: 'team',
+      teamId: 'team_1',
+      ownerUserId: 'usr_me',
+      organizationId: 'org_1',
+      globalTimeframe: 'letzte_30_tage',
+      tiles: [
+        { id: 't1', kpiId: 'umsatz', size: 'M' } as unknown as DashboardConfigV2['tiles'][number],
+      ],
+    };
+
+    const listItem = savePreviewDraftCopy(draft);
+
+    expect(listItem.title).toBe('Team Board (Entwurf-Kopie)');
+    expect(listItem.scope).toBe('personal');
+    expect(listItem.tileCount).toBe(1);
+    const stored = inMemoryStore.get(listItem.id);
+    expect(stored).toBeDefined();
+    expect(stored!.row.config.tiles).toHaveLength(1);
+    expect(stored!.row.config.scope).toBe('personal');
+    expect(stored!.row.config.teamId).toBeUndefined();
+    expect(stored!.row.config.id).toBe(listItem.id);
+    expect(stored!.revisions[0]!.changeSummary).toBe('Entwurf vor Wiederherstellung gesichert');
   });
 });
