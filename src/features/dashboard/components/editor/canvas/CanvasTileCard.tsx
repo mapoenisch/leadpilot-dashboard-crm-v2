@@ -41,6 +41,7 @@ export interface CanvasTileCardProps {
   availableSections?: Array<{ id: string; title: string }>;
   currentSectionId?: string | null;
   onMoveTileToSection?: (tileId: string, targetSectionId: string | null) => void;
+  alarm?: { status?: string; reason?: string };
 }
 
 export function parseTimeframeToPeriod(timeframe: string): DashboardPeriod | undefined {
@@ -103,6 +104,7 @@ export function CanvasTileCard({
   availableSections = [],
   currentSectionId,
   onMoveTileToSection,
+  alarm,
 }: CanvasTileCardProps) {
   const [showSectionMenu, setShowSectionMenu] = useState(false);
   const v1Tile = convertV2TileToV1(tile, globalTimeframe, globalPipeline);
@@ -321,16 +323,14 @@ export function CanvasTileCard({
           onShowDetails={onShowDetails}
           detailsBlocked={!isPreviewMode}
           threshold={tile.threshold}
-          alarm={
-            (tile as unknown as { alarm?: { status?: string; reason?: string } }).alarm?.status
-              ? {
-                  status: (tile as unknown as { alarm: { status: string; reason?: string } }).alarm
-                    .status,
-                  reason: (tile as unknown as { alarm?: { status?: string; reason?: string } })
-                    .alarm?.reason,
-                }
-              : undefined
-          }
+          alarm={(() => {
+            const tr = tile as unknown as Record<string, unknown>;
+            const a =
+              alarm ??
+              (tr.alarm as { status?: string; reason?: string } | undefined) ??
+              (tr.alarmRule as { status?: string; reason?: string } | undefined);
+            return a?.status ? { status: a.status, reason: a.reason } : undefined;
+          })()}
         />
       </div>
     </div>

@@ -65,7 +65,13 @@ export const AlarmEventItemRow: React.FC<AlarmEventItemRowProps> = ({
               <span className="font-semibold text-white">{event.dashboardTitle}</span>
               <span className="text-[var(--color-text-muted)]">·</span>
               <Link
-                to={`/dashboard?kachel=${encodeURIComponent(event.tileId)}`}
+                to={`/dashboard?id=${encodeURIComponent(event.dashboardId)}&kachel=${encodeURIComponent(event.tileId)}`}
+                state={{
+                  dashboardNav: {
+                    dashboardId: event.dashboardId,
+                    returnFocus: event.tileId,
+                  },
+                }}
                 onClick={() => {
                   if (!event.gelesen) {
                     onMarkRead(event.id);

@@ -16,6 +16,7 @@ import { isAddableCatalogId } from './editorPlacement';
 import { useGridDragAndDrop } from './grid/useGridDragAndDrop';
 import { useGridKeyboard } from './grid/useGridKeyboard';
 import { getGridPlacementClasses } from './grid/gridTailwindClasses';
+import { useDashboardAlarms } from '../../hooks/useDashboardAlarms';
 
 export { convertV2TileToV1, parseTimeframeToPeriod };
 
@@ -55,6 +56,16 @@ export function EditorCanvasV2({
   className,
 }: EditorCanvasV2Props) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { rules: serverAlarmRules } = useDashboardAlarms({
+    dashboardId: config.id,
+  });
+  const effectiveAlarmRules = useMemo(() => {
+    const map: Record<string, { status: string; reason?: string }> = {};
+    for (const r of serverAlarmRules) {
+      if (r.tileId) map[r.tileId] = { status: r.status };
+    }
+    return map;
+  }, [serverAlarmRules]);
 
   // 1. Pointer-Drag & Drop und Resizing
   const {
@@ -224,6 +235,7 @@ export function EditorCanvasV2({
                 useData={useData}
                 globalTimeframe={config.globalTimeframe}
                 globalPipeline={config.globalPipeline}
+                alarm={effectiveAlarmRules[tile.id]}
               />
             );
           })}

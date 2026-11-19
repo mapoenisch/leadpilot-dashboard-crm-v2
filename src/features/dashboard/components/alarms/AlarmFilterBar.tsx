@@ -39,7 +39,7 @@ export const AlarmFilterBar: React.FC<AlarmFilterBarProps> = ({
         </div>
 
         {/* Dashboard-Filter */}
-        {dashboardOptions.length > 0 && (
+        {(dashboardOptions.length > 0 || Boolean(selectedDashboardId)) && (
           <select
             data-testid="alarm-filter-dashboard-select"
             value={selectedDashboardId}
@@ -52,6 +52,9 @@ export const AlarmFilterBar: React.FC<AlarmFilterBarProps> = ({
                 {d.title}
               </option>
             ))}
+            {selectedDashboardId && !dashboardOptions.some((d) => d.id === selectedDashboardId) && (
+              <option value={selectedDashboardId}>{selectedDashboardId}</option>
+            )}
           </select>
         )}
 

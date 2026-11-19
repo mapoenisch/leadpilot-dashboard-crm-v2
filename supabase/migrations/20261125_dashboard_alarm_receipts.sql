@@ -28,12 +28,21 @@ CREATE POLICY tenant_select_alarm_receipts ON public.dashboard_alarm_receipts
   FOR SELECT TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM public.organization_members m
-      WHERE m.organization_id = dashboard_alarm_receipts.organization_id
+      SELECT 1
+      FROM public.dashboard_alarm_events ev
+      JOIN public.dashboard_alarm_rules r ON r.id = ev.rule_id
+      JOIN public.dashboards d ON d.id = r.dashboard_id
+      JOIN public.organization_members m ON m.organization_id = dashboard_alarm_receipts.organization_id
+      WHERE ev.id = dashboard_alarm_receipts.event_id
         AND m.user_id = auth.uid()
         AND m.status = 'active'
+        AND (
+          (d.scope = 'personal' AND d.user_id = auth.uid())
+          OR (d.scope = 'team' AND public.dashboard_team_can_read(d.team_id))
+        )
     )
   );
+
 
 -- ============================================================================
 -- 2. RPCs für Lesebestätigung & Quittierung

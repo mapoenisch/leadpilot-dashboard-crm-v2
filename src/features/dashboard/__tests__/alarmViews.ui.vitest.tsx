@@ -131,6 +131,62 @@ describe('Alarm Views & useUnreadAlarmCount (Auftrag 168 / P13c)', () => {
         expect(mockMarkAllRead).toHaveBeenCalledTimes(1);
       });
     });
+
+    it('unterstützt Einzel-Lesebestätigung, Quittierung und Filterung', async () => {
+      mockEvents = [
+        {
+          id: 'ev-test-1',
+          ruleId: 'r-1',
+          dashboardId: 'd-1',
+          dashboardTitle: 'Vertrieb',
+          tileId: 't-1',
+          catalogId: 'crm.deals',
+          alterZustand: 'normal',
+          neuerZustand: 'warnung',
+          messwert: 15,
+          einheit: 'Stück',
+          grenze: 10,
+          meldung: 'Alarm 1',
+          createdAt: '2026-11-19T10:00:00Z',
+          gelesen: false,
+          quittiertVon: [],
+        },
+      ];
+
+      render(
+        <MemoryRouter>
+          <AlarmList />
+        </MemoryRouter>,
+      );
+
+      const markReadBtn = screen.getByRole('button', { name: 'Als gelesen markieren' });
+      fireEvent.click(markReadBtn);
+      await waitFor(() => {
+        expect(mockMarkRead).toHaveBeenCalledWith(['ev-test-1']);
+      });
+
+      const ackBtn = screen.getByRole('button', { name: 'Quittieren' });
+      fireEvent.click(ackBtn);
+      const textarea = screen.getByTestId('alarm-ack-comment-input');
+      fireEvent.change(textarea, { target: { value: 'In Bearbeitung' } });
+      const confirmBtn = screen.getByTestId('alarm-ack-submit-btn');
+      fireEvent.click(confirmBtn);
+      await waitFor(() => {
+        expect(mockAcknowledge).toHaveBeenCalledWith({
+          eventId: 'ev-test-1',
+          comment: 'In Bearbeitung',
+        });
+      });
+
+      const ungelesenCheckbox = screen.getByTestId('alarm-filter-unread-toggle');
+      fireEvent.click(ungelesenCheckbox);
+
+      const warnungCheckbox = screen.getByTestId('alarm-filter-severity-toggle');
+      fireEvent.click(warnungCheckbox);
+
+      const select = screen.getByTestId('alarm-filter-dashboard-select');
+      fireEvent.change(select, { target: { value: 'd-1' } });
+    });
   });
 
   describe('AdminAlarmsPage View', () => {

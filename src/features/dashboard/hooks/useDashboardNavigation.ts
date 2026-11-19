@@ -80,10 +80,42 @@ export function useDashboardNavigation() {
   const location = useLocation();
   const { session } = useOrganization();
   const identity = session ? `${session.organizationId}|${session.userId}` : null;
-  const incoming = useMemo(
-    () => readDashboardNavState(location.state, identity),
-    [location.state, identity],
-  );
+  const incoming = useMemo(() => {
+    const fromState = readDashboardNavState(location.state, identity);
+    const search = new URLSearchParams(location.search);
+    const qDash = search.get('id') || search.get('dashboardId') || undefined;
+    const qTile = search.get('kachel') || search.get('tileId') || undefined;
+
+    const rawNav = (
+      location.state as {
+        dashboardNav?: {
+          identity?: string;
+          load?: string;
+          dashboardId?: string;
+          returnFocus?: string;
+        };
+      } | null
+    )?.dashboardNav;
+
+    if (rawNav) {
+      if (rawNav.identity && rawNav.identity !== identity) return null;
+      if (rawNav.load && rawNav.load !== PAGE_LOAD) return null;
+    }
+
+    const rawDash = typeof rawNav?.dashboardId === 'string' ? rawNav.dashboardId : undefined;
+    const rawTile = typeof rawNav?.returnFocus === 'string' ? rawNav.returnFocus : undefined;
+
+    const dashboardId = fromState?.dashboardId ?? rawDash ?? qDash;
+    const returnFocus = fromState?.returnFocus ?? rawTile ?? qTile ?? null;
+
+    if (!fromState && !dashboardId && !returnFocus) return null;
+    return {
+      session: fromState?.session ?? null,
+      returnFocus,
+      fromDashboard: fromState?.fromDashboard ?? false,
+      ...(dashboardId ? { dashboardId } : {}),
+    };
+  }, [location.state, location.search, identity]);
 
   /**
    * Von der Ansicht zu den Details. Der aktuelle Eintrag merkt sich vorher Filter und Kachel, damit

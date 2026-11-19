@@ -34,6 +34,7 @@ export interface SectionAreaGridV2Props {
   globalTimeframe: string;
   globalPipeline?: string;
   className?: string;
+  alarmRules?: Record<string, { status: string; reason?: string }>;
 }
 
 export function SectionAreaGridV2({
@@ -57,6 +58,7 @@ export function SectionAreaGridV2({
   globalTimeframe,
   globalPipeline,
   className,
+  alarmRules,
 }: SectionAreaGridV2Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -152,6 +154,7 @@ export function SectionAreaGridV2({
             availableSections={availableSections}
             currentSectionId={currentSectionId ?? areaId}
             onMoveTileToSection={onMoveTileToSection}
+            alarm={alarmRules ? alarmRules[tile.id] : undefined}
           />
         );
       })}

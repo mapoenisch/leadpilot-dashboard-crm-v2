@@ -235,8 +235,13 @@ export function useDashboardAlarms(
 
   const acknowledgeMutation = useMutation(
     {
-      mutationFn: ({ eventId, comment }: { eventId: string; comment?: string | null }) =>
-        acknowledgeAlarmEvent({ eventId, comment }),
+      mutationFn: async ({ eventId, comment }: { eventId: string; comment?: string | null }) => {
+        const res = await acknowledgeAlarmEvent({ eventId, comment });
+        if (!res.ok) {
+          throw new Error(res.error || 'Quittierung fehlgeschlagen');
+        }
+        return res;
+      },
       onSuccess: () => invalidateAll(),
     },
     queryClient,

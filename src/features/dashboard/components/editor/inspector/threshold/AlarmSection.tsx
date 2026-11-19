@@ -63,6 +63,16 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
   const capability = getAlarmCapability(catalogId);
   const isAlarmCapable = capability?.status === 'alarmfaehig';
 
+  const effectivePipeline =
+    (selectedTile as unknown as { query?: { pipelineId?: string | null } }).query?.pipelineId ??
+    selectedTile.pipelineOverride ??
+    undefined;
+
+  const hasSupportedFiltersOnly = !(
+    selectedTile.timeframeOverride ||
+    (selectedTile as unknown as { aggregationOverride?: string }).aggregationOverride
+  );
+
   const permCheck = checkAlarmTogglePermitted({
     userRole,
     canWriteDashboard: canWrite,
@@ -70,7 +80,7 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
     isTileDraft: isDirty,
     hasValidV2Rule: hasValidRule,
     isAlarmCapable,
-    hasSupportedFiltersOnly: true,
+    hasSupportedFiltersOnly,
   });
 
   const handleToggleAlarm = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,6 +91,7 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
         dashboardId,
         tileId: selectedTile.id,
         catalogId,
+        pipeline: effectivePipeline,
         ruleConfig: selectedTile.threshold as unknown as Record<string, unknown>,
         mindestdauerLaeufe: 2,
         abklingzeitSekunden: 3600,
@@ -194,7 +205,7 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
               className="w-full rounded bg-surface border border-white/10 px-2 py-1 text-xs text-white"
             >
               {MINDESTDAUER_OPTIONS.map((opt) => (
-                <option key={opt.laeufe} value={opt.laeufe}>
+                <option key={opt.label} value={opt.laeufe}>
                   {opt.label}
                 </option>
               ))}

@@ -55,6 +55,28 @@ export const AlarmList: React.FC = () => {
     eventFilters,
   });
 
+  const [knownDashboards, setKnownDashboards] = useState<Map<string, string>>(new Map());
+
+  useEffect(() => {
+    if (initialEvents.length > 0 || appendedEvents.length > 0) {
+      setKnownDashboards((prev) => {
+        let changed = false;
+        const next = new Map(prev);
+        for (const ev of [...initialEvents, ...appendedEvents]) {
+          if (ev.dashboardId && !next.has(ev.dashboardId)) {
+            next.set(ev.dashboardId, ev.dashboardTitle || ev.dashboardId);
+            changed = true;
+          }
+        }
+        return changed ? next : prev;
+      });
+    }
+  }, [initialEvents, appendedEvents]);
+
+  const dashboardOptions = useMemo(() => {
+    return Array.from(knownDashboards.entries()).map(([id, title]) => ({ id, title }));
+  }, [knownDashboards]);
+
   const displayEvents = useMemo(() => {
     const list = [...initialEvents];
     const seen = new Set(list.map((e) => e.id));
@@ -64,22 +86,15 @@ export const AlarmList: React.FC = () => {
         list.push(ev);
       }
     }
-    return list;
-  }, [initialEvents, appendedEvents]);
-
-  // Einzigartige Dashboards aus den Ereignissen für den Filter
-  const dashboardOptions = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const ev of displayEvents) {
-      if (ev.dashboardId && !map.has(ev.dashboardId)) {
-        map.set(ev.dashboardId, ev.dashboardTitle || ev.dashboardId);
-      }
+    if (nurUngelesen) {
+      return list.filter((e) => !e.gelesen);
     }
-    return Array.from(map.entries()).map(([id, title]) => ({ id, title }));
-  }, [displayEvents]);
+    return list;
+  }, [initialEvents, appendedEvents, nurUngelesen]);
 
   const handleMarkRead = async (eventId: string) => {
     await markRead([eventId]);
+    setAppendedEvents((prev) => prev.map((e) => (e.id === eventId ? { ...e, gelesen: true } : e)));
   };
 
   const handleMarkAllRead = async () => {
@@ -89,6 +104,14 @@ export const AlarmList: React.FC = () => {
         dashboardId: selectedDashboardId || undefined,
         nurWarnungKritisch,
       });
+      setAppendedEvents((prev) =>
+        prev.map((e) => {
+          if (selectedDashboardId && e.dashboardId !== selectedDashboardId) return e;
+          if (nurWarnungKritisch && e.neuerZustand !== 'warnung' && e.neuerZustand !== 'kritisch')
+            return e;
+          return { ...e, gelesen: true };
+        }),
+      );
     } finally {
       setIsMarkingAll(false);
     }
@@ -121,6 +144,24 @@ export const AlarmList: React.FC = () => {
   const handleConfirmAcknowledge = async (comment: string) => {
     if (!selectedEventForAck) return;
     await acknowledge({ eventId: selectedEventForAck.id, comment });
+    setAppendedEvents((prev) =>
+      prev.map((e) =>
+        e.id === selectedEventForAck.id
+          ? {
+              ...e,
+              quittiertVon: [
+                ...e.quittiertVon,
+                {
+                  userId: 'current-user',
+                  email: 'du',
+                  quittiertAt: new Date().toISOString(),
+                  kommentar: comment || null,
+                },
+              ],
+            }
+          : e,
+      ),
+    );
     setSelectedEventForAck(null);
   };
 

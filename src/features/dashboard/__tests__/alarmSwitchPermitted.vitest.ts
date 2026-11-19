@@ -61,4 +61,33 @@ describe('Auftrag 168 - T1(a) Rot-Nachweis: Schalter gesperrt für Viewer mit Gr
     expect(result.permitted).toBe(true);
     expect(result.reason).toBeUndefined();
   });
+
+  it('sperrt den Schalter, wenn keine Schreibrechte vorliegen', () => {
+    const result = checkAlarmTogglePermitted({
+      userRole: 'manager',
+      canWriteDashboard: false,
+    });
+    expect(result.permitted).toBe(false);
+    expect(result.reason).toBe('Keine Schreibrechte für dieses Dashboard.');
+  });
+
+  it('sperrt den Schalter, wenn die Schwellenwertregel ungültig ist', () => {
+    const result = checkAlarmTogglePermitted({
+      userRole: 'manager',
+      hasValidV2Rule: false,
+    });
+    expect(result.permitted).toBe(false);
+    expect(result.reason).toBe('Schwellenwert-Regel ist noch nicht vollständig oder ungültig.');
+  });
+
+  it('sperrt den Schalter bei nicht unterstützten Filtern', () => {
+    const result = checkAlarmTogglePermitted({
+      userRole: 'manager',
+      hasSupportedFiltersOnly: false,
+    });
+    expect(result.permitted).toBe(false);
+    expect(result.reason).toBe(
+      'Diese Kachel nutzt Filter, die vom Server-Alarm nicht unterstützt werden.',
+    );
+  });
 });

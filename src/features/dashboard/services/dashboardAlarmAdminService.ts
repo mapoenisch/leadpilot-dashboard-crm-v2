@@ -32,14 +32,40 @@ export async function fetchAlarmWorkerStatus(): Promise<AlarmWorkerStatus> {
       logger.warn('[dashboardAlarmService] alarm_worker_status Fehler:', error);
       return fallback;
     }
-    const r = Array.isArray(data) ? data[0] : data;
+    const r = (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | null;
     if (!r) return fallback;
+
+    const letzterLaufStr = (r.letzterLaufAm ?? r.letzter_lauf ?? null) as string | null;
+    const letzterErfolgStr = (r.letzterErfolgAm ?? r.letzter_erfolg_am ?? letzterLaufStr) as
+      string | null;
+
+    let minuten: number | null = null;
+    if (typeof r.minutenSeitLetztemLauf === 'number') {
+      minuten = r.minutenSeitLetztemLauf;
+    } else if (typeof r.minuten_seit_letztem_lauf === 'number') {
+      minuten = r.minuten_seit_letztem_lauf;
+    } else if (letzterErfolgStr) {
+      const diffMs = Date.now() - new Date(letzterErfolgStr).getTime();
+      minuten = Math.max(0, Math.round(diffMs / 60000));
+    }
+
+    const status = (r.status ?? 'ok') as AlarmWorkerStatus['status'];
+    const ueberfaellig =
+      status === 'ueberfaellig' ||
+      (typeof r.ueberfaellig === 'boolean' ? r.ueberfaellig : minuten !== null && minuten >= 15);
+    const auswertungAktiv =
+      typeof r.auswertungAktiv === 'boolean'
+        ? r.auswertungAktiv
+        : typeof r.auswertung_aktiv === 'boolean'
+          ? r.auswertung_aktiv
+          : true;
+
     return {
-      status: r.status,
-      letzterLauf: r.letzter_lauf,
-      minutenSeitLetztemLauf: r.minuten_seit_letztem_lauf,
-      auswertungAktiv: r.auswertung_aktiv,
-      ueberfaellig: Boolean(r.ueberfaellig),
+      status,
+      letzterLauf: letzterLaufStr,
+      minutenSeitLetztemLauf: minuten,
+      auswertungAktiv,
+      ueberfaellig,
     };
   } catch {
     return fallback;

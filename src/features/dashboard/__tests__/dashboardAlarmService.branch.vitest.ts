@@ -326,6 +326,23 @@ describe('dashboardAlarmService & admin branches (Supabase RPC)', () => {
       mockRpc.mockRejectedValueOnce(new Error('err'));
       const s3 = await fetchAlarmWorkerStatus();
       expect(s3.status).toBe('ok');
+
+      mockRpc.mockResolvedValueOnce({
+        data: {
+          status: 'ueberfaellig',
+          letzterLaufAm: '2026-11-19T10:00:00Z',
+          letzterErfolgAm: '2026-11-19T09:00:00Z',
+          auswertungAktiv: false,
+          aktiveRegeln: 5,
+        },
+        error: null,
+      });
+      const s4 = await fetchAlarmWorkerStatus();
+      expect(s4.status).toBe('ueberfaellig');
+      expect(s4.ueberfaellig).toBe(true);
+      expect(s4.auswertungAktiv).toBe(false);
+      expect(s4.letzterLauf).toBe('2026-11-19T10:00:00Z');
+      expect(typeof s4.minutenSeitLetztemLauf).toBe('number');
     });
 
     it('fetchOrganizationAlarmRules Mapping und Fehler', async () => {

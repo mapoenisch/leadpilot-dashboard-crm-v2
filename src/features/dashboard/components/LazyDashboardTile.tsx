@@ -95,7 +95,12 @@ export function LazyDashboardTile({
     alarmInfo?.reason ?? (tileRecord.alarmPauseReason as string | undefined) ?? undefined;
 
   const dataTimestamp =
-    data && 'timestamp' in data ? (data as { timestamp?: string }).timestamp : undefined;
+    data &&
+    ('asOf' in data && data.asOf
+      ? data.asOf
+      : 'timestamp' in data
+        ? (data as { timestamp?: string }).timestamp
+        : undefined);
   const isStaleData = isDataOlderThanMaxAlarmAge(dataTimestamp);
   const evaluation = useMemo(() => {
     if (!effectiveThreshold || !isSingleValue) return undefined;
