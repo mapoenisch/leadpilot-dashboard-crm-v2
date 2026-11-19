@@ -129,24 +129,22 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
   };
 
   const handleChangeMindestdauer = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (!existingRule) return;
+    if (!existingRule || isDirty) return;
     const laeufe = parseInt(e.target.value, 10);
     await updateRule({
       ruleId: existingRule.id,
-      ruleConfig:
-        (selectedTile.threshold as unknown as Record<string, unknown>) ?? existingRule.ruleConfig,
+      ruleConfig: existingRule.ruleConfig,
       mindestdauerLaeufe: laeufe,
       abklingzeitSekunden: existingRule.abklingzeitSekunden,
     });
   };
 
   const handleChangeAbklingzeit = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (!existingRule) return;
+    if (!existingRule || isDirty) return;
     const sek = parseInt(e.target.value, 10);
     await updateRule({
       ruleId: existingRule.id,
-      ruleConfig:
-        (selectedTile.threshold as unknown as Record<string, unknown>) ?? existingRule.ruleConfig,
+      ruleConfig: existingRule.ruleConfig,
       mindestdauerLaeufe: existingRule.mindestdauerLaeufe,
       abklingzeitSekunden: sek,
     });
@@ -229,7 +227,8 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
               data-testid="alarm-mindestdauer-select"
               value={existingRule.mindestdauerLaeufe}
               onChange={handleChangeMindestdauer}
-              className="w-full rounded bg-surface border border-white/10 px-2 py-1 text-xs text-white"
+              disabled={isDirty}
+              className="w-full rounded bg-surface border border-white/10 px-2 py-1 text-xs text-white disabled:opacity-50"
             >
               {MINDESTDAUER_OPTIONS.map((opt) => (
                 <option key={opt.label} value={opt.laeufe}>
@@ -248,7 +247,8 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
               data-testid="alarm-abklingzeit-select"
               value={existingRule.abklingzeitSekunden}
               onChange={handleChangeAbklingzeit}
-              className="w-full rounded bg-surface border border-white/10 px-2 py-1 text-xs text-white"
+              disabled={isDirty}
+              className="w-full rounded bg-surface border border-white/10 px-2 py-1 text-xs text-white disabled:opacity-50"
             >
               {ABKLINGZEIT_OPTIONS.map((opt) => (
                 <option key={opt.sekunden} value={opt.sekunden}>
@@ -261,6 +261,12 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
               Überschreitung.
             </p>
           </div>
+
+          {isDirty && (
+            <p className="text-[10px] text-amber-300">
+              Ungespeicherte Änderungen: Speichere das Dashboard, um Alarm-Parameter anzupassen.
+            </p>
+          )}
 
           <div className="flex items-center gap-2 pt-2 border-t border-white/10">
             <button

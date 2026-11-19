@@ -50,15 +50,17 @@ export async function fetchAlarmWorkerStatus(): Promise<AlarmWorkerStatus> {
     }
 
     const status = (r.status ?? 'ok') as AlarmWorkerStatus['status'];
-    const ueberfaellig =
-      status === 'ueberfaellig' ||
-      (typeof r.ueberfaellig === 'boolean' ? r.ueberfaellig : minuten !== null && minuten >= 15);
     const auswertungAktiv =
       typeof r.auswertungAktiv === 'boolean'
         ? r.auswertungAktiv
         : typeof r.auswertung_aktiv === 'boolean'
           ? r.auswertung_aktiv
-          : true;
+          : status !== 'pausiert';
+    const ueberfaellig =
+      status === 'ueberfaellig' ||
+      (typeof r.ueberfaellig === 'boolean'
+        ? r.ueberfaellig
+        : status !== 'pausiert' && auswertungAktiv && minuten !== null && minuten >= 15);
 
     return {
       status,

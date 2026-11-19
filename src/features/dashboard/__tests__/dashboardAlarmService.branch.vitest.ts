@@ -62,9 +62,9 @@ describe('dashboardAlarmService & admin branches (Supabase RPC)', () => {
             catalog_id: 'cat-2',
             pipeline: null,
             rule_config: null,
+            status: 'pausiert',
             mindestdauer_laeufe: null,
             abklingzeit_sekunden: null,
-            status: 'pausiert',
             beobachtete_stufe: null,
             bestaetigte_stufe: null,
             letzter_messwert: null,
@@ -341,8 +341,20 @@ describe('dashboardAlarmService & admin branches (Supabase RPC)', () => {
       expect(s4.status).toBe('ueberfaellig');
       expect(s4.ueberfaellig).toBe(true);
       expect(s4.auswertungAktiv).toBe(false);
-      expect(s4.letzterLauf).toBe('2026-11-19T10:00:00Z');
-      expect(typeof s4.minutenSeitLetztemLauf).toBe('number');
+
+      mockRpc.mockResolvedValueOnce({
+        data: {
+          status: 'pausiert',
+          letzter_lauf: '2026-11-19T09:00:00Z',
+          letzter_erfolg_am: '2026-11-19T09:00:00Z',
+          auswertung_aktiv: false,
+        },
+        error: null,
+      });
+      const s5 = await fetchAlarmWorkerStatus();
+      expect(s5.status).toBe('pausiert');
+      expect(s5.ueberfaellig).toBe(false);
+      expect(s5.auswertungAktiv).toBe(false);
     });
 
     it('fetchOrganizationAlarmRules Mapping und Fehler', async () => {

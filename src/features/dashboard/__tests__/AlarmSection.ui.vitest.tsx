@@ -187,6 +187,7 @@ describe('AlarmSection (Auftrag 168 / P13c)', () => {
     expect(mockUpdateRule).toHaveBeenCalledWith(
       expect.objectContaining({
         ruleId: 'rule-123',
+        ruleConfig: activeRule.ruleConfig,
         mindestdauerLaeufe: 3,
       }),
     );
@@ -197,9 +198,24 @@ describe('AlarmSection (Auftrag 168 / P13c)', () => {
     expect(mockUpdateRule).toHaveBeenCalledWith(
       expect.objectContaining({
         ruleId: 'rule-123',
+        ruleConfig: activeRule.ruleConfig,
         abklingzeitSekunden: 900,
       }),
     );
+
+    // Deaktiviert bei ungespeicherten Entwurfsänderungen (isDirty)
+    rerender(
+      <AlarmSection
+        selectedTile={mockTile}
+        dashboardId="dash-1"
+        catalogEntry={mockCatalogEntry}
+        hasValidRule={true}
+        isDirty={true}
+        canWrite={true}
+      />,
+    );
+    expect(screen.getByTestId('alarm-mindestdauer-select')).toBeDisabled();
+    expect(screen.getByTestId('alarm-abklingzeit-select')).toBeDisabled();
 
     // Pausieren
     const pauseBtn = screen.getByTestId('alarm-pause-btn');
