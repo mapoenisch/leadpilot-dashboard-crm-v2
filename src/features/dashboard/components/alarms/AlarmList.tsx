@@ -22,6 +22,7 @@ export const AlarmList: React.FC = () => {
   const [appendedEvents, setAppendedEvents] = useState<DashboardAlarmEventItem[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loadMoreFailed, setLoadMoreFailed] = useState(false);
   const [selectedEventForAck, setSelectedEventForAck] = useState<DashboardAlarmEventItem | null>(
     null,
   );
@@ -34,6 +35,7 @@ export const AlarmList: React.FC = () => {
     setAppendedEvents([]);
     setHasMore(true);
     setIsLoadingMore(false);
+    setLoadMoreFailed(false);
   }, [selectedDashboardId, nurUngelesen, nurWarnungKritisch]);
 
   const eventFilters = useMemo(
@@ -199,6 +201,7 @@ export const AlarmList: React.FC = () => {
   const handleLoadMore = async () => {
     const requestGen = filterGenRef.current;
     setIsLoadingMore(true);
+    setLoadMoreFailed(false);
     try {
       const nextOffset = displayEvents.length;
       const res = await fetchDashboardAlarmEventsV2({
@@ -218,8 +221,11 @@ export const AlarmList: React.FC = () => {
         }
         setAppendedEvents((prev) => [...prev, ...(res.data ?? [])]);
       } else {
-        setHasMore(false);
+        // Abruffehler bestätigt kein Listenende: Paging-Zustand behalten, erneuter Versuch möglich.
+        setLoadMoreFailed(true);
       }
+    } catch {
+      if (filterGenRef.current === requestGen) setLoadMoreFailed(true);
     } finally {
       setIsLoadingMore(false);
     }
@@ -328,8 +334,21 @@ export const AlarmList: React.FC = () => {
                 onClick={handleLoadMore}
                 className="rounded-md border border-border bg-surface px-4 py-2 text-xs font-semibold text-text hover:bg-surface-raised transition-colors cursor-pointer disabled:opacity-50"
               >
-                {isLoadingMore ? 'Lade weitere…' : 'Weitere laden'}
+                {isLoadingMore
+                  ? 'Lade weitere…'
+                  : loadMoreFailed
+                    ? 'Erneut versuchen'
+                    : 'Weitere laden'}
               </button>
+              {loadMoreFailed && (
+                <p
+                  data-testid="load-more-alarms-error"
+                  role="alert"
+                  className="mt-2 text-[11px] text-rose-300"
+                >
+                  Weitere Meldungen konnten nicht geladen werden.
+                </p>
+              )}
             </div>
           )}
         </div>

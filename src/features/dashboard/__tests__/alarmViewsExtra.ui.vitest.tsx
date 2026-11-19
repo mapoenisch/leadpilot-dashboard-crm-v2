@@ -201,6 +201,46 @@ describe('Alarm Views Extra Tests (Codex findings / P13c)', () => {
       expect(screen.getByTestId('load-more-alarms-btn')).toBeInTheDocument();
     });
 
+    it('behaelt Nachladen nach Abruffehler verfuegbar und zeigt Hinweis', async () => {
+      const makeEv = (id: string) => ({
+        id,
+        ruleId: 'r-1',
+        dashboardId: 'dash-1',
+        dashboardTitle: 'Dashboard 1',
+        tileId: 't-1',
+        catalogId: 'crm.leads',
+        alterZustand: 'normal',
+        neuerZustand: 'warnung',
+        messwert: 10,
+        einheit: null,
+        grenze: 5,
+        meldung: `Event ${id}`,
+        createdAt: '2026-11-19T10:00:00Z',
+        gelesen: false,
+        quittiertVon: [],
+      });
+      mockEvents = Array.from({ length: 50 }, (_, i) => makeEv(`ev-f-${i}`));
+      mockFetchDashboardAlarmEventsV2.mockResolvedValueOnce({ ok: false, error: 'Netz' });
+      render(
+        <MemoryRouter>
+          <AlarmList />
+        </MemoryRouter>,
+      );
+      fireEvent.click(screen.getByTestId('load-more-alarms-btn'));
+      await waitFor(() => expect(screen.getByTestId('load-more-alarms-error')).toBeDefined());
+      const btn = screen.getByTestId('load-more-alarms-btn');
+      expect(btn).toHaveTextContent('Erneut versuchen');
+      expect(btn).not.toBeDisabled();
+
+      mockFetchDashboardAlarmEventsV2.mockResolvedValueOnce({
+        ok: true,
+        data: [makeEv('ev-retry-1')],
+      });
+      fireEvent.click(btn);
+      await waitFor(() => expect(screen.getByText(/Event ev-retry-1/)).toBeInTheDocument());
+      expect(screen.queryByTestId('load-more-alarms-error')).toBeNull();
+    });
+
     it('aktiviert hasMore nach Abschluss des Ladevorgangs fuer vollstaendige erste Seite', async () => {
       const makeEv = (id: string) => ({
         id,

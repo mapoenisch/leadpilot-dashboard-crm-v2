@@ -337,16 +337,13 @@ export async function fetchUnreadAlarmCount(): Promise<number> {
     ).length;
   }
 
-  try {
-    const { data, error } = await requireSupabase().rpc('count_unread_dashboard_alarm_events');
-    if (error) {
-      logger.warn('[dashboardAlarmService] count_unread_dashboard_alarm_events Fehler:', error);
-      return 0;
-    }
-    return typeof data === 'number' ? data : 0;
-  } catch {
-    return 0;
+  // Fehler weiterreichen: TanStack Query bewahrt dann den letzten bestätigten Zähler.
+  const { data, error } = await requireSupabase().rpc('count_unread_dashboard_alarm_events');
+  if (error) {
+    logger.warn('[dashboardAlarmService] count_unread_dashboard_alarm_events Fehler:', error);
+    throw new Error(error.message || 'Ungelesen-Zähler konnte nicht geladen werden');
   }
+  return typeof data === 'number' ? data : 0;
 }
 
 export {

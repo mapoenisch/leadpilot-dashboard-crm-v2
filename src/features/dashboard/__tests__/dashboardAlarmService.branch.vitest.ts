@@ -294,11 +294,12 @@ describe('dashboardAlarmService & admin branches (Supabase RPC)', () => {
       mockRpc.mockResolvedValueOnce({ data: 7, error: null });
       expect(await fetchUnreadAlarmCount()).toBe(7);
 
+      // Fehler dürfen den Zähler nicht auf 0 setzen, sondern werden weitergereicht.
       mockRpc.mockResolvedValueOnce({ data: null, error: { message: 'err' } });
-      expect(await fetchUnreadAlarmCount()).toBe(0);
+      await expect(fetchUnreadAlarmCount()).rejects.toThrow('err');
 
-      mockRpc.mockRejectedValueOnce(new Error('err'));
-      expect(await fetchUnreadAlarmCount()).toBe(0);
+      mockRpc.mockRejectedValueOnce(new Error('netz'));
+      await expect(fetchUnreadAlarmCount()).rejects.toThrow('netz');
     });
   });
 
