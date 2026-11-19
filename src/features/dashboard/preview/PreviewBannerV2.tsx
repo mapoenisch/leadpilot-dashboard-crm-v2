@@ -76,7 +76,7 @@ export const PreviewBannerV2: React.FC<PreviewBannerV2Props> = ({
               Admin
             </button>
           </div>
-          <AlarmWorkerBanner isAdmin={true} className="hidden md:flex py-0.5 px-2" />
+          <AlarmWorkerBanner isAdmin={true} className="flex py-0.5 px-2" />
           <AlarmBell
             onClick={(e) => {
               e.preventDefault();
