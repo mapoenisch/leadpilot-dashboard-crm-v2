@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Layout } from '@/components/layout/Layout';
 import { queryClient } from '@/app/queryClient';
 import { APP_ROUTES } from '@/app/routes';
 import { ROUTE_PAGES, TileDetailPage } from '@/app/routePages';
@@ -31,6 +30,12 @@ const DesignSystemPage = React.lazy(() =>
 const HeaderAlarmSlot = React.lazy(() =>
   import('@/features/dashboard/components/alarms/HeaderAlarmSlot').then((m) => ({
     default: m.HeaderAlarmSlot,
+  })),
+);
+
+const Layout = React.lazy(() =>
+  import('@/components/layout/Layout').then((m) => ({
+    default: m.Layout,
   })),
 );
 
@@ -113,13 +118,15 @@ export function App() {
                 <Route element={<ProtectedRoute />}>
                   <Route
                     element={
-                      <Layout
-                        alarmSlot={
-                          <React.Suspense fallback={null}>
-                            <HeaderAlarmSlot />
-                          </React.Suspense>
-                        }
-                      />
+                      <React.Suspense fallback={<RouteFallback />}>
+                        <Layout
+                          alarmSlot={
+                            <React.Suspense fallback={null}>
+                              <HeaderAlarmSlot />
+                            </React.Suspense>
+                          }
+                        />
+                      </React.Suspense>
                     }
                   >
                     {/* Root-Redirect zum Executive Dashboard */}

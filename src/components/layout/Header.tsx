@@ -31,7 +31,7 @@ export function Header({
   alarmSlot,
 }: HeaderProps) {
   return (
-    <header className="border-0 app-header flex items-center justify-between flex-wrap gap-[var(--space-3)] box-border w-full min-h-[56px] border-b border-solid border-border bg-[var(--color-shell-header)] backdrop-blur-sm px-[var(--space-4)] z-10">
+    <header className="border-0 app-header flex items-center justify-between flex-wrap gap-[var(--space-3)] box-border w-full min-h-[56px] border-b border-solid border-border bg-[var(--color-shell-header)] backdrop-blur-sm px-[var(--space-4)] max-[480px]:!px-2 z-10">
       <div className="flex items-center gap-[var(--space-3)] min-w-0 flex-[1_1_auto]">
         {isMobile && onToggleMobileMenu && (
           <button
@@ -49,7 +49,7 @@ export function Header({
 
         <div className="flex items-center gap-[var(--space-2)] min-w-0 overflow-hidden flex-1">
           {categoryLabel && (
-            <span className="header-category-label whitespace-nowrap text-[12px] uppercase tracking-[0.05em] text-[var(--color-text-muted)]">
+            <span className="header-category-label max-[600px]:hidden whitespace-nowrap text-[12px] uppercase tracking-[0.05em] text-[var(--color-text-muted)]">
               {categoryLabel} /
             </span>
           )}
@@ -85,7 +85,7 @@ export function Header({
             >
               {userEmail.charAt(0)}
             </div>
-            <div className="header-user-details text-[12px] min-w-0">
+            <div className="header-user-details max-[480px]:hidden text-[12px] min-w-0">
               <div className="text-text font-semibold whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
                 {userEmail}
               </div>
@@ -112,27 +112,10 @@ export function Header({
             className="inline-flex items-center gap-[6px] shrink-0 cursor-pointer rounded-md border border-solid border-border bg-transparent px-[10px] py-[6px] text-[12.5px] font-medium text-text transition-colors hover:bg-surface-raised"
           >
             <LogOut size={16} className="text-primary" aria-hidden="true" />
-            <span className="header-logout-label">Abmelden</span>
+            <span className="header-logout-label max-[480px]:hidden">Abmelden</span>
           </button>
         )}
       </div>
-
-      <style>{`
-        @media (max-width: 600px) {
-          .header-category-label {
-            display: none !important;
-          }
-        }
-        @media (max-width: 480px) {
-          .app-header {
-            padding: 0 8px !important;
-          }
-          .header-user-details,
-          .header-logout-label {
-            display: none !important;
-          }
-        }
-      `}</style>
     </header>
   );
 }
