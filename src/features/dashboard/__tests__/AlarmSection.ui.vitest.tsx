@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AlarmSection } from '../components/editor/inspector/threshold/AlarmSection';
 import type { DashboardTileConfigV2 } from '../model/dashboardConfigV2';
 import type { ActiveCatalogEntry } from '../model/dashboardCatalog';
@@ -11,6 +11,8 @@ const mockPauseRule = vi.fn().mockResolvedValue({});
 const mockResumeRule = vi.fn().mockResolvedValue({});
 const mockDeleteRule = vi.fn().mockResolvedValue({});
 let mockRules: DashboardAlarmRule[] = [];
+let mockRulesSuccess = true;
+let mockRulesError = false;
 
 vi.mock('@/auth/organizationContext', () => ({
   useOrganization: () => ({
@@ -22,6 +24,8 @@ vi.mock('@/auth/organizationContext', () => ({
 vi.mock('../hooks/useDashboardAlarms', () => ({
   useDashboardAlarms: () => ({
     rules: mockRules,
+    isRulesSuccess: mockRulesSuccess,
+    isRulesError: mockRulesError,
     createRule: mockCreateRule,
     updateRule: mockUpdateRule,
     pauseRule: mockPauseRule,
@@ -73,6 +77,8 @@ describe('AlarmSection (Auftrag 168 / P13c)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRules = [];
+    mockRulesSuccess = true;
+    mockRulesError = false;
   });
 
   it('rendert den Alarm-Abschnitt mit Checkbox', () => {
@@ -193,14 +199,20 @@ describe('AlarmSection (Auftrag 168 / P13c)', () => {
     );
 
     // Abklingzeit ändern
+    // Abklingzeit ändern – erst nach Abschluss des ersten Updates, und mit der
+    // gerade gewählten Mindestdauer (kein gegenseitiges Überschreiben).
     const abklingzeitSelect = screen.getByTestId('alarm-abklingzeit-select');
+    await waitFor(() => expect(abklingzeitSelect).not.toBeDisabled());
     fireEvent.change(abklingzeitSelect, { target: { value: '900' } });
-    expect(mockUpdateRule).toHaveBeenCalledWith(
-      expect.objectContaining({
-        ruleId: 'rule-123',
-        ruleConfig: activeRule.ruleConfig,
-        abklingzeitSekunden: 900,
-      }),
+    await waitFor(() =>
+      expect(mockUpdateRule).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          ruleId: 'rule-123',
+          ruleConfig: activeRule.ruleConfig,
+          mindestdauerLaeufe: 3,
+          abklingzeitSekunden: 900,
+        }),
+      ),
     );
 
     // Deaktiviert bei ungespeicherten Entwurfsänderungen (isDirty)
@@ -332,5 +344,79 @@ describe('AlarmSection (Auftrag 168 / P13c)', () => {
     );
 
     expect(mockPauseRule).toHaveBeenCalledWith('rule-sync-2');
+  });
+  it('sperrt den Alarm-Schalter, solange die Regeln nicht erfolgreich geladen sind', () => {
+    mockRulesSuccess = false;
+    const { rerender } = render(
+      <AlarmSection
+        selectedTile={mockTile}
+        dashboardId="dash-1"
+        catalogEntry={mockCatalogEntry}
+        hasValidRule={true}
+        isDirty={false}
+        canWrite={true}
+      />,
+    );
+    const checkbox = screen.getByTestId('alarm-toggle-checkbox');
+    expect(checkbox).toBeDisabled();
+    expect(screen.getByTestId('alarm-rules-unknown')).toHaveTextContent('werden geladen');
+    fireEvent.click(checkbox);
+    expect(mockCreateRule).not.toHaveBeenCalled();
+
+    mockRulesError = true;
+    rerender(
+      <AlarmSection
+        selectedTile={mockTile}
+        dashboardId="dash-1"
+        catalogEntry={mockCatalogEntry}
+        hasValidRule={true}
+        isDirty={false}
+        canWrite={true}
+      />,
+    );
+    expect(screen.getByTestId('alarm-rules-unknown')).toHaveTextContent(
+      'konnten nicht geladen werden',
+    );
+    expect(screen.getByTestId('alarm-toggle-checkbox')).toBeDisabled();
+  });
+
+  it('sperrt die Parameter-Auswahl, solange ein Update läuft', async () => {
+    let resolveUpdate: (v: { ok: boolean }) => void = () => {};
+    mockUpdateRule.mockImplementationOnce(
+      () => new Promise<{ ok: boolean }>((r) => (resolveUpdate = r)),
+    );
+    mockRules = [
+      {
+        id: 'rule-9',
+        dashboardId: 'dash-1',
+        tileId: mockTile.id,
+        catalogId: 'crm.pipeline_deals',
+        status: 'aktiv',
+        mindestdauerLaeufe: 2,
+        abklingzeitSekunden: 3600,
+        ruleConfig: mockTile.threshold as unknown as Record<string, unknown>,
+        responsibleUserId: 'user-1',
+        createdAt: '2026-11-19T10:00:00Z',
+        updatedAt: '2026-11-19T10:00:00Z',
+      },
+    ];
+    render(
+      <AlarmSection
+        selectedTile={mockTile}
+        dashboardId="dash-1"
+        catalogEntry={mockCatalogEntry}
+        hasValidRule={true}
+        isDirty={false}
+        canWrite={true}
+      />,
+    );
+    fireEvent.change(screen.getByTestId('alarm-mindestdauer-select'), { target: { value: '6' } });
+    expect(screen.getByTestId('alarm-abklingzeit-select')).toBeDisabled();
+    expect(screen.getByTestId('alarm-mindestdauer-select')).toHaveValue('6');
+
+    resolveUpdate({ ok: false });
+    await waitFor(() => expect(screen.getByTestId('alarm-abklingzeit-select')).not.toBeDisabled());
+    // Fehlgeschlagenes Update verwirft den Entwurf wieder.
+    expect(screen.getByTestId('alarm-mindestdauer-select')).toHaveValue('2');
   });
 });

@@ -256,6 +256,8 @@ export function useDashboardAlarms(
   return {
     rules: rulesQuery.data ?? [],
     isRulesLoading: rulesQuery.isLoading,
+    isRulesSuccess: rulesQuery.isSuccess,
+    isRulesError: rulesQuery.isError,
     events: eventsQuery.data ?? [],
     isEventsLoading: eventsQuery.isLoading,
     isEventsError: eventsQuery.isError,

@@ -49,15 +49,39 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
   const { session } = useOrganization();
   const userRole = session?.role ?? 'viewer';
 
-  const { rules, createRule, updateRule, pauseRule, resumeRule, deleteRule } = useDashboardAlarms({
+  const {
+    rules,
+    isRulesSuccess,
+    isRulesError,
+    createRule,
+    updateRule,
+    pauseRule,
+    resumeRule,
+    deleteRule,
+  } = useDashboardAlarms({
     dashboardId,
   });
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // Gemeinsamer Entwurf für Mindestdauer/Abklingzeit, solange ein Update samt Refetch läuft.
+  // Verhindert, dass zwei schnelle Änderungen sich gegenseitig überschreiben.
+  const [pendingParams, setPendingParams] = useState<{
+    mindestdauerLaeufe: number;
+    abklingzeitSekunden: number;
+  } | null>(null);
+  const [isSavingParams, setIsSavingParams] = useState(false);
 
   const existingRule = rules.find((r) => r.tileId === selectedTile.id);
   const isAlarmEnabled = Boolean(existingRule);
+  // Leere Liste zählt erst nach erfolgreichem Abruf als „keine Regel vorhanden“.
+  const rulesKnown = isRulesSuccess === true;
+  const currentParams = existingRule
+    ? (pendingParams ?? {
+        mindestdauerLaeufe: existingRule.mindestdauerLaeufe,
+        abklingzeitSekunden: existingRule.abklingzeitSekunden,
+      })
+    : null;
 
   const catalogId = (catalogEntry as ActiveCatalogEntry)?.id ?? selectedTile.catalogId ?? '';
   const capability = getAlarmCapability(catalogId);
@@ -111,7 +135,7 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
   const handleToggleAlarm = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const checked = e.target.checked;
     if (checked) {
-      if (!dashboardId || !selectedTile.threshold) return;
+      if (!rulesKnown || existingRule || !dashboardId || !selectedTile.threshold) return;
       await createRule({
         dashboardId,
         tileId: selectedTile.id,
@@ -128,26 +152,43 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
     }
   };
 
+  // Entwurf verwerfen, sobald der Server-Stand die gesendeten Werte bestätigt.
+  useEffect(() => {
+    if (!pendingParams || !existingRule || isSavingParams) return;
+    if (
+      existingRule.mindestdauerLaeufe === pendingParams.mindestdauerLaeufe &&
+      existingRule.abklingzeitSekunden === pendingParams.abklingzeitSekunden
+    ) {
+      setPendingParams(null);
+    }
+  }, [existingRule, pendingParams, isSavingParams]);
+
+  const saveParams = async (next: { mindestdauerLaeufe: number; abklingzeitSekunden: number }) => {
+    if (!existingRule || isDirty || isSavingParams) return;
+    setPendingParams(next);
+    setIsSavingParams(true);
+    try {
+      const res = await updateRule({
+        ruleId: existingRule.id,
+        ruleConfig: existingRule.ruleConfig,
+        ...next,
+      });
+      if (res?.ok === false) setPendingParams(null);
+    } catch {
+      setPendingParams(null);
+    } finally {
+      setIsSavingParams(false);
+    }
+  };
+
   const handleChangeMindestdauer = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (!existingRule || isDirty) return;
-    const laeufe = parseInt(e.target.value, 10);
-    await updateRule({
-      ruleId: existingRule.id,
-      ruleConfig: existingRule.ruleConfig,
-      mindestdauerLaeufe: laeufe,
-      abklingzeitSekunden: existingRule.abklingzeitSekunden,
-    });
+    if (!currentParams) return;
+    await saveParams({ ...currentParams, mindestdauerLaeufe: parseInt(e.target.value, 10) });
   };
 
   const handleChangeAbklingzeit = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (!existingRule || isDirty) return;
-    const sek = parseInt(e.target.value, 10);
-    await updateRule({
-      ruleId: existingRule.id,
-      ruleConfig: existingRule.ruleConfig,
-      mindestdauerLaeufe: existingRule.mindestdauerLaeufe,
-      abklingzeitSekunden: sek,
-    });
+    if (!currentParams) return;
+    await saveParams({ ...currentParams, abklingzeitSekunden: parseInt(e.target.value, 10) });
   };
 
   const handlePauseResume = async () => {
@@ -178,7 +219,7 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
             type="checkbox"
             data-testid="alarm-toggle-checkbox"
             checked={isAlarmEnabled}
-            disabled={!permCheck.permitted && !isAlarmEnabled}
+            disabled={!isAlarmEnabled && (!permCheck.permitted || !rulesKnown)}
             onChange={handleToggleAlarm}
             className="rounded border-[var(--color-border,#1b3d39)]"
           />
@@ -188,6 +229,17 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
           </span>
         </label>
       </div>
+
+      {!isAlarmEnabled && permCheck.permitted && !rulesKnown && (
+        <p
+          data-testid="alarm-rules-unknown"
+          className="mt-2 text-[11px] text-[var(--color-text-muted)]"
+        >
+          {isRulesError
+            ? 'Alarmregeln konnten nicht geladen werden. Einschalten ist erst nach erfolgreichem Laden möglich.'
+            : 'Alarmregeln werden geladen …'}
+        </p>
+      )}
 
       {!permCheck.permitted && !isAlarmEnabled && (
         <div
@@ -225,9 +277,9 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
             <label className="block text-[11px] font-medium text-white mb-1">Mindestdauer:</label>
             <select
               data-testid="alarm-mindestdauer-select"
-              value={existingRule.mindestdauerLaeufe}
+              value={currentParams?.mindestdauerLaeufe ?? existingRule.mindestdauerLaeufe}
               onChange={handleChangeMindestdauer}
-              disabled={isDirty}
+              disabled={isDirty || isSavingParams}
               className="w-full rounded bg-surface border border-white/10 px-2 py-1 text-xs text-white disabled:opacity-50"
             >
               {MINDESTDAUER_OPTIONS.map((opt) => (
@@ -245,9 +297,9 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
             <label className="block text-[11px] font-medium text-white mb-1">Abklingzeit:</label>
             <select
               data-testid="alarm-abklingzeit-select"
-              value={existingRule.abklingzeitSekunden}
+              value={currentParams?.abklingzeitSekunden ?? existingRule.abklingzeitSekunden}
               onChange={handleChangeAbklingzeit}
-              disabled={isDirty}
+              disabled={isDirty || isSavingParams}
               className="w-full rounded bg-surface border border-white/10 px-2 py-1 text-xs text-white disabled:opacity-50"
             >
               {ABKLINGZEIT_OPTIONS.map((opt) => (

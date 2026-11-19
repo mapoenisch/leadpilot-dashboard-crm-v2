@@ -26,52 +26,50 @@ export async function fetchAlarmWorkerStatus(): Promise<AlarmWorkerStatus> {
     return inMemoryAlarmStore.workerStatus ?? fallback;
   }
 
-  try {
-    const { data, error } = await requireSupabase().rpc('alarm_worker_status');
-    if (error) {
-      logger.warn('[dashboardAlarmService] alarm_worker_status Fehler:', error);
-      return fallback;
-    }
-    const r = (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | null;
-    if (!r) return fallback;
-
-    const letzterLaufStr = (r.letzterLaufAm ?? r.letzter_lauf ?? null) as string | null;
-    const letzterErfolgStr = (r.letzterErfolgAm ?? r.letzter_erfolg_am ?? letzterLaufStr) as
-      string | null;
-
-    let minuten: number | null = null;
-    if (typeof r.minutenSeitLetztemLauf === 'number') {
-      minuten = r.minutenSeitLetztemLauf;
-    } else if (typeof r.minuten_seit_letztem_lauf === 'number') {
-      minuten = r.minuten_seit_letztem_lauf;
-    } else if (letzterErfolgStr) {
-      const diffMs = Date.now() - new Date(letzterErfolgStr).getTime();
-      minuten = Math.max(0, Math.round(diffMs / 60000));
-    }
-
-    const status = (r.status ?? 'ok') as AlarmWorkerStatus['status'];
-    const auswertungAktiv =
-      typeof r.auswertungAktiv === 'boolean'
-        ? r.auswertungAktiv
-        : typeof r.auswertung_aktiv === 'boolean'
-          ? r.auswertung_aktiv
-          : status !== 'pausiert';
-    const ueberfaellig =
-      status === 'ueberfaellig' ||
-      (typeof r.ueberfaellig === 'boolean'
-        ? r.ueberfaellig
-        : status !== 'pausiert' && auswertungAktiv && minuten !== null && minuten >= 15);
-
-    return {
-      status,
-      letzterLauf: letzterLaufStr,
-      minutenSeitLetztemLauf: minuten,
-      auswertungAktiv,
-      ueberfaellig,
-    };
-  } catch {
-    return fallback;
+  // Fehler werden bewusst weitergereicht: TanStack Query behält dann den letzten
+  // bestätigten Status, statt einen gesunden Worker vorzutäuschen (Codex-Befund PR #209).
+  const { data, error } = await requireSupabase().rpc('alarm_worker_status');
+  if (error) {
+    logger.warn('[dashboardAlarmService] alarm_worker_status Fehler:', error);
+    throw new Error(error.message || 'Worker-Status konnte nicht geladen werden');
   }
+  const r = (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | null;
+  if (!r) throw new Error('Worker-Status ohne Daten');
+
+  const letzterLaufStr = (r.letzterLaufAm ?? r.letzter_lauf ?? null) as string | null;
+  const letzterErfolgStr = (r.letzterErfolgAm ?? r.letzter_erfolg_am ?? letzterLaufStr) as
+    string | null;
+
+  let minuten: number | null = null;
+  if (typeof r.minutenSeitLetztemLauf === 'number') {
+    minuten = r.minutenSeitLetztemLauf;
+  } else if (typeof r.minuten_seit_letztem_lauf === 'number') {
+    minuten = r.minuten_seit_letztem_lauf;
+  } else if (letzterErfolgStr) {
+    const diffMs = Date.now() - new Date(letzterErfolgStr).getTime();
+    minuten = Math.max(0, Math.round(diffMs / 60000));
+  }
+
+  const status = (r.status ?? 'ok') as AlarmWorkerStatus['status'];
+  const auswertungAktiv =
+    typeof r.auswertungAktiv === 'boolean'
+      ? r.auswertungAktiv
+      : typeof r.auswertung_aktiv === 'boolean'
+        ? r.auswertung_aktiv
+        : status !== 'pausiert';
+  const ueberfaellig =
+    status === 'ueberfaellig' ||
+    (typeof r.ueberfaellig === 'boolean'
+      ? r.ueberfaellig
+      : status !== 'pausiert' && auswertungAktiv && minuten !== null && minuten >= 15);
+
+  return {
+    status,
+    letzterLauf: letzterLaufStr,
+    minutenSeitLetztemLauf: minuten,
+    auswertungAktiv,
+    ueberfaellig,
+  };
 }
 
 export async function fetchOrganizationAlarmRules(): Promise<{

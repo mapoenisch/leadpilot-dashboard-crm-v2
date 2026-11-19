@@ -319,13 +319,15 @@ describe('dashboardAlarmService & admin branches (Supabase RPC)', () => {
       const s1 = await fetchAlarmWorkerStatus();
       expect(s1.status).toBe('ok');
 
+      // Fehler dürfen keinen gesunden Worker vortäuschen, sondern werden weitergereicht.
       mockRpc.mockResolvedValueOnce({ data: null, error: { message: 'err' } });
-      const s2 = await fetchAlarmWorkerStatus();
-      expect(s2.status).toBe('ok'); // fallback
+      await expect(fetchAlarmWorkerStatus()).rejects.toThrow('err');
 
-      mockRpc.mockRejectedValueOnce(new Error('err'));
-      const s3 = await fetchAlarmWorkerStatus();
-      expect(s3.status).toBe('ok');
+      mockRpc.mockResolvedValueOnce({ data: null, error: null });
+      await expect(fetchAlarmWorkerStatus()).rejects.toThrow('Worker-Status ohne Daten');
+
+      mockRpc.mockRejectedValueOnce(new Error('netz'));
+      await expect(fetchAlarmWorkerStatus()).rejects.toThrow('netz');
 
       mockRpc.mockResolvedValueOnce({
         data: {
