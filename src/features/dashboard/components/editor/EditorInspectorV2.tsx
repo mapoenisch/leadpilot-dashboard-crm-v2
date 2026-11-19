@@ -46,6 +46,7 @@ export interface EditorInspectorV2Props {
   isSectionCollapsed?: (sectionId: string) => boolean;
   useData?: import('../LazyDashboardTile').TileDataHook;
   currentValue?: number | null;
+  isDirty?: boolean;
   className?: string;
 }
 
@@ -131,6 +132,7 @@ function TileInspectorContent({
   isSectionCollapsed,
   useData = noopTileDataHook,
   currentValue,
+  isDirty = false,
 }: TileInspectorContentProps) {
   const [activeTab, setActiveTab] = useState<InspectorTab>('darstellung');
 
@@ -328,6 +330,8 @@ function TileInspectorContent({
             catalogEntry={catalogEntry}
             currentValue={currentTileValue}
             tileDataState={tileData?.state}
+            dashboardId={config.id}
+            isDirty={isDirty}
           />
         )}
         {activeTab === 'interaktion' && (

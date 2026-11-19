@@ -280,6 +280,18 @@ export const APP_ROUTES = [
     title: 'Systemdiagnose',
     categoryLabel: 'Administration',
   },
+  {
+    id: 's-admin-alarms',
+    path: '/admin/alarme',
+    title: 'Dashboard-Alarme',
+    categoryLabel: 'Administration',
+  },
+  {
+    id: 's-dashboard-alarme',
+    path: '/dashboard/alarme',
+    title: 'Dashboard-Alarme',
+    categoryLabel: 'Übersicht',
+  },
 ] as const;
 
 export type AppRouteId = (typeof APP_ROUTES)[number]['id'];
@@ -338,8 +350,10 @@ if (import.meta.env.DEV) {
     's-admin-teams',
     's-admin-audit',
     's-admin-health',
+    's-admin-alarms',
   ]);
-  const standardRoutes = APP_ROUTES.filter((r) => !adminRouteIds.has(r.id));
+  const nonNavRouteIds = new Set([...adminRouteIds, 's-dashboard-alarme']);
+  const standardRoutes = APP_ROUTES.filter((r) => !nonNavRouteIds.has(r.id));
   if (standardRoutes.length !== allNavIds.size) {
     logger.error(
       `[routes.tsx] Anzahl Standard-Routen (${standardRoutes.length}) weicht von NAV_CATEGORIES (${allNavIds.size}) ab!`,

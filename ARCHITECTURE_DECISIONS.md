@@ -2250,6 +2250,20 @@ Artefakt-/Versionsabgleichs.
 - **Ereignisse unveränderlich, Aufbewahrung 12 Monate (Entscheidung Marc 18.11.2026):** Alarmereignisse in `dashboard_alarm_events` sind unveränderlich (Append-Only) und werden über `cleanup_dashboard_alarm_events()` nach 12 Monaten bereinigt. Für Dashboard-Revisionen behält `cleanup_dashboard_revisions()` die neuesten 100 Revisionen sowie Revision 1 und historische Wiederherstellungsquellen dauerhaft; ältere Revisionen werden erst nach 12 Monaten gelöscht.
 - **Server-Alarm-Engine mit `pg_cron` & Lebenszeichen:** `evaluate_dashboard_alarms(p_now)` läuft alle 5 Minuten per `pg_cron`. Zustandswechsel erfordern Bestätigung über Hysterese (`mindestdauer_laeufe`) und Abklingzeit (`abklingzeit_sekunden`), während `kritisch` sofort eskaliert. Bei Rollenverlust des Erstellers pausieren Regeln automatisch. `alarm_worker_status()` signalisiert `ok`, `ueberfaellig` (ab 15 min Verzug) oder `pausiert` (globaler Not-Aus via `alarm_settings.is_paused`).
 
+## C13. Dashboard V2 Alarme in der App, Lesebestätigung, Quittierung & Admin-Übernahme (Auftrag 168 / P13c, 2026-11-25)
+
+- **Migration `20261125_dashboard_alarm_receipts.sql`:** Einführung der Quittierungs- und Lesebestätigungstabelle `dashboard_alarm_receipts` mit zusammengesetztem Primärschlüssel `(event_id, user_id)`.
+- **Persönliche Quittierung und Lesebestätigung:**
+  - Lesebestätigung (`gelesen_am`) und Quittierung (`quittiert_am`, `kommentar`) erfolgen strikt persönlich pro Benutzer (`auth.uid()`).
+  - RPC `acknowledge_dashboard_alarm_event(p_event_id, p_kommentar)` und `mark_dashboard_alarm_events_read(p_event_ids)`.
+  - **Quittieren ändert keinen Zustand:** Die Quittierung hinterlässt einen revisionssicheren Prüfvermerk, beendet jedoch nicht den Alarmzustand der Regel und verändert nicht `dashboard_alarm_state`. Der Zustand wird ausschließlich durch den Server-Worker bei wiederkehrenden Normalwerten bereinigt.
+- **Admin-Übernahme verwaister Regeln (`/admin/alarme`):**
+  - Verliert ein Regelersteller seine Rechte, setzt der Server-Worker den Zustand auf `verantwortlicher_ohne_rechte`.
+  - Admins und Manager können über die dedizierte Seite `/admin/alarme` verwaiste Regeln einsehen und über `takeover_dashboard_alarm_rule(rule_id)` die Verantwortung übernehmen. Dadurch wird `verantwortlicher_user_id` auf den aufrufenden Admin gesetzt und die Regel reaktiviert.
+- **Lebenszeichen-Ausfallhinweis (`AlarmWorkerBanner`):**
+  - Bleibt der pg_cron-Worker länger als 15 Minuten aus oder ist Not-Aus aktiv, wird im Header ein deutlicher Warnhinweis eingeblendet (`alarm_worker_status()` `ueberfaellig` / `pausiert`).
+- **Phasenabschluss P13:** Mit P13a (Schwellenwertmodell & Alarmfähigkeit), P13b (Server-Engine mit pg_cron & Parität) und P13c (In-App-Alarme, Quittierung & Admin-Übernahme) ist Phase P13 des Dashboard-Editor-Masterplans vollständig abgeschlossen.
+
 ---
 
 ---
@@ -2331,6 +2345,7 @@ Fassungen mit widersprüchlicher „Nächste Entscheidungsnummer“ — **1224, 
 | 2026-11-18    | AUFTRAG 166 (P13a) — Dashboard-Editor: Schwellenwerte auf Kacheln, Alarmfähigkeit je KPI (16/13/33 Matrix), Abwärtskompatibilität alter Regeln, TileThresholdBadge, Inspector-Alarme-Tab, Betriebsweg Out-of-Process Worker. 36 Gate-Screenshots und E2E grün. Phase P13a abgeschlossen.                                                                                           |
 | 2026-11-18    | Revision zu P13a (Auftrag 167): Der in P13a beschriebene Out-of-Process Worker entspricht nicht Marcs Entscheidung. Maßgeblich ist Auftrag 166 §8: `pg_cron` in der Datenbank, 5 Minuten, Ausfallhinweis ab 15 Minuten, Alarmregeln nur Manager/Admin; Umsetzung in P13b (Auftrag 167). Vorherige Zeile bleibt als Entwurfshistorie unverändert stehen.                            |
 | 2026-11-24    | AUFTRAG 167 (P13b) — Dashboard-Editor: Server-Alarme mit `pg_cron`, Paritätsnachweis, Lebenszeichen, Revisions-Aufbewahrung (Migration `20261124_dashboard_alarms.sql`, 16 alarmfähige KPIs, gemeinsame CRM-Berechnung `dashboard_crm_pipeline_overview_for_org`, 24h-Datenfrische für Live-Werte, 12 Monate Revisions- und Alarm-Aufbewahrung, Not-Aus, 90 pgTAP-Paritätstests). Phase P13b abgeschlossen. |
+| 2026-11-25    | AUFTRAG 168 (P13c) — Dashboard-Editor: Alarme in der App, Lesebestätigung, Quittierung & Admin-Übernahme (Migration `20261125_dashboard_alarm_receipts.sql`, Quittierung/Lesebestätigung persönlich, Quittieren ändert keinen Zustand, Admin-Übernahme unter `/admin/alarme`, Ausfall-Banner im Header, Alarmliste unter `/dashboard/alarme`). Phase P13 abgeschlossen. |
 
 ## D5. MASTERSTATUS
 

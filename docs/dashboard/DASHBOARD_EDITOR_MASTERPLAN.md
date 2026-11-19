@@ -338,6 +338,16 @@ Die Nummern legen die vorgesehene Reihenfolge fest. Die Spalte „Fachliche Vora
 5. Überwachung & Not-Aus: `alarm_worker_status()` (`ok`, `ueberfaellig` ab 15 min, `pausiert`), `alarm_settings.is_paused` als globaler Not-Aus, `alarm_worker_runs` Protokollierung.
 6. Alle Prüfungen und Gates bestanden: 24 pgTAP-Dateien (607 Tests), 449 Vitest-Dateien (3371 Tests) grün, TypeScript fehlerfrei, 200 Regeln in 16 ms ausgewertet (Budget < 2000 ms). Spezifikation in `docs/dashboard/ALARME_P13B.md`.
 
+**Umsetzungsstand 25.11.2026 (P13c / Auftrag 168 – Phase P13 abgeschlossen):** P13c vollständig umgesetzt (Phase P13 damit vollständig abgeschlossen):
+1. In-App-Alarme, Lesebestätigung & Quittierung: Migration `20261125_dashboard_alarm_receipts.sql` mit Tabelle `dashboard_alarm_receipts`, RPCs `acknowledge_dashboard_alarm_event` und `mark_dashboard_alarm_events_read`. Quittierung und Lesebestätigung erfolgen persönlich pro Nutzer. Quittieren ändert keinen Zustand der Regel (reine Nachverfolgbarkeit / Acknowledgement).
+2. Admin-Übernahme verwaister Regeln (`/admin/alarme` - `AdminAlarmsPage.tsx`): Listet Regeln mit Status `verantwortlicher_ohne_rechte` auf und ermöglicht Übernahme der Verantwortung via `takeover_dashboard_alarm_rule(rule_id)` für Manager und Admins.
+3. Ausfallhinweis (`AlarmWorkerBanner.tsx`): Warnbanner im Header, wenn `alarm_worker_status()` `ueberfaellig` (> 15 Min ohne Lauf) oder `pausiert` meldet.
+4. Zentrale Alarmliste (`/dashboard/alarme` - `DashboardAlarmsPage.tsx`, `AlarmList.tsx`, `AlarmEventItemRow.tsx`, `AlarmFilterBar.tsx`): Filterung nach Dringlichkeit (`kritisch`, `warnung`, `normal`, `keine_daten`) und Lesestatus, persönlicher Quittierungsdialog (`AlarmAcknowledgeDialog.tsx`).
+5. Alarmglocke im Header (`AlarmBell.tsx`): Zähler für ungelesene Alarmereignisse via `useUnreadAlarmCount.ts` (`aria-live="polite"`).
+6. Inspector & Kachelanzeige: `AlarmSection.tsx` im Inspector-Schwellenwert-Tab (`InspectorThresholdTab.tsx`), `TileThresholdBadge.tsx` mit Glocken-Icon für Kacheln mit aktiver Server-Alarmregel.
+7. Revisionsaufbewahrungshinweis: `RevisionHistoryPanelV2.tsx` weist transparent auf die 12-Monate-Aufbewahrungsregel hin.
+8. Alle Prüfungen und Gates bestanden: 25 pgTAP-Suiten (629 Tests) grün, 454 Vitest-Dateien (3388 Tests) grün, TypeScript fehlerfrei, Initial-JS 170.47 kB (< 180 kB Budget), 36 Screenshots mit 0 px horizontalem Überlauf. Phase P13 ist damit vollständig abgeschlossen.
+
 ### 6.1 Nutzbare Zwischenstände
 
 **Zwischenstand A, P01–P08:** neuer persönlicher Editor mit Vier-Zonen-Layout, richtigem Raster, Inspector, Panel-Editor und sicherer Speicherung. Eigenständig prüfbarer Pilot auf V2-Kopien hinter dem Rollout-Schalter; reguläre Nutzer bleiben bis P16 im alten Editor.

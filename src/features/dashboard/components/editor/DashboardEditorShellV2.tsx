@@ -302,6 +302,7 @@ function DashboardEditorShellBody({
             onExpandSection={(secId) => sectionActions.handleToggleCollapse(secId)}
             isSectionCollapsed={sectionActions.isSectionCollapsed}
             useData={useData}
+            isDirty={isDirty}
           />
         )}
       </div>

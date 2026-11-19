@@ -275,6 +275,13 @@ export function Sidebar({
               active={currentRoute.id === 's-admin-health'}
               onClick={handleLinkClick}
             />
+            <NavItem
+              to="/admin/alarme"
+              dataTestId="nav-item-admin-alarms"
+              label="Alarme"
+              active={currentRoute.id === 's-admin-alarms'}
+              onClick={handleLinkClick}
+            />
           </div>
         )}
       </nav>

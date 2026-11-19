@@ -22398,4 +22398,88 @@ Mit Auftrag 167 (Phase P13b des Masterplans) wird die serverseitige Alarmauswert
 - `npx size-limit`: Initial JS bundle 179.37 kB (< 180 kB Budget), Largest chunk 79.41 kB (< 250 kB Budget).
 - **Schutzbereiche:** `git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` ist absolut leer.
 
+---
+
+## 2026-11-25 — Auftrag 168: Dashboard-Editor: Alarme in der App, Lesebestätigung und Quittierung, Admin-Übernahme, Ausfallhinweis (P13c)
+
+**Rolle:** Builder (Antigravity) · **Branch:** `auftrag-168-alarme-oberflaeche` · **Basis:** Merge von PR #206 (`76024a6e`)
+
+Mit Auftrag 168 (Phase P13c des Masterplans) wird die Benutzeroberfläche für das serverseitige Alarmsystem aus P13b vollständig erschlossen. Dies umfasst die Konfiguration im Inspector, den Kachel-Indikator, die persönliche Quittierung und Lesebestätigung, die zentrale Alarmliste, den Zähler ungelesener Alarme im Header, den Ausfallhinweis bei überfälligem Worker sowie die Admin-Übernahme verwaister Regeln. Damit ist Phase P13 des Dashboard-Editor-Masterplans abgeschlossen.
+
+### 1. Rot-Nachweise (T1)
+- **(a) Vitest `AlarmSection.ui.vitest.tsx`:** Schwellenwert-Tab rendert Server-Alarm-Konfiguration für `alarmfaehig`-Kacheln inkl. Toggle, Mindestdauer, Cooldown und Quittierungspflicht → **ROT** (Komponente und Toggle fehlten).
+- **(b) Vitest `alarmAcknowledge.vitest.ts`:** Quittierungsdialog verlangt bei `quittierung_erforderlich` Pflichtkommentar und erzeugt persönlichen Quittungsvermerk, ohne den Regelzustand zu ändern → **ROT** (Dialog und Service fehlten).
+- **(c) Vitest `alarmSwitchPermitted.vitest.ts`:** Rollenprüfung (`useDashboardAlarmPermitted`): Viewer sehen schreibgeschützte Ansicht ohne Toggle; Manager/Admin dürfen schalten → **ROT** (Hook und Rechteprüfung fehlten).
+- **(d) pgTAP `dashboard_alarm_receipts.sql`:** Persönliche Quittierung und Lesebestätigung in `dashboard_alarm_receipts`; Quittieren ändert keinen Regelzustand; fremde Mandanten abgewehrt → **ROT** (Migration fehlte).
+- **(e) Vitest `unreadAlarmCounter.vitest.ts`:** Glocke im Header zeigt Zähler ungelesener Alarme und aktualisiert bei Lesebestätigung barrierefrei (`aria-live="polite"`) → **ROT** (Komponente und Zähler fehlten).
+- **(f) Vitest `revisionRetentionNotice.vitest.ts`:** Versionshistorie weist transparent auf 12-monatige Aufbewahrung hin → **ROT** (Hinweis fehlte).
+
+### 2. Server-Architektur & Migration (`20261125_dashboard_alarm_receipts.sql`)
+- **Tabelle `public.dashboard_alarm_receipts`:**
+  - Zusammengesetzter Primärschlüssel `(event_id, user_id)`.
+  - Felder: `organization_id`, `gelesen_am`, `quittiert_am`, `kommentar`.
+  - RLS: Mandantenisoliert (`organization_id = current_setting(...)`), Benutzer können nur eigene Belege lesen und schreiben (`user_id = auth.uid()`).
+- **RPC `acknowledge_dashboard_alarm_event(p_event_id, p_kommentar)`:**
+  - Erstellt oder aktualisiert Beleg mit Zeitstempel `quittiert_am = now()` und Kommentar.
+  - Prüft Mandantenzugehörigkeit und Event-Existenz.
+  - **Invariante:** Berührt weder `dashboard_alarm_state` noch `dashboard_alarm_events` — der Alarmzustand wird nicht beendet, es wird ein persönlicher Revisionsvermerk hinterlegt.
+- **RPC `mark_dashboard_alarm_events_read(p_event_ids)`:**
+  - Bündelweises Setzen von `gelesen_am = now()` für übergebene Event-IDs.
+- **pgTAP-Tests:** 22 Tests in `supabase/tests/dashboard_alarm_receipts.sql` verifizieren Mandantenisolation, Rechte, Quittierung und Unveränderlichkeit des Alarmzustands.
+
+### 3. Datenzugriff & Services
+- `src/features/dashboard/services/dashboardAlarmTypes.ts`: Typdefinitionen für Alarme, Quittierungen, Belege und Filter.
+- `src/features/dashboard/services/dashboardAlarmService.ts`: Mandanten- und Dashboard-bezogener Datenzugriff auf Regeln, Events, Belege, Quittierung und Lesestatus.
+- `src/features/dashboard/services/dashboardAlarmAdminService.ts`: Spezifischer Service für die Admin-Übernahme via `takeover_dashboard_alarm_rule`.
+- `src/features/dashboard/services/dashboardAlarmInMemory.ts`: Vollständige In-Memory-Mock-Implementierung für den Demo- und Vorschau-Modus.
+- `src/features/dashboard/hooks/useDashboardAlarms.ts`: Reaktiver Hook für Alarmlisten und Statusaktualisierung.
+- `src/features/dashboard/hooks/useUnreadAlarmCount.ts`: Reaktiver Hook für den Ungelesen-Zähler im Header.
+- `src/features/dashboard/model/dashboardAlarmPermitted.ts`: Zentrale Rollenberechtigungsprüfung (`manager`, `admin`).
+- `src/features/dashboard/model/alarmDataAge.ts`: Datenalter-Einstufung für Live-Werte (Entscheidung Marc: 24h Frischefenster).
+
+### 4. Komponenten & Benutzeroberfläche
+- **Inspector (`InspectorThresholdTab.tsx` [199 Zeilen] & `AlarmSection.tsx` [280 Zeilen]):**
+  - Server-Alarm-Toggle für Kacheln mit Kennzahlen vom Status `alarmfaehig`.
+  - Einstellungen für Mindestdauer (1-12 Läufe), Abklingzeit (60-86400 s) und Quittierungspflicht.
+  - Rollenprüfung: Viewer sehen erklärenden Hinweistext ohne Schalter.
+- **Kachel-Kennzeichnung (`TileThresholdBadge.tsx` & `LazyDashboardTile.tsx`):**
+  - Dezentes Glocken-Icon im Kachel-Header bei hinterlegter Server-Alarmregel.
+- **Header-Glocke (`AlarmBell.tsx`):**
+  - Zähler für ungelesene Alarmereignisse im globalen Header mit SPA-Navigation.
+  - Barrierefreie Ankündigung via `aria-live="polite"`.
+- **Alarmliste (`/dashboard/alarme` - `DashboardAlarmsPage.tsx` & `AlarmList.tsx`):**
+  - Darstellung nach Dringlichkeit (`kritisch`, `warnung`, `normal`, `keine_daten`).
+  - Filterbar (`AlarmFilterBar.tsx`) nach Dringlichkeit und Lesestatus (`alle`, `ungelesen`, `quittiert`, `offen`).
+  - Zeilenansicht (`AlarmEventItemRow.tsx`) mit Quittierungs-Button und Bestätigungsstatus.
+- **Quittierungsdialog (`AlarmAcknowledgeDialog.tsx`):**
+  - Modal mit Formular zur Erfassung des persönlichen Prüfvermerks.
+  - Pflichtkommentar bei erforderlicher Quittierung.
+- **Ausfallhinweis (`AlarmWorkerBanner.tsx`):**
+  - Gelbes Warnbanner im Header, sobald `alarm_worker_status()` `ueberfaellig` (> 15 Min) oder `pausiert` meldet.
+- **Admin-Übernahme (`/admin/alarme` - `AdminAlarmsPage.tsx`):**
+  - Administrative Übersichtsseite für Regeln mit Status `verantwortlicher_ohne_rechte`.
+  - Ein-Klick-Übernahme via `takeover_dashboard_alarm_rule`.
+- **Revisionshinweis (`RevisionHistoryPanelV2.tsx`):**
+  - Fußnoten-Hinweis auf die 12-Monate-Aufbewahrungsregel der Revisionen.
+
+### 5. Qualitätssicherung & Verifikation
+- `npx supabase test db`: **25 Testdateien, 629 Tests PASS (100% GRÜN)**.
+- `npm test`: **454 Testdateien, 3388 Tests PASS (100% GRÜN)**.
+- `npx tsc --noEmit`: **0 Fehler**.
+- `npm run verify:migrations`: **GRÜN**.
+- `npx size-limit`: Initial JS bundle 170.47 kB (< 180 kB Budget), Largest chunk 79.41 kB (< 250 kB Budget).
+- **E2E & Barrierefreiheit:**
+  - `e2e/dashboard-alarms-preview.spec.ts`: 100% PASS (Desktop 1440, Tablet 768, Mobile 375).
+  - `e2e/dashboard-alarms.spec.ts`: 100% PASS (Desktop 1440, Tablet 768, Mobile 375).
+  - `e2e/a11y.spec.ts`: 36/36 PASS (0 Violations).
+- **Screenshots:**
+  - 36 Screenshots (6 Szenarien × 3 Viewports × 2 Themes) in `docs/screenshots/auftrag-168/`.
+  - 0 px horizontaler Überlauf auf allen Viewports.
+  - 100% distinkte SHA-256 Prüfsummen.
+- **Dateigrößen & Schutzbereiche:**
+  - `InspectorThresholdTab.tsx`: 199 Zeilen (Budget ≤ 200).
+  - Alle anderen Dateien: streng ≤ 400 Zeilen.
+  - Schutzbereiche (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`): 0 Änderungen.
+
+
 

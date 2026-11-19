@@ -23,6 +23,10 @@ import {
   createPreviewThresholdsConfig,
   createPreviewThresholdsListItem,
 } from './previewThresholds';
+import {
+  createPreviewAlarmsConfig,
+  createPreviewAlarmsListItem,
+} from './previewAlarms';
 
 export type PreviewDashboardSaveResult =
   | {
@@ -97,7 +101,17 @@ export function initPreviewDashboards(
   versionenScenario: boolean,
   teamsScenario: string | null,
   schwellenwerteScenario?: boolean,
+  alarmeScenario?: boolean,
 ): AccessibleDashboardListItemV2[] {
+  if (alarmeScenario) {
+    const isViewer = teamsScenario === '1' || teamsScenario === 'viewer';
+    const alarmItem = createPreviewAlarmsListItem(!isViewer);
+    const rest =
+      teamsScenario === '1' || teamsScenario === 'entzogen'
+        ? [...INITIAL_PREVIEW_DASHBOARDS, ...INITIAL_TEAM_DASHBOARDS]
+        : INITIAL_PREVIEW_DASHBOARDS;
+    return [alarmItem, ...rest];
+  }
   if (schwellenwerteScenario) {
     const isViewer = teamsScenario === '1' || teamsScenario === 'viewer';
     const threshItem = createPreviewThresholdsListItem(!isViewer);
@@ -250,7 +264,11 @@ export function initPreviewConfig(
   versionenScenario: boolean,
   teamsScenario: string | null,
   schwellenwerteScenario?: boolean,
+  alarmeScenario?: boolean,
 ): DashboardConfigV2 {
+  if (alarmeScenario) {
+    return createPreviewAlarmsConfig();
+  }
   if (schwellenwerteScenario) {
     if (typeof window !== 'undefined' && window.sessionStorage) {
       try {

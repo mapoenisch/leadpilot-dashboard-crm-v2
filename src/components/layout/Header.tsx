@@ -1,5 +1,7 @@
 import { LogOut, Menu, Moon, Sun } from 'lucide-react';
 import type { ThemeMode } from './Layout';
+import { AlarmBell } from '@/features/dashboard/components/alarms/AlarmBell';
+import { AlarmWorkerBanner } from '@/features/dashboard/components/alarms/AlarmWorkerBanner';
 
 export interface HeaderProps {
   currentViewTitle: string;
@@ -44,19 +46,21 @@ export function Header({
           </button>
         )}
 
-        <div className="flex items-center gap-[var(--space-2)] min-w-0 overflow-hidden">
+        <div className="flex items-center gap-[var(--space-2)] min-w-0 overflow-hidden flex-1">
           {categoryLabel && (
             <span className="header-category-label whitespace-nowrap text-[12px] uppercase tracking-[0.05em] text-[var(--color-text-muted)]">
               {categoryLabel} /
             </span>
           )}
-          <h1 className="m-0 font-display text-[17px] font-semibold text-text whitespace-nowrap overflow-hidden text-ellipsis">
+          <h1 className="m-0 font-display text-[15px] sm:text-[17px] font-semibold text-text whitespace-nowrap overflow-hidden text-ellipsis min-w-0">
             {currentViewTitle}
           </h1>
         </div>
       </div>
 
-      <div className="header-user-profile flex items-center gap-[var(--space-3)] min-w-0 shrink-0">
+      <div className="header-user-profile flex items-center gap-1 sm:gap-[var(--space-3)] min-w-0 shrink-0">
+        <AlarmWorkerBanner className="hidden lg:flex" />
+        {userEmail && <AlarmBell />}
         {/* G39 Welle 1 (Auftrag 054, Block A): Theme-Umschalter. Klassen-
             basiert (kein style-Prop) — nimmt die Block-D-Migration vorweg. */}
         {onToggleTheme && (

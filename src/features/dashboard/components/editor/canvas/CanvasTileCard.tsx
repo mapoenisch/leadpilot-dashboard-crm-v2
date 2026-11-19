@@ -321,6 +321,7 @@ export function CanvasTileCard({
           onShowDetails={onShowDetails}
           detailsBlocked={!isPreviewMode}
           threshold={tile.threshold}
+          alarm={(tile as any).alarm}
         />
       </div>
     </div>

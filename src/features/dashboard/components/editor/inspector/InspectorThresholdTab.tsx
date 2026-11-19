@@ -17,6 +17,7 @@ import {
   ThresholdFormFields,
 } from './threshold/ThresholdFormFields';
 import { ThresholdLegacyAlerts, ThresholdLivePreview } from './threshold/ThresholdLegacyAlerts';
+import { AlarmSection } from './threshold/AlarmSection';
 
 export interface InspectorThresholdTabProps {
   selectedTile: DashboardTileConfigV2;
@@ -25,6 +26,8 @@ export interface InspectorThresholdTabProps {
   catalogEntry?: ActiveCatalogEntry | CatalogEntry;
   isReadOnly?: boolean;
   tileDataState?: string;
+  dashboardId?: string;
+  isDirty?: boolean;
 }
 
 export function InspectorThresholdTab({
@@ -34,6 +37,8 @@ export function InspectorThresholdTab({
   catalogEntry,
   isReadOnly = false,
   tileDataState,
+  dashboardId,
+  isDirty = false,
 }: InspectorThresholdTabProps) {
   const formId = useId();
   const shape = (catalogEntry as ActiveCatalogEntry)?.shape;
@@ -46,9 +51,7 @@ export function InspectorThresholdTab({
     [currentThreshold, catalogEntry],
   );
   const isLegacy = Boolean(currentThreshold && !isThresholdRuleV2(currentThreshold));
-  const isInvalidLegacy = Boolean(
-    isLegacy && normalizedInitial && 'ungueltig' in normalizedInitial,
-  );
+  const isInvalidLegacy = Boolean(isLegacy && normalizedInitial && 'ungueltig' in normalizedInitial);
 
   const [draft, setDraft] = useState<Partial<ThresholdRuleV2>>(() => {
     if (currentThreshold && isThresholdRuleV2(currentThreshold)) return { ...currentThreshold };
@@ -183,12 +186,14 @@ export function InspectorThresholdTab({
         </div>
       )}
 
-      <p
-        data-testid="threshold-browser-notice"
-        className="text-[10px] text-[var(--color-text-muted)] leading-tight"
-      >
-        {THRESHOLD_MESSAGES.browserHinweis}
-      </p>
+      <AlarmSection
+        selectedTile={selectedTile}
+        dashboardId={dashboardId}
+        catalogEntry={catalogEntry}
+        hasValidRule={isValid && isEnabled}
+        isDirty={isDirty}
+        canWrite={!isReadOnly}
+      />
     </div>
   );
 }

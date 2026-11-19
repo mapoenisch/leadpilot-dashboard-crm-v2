@@ -3,7 +3,13 @@
 // Unterstützt Vorlagen, Sektionen, Dashboard-Auswahl und Team-Freigaben (&teams=1 / &teams=entzogen).
 
 import { useCallback, useState } from 'react';
-import { Badge } from '@/components/ui/Badge';
+import { PreviewBannerV2 } from './PreviewBannerV2';
+import { DashboardAlarmsPage } from '../pages/DashboardAlarmsPage';
+import { AdminAlarmsPage } from '@/features/admin/pages/AdminAlarmsPage';
+import {
+  PREVIEW_ALARMS_DASHBOARD_ID,
+  setupPreviewAlarmsScenario,
+} from './previewAlarms';
 import { DashboardEditorShellV2 } from '../components/editor/DashboardEditorShellV2';
 import type { DashboardConfigV2 } from '../model/dashboardConfigV2';
 import type {
@@ -36,27 +42,31 @@ import {
 const usePreviewDataTimeControlled: TileDataHook = (tile, filters, options) =>
   useTimeControlledSource(useEditorPreviewData, tile, filters, options);
 
+function readPreviewParams() {
+  if (typeof window === 'undefined') {
+    return { teams: null, versionen: false, schwellenwerte: false, alarme: false, live: 'nicht_konfiguriert' as const };
+  }
+  const sp = new URLSearchParams(window.location.search);
+  const alarme = sp.get('alarme') === '1';
+  if (alarme) setupPreviewAlarmsScenario();
+  return {
+    teams: sp.get('teams'), versionen: sp.get('versionen') === '1',
+    schwellenwerte: sp.get('schwellenwerte') === '1', alarme,
+    live: parsePreviewLiveScenario(sp.get('live')),
+  };
+}
+
 export function DashboardEditorPreviewV2() {
-  const [teamsScenario] = useState(() => {
-    if (typeof window === 'undefined') return null;
-    return new URLSearchParams(window.location.search).get('teams');
-  });
-
-  const [versionenScenario] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return new URLSearchParams(window.location.search).get('versionen') === '1';
-  });
-
-  const [schwellenwerteScenario] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return new URLSearchParams(window.location.search).get('schwellenwerte') === '1';
-  });
+  const [params] = useState(readPreviewParams);
+  const { teams: teamsScenario, versionen: versionenScenario, schwellenwerte: schwellenwerteScenario, alarme: alarmeScenario, live: liveScenario } = params;
+  const [previewTab, setPreviewTab] = useState<'editor' | 'alarme' | 'admin'>('editor');
 
   const [dashboards, setDashboards] = useState<AccessibleDashboardListItemV2[]>(() =>
-    initPreviewDashboards(Boolean(versionenScenario), teamsScenario, schwellenwerteScenario),
+    initPreviewDashboards(versionenScenario, teamsScenario, schwellenwerteScenario, alarmeScenario),
   );
 
   const [activeDashboardId, setActiveDashboardId] = useState<string>(() => {
+    if (alarmeScenario) return PREVIEW_ALARMS_DASHBOARD_ID;
     if (schwellenwerteScenario) return 'preview_thresholds_dashboard';
     if (versionenScenario) return PREVIEW_VERSIONS_DASHBOARD_ID;
     if (teamsScenario === 'entzogen') return 'preview_team_dash_write';
@@ -64,18 +74,9 @@ export function DashboardEditorPreviewV2() {
   });
 
   const [showRevokedDialog, setShowRevokedDialog] = useState(false);
-
-  const [liveScenario] = useState(() => {
-    const value =
-      typeof window !== 'undefined'
-        ? new URLSearchParams(window.location.search).get('live')
-        : null;
-    return parsePreviewLiveScenario(value);
-  });
   const [liveStore] = useState(() => createPreviewLiveStore(liveScenario));
-
   const [config, setConfig] = useState<DashboardConfigV2>(() =>
-    initPreviewConfig(Boolean(versionenScenario), teamsScenario, schwellenwerteScenario),
+    initPreviewConfig(versionenScenario, teamsScenario, schwellenwerteScenario, alarmeScenario),
   );
 
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
@@ -294,59 +295,58 @@ export function DashboardEditorPreviewV2() {
 
   return (
     <div className="relative flex h-screen w-full flex-col bg-[var(--color-bg-deep,#030c0b)]">
-      {/* Vorschau-Banner */}
-      <div
-        data-testid="editor-v2-preview-banner"
-        className="flex h-7 items-center justify-between border-b border-primary/20 bg-primary/10 px-4 text-[11px] text-primary select-none"
-      >
-        <div className="flex items-center gap-2">
-          <Badge
-            variant="neutral"
-            className="border-primary/40 bg-primary/20 text-primary text-[10px] uppercase"
-          >
-            Beta-Vorschau
-          </Badge>
-          <span>
-            Dashboard-Editor V2 (P09b/P11b) • Vorschau mit Vorlagenauswahl und Team-Freigaben
-          </span>
-        </div>
-        {saveMessage && (
-          <span className="font-semibold text-emerald-400 animate-fade-in">{saveMessage}</span>
-        )}
-      </div>
+      <PreviewBannerV2
+        saveMessage={saveMessage}
+        alarmeScenario={alarmeScenario}
+        activeTab={previewTab}
+        onTabChange={setPreviewTab}
+      />
 
-      {/* Die 4-Zonen-Shell; Höhe minus Vorschau-Banner, damit die Statusleiste sichtbar bleibt. */}
-      <div className="h-[calc(100vh-1.75rem)] overflow-hidden">
-        <DashboardEditorShellV2
-          key={`preview-${activeDashboardId}-${previewKey}`}
-          className="h-full"
-          initialConfig={config}
-          useData={usePreviewDataTimeControlled}
-          onSave={handleSave}
-          onCancel={() => {
-            if (typeof window !== 'undefined') {
-              window.location.search = '';
-            }
-          }}
-          liveStore={liveStore}
-          liveConfigured={liveScenario !== 'nicht_konfiguriert'}
-          dashboards={dashboards}
-          currentStoredDashboard={currentStored}
-          onOpenDashboard={handleOpenDashboard}
-          onCreateFromTemplate={handleCreateFromTemplate}
-          onDuplicateCurrent={handleDuplicateCurrent}
-          onDeleteDashboard={handleDeleteDashboard}
-          onShareWithTeam={handleShareWithTeam}
-          onOpenVersions={(ctx) => {
-            setVersionsContext(ctx ?? null);
-            setIsVersionsOpen(true);
-          }}
-          onOpenImport={dashboardImport.openImport}
-          onSaveAsPersonalCopy={async () => {
-            await handleDuplicateCurrent(buildDerivedDashboardTitle(config.title, ' (Kopie)'));
-          }}
-        />
-      </div>
+      {alarmeScenario && previewTab === 'alarme' && (
+        <div className="h-[calc(100vh-2.5rem)] overflow-y-auto overflow-x-hidden p-3 sm:p-6 max-w-full">
+          <DashboardAlarmsPage />
+        </div>
+      )}
+
+      {alarmeScenario && previewTab === 'admin' && (
+        <div className="h-[calc(100vh-2.5rem)] overflow-y-auto overflow-x-hidden p-3 sm:p-6 max-w-full">
+          <AdminAlarmsPage />
+        </div>
+      )}
+
+      {(!alarmeScenario || previewTab === 'editor') && (
+        <div className="h-[calc(100vh-2.5rem)] overflow-hidden">
+          <DashboardEditorShellV2
+            key={`preview-${activeDashboardId}-${previewKey}`}
+            className="h-full"
+            initialConfig={config}
+            useData={usePreviewDataTimeControlled}
+            onSave={handleSave}
+            onCancel={() => {
+              if (typeof window !== 'undefined') {
+                window.location.search = '';
+              }
+            }}
+            liveStore={liveStore}
+            liveConfigured={liveScenario !== 'nicht_konfiguriert'}
+            dashboards={dashboards}
+            currentStoredDashboard={currentStored}
+            onOpenDashboard={handleOpenDashboard}
+            onCreateFromTemplate={handleCreateFromTemplate}
+            onDuplicateCurrent={handleDuplicateCurrent}
+            onDeleteDashboard={handleDeleteDashboard}
+            onShareWithTeam={handleShareWithTeam}
+            onOpenVersions={(ctx) => {
+              setVersionsContext(ctx ?? null);
+              setIsVersionsOpen(true);
+            }}
+            onOpenImport={dashboardImport.openImport}
+            onSaveAsPersonalCopy={async () => {
+              await handleDuplicateCurrent(buildDerivedDashboardTitle(config.title, ' (Kopie)'));
+            }}
+          />
+        </div>
+      )}
 
       <PreviewDialogsV2
         showRevoked={showRevokedDialog}
