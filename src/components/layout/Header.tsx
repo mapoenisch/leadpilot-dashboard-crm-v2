@@ -31,7 +31,7 @@ export function Header({
   alarmSlot,
 }: HeaderProps) {
   return (
-    <header className="border-0 app-header flex items-center justify-between flex-nowrap gap-[var(--space-3)] box-border w-full min-h-[56px] border-b border-solid border-border bg-[var(--color-shell-header)] backdrop-blur-sm px-[var(--space-4)] z-10">
+    <header className="border-0 app-header flex items-center justify-between flex-wrap gap-[var(--space-3)] box-border w-full min-h-[56px] border-b border-solid border-border bg-[var(--color-shell-header)] backdrop-blur-sm px-[var(--space-4)] z-10">
       <div className="flex items-center gap-[var(--space-3)] min-w-0 flex-[1_1_auto]">
         {isMobile && onToggleMobileMenu && (
           <button
@@ -59,10 +59,10 @@ export function Header({
         </div>
       </div>
 
-      <div className="header-user-profile flex items-center gap-[var(--space-3)] min-w-0 shrink-0">
+      <div className="header-user-profile flex items-center gap-2 lg:gap-[var(--space-3)] min-w-0 shrink-0">
         {userEmail && alarmSlot}
         {/* G39 Welle 1 (Auftrag 054, Block A): Theme-Umschalter. Klassen-
-            basiert (kein style-Prop) — nimmt die Block-D-Migration vorweg. */}
+             basiert (kein style-Prop) — nimmt die Block-D-Migration vorweg. */}
         {onToggleTheme && (
           <button
             type="button"
@@ -86,7 +86,7 @@ export function Header({
               {userEmail.charAt(0)}
             </div>
             <div className="header-user-details text-[12px] min-w-0">
-              <div className="text-text font-semibold whitespace-nowrap overflow-hidden text-ellipsis max-w-[200px]">
+              <div className="text-text font-semibold whitespace-nowrap overflow-hidden text-ellipsis max-w-[130px] lg:max-w-[200px]">
                 {userEmail}
               </div>
               {userRoleLabel && (

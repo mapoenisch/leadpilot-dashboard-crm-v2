@@ -32,7 +32,7 @@ export const AlarmBell: React.FC<AlarmBellProps> = ({
       data-testid="header-alarm-bell"
       aria-label={ariaLabel}
       title={ariaLabel}
-      className="relative flex items-center justify-center shrink-0 rounded-md border border-border bg-transparent p-[6px] text-primary transition-colors hover:bg-surface-raised cursor-pointer"
+      className="relative flex items-center justify-center shrink-0 rounded-md border border-border bg-transparent p-[5px] sm:p-[6px] text-primary transition-colors hover:bg-surface-raised cursor-pointer"
     >
       <Bell size={18} aria-hidden="true" />
       {hasUnread && (
