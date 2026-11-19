@@ -59,86 +59,86 @@ export const ALARM_ENTRIES: Readonly<Record<string, AlarmCapability>> = {
     grund: 'Basiert auf baseline.mrr_paketmix; feste Referenzwerte ändern sich nicht.',
   },
 
-  // CRM Einzelwerte (pruefbar: Serveraggregiert über dashboard_crm_pipeline_overview)
+  // CRM Einzelwerte (alarmfaehig: Serveraggregiert über dashboard_crm_pipeline_overview und Paritätsnachweis)
   'crm.pipeline_deals': {
-    status: 'pruefbar',
+    status: 'alarmfaehig',
     grund: 'Serveraggregierte CRM-Pipeline-Kennzahl über RPC dashboard_crm_pipeline_overview.',
     serverquelle: 'RPC public.dashboard_crm_pipeline_overview',
   },
   'crm.pipeline_volumen': {
-    status: 'pruefbar',
+    status: 'alarmfaehig',
     grund: 'Serveraggregierte CRM-Pipeline-Kennzahl über RPC dashboard_crm_pipeline_overview.',
     serverquelle: 'RPC public.dashboard_crm_pipeline_overview',
   },
   'crm.pipeline_gewonnen': {
-    status: 'pruefbar',
+    status: 'alarmfaehig',
     grund: 'Serveraggregierte CRM-Pipeline-Kennzahl über RPC dashboard_crm_pipeline_overview.',
     serverquelle: 'RPC public.dashboard_crm_pipeline_overview',
   },
   'crm.pipeline_offen': {
-    status: 'pruefbar',
+    status: 'alarmfaehig',
     grund: 'Serveraggregierte CRM-Pipeline-Kennzahl über RPC dashboard_crm_pipeline_overview.',
     serverquelle: 'RPC public.dashboard_crm_pipeline_overview',
   },
 
-  // Live Einzelwerte (pruefbar: Mandantengebundener Live-KPI-Feed aus live_kpi_events)
+  // Live Einzelwerte (alarmfaehig: Mandantengebundener Live-KPI-Feed aus live_kpi_events und Paritätsnachweis)
   'live.arr': {
-    status: 'pruefbar',
+    status: 'alarmfaehig',
     grund: 'Mandantengebundener Live-KPI-Feed aus live_kpi_events.',
     serverquelle: 'Tabelle public.live_kpi_events',
   },
   'live.mrr': {
-    status: 'pruefbar',
+    status: 'alarmfaehig',
     grund: 'Mandantengebundener Live-KPI-Feed aus live_kpi_events.',
     serverquelle: 'Tabelle public.live_kpi_events',
   },
   'live.pipeline_coverage': {
-    status: 'pruefbar',
+    status: 'alarmfaehig',
     grund: 'Mandantengebundener Live-KPI-Feed aus live_kpi_events.',
     serverquelle: 'Tabelle public.live_kpi_events',
   },
   'live.arr_direct': {
-    status: 'pruefbar',
+    status: 'alarmfaehig',
     grund: 'Mandantengebundener Live-KPI-Feed aus live_kpi_events.',
     serverquelle: 'Tabelle public.live_kpi_events',
   },
   'live.arr_partner': {
-    status: 'pruefbar',
+    status: 'alarmfaehig',
     grund: 'Mandantengebundener Live-KPI-Feed aus live_kpi_events.',
     serverquelle: 'Tabelle public.live_kpi_events',
   },
   'live.arr_outbound': {
-    status: 'pruefbar',
+    status: 'alarmfaehig',
     grund: 'Mandantengebundener Live-KPI-Feed aus live_kpi_events.',
     serverquelle: 'Tabelle public.live_kpi_events',
   },
   'live.arr_other': {
-    status: 'pruefbar',
+    status: 'alarmfaehig',
     grund: 'Mandantengebundener Live-KPI-Feed aus live_kpi_events.',
     serverquelle: 'Tabelle public.live_kpi_events',
   },
   'live.pipeline_leads': {
-    status: 'pruefbar',
+    status: 'alarmfaehig',
     grund: 'Mandantengebundener Live-KPI-Feed aus live_kpi_events.',
     serverquelle: 'Tabelle public.live_kpi_events',
   },
   'live.pipeline_mql': {
-    status: 'pruefbar',
+    status: 'alarmfaehig',
     grund: 'Mandantengebundener Live-KPI-Feed aus live_kpi_events.',
     serverquelle: 'Tabelle public.live_kpi_events',
   },
   'live.pipeline_sql': {
-    status: 'pruefbar',
+    status: 'alarmfaehig',
     grund: 'Mandantengebundener Live-KPI-Feed aus live_kpi_events.',
     serverquelle: 'Tabelle public.live_kpi_events',
   },
   'live.pipeline_offers': {
-    status: 'pruefbar',
+    status: 'alarmfaehig',
     grund: 'Mandantengebundener Live-KPI-Feed aus live_kpi_events.',
     serverquelle: 'Tabelle public.live_kpi_events',
   },
   'live.pipeline_won': {
-    status: 'pruefbar',
+    status: 'alarmfaehig',
     grund: 'Mandantengebundener Live-KPI-Feed aus live_kpi_events.',
     serverquelle: 'Tabelle public.live_kpi_events',
   },

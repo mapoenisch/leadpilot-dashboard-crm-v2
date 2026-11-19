@@ -11,9 +11,11 @@ describe('Alarmfähigkeitsmatrix (Auftrag 166 / P13a)', () => {
     for (const id of activeIds) {
       const cap = getAlarmCapability(id);
       expect(cap, `Katalog-ID ${id} fehlt in ALARM_CAPABILITIES`).toBeDefined();
-      expect(['pruefbar', 'ausgeschlossen', 'nicht_einzelwert']).toContain(cap?.status);
+      expect(['alarmfaehig', 'pruefbar', 'ausgeschlossen', 'nicht_einzelwert']).toContain(
+        cap?.status,
+      );
       expect(cap?.grund.trim().length).toBeGreaterThan(5);
-      if (cap?.status === 'pruefbar') {
+      if (cap?.status === 'alarmfaehig' || cap?.status === 'pruefbar') {
         expect(cap.serverquelle).toBeDefined();
       }
     }
@@ -38,24 +40,27 @@ describe('Alarmfähigkeitsmatrix (Auftrag 166 / P13a)', () => {
     expect(getAlarmCapability('baseline.mrr_paketmix')?.status).toBe('nicht_einzelwert');
   });
 
-  it('CRM- und Live-Einzelwerte sind als pruefbar markiert', () => {
-    expect(getAlarmCapability('crm.pipeline_deals')?.status).toBe('pruefbar');
-    expect(getAlarmCapability('live.arr')?.status).toBe('pruefbar');
+  it('CRM- und Live-Einzelwerte sind als alarmfaehig markiert (Auftrag 167)', () => {
+    expect(getAlarmCapability('crm.pipeline_deals')?.status).toBe('alarmfaehig');
+    expect(getAlarmCapability('live.arr')?.status).toBe('alarmfaehig');
   });
 
   it('Gesamtzählungen stimmen exakt mit den Spezifikationen überein', () => {
+    let alarmfaehig = 0;
     let pruefbar = 0;
     let ausgeschlossen = 0;
     let nichtEinzelwert = 0;
 
     for (const id of matrixIds) {
       const s = ALARM_CAPABILITIES[id]!.status;
-      if (s === 'pruefbar') pruefbar++;
+      if (s === 'alarmfaehig') alarmfaehig++;
+      else if (s === 'pruefbar') pruefbar++;
       else if (s === 'ausgeschlossen') ausgeschlossen++;
       else if (s === 'nicht_einzelwert') nichtEinzelwert++;
     }
 
-    expect(pruefbar).toBe(16);
+    expect(alarmfaehig).toBe(16);
+    expect(pruefbar).toBe(0);
     expect(ausgeschlossen).toBe(13);
     expect(nichtEinzelwert).toBe(33);
     expect(matrixIds.length).toBe(62);

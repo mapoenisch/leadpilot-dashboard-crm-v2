@@ -1,0 +1,189 @@
+[
+  {
+    "id": "crm-deals-basic",
+    "catalogId": "crm.pipeline_deals",
+    "pipeline": null,
+    "beschreibung": "CRM Deals Gesamtanzahl in Organisation",
+    "erwartet": {
+      "wert": 2,
+      "einheit": "Stück",
+      "zustand": "ok"
+    }
+  },
+  {
+    "id": "crm-volumen-basic",
+    "catalogId": "crm.pipeline_volumen",
+    "pipeline": null,
+    "beschreibung": "CRM Gesamtes Pipeline Volumen",
+    "erwartet": {
+      "wert": 75000,
+      "einheit": "EUR",
+      "zustand": "ok"
+    }
+  },
+  {
+    "id": "crm-gewonnen-basic",
+    "catalogId": "crm.pipeline_gewonnen",
+    "pipeline": null,
+    "beschreibung": "CRM Gewonnenes Pipeline Volumen",
+    "erwartet": {
+      "wert": 50000,
+      "einheit": "EUR",
+      "zustand": "ok"
+    }
+  },
+  {
+    "id": "crm-offen-basic",
+    "catalogId": "crm.pipeline_offen",
+    "pipeline": null,
+    "beschreibung": "CRM Offenes Pipeline Volumen",
+    "erwartet": {
+      "wert": 25000,
+      "einheit": "EUR",
+      "zustand": "ok"
+    }
+  },
+  {
+    "id": "crm-deals-filter-pipeline",
+    "catalogId": "crm.pipeline_deals",
+    "pipeline": "enterprise",
+    "beschreibung": "CRM Deals gefiltert nach Pipeline enterprise",
+    "erwartet": {
+      "wert": 1,
+      "einheit": "Stück",
+      "zustand": "ok"
+    }
+  },
+  {
+    "id": "live-arr-latest",
+    "catalogId": "live.arr",
+    "pipeline": null,
+    "beschreibung": "Live ARR",
+    "erwartet": {
+      "wert": 1200000,
+      "einheit": "EUR",
+      "zustand": "ok"
+    }
+  },
+  {
+    "id": "live-mrr-latest",
+    "catalogId": "live.mrr",
+    "pipeline": null,
+    "beschreibung": "Live MRR",
+    "erwartet": {
+      "wert": 100000,
+      "einheit": "EUR",
+      "zustand": "ok"
+    }
+  },
+  {
+    "id": "live-pipeline-coverage-latest",
+    "catalogId": "live.pipeline_coverage",
+    "pipeline": null,
+    "beschreibung": "Live Pipeline Coverage",
+    "erwartet": {
+      "wert": 3.2,
+      "einheit": "x",
+      "zustand": "ok"
+    }
+  },
+  {
+    "id": "live-arr-direct-latest",
+    "catalogId": "live.arr_direct",
+    "pipeline": null,
+    "beschreibung": "Live ARR Direct",
+    "erwartet": {
+      "wert": 600000,
+      "einheit": "EUR",
+      "zustand": "ok"
+    }
+  },
+  {
+    "id": "live-arr-partner-latest",
+    "catalogId": "live.arr_partner",
+    "pipeline": null,
+    "beschreibung": "Live ARR Partner",
+    "erwartet": {
+      "wert": 400000,
+      "einheit": "EUR",
+      "zustand": "ok"
+    }
+  },
+  {
+    "id": "live-arr-outbound-latest",
+    "catalogId": "live.arr_outbound",
+    "pipeline": null,
+    "beschreibung": "Live ARR Outbound",
+    "erwartet": {
+      "wert": 150000,
+      "einheit": "EUR",
+      "zustand": "ok"
+    }
+  },
+  {
+    "id": "live-arr-other-latest",
+    "catalogId": "live.arr_other",
+    "pipeline": null,
+    "beschreibung": "Live ARR Other",
+    "erwartet": {
+      "wert": 50000,
+      "einheit": "EUR",
+      "zustand": "ok"
+    }
+  },
+  {
+    "id": "live-pipeline-leads-latest",
+    "catalogId": "live.pipeline_leads",
+    "pipeline": null,
+    "beschreibung": "Live Pipeline Leads",
+    "erwartet": {
+      "wert": 180,
+      "einheit": "Stück",
+      "zustand": "ok"
+    }
+  },
+  {
+    "id": "live-pipeline-mql-latest",
+    "catalogId": "live.pipeline_mql",
+    "pipeline": null,
+    "beschreibung": "Live Pipeline MQL",
+    "erwartet": {
+      "wert": 95,
+      "einheit": "Stück",
+      "zustand": "ok"
+    }
+  },
+  {
+    "id": "live-pipeline-sql-latest",
+    "catalogId": "live.pipeline_sql",
+    "pipeline": null,
+    "beschreibung": "Live Pipeline SQL",
+    "erwartet": {
+      "wert": 48,
+      "einheit": "Stück",
+      "zustand": "ok"
+    }
+  },
+  {
+    "id": "live-pipeline-offers-latest",
+    "catalogId": "live.pipeline_offers",
+    "pipeline": null,
+    "beschreibung": "Live Pipeline Offers",
+    "erwartet": {
+      "wert": 22,
+      "einheit": "Stück",
+      "zustand": "ok"
+    }
+  },
+  {
+    "id": "live-pipeline-won-latest",
+    "catalogId": "live.pipeline_won",
+    "pipeline": null,
+    "beschreibung": "Live Pipeline Won",
+    "erwartet": {
+      "wert": 12,
+      "einheit": "Stück",
+      "zustand": "ok"
+    }
+  }
+]
