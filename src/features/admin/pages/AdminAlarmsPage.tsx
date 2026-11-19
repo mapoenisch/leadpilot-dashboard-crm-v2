@@ -15,10 +15,16 @@ export function AdminAlarmsPage() {
   const { session, isLoading: isOrgLoading } = useOrganization();
   const isAdmin = session?.role === 'admin';
 
-  const { orgRules, isOrgRulesLoading, takeoverRule, deleteRule, refetchOrgRules } =
-    useDashboardAlarms({
-      loadOrgRules: true,
-    });
+  const {
+    orgRules,
+    isOrgRulesLoading,
+    isOrgRulesError,
+    takeoverRule,
+    deleteRule,
+    refetchOrgRules,
+  } = useDashboardAlarms({
+    loadOrgRules: true,
+  });
 
   const [operatingRuleId, setOperatingRuleId] = useState<string | null>(null);
   const [deleteTargetRule, setDeleteTargetRule] = useState<OrganizationAlarmRuleItem | null>(null);
@@ -91,6 +97,28 @@ export function AdminAlarmsPage() {
         <div className="flex items-center justify-center py-16 text-text">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
           <span className="ml-2 text-xs">Lade Alarmregeln…</span>
+        </div>
+      ) : isOrgRulesError && orgRules.length === 0 ? (
+        <div
+          data-testid="admin-alarms-error"
+          role="alert"
+          className="flex flex-col items-center justify-center rounded-xl border border-rose-500/30 bg-rose-500/5 py-12 px-4 text-center text-text"
+        >
+          <ShieldAlert className="h-8 w-8 text-rose-400 mb-2" />
+          <h4 className="m-0 text-sm font-semibold text-white">
+            Alarmregeln konnten nicht geladen werden
+          </h4>
+          <p className="mt-1 text-xs text-[var(--color-text-muted)] max-w-sm">
+            Die Liste ist deshalb unvollständig. Bitte erneut versuchen.
+          </p>
+          <button
+            type="button"
+            data-testid="admin-alarms-retry"
+            onClick={() => void refetchOrgRules()}
+            className="mt-3 rounded bg-white/10 px-3 py-1.5 text-xs text-white hover:bg-white/20"
+          >
+            Erneut laden
+          </button>
         </div>
       ) : orgRules.length === 0 ? (
         <div

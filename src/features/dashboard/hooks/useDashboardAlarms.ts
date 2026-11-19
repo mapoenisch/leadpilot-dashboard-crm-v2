@@ -264,6 +264,7 @@ export function useDashboardAlarms(
     eventsError: eventsQuery.error,
     orgRules: orgRulesQuery.data ?? [],
     isOrgRulesLoading: orgRulesQuery.isLoading,
+    isOrgRulesError: orgRulesQuery.isError,
     workerStatus: workerStatusQuery.data,
     retentionInfo: retentionInfoQuery.data,
     createRule: createRuleMutation.mutateAsync,

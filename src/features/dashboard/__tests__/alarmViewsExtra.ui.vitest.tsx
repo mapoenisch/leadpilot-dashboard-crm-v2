@@ -15,6 +15,7 @@ let mockIsEventsLoading = false;
 let mockIsEventsError = false;
 let mockEventsError: Error | null = null;
 let mockOrgRules: OrganizationAlarmRuleItem[] = [];
+let mockIsOrgRulesError = false;
 const mockRefetchEvents = vi.fn();
 const mockDeleteRule = vi.fn();
 const mockRefetchOrgRules = vi.fn();
@@ -45,6 +46,7 @@ vi.mock('../hooks/useDashboardAlarms', () => ({
     refetchEvents: mockRefetchEvents,
     orgRules: mockOrgRules,
     isOrgRulesLoading: false,
+    isOrgRulesError: mockIsOrgRulesError,
     deleteRule: mockDeleteRule,
     refetchOrgRules: mockRefetchOrgRules,
     takeoverRule: vi.fn(),
@@ -64,6 +66,7 @@ describe('Alarm Views Extra Tests (Codex findings / P13c)', () => {
     mockIsEventsError = false;
     mockEventsError = null;
     mockOrgRules = [];
+    mockIsOrgRulesError = false;
   });
 
   describe('AlarmList Error- und Synchronisationsbehandlung', () => {
@@ -241,6 +244,19 @@ describe('Alarm Views Extra Tests (Codex findings / P13c)', () => {
         expect(screen.getByTestId('load-more-alarms-btn')).toBeInTheDocument();
       });
     });
+  });
+
+  it('AdminAlarmsPage zeigt Ladefehler statt Leerzustand und lädt erneut', () => {
+    mockIsOrgRulesError = true;
+    render(
+      <MemoryRouter>
+        <AdminAlarmsPage />
+      </MemoryRouter>,
+    );
+    expect(screen.getByTestId('admin-alarms-error')).toBeDefined();
+    expect(screen.queryByTestId('admin-alarms-empty')).toBeNull();
+    fireEvent.click(screen.getByTestId('admin-alarms-retry'));
+    expect(mockRefetchOrgRules).toHaveBeenCalled();
   });
 
   describe('AdminAlarmsPage Delete Dialog Accessibility (useModalA11y)', () => {
