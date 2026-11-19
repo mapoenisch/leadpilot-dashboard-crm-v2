@@ -241,6 +241,8 @@ describe('Alarm Views & useUnreadAlarmCount (Auftrag 168 / P13c)', () => {
       const warnungCheckbox = screen.getByTestId('alarm-filter-severity-toggle');
       fireEvent.click(warnungCheckbox);
 
+      expect(loadMoreBtn).not.toBeDisabled();
+
       // Veraltete Antwort trifft verspätet ein
       resolvePromise({
         ok: true,

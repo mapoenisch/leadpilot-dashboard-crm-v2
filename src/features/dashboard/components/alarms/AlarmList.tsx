@@ -33,6 +33,7 @@ export const AlarmList: React.FC = () => {
     filterGenRef.current += 1;
     setAppendedEvents([]);
     setHasMore(true);
+    setIsLoadingMore(false);
   }, [selectedDashboardId, nurUngelesen, nurWarnungKritisch]);
 
   const eventFilters = useMemo(
@@ -147,9 +148,7 @@ export const AlarmList: React.FC = () => {
         setHasMore(false);
       }
     } finally {
-      if (filterGenRef.current === requestGen) {
-        setIsLoadingMore(false);
-      }
+      setIsLoadingMore(false);
     }
   };
 

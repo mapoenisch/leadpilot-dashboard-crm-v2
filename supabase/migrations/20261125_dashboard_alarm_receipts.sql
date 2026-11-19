@@ -449,7 +449,7 @@ BEGIN
     r.abklingzeit_sekunden,
     r.status,
     r.responsible_user_id,
-    u.email AS responsible_email,
+    u.email::TEXT AS responsible_email,
     s.beobachtete_stufe,
     s.bestaetigte_stufe,
     s.letzter_messwert,
