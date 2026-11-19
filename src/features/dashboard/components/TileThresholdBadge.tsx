@@ -80,7 +80,13 @@ export const TileThresholdBadge: React.FC<TileThresholdBadgeProps> = React.memo(
             aria-label="Alarm aktiv, Prüfung alle 5 Minuten"
             className="inline-flex items-center justify-center p-0.5 rounded text-primary hover:text-primary-focus cursor-help select-none"
           >
-            <Bell className="h-3 w-3 shrink-0" aria-hidden="true" />
+            <span
+              data-testid="tile-alarm-indicator-active"
+              title="Alarm aktiv, Prüfung alle 5 Minuten"
+              className="inline-flex items-center justify-center"
+            >
+              <Bell className="h-3 w-3 shrink-0" aria-hidden="true" />
+            </span>
           </div>
         )}
 
@@ -94,7 +100,13 @@ export const TileThresholdBadge: React.FC<TileThresholdBadgeProps> = React.memo(
             aria-label={alarmPauseReason ? `Alarm pausiert: ${alarmPauseReason}` : 'Alarm pausiert'}
             className="inline-flex items-center justify-center p-0.5 rounded text-[var(--color-text-muted)] hover:text-white cursor-help select-none"
           >
-            <BellOff className="h-3 w-3 shrink-0" aria-hidden="true" />
+            <span
+              data-testid="tile-alarm-indicator-paused"
+              title={alarmPauseReason ? `Alarm pausiert: ${alarmPauseReason}` : 'Alarm pausiert'}
+              className="inline-flex items-center justify-center"
+            >
+              <BellOff className="h-3 w-3 shrink-0" aria-hidden="true" />
+            </span>
           </div>
         )}
 

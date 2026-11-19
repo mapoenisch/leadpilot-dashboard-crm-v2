@@ -2,14 +2,9 @@
 // Header-Slot für Alarmglocke und Ausfallhinweis (entkoppelt von Header/Layout zur Einhaltung der Schichtenarchitektur).
 
 import React from 'react';
-import { AlarmWorkerBanner } from './AlarmWorkerBanner';
 import { AlarmBell } from './AlarmBell';
 
 export const HeaderAlarmSlot: React.FC = () => {
-  return (
-    <>
-      <AlarmWorkerBanner className="hidden lg:flex" />
-      <AlarmBell />
-    </>
-  );
+  return <AlarmBell />;
 };
+
