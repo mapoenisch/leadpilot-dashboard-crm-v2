@@ -31,8 +31,8 @@ export function Header({
   alarmSlot,
 }: HeaderProps) {
   return (
-    <header className="border-0 app-header flex items-center justify-between flex-wrap gap-[var(--space-3)] box-border w-full min-h-[56px] border-b border-solid border-border bg-[var(--color-shell-header)] backdrop-blur-sm px-[var(--space-4)] z-10">
-      <div className="flex items-center gap-[var(--space-3)] min-w-0 flex-[1_1_auto]">
+    <header className="border-0 app-header flex items-center justify-between flex-wrap gap-2 sm:gap-[var(--space-3)] box-border w-full min-h-[56px] border-b border-solid border-border bg-[var(--color-shell-header)] backdrop-blur-sm px-[var(--space-4)] z-10">
+      <div className="flex items-center gap-2 sm:gap-[var(--space-3)] min-w-0 flex-[1_1_auto]">
         {isMobile && onToggleMobileMenu && (
           <button
             type="button"
@@ -59,7 +59,7 @@ export function Header({
         </div>
       </div>
 
-      <div className="header-user-profile flex items-center gap-[9px] sm:gap-[var(--space-3)] min-w-0 shrink-0">
+      <div className="header-user-profile flex items-center gap-2 lg:gap-[var(--space-3)] min-w-0 shrink-0">
         {userEmail && alarmSlot}
         {/* G39 Welle 1 (Auftrag 054, Block A): Theme-Umschalter. Klassen-
              basiert (kein style-Prop) — nimmt die Block-D-Migration vorweg. */}
@@ -126,6 +126,9 @@ export function Header({
         @media (max-width: 480px) {
           .app-header {
             padding: 0 8px !important;
+          }
+          .header-user-profile {
+            gap: 6px !important;
           }
           /* Zweite Nacharbeit 054: Nutzername (nicht nur Rolle) ausblenden —
              nur Avatar-Kreis bleibt (gängiges responsives Muster). Schafft
