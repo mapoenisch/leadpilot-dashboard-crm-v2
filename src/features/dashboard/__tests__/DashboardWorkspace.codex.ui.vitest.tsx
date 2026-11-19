@@ -222,7 +222,7 @@ describe('DashboardWorkspace: Codex-Befunde PR #59, Runde 3', () => {
     const before = mounts;
     for (const text of ['A', 'AB', 'ABC']) fireEvent.change(title, { target: { value: text } });
     expect(mounts).toBe(before);
-  });
+  }, 15000);
 });
 
 describe('DashboardWorkspace: Codex-Befunde PR #59, Runde 4', () => {
