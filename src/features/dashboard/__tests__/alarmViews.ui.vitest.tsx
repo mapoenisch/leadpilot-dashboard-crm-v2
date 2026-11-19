@@ -19,6 +19,15 @@ const mockAcknowledge = vi.fn();
 const mockTakeover = vi.fn();
 const mockDeleteRule = vi.fn();
 const mockRefetch = vi.fn();
+const mockFetchDashboardAlarmEventsV2 = vi.fn().mockResolvedValue({ ok: true, data: [] });
+
+vi.mock('../services/dashboardAlarmService', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../services/dashboardAlarmService')>();
+  return {
+    ...actual,
+    fetchDashboardAlarmEventsV2: (...args: unknown[]) => mockFetchDashboardAlarmEventsV2(...args),
+  };
+});
 
 vi.mock('@/auth/organizationContext', () => ({
   useOrganization: () => ({
@@ -186,6 +195,79 @@ describe('Alarm Views & useUnreadAlarmCount (Auftrag 168 / P13c)', () => {
 
       const select = screen.getByTestId('alarm-filter-dashboard-select');
       fireEvent.change(select, { target: { value: 'd-1' } });
+    });
+
+    it('verwirft nachgeladene Seiten, wenn sich die Filterkriterien während der Anfrage geändert haben', async () => {
+      let resolvePromise: (val: {
+        ok: boolean;
+        data: DashboardAlarmEventItem[];
+      }) => void = () => {};
+      const pendingPromise = new Promise<{ ok: boolean; data: DashboardAlarmEventItem[] }>(
+        (resolve) => {
+          resolvePromise = resolve;
+        },
+      );
+      mockFetchDashboardAlarmEventsV2.mockReturnValueOnce(pendingPromise);
+
+      // 50 initiale Events erzeugen, damit der "Weitere laden"-Button gerendert wird
+      mockEvents = Array.from({ length: 50 }, (_, i) => ({
+        id: `ev-page-${i}`,
+        ruleId: 'r-1',
+        dashboardId: 'd-1',
+        dashboardTitle: 'Vertrieb',
+        tileId: 't-1',
+        catalogId: 'crm.deals',
+        alterZustand: 'normal',
+        neuerZustand: 'warnung',
+        messwert: 15,
+        einheit: 'Stück',
+        grenze: 10,
+        meldung: `Alarm ${i}`,
+        createdAt: '2026-11-19T10:00:00Z',
+        gelesen: false,
+        quittiertVon: [],
+      }));
+
+      render(
+        <MemoryRouter>
+          <AlarmList />
+        </MemoryRouter>,
+      );
+
+      const loadMoreBtn = screen.getByTestId('load-more-alarms-btn');
+      fireEvent.click(loadMoreBtn);
+
+      // Filter während laufender Anfrage ändern
+      const warnungCheckbox = screen.getByTestId('alarm-filter-severity-toggle');
+      fireEvent.click(warnungCheckbox);
+
+      // Veraltete Antwort trifft verspätet ein
+      resolvePromise({
+        ok: true,
+        data: [
+          {
+            id: 'ev-stale-page',
+            ruleId: 'r-1',
+            dashboardId: 'd-old',
+            dashboardTitle: 'Altes Dashboard',
+            tileId: 't-1',
+            catalogId: 'crm.deals',
+            alterZustand: 'normal',
+            neuerZustand: 'normal',
+            messwert: 5,
+            einheit: 'Stück',
+            grenze: 10,
+            meldung: 'Stale Outdated Alarm Event',
+            createdAt: '2026-11-19T10:00:00Z',
+            gelesen: false,
+            quittiertVon: [],
+          },
+        ],
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByText('Stale Outdated Alarm Event')).toBeNull();
+      });
     });
   });
 

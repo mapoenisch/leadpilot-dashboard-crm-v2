@@ -1,7 +1,7 @@
 // Executive Dashboard V2 (Auftrag 168 / P13c §2.1 Nr. 3–5):
 // Hauptansicht der Alarmliste mit Filterung, Quittierung und Ausfallhinweis.
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Bell, Loader2 } from 'lucide-react';
 import { useDashboardAlarms } from '../../hooks/useDashboardAlarms';
 import { AlarmWorkerBanner } from './AlarmWorkerBanner';
@@ -26,9 +26,11 @@ export const AlarmList: React.FC = () => {
     null,
   );
   const [isMarkingAll, setIsMarkingAll] = useState(false);
+  const filterGenRef = useRef(0);
 
   // Filteränderungen setzen angehängte Ereignisse und Paging zurück
   useEffect(() => {
+    filterGenRef.current += 1;
     setAppendedEvents([]);
     setHasMore(true);
   }, [selectedDashboardId, nurUngelesen, nurWarnungKritisch]);
@@ -81,6 +83,9 @@ export const AlarmList: React.FC = () => {
     const list = [...initialEvents];
     const seen = new Set(list.map((e) => e.id));
     for (const ev of appendedEvents) {
+      if (selectedDashboardId && ev.dashboardId !== selectedDashboardId) continue;
+      if (nurWarnungKritisch && ev.neuerZustand !== 'warnung' && ev.neuerZustand !== 'kritisch')
+        continue;
       if (!seen.has(ev.id)) {
         seen.add(ev.id);
         list.push(ev);
@@ -90,7 +95,7 @@ export const AlarmList: React.FC = () => {
       return list.filter((e) => !e.gelesen);
     }
     return list;
-  }, [initialEvents, appendedEvents, nurUngelesen]);
+  }, [initialEvents, appendedEvents, nurUngelesen, selectedDashboardId, nurWarnungKritisch]);
 
   const handleMarkRead = async (eventId: string) => {
     await markRead([eventId]);
@@ -118,6 +123,7 @@ export const AlarmList: React.FC = () => {
   };
 
   const handleLoadMore = async () => {
+    const requestGen = filterGenRef.current;
     setIsLoadingMore(true);
     try {
       const nextOffset = displayEvents.length;
@@ -128,6 +134,10 @@ export const AlarmList: React.FC = () => {
         limit: PAGE_SIZE,
         offset: nextOffset,
       });
+
+      // Verwerfe Antwort, wenn sich der Filter während der Anfrage geändert hat
+      if (filterGenRef.current !== requestGen) return;
+
       if (res.ok && res.data) {
         if (res.data.length < PAGE_SIZE) {
           setHasMore(false);
@@ -137,7 +147,9 @@ export const AlarmList: React.FC = () => {
         setHasMore(false);
       }
     } finally {
-      setIsLoadingMore(false);
+      if (filterGenRef.current === requestGen) {
+        setIsLoadingMore(false);
+      }
     }
   };
 

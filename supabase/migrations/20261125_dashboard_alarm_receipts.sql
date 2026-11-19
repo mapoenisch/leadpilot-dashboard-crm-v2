@@ -169,8 +169,8 @@ BEGIN
   END IF;
 
   SELECT EXISTS (
-    SELECT 1 FROM public.organization_members
-    WHERE organization_id = v_event.organization_id AND user_id = v_user_id AND status = 'active'
+    SELECT 1 FROM public.organization_members m
+    WHERE m.organization_id = v_event.organization_id AND m.user_id = v_user_id AND m.status = 'active'
   ) INTO v_is_member;
 
   IF NOT v_is_member THEN
@@ -346,9 +346,9 @@ BEGIN
     RAISE EXCEPTION 'LP_ALARM_RULE_NOT_FOUND' USING ERRCODE = 'P0002';
   END IF;
 
-  SELECT role INTO v_role
-  FROM public.organization_members
-  WHERE organization_id = v_r.organization_id AND user_id = v_user_id AND status = 'active';
+  SELECT m.role INTO v_role
+  FROM public.organization_members m
+  WHERE m.organization_id = v_r.organization_id AND m.user_id = v_user_id AND m.status = 'active';
 
   -- Streng nur Admin
   IF v_role IS NULL OR v_role != 'admin' THEN
@@ -428,9 +428,9 @@ BEGIN
     RAISE EXCEPTION 'LP_AUTH_REQUIRED' USING ERRCODE = '42501';
   END IF;
 
-  SELECT organization_id, role INTO v_org_id, v_role
-  FROM public.organization_members
-  WHERE user_id = v_user_id AND status = 'active'
+  SELECT m.organization_id, m.role INTO v_org_id, v_role
+  FROM public.organization_members m
+  WHERE m.user_id = v_user_id AND m.status = 'active'
   LIMIT 1;
 
   IF v_role IS NULL OR v_role != 'admin' THEN

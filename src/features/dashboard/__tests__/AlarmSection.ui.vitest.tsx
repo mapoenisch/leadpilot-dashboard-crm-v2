@@ -237,4 +237,84 @@ describe('AlarmSection (Auftrag 168 / P13c)', () => {
     fireEvent.click(confirmBtn);
     expect(mockDeleteRule).toHaveBeenCalledWith('rule-123');
   });
+
+  it('synchronisiert Schwellenwertänderungen nach dem Speichern mit der Alarmregel', () => {
+    const existingRule: DashboardAlarmRule = {
+      id: 'rule-sync-1',
+      dashboardId: 'dash-1',
+      tileId: mockTile.id,
+      catalogId: 'crm.pipeline_deals',
+      status: 'aktiv',
+      mindestdauerLaeufe: 2,
+      abklingzeitSekunden: 3600,
+      ruleConfig: { ...mockTile.threshold, warnung: 10, kritisch: 20 },
+      responsibleUserId: 'user-1',
+      createdAt: '2026-11-19T10:00:00Z',
+    };
+    mockRules = [existingRule];
+
+    const updatedTile: DashboardTileConfigV2 = {
+      ...mockTile,
+      threshold: {
+        ...(mockTile.threshold as import('../model/thresholdRuleV2').ThresholdRuleV2),
+        warnung: 15,
+        kritisch: 25,
+      },
+    };
+
+    render(
+      <AlarmSection
+        selectedTile={updatedTile}
+        dashboardId="dash-1"
+        catalogEntry={mockCatalogEntry}
+        hasValidRule={true}
+        isDirty={false}
+        canWrite={true}
+      />,
+    );
+
+    expect(mockUpdateRule).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ruleId: 'rule-sync-1',
+        ruleConfig: expect.objectContaining({ warnung: 15, kritisch: 25 }),
+      }),
+    );
+  });
+
+  it('pausiert Alarmregel automatisch, wenn Schwellenwert deaktiviert und gespeichert ist', () => {
+    const existingRule: DashboardAlarmRule = {
+      id: 'rule-sync-2',
+      dashboardId: 'dash-1',
+      tileId: mockTile.id,
+      catalogId: 'crm.pipeline_deals',
+      status: 'aktiv',
+      mindestdauerLaeufe: 2,
+      abklingzeitSekunden: 3600,
+      ruleConfig: { ...mockTile.threshold },
+      responsibleUserId: 'user-1',
+      createdAt: '2026-11-19T10:00:00Z',
+    };
+    mockRules = [existingRule];
+
+    const disabledThresholdTile: DashboardTileConfigV2 = {
+      ...mockTile,
+      threshold: {
+        ...mockTile.threshold!,
+        enabled: false,
+      },
+    };
+
+    render(
+      <AlarmSection
+        selectedTile={disabledThresholdTile}
+        dashboardId="dash-1"
+        catalogEntry={mockCatalogEntry}
+        hasValidRule={true}
+        isDirty={false}
+        canWrite={true}
+      />,
+    );
+
+    expect(mockPauseRule).toHaveBeenCalledWith('rule-sync-2');
+  });
 });

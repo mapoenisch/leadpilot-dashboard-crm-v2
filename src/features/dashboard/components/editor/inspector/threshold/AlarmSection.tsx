@@ -2,7 +2,7 @@
 // Inspector-Abschnitt für Server-Alarme (Tab Schwellenwerte).
 // Erlaubt das Einschalten, Konfigurieren von Mindestdauer/Abklingzeit, Pausieren und Löschen.
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell, Trash2, Pause, Play, AlertCircle } from 'lucide-react';
 import { useOrganization } from '@/auth/organizationContext';
 import { checkAlarmTogglePermitted } from '../../../../model/dashboardAlarmPermitted';
@@ -83,6 +83,31 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
     hasSupportedFiltersOnly,
   });
 
+  // Synchronisiere Änderungen an Schwellenwerten nach erfolgreichem Speichern mit der Alarmregel
+  useEffect(() => {
+    if (!existingRule || isDirty || !selectedTile.threshold) return;
+
+    const isThresholdEnabled = Boolean(selectedTile.threshold.enabled);
+    if (!isThresholdEnabled) {
+      if (existingRule.status === 'aktiv') {
+        void pauseRule(existingRule.id);
+      }
+      return;
+    }
+
+    const currentTileThresholdStr = JSON.stringify(selectedTile.threshold);
+    const existingRuleConfigStr = JSON.stringify(existingRule.ruleConfig);
+
+    if (currentTileThresholdStr !== existingRuleConfigStr) {
+      void updateRule({
+        ruleId: existingRule.id,
+        ruleConfig: selectedTile.threshold as unknown as Record<string, unknown>,
+        mindestdauerLaeufe: existingRule.mindestdauerLaeufe,
+        abklingzeitSekunden: existingRule.abklingzeitSekunden,
+      });
+    }
+  }, [existingRule, isDirty, selectedTile.threshold, pauseRule, updateRule]);
+
   const handleToggleAlarm = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const checked = e.target.checked;
     if (checked) {
@@ -108,7 +133,8 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
     const laeufe = parseInt(e.target.value, 10);
     await updateRule({
       ruleId: existingRule.id,
-      ruleConfig: existingRule.ruleConfig,
+      ruleConfig:
+        (selectedTile.threshold as unknown as Record<string, unknown>) ?? existingRule.ruleConfig,
       mindestdauerLaeufe: laeufe,
       abklingzeitSekunden: existingRule.abklingzeitSekunden,
     });
@@ -119,7 +145,8 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
     const sek = parseInt(e.target.value, 10);
     await updateRule({
       ruleId: existingRule.id,
-      ruleConfig: existingRule.ruleConfig,
+      ruleConfig:
+        (selectedTile.threshold as unknown as Record<string, unknown>) ?? existingRule.ruleConfig,
       mindestdauerLaeufe: existingRule.mindestdauerLaeufe,
       abklingzeitSekunden: sek,
     });
