@@ -67,6 +67,7 @@ export const AlarmList: React.FC = () => {
   // Folgeseiten synchron halten: Bei Aktualisierung oder Rechteänderung (initialEvents ändert sich)
   // nachgeladene Seiten verwerfen oder mit aktuellen Berechtigungen neu laden
   useEffect(() => {
+    if (isEventsLoading) return;
     if (prevInitialEventsRef.current !== initialEvents) {
       prevInitialEventsRef.current = initialEvents;
       if (initialEvents.length < PAGE_SIZE) {
@@ -74,7 +75,9 @@ export const AlarmList: React.FC = () => {
           setAppendedEvents([]);
         }
         setHasMore(false);
-      } else if (appendedEvents.length > 0) {
+      } else if (appendedEvents.length === 0) {
+        setHasMore(true);
+      } else {
         const requestGen = filterGenRef.current;
         const numPages = Math.ceil(appendedEvents.length / PAGE_SIZE);
         const pagePromises = Array.from({ length: numPages }, (_, i) =>
@@ -109,7 +112,14 @@ export const AlarmList: React.FC = () => {
         });
       }
     }
-  }, [initialEvents, appendedEvents.length, selectedDashboardId, nurUngelesen, nurWarnungKritisch]);
+  }, [
+    initialEvents,
+    isEventsLoading,
+    appendedEvents.length,
+    selectedDashboardId,
+    nurUngelesen,
+    nurWarnungKritisch,
+  ]);
 
   useEffect(() => {
     if (initialEvents.length > 0 || appendedEvents.length > 0) {

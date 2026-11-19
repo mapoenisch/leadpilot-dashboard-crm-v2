@@ -154,13 +154,11 @@ describe('Alarm Views Extra Tests (Codex findings / P13c)', () => {
       });
 
       mockEvents = Array.from({ length: 50 }, (_, i) => makeEv(`ev-init-${i}`));
-      // Simuliere 5 nachgeladene Seiten a 50 = 250 angehaengte Events
-      for (let p = 0; p < 5; p++) {
-        mockFetchDashboardAlarmEventsV2.mockResolvedValueOnce({
-          ok: true,
-          data: Array.from({ length: 50 }, (_, i) => makeEv(`ev-app-${p}-${i}`)),
-        });
-      }
+      // Simuliere 250 angehaengte Ereignisse (> 200 Server-Limit)
+      mockFetchDashboardAlarmEventsV2.mockResolvedValueOnce({
+        ok: true,
+        data: Array.from({ length: 250 }, (_, i) => makeEv(`ev-app-${i}`)),
+      });
 
       const { rerender } = render(
         <MemoryRouter>
@@ -168,22 +166,17 @@ describe('Alarm Views Extra Tests (Codex findings / P13c)', () => {
         </MemoryRouter>,
       );
 
-      for (let p = 0; p < 5; p++) {
-        const loadMoreBtn = screen.getByTestId('load-more-alarms-btn');
-        fireEvent.click(loadMoreBtn);
-        await waitFor(() => {
-          expect(screen.getByText(new RegExp(`Event ev-app-${p}-0`))).toBeInTheDocument();
-        });
-      }
+      const loadMoreBtn = screen.getByTestId('load-more-alarms-btn');
+      fireEvent.click(loadMoreBtn);
+      await waitFor(() => {
+        expect(screen.getByText(/Event ev-app-0/)).toBeInTheDocument();
+      });
 
       mockFetchDashboardAlarmEventsV2.mockClear();
-      // Server liefert fuer alle 5 Seiten jeweils 50 Events zurueck
-      mockFetchDashboardAlarmEventsV2.mockImplementation(async (params: { limit: number }) => {
-        return {
-          ok: true,
-          data: Array.from({ length: params.limit }, (_, i) => makeEv(`ev-reloaded-${i}`)),
-        };
-      });
+      mockFetchDashboardAlarmEventsV2.mockImplementation(async (params: { limit: number }) => ({
+        ok: true,
+        data: Array.from({ length: params.limit }, (_, i) => makeEv(`ev-reloaded-${i}`)),
+      }));
 
       // initialEvents aktualisiert sich (z. B. nach Lese- oder Quittierungs-Refetch)
       mockEvents = Array.from({ length: 50 }, (_, i) => makeEv(`ev-init-updated-${i}`));
@@ -203,6 +196,50 @@ describe('Alarm Views Extra Tests (Codex findings / P13c)', () => {
         expect(params.limit).toBeLessThanOrEqual(50);
       }
       expect(screen.getByTestId('load-more-alarms-btn')).toBeInTheDocument();
+    });
+
+    it('aktiviert hasMore nach Abschluss des Ladevorgangs fuer vollstaendige erste Seite', async () => {
+      const makeEv = (id: string) => ({
+        id,
+        ruleId: 'r-1',
+        dashboardId: 'dash-1',
+        dashboardTitle: 'Dashboard 1',
+        tileId: 't-1',
+        catalogId: 'crm.leads',
+        alterZustand: 'normal',
+        neuerZustand: 'warnung',
+        messwert: 10,
+        einheit: null,
+        grenze: 5,
+        meldung: `Event ${id}`,
+        createdAt: '2026-11-19T10:00:00Z',
+        gelesen: false,
+        quittiertVon: [],
+      });
+
+      // Filterwechsel: zunaechst laedt die neue Abfrage (isEventsLoading = true, events = [])
+      mockIsEventsLoading = true;
+      mockEvents = [];
+
+      const { rerender } = render(
+        <MemoryRouter>
+          <AlarmList />
+        </MemoryRouter>,
+      );
+
+      // Waehrend des Ladens darf das Seitenende noch nicht fahrlaessig auf false fixiert werden
+      mockIsEventsLoading = false;
+      mockEvents = Array.from({ length: 50 }, (_, i) => makeEv(`ev-loaded-${i}`));
+
+      rerender(
+        <MemoryRouter>
+          <AlarmList />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('load-more-alarms-btn')).toBeInTheDocument();
+      });
     });
   });
 
