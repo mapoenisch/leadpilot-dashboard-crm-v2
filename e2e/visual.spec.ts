@@ -16,9 +16,13 @@ const ROUTES = [
 // Dokument; `fullPage` erfasste deshalb nur den Viewport. Vor der Aufnahme
 // wird die Höhenbegrenzung des Layouts aufgehoben, damit das Dokument die
 // volle Inhaltshöhe hat und der gesamte Inhalt im Pixelvergleich liegt.
+// Auftrag 168 (P13c): Neue Alarmglocke (separat in dashboard-alarms*.spec.ts
+// belegt) aus Legacy-Visual-Baseline isolieren, um unerwünschte Header-Umbrüche
+// auf schmalen Viewports zu vermeiden.
 const FULL_CONTENT_CSS = `
   .h-screen { height: auto !important; min-height: 100vh; overflow: visible !important; }
   #main-content { overflow: visible !important; flex: none !important; }
+  [data-testid="header-alarm-bell"] { display: none !important; }
 `;
 
 for (const routePath of ROUTES) {
