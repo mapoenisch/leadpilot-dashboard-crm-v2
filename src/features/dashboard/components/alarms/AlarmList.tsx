@@ -99,25 +99,37 @@ export const AlarmList: React.FC = () => {
   }, [initialEvents, appendedEvents, nurUngelesen, selectedDashboardId, nurWarnungKritisch]);
 
   const handleMarkRead = async (eventId: string) => {
-    await markRead([eventId]);
-    setAppendedEvents((prev) => prev.map((e) => (e.id === eventId ? { ...e, gelesen: true } : e)));
+    try {
+      const count = await markRead([eventId]);
+      if (count > 0) {
+        setAppendedEvents((prev) =>
+          prev.map((e) => (e.id === eventId ? { ...e, gelesen: true } : e)),
+        );
+      }
+    } catch {
+      // Fehlgeschlagene Mutation: lokaler Zustand bleibt unverändert
+    }
   };
 
   const handleMarkAllRead = async () => {
     setIsMarkingAll(true);
     try {
-      await markAllRead({
+      const count = await markAllRead({
         dashboardId: selectedDashboardId || undefined,
         nurWarnungKritisch,
       });
-      setAppendedEvents((prev) =>
-        prev.map((e) => {
-          if (selectedDashboardId && e.dashboardId !== selectedDashboardId) return e;
-          if (nurWarnungKritisch && e.neuerZustand !== 'warnung' && e.neuerZustand !== 'kritisch')
-            return e;
-          return { ...e, gelesen: true };
-        }),
-      );
+      if (count > 0) {
+        setAppendedEvents((prev) =>
+          prev.map((e) => {
+            if (selectedDashboardId && e.dashboardId !== selectedDashboardId) return e;
+            if (nurWarnungKritisch && e.neuerZustand !== 'warnung' && e.neuerZustand !== 'kritisch')
+              return e;
+            return { ...e, gelesen: true };
+          }),
+        );
+      }
+    } catch {
+      // Fehlgeschlagene Mutation: lokaler Zustand bleibt unverändert
     } finally {
       setIsMarkingAll(false);
     }

@@ -25,6 +25,7 @@ vi.mock('../services/dashboardAlarmService', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../services/dashboardAlarmService')>();
   return {
     ...actual,
+    fetchDashboardAlarmEvents: (...args: unknown[]) => mockFetchDashboardAlarmEventsV2(...args),
     fetchDashboardAlarmEventsV2: (...args: unknown[]) => mockFetchDashboardAlarmEventsV2(...args),
   };
 });
@@ -270,6 +271,53 @@ describe('Alarm Views & useUnreadAlarmCount (Auftrag 168 / P13c)', () => {
       await waitFor(() => {
         expect(screen.queryByText('Stale Outdated Alarm Event')).toBeNull();
       });
+    });
+
+    it('aktualisiert nachgeladene Ereignisse nur nach erfolgreicher Lesebestaetigung', async () => {
+      const makeEv = (id: string, meldung: string) => ({
+        id,
+        ruleId: 'r-1',
+        dashboardId: 'd-1',
+        dashboardTitle: 'Vertrieb',
+        tileId: 't-1',
+        catalogId: 'crm.deals',
+        alterZustand: 'normal',
+        neuerZustand: 'warnung',
+        messwert: 5,
+        einheit: null,
+        grenze: 10,
+        meldung,
+        createdAt: '2026-11-19T09:00:00Z',
+        gelesen: false,
+        quittiertVon: [],
+      });
+      mockEvents = Array.from({ length: 50 }, (_, i) => makeEv(`ev-init-${i}`, `Init ${i}`));
+      mockFetchDashboardAlarmEventsV2.mockResolvedValueOnce({
+        ok: true,
+        data: [makeEv('ev-appended-fail', 'Nachgeladener Fehler-Event')],
+      });
+
+      render(
+        <MemoryRouter>
+          <AlarmList />
+        </MemoryRouter>,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Weitere laden' }));
+      await waitFor(() => {
+        expect(screen.getByText(/Nachgeladener Fehler-Event/)).toBeInTheDocument();
+      });
+
+      mockMarkRead.mockRejectedValueOnce(new Error('RPC_FAILED'));
+      const btns = screen.getAllByRole('button', { name: 'Als gelesen markieren' });
+      fireEvent.click(btns[btns.length - 1]!);
+
+      await waitFor(() => {
+        expect(mockMarkRead).toHaveBeenCalledWith(['ev-appended-fail']);
+      });
+
+      const appendedRow = document.querySelector('[data-event-id="ev-appended-fail"]');
+      expect(appendedRow).toHaveAttribute('data-gelesen', 'false');
     });
   });
 

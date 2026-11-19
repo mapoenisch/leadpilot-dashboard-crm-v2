@@ -219,7 +219,13 @@ export function useDashboardAlarms(
 
   const markReadMutation = useMutation(
     {
-      mutationFn: (eventIds: string[]) => markAlarmEventsRead(eventIds),
+      mutationFn: async (eventIds: string[]) => {
+        const count = await markAlarmEventsRead(eventIds);
+        if (eventIds.length > 0 && count === 0) {
+          throw new Error('Lesebestätigung fehlgeschlagen');
+        }
+        return count;
+      },
       onSuccess: () => invalidateAll(),
     },
     queryClient,
