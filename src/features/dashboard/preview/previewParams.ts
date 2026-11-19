@@ -12,6 +12,7 @@ export function readPreviewParams() {
       versionen: false,
       schwellenwerte: false,
       alarme: false,
+      transformationen: false,
       live: 'nicht_konfiguriert' as const,
     };
   }
@@ -23,6 +24,7 @@ export function readPreviewParams() {
     versionen: sp.get('versionen') === '1',
     schwellenwerte: sp.get('schwellenwerte') === '1',
     alarme,
+    transformationen: sp.get('transformationen') === '1',
     live: parsePreviewLiveScenario(sp.get('live')),
   };
 }

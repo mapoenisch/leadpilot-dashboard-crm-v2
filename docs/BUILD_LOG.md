@@ -22499,3 +22499,68 @@ Mit Auftrag 168 (Phase P13c des Masterplans) wird die Benutzeroberfläche für d
   - `npm run verify` (25/25) und build sind grün.
   - size-limit: Initial-JS 171,95 kB, größter Chunk 79,41 kB.
   - Schutzbereichs-Diff gegen `origin/main` ist leer.
+
+---
+
+## 2026-11-26 — Auftrag 169: Dashboard-Editor: Transformationen je Kachel (Umbenennen, Einheit umrechnen, gleitender Durchschnitt) mit Alarmfähigkeit (P14a)
+
+**Rolle:** Builder (Antigravity) · **Branch:** `auftrag-169-transformationen` · **Basis:** Merge von PR #209 (`c168a929`)
+
+Mit Auftrag 169 (Phase P14a des Masterplans) erhält der Dashboard-Editor die Fähigkeit, Kacheln über deterministische Transformationsketten (höchstens drei Schritte in fester Reihenfolge) umzuformen:
+1. `umbenennen`: Ändert den Anzeigenamen des Werts bzw. der Serie (1–60 Zeichen); Metadaten bleiben sichtbar.
+2. `einheit_umrechnen`: Nur Paare aus einer festen, begründeten Positivliste mit Faktor und Zielformat; Server-Parität via `dashboard_unit_conversions`.
+3. `gleitender_durchschnitt`: Ausschließlich bei Zeitreihen (Fenster 2–30 Punkte, nachlaufend); Lücken bleiben strikt erhalten.
+
+### 1. Rot-Nachweise (T1 §3 Nr. 6)
+- **(a) Referenzfall `EUR → Tsd. EUR` (1.234.567 → 1.234,567):** `applyTransformations` fehlte → **ROT**.
+- **(b) Gleitender Durchschnitt mit Lücke:** Lücke im Fenster muss Lücke bleiben, erste `Fenster - 1` Punkte leer → **ROT**.
+- **(c) Schwellenwert nach Einheitenwechsel:** Regel wird `regel_ungueltig` wenn Einheit der Kette von Schwellenwert-Einheit abweicht → **ROT**.
+- **(d) pgTAP Umrechnung im Alarmwert:** `alarm_apply_transformations` und kachelspezifische Auswertung in `evaluate_dashboard_alarms` fehlten → **ROT**.
+- **(e) Kette mit Durchschnitt pausiert aktiven Alarm:** Trigger `trg_dashboard_alarm_transformations` fehlte → **ROT**.
+
+### 2. Modell, Referenzfälle & Client-Rechenkern (T2)
+- `src/features/dashboard/model/transformations/types.ts`: Typdefinitionen (`RenameTransformation`, `UnitConversionTransformation`, `MovingAverageTransformation`, `TileTransformation`).
+- `src/features/dashboard/model/transformations/unitConversions.ts`: Feste Positivliste (`EUR → Tsd. EUR`, `EUR → Mio. EUR`, `Anzahl → Tsd.`, `Anteil 0–1 → %`).
+- `src/features/dashboard/model/transformations/transformationAlarm.ts`: Alarmmatrix (`umbenennen` erbt, `einheit_umrechnen` alarmfähig, `gleitender_durchschnitt` nicht alarmfähig).
+- `src/features/dashboard/model/transformations/validateTransformations.ts`: Validierung von Einzel- und Kettenschritten.
+- `src/features/dashboard/model/transformations/applyTransformations.ts`: Reine Funktion `applyTransformations`, `getEffectiveUnit`, `getEffectiveTitle`, `formatTransformationSummary`.
+- `src/features/dashboard/model/transformations/transformationReferenceCases.json`: 32 umfassende Testfälle (Grenzwerte, Rundung, negative Zahlen, Lücken im Zeitverlauf).
+- `src/features/dashboard/model/dashboardConfigV2.ts`: `TileQueryConfig.transformations?: TileTransformation[]` ergänzt; Datei bei 396 Zeilen gehalten (≤ 400).
+
+### 3. Server-Architektur & Migration (`20261126_dashboard_transformations.sql`) (T3)
+- **Tabelle `public.dashboard_unit_conversions`:** Feste Umrechnungstabelle mit RLS (`auth.uid() IS NOT NULL`, Grants für `authenticated, service_role`).
+- **SQL-Generator & Paritätsprüfer:** `scripts/generateUnitConversionsSql.ts` sichert 100% Code-Parität zwischen TypeScript und SQL (`--check`).
+- **Erweiterung `dashboard_config_v2_invalid_reason`:** Formprüfung für `transformations` (Array max. 3, Art-Prüfung, Feld-Validierung, SECURITY DEFINER).
+- **Funktion `alarm_apply_transformations(p_kpi_result, p_transformations)`:** Wendet `einheit_umrechnen` server-seitig deterministisch an.
+- **Trigger `trg_dashboard_alarm_transformations`:** Pausiert Alarme auf Kacheln atomar bei Speichern einer nicht alarmfähigen Transformation (`pause_grund = 'kennzahl_nicht_alarmfaehig'`).
+- **Worker `evaluate_dashboard_alarms`:** Wertet Kacheln kachelspezifisch aus; identische Kennzahlen mit unterschiedlichen Einheiten liefern getrennte, korrekte Alarmwerte.
+- **pgTAP-Tests:** 22 Tests in `supabase/tests/dashboard_transformations.sql` verifizieren alle Aspekte (100% GRÜN).
+
+### 4. Oberfläche & Komponenten (T4)
+- **Inspector-Abschnitt „Umformen“ (`InspectorTransformationSection.tsx` [387 Zeilen]):**
+  - Bis zu 3 Schritte in fester Reihenfolge anlegen, verschieben (↑ / ↓), entfernen.
+  - Gesperrte Arten (gleitender Durchschnitt bei Einzelwerten) mit Begründung sichtbar deaktiviert.
+  - Warnung: *„Der Alarm dieser Kachel wird pausiert.“* wenn Kachel aktiven Alarm hat und eine nicht-alarmfähige Transformation existiert.
+  - Mini-Vorschau: Zeigt Vorher/Nachher-Werte und Einheiten.
+- **Inspector Data- & Threshold-Tabs:**
+  - `InspectorDataTab.tsx` (339 Zeilen) bindet `InspectorTransformationSection` ein.
+  - `InspectorThresholdTab.tsx` (194 Zeilen) folgt der transformierten Einheit (`getEffectiveUnit`).
+- **Kachel & Detailanzeige:**
+  - `DashboardTile.tsx` (293 Zeilen): Dezenter Badge `umgeformt` mit Tooltip (`formatTransformationSummary`).
+  - `TileDetailContent.tsx` (268 Zeilen): `umgeformt`-Hinweis im Header mit Tooltip der Kette.
+  - `LazyDashboardTile.tsx` (167 Zeilen): Transformiert Rohdaten via `applyTransformations` und bewertet Schwellenwerte gegen die transformierte Einheit.
+- **Druckansicht (`PrintTileCard.tsx` [233 Zeilen]):**
+  - Wendet `applyTransformations` auf Kacheldaten an und nennt die Transformationskette in der Fußnote.
+
+### 5. Vorschau, E2E & Screenshots (T5)
+- **Vorschau-Szenario:** `?bereich=editor_v2&transformationen=1` (`previewTransformations.ts`) mit 4 Demonstrationskacheln (Umbenennen, EUR → Tsd. EUR, Gleitender Durchschnitt, pausierter Alarm).
+- **E2E-Test:** `e2e/dashboard-transformations-preview.spec.ts` (Viewports 1440, 768, 375, Interaktionen und Badges).
+- **Screenshots:** `scripts/captureAuftrag169GateScreenshots.mjs` erzeugt 36 Screenshots in `docs/screenshots/auftrag-169/` mit 0 px Überlauf und distinkten Hashes.
+- **Bundle & Size-Limit:** Initial JS: 171.96 kB (Budget < 180 kB, Baseline 171.95 kB, Zuwachs +0.01 kB), Largest Chunk: 79.41 kB (Budget < 250 kB).
+
+### 6. Smoke-Test für Marc
+1. Im Vorschau-Szenario `/?bereich=editor_v2&transformationen=1` öffnen.
+2. Kachel „Umsatzerlöse“ anklicken → Kachel ist auf `Tsd. EUR` umgerechnet (z. B. `1.234,567 Tsd. EUR`), Badge `umgeformt` sichtbar.
+3. Im Inspector unter „Alarme“ Schwellenwert prüfen → Schwellenwert ist in `Tsd. EUR` hinterlegt (`1000` Warnung, `500` Kritisch), Badge spiegelt die umgerechnete Einheit wider.
+4. Kachel „Pipeline Volumen (Pausierter Alarm)“ ansehen → Badge zeigt `Alarm pausiert` mit Grund `kennzahl_nicht_alarmfaehig`, da ein gleitender Durchschnitt aktiv ist.
+

@@ -16,6 +16,8 @@ import {
 import { useOptionalTimeControl } from '../../../time/TimeControlProvider';
 import { useDashboardData } from '../../../hooks/useDashboardData';
 import { TimeWindowField, type TimeWindowConfig } from './TimeWindowField';
+import { InspectorTransformationSection } from './InspectorTransformationSection';
+import type { TileTransformation } from '../../../model/transformations';
 
 export function InspectorDataTab({
   selectedTile,
@@ -74,6 +76,15 @@ export function InspectorDataTab({
       query: {
         ...normQuery,
         window: nextWindow,
+      },
+    });
+  };
+
+  const handleTransformationsChange = (nextTransformations: TileTransformation[] | undefined) => {
+    onTileOverrideChange(selectedTile.id, {
+      query: {
+        ...normQuery,
+        transformations: nextTransformations,
       },
     });
   };
@@ -250,6 +261,13 @@ export function InspectorDataTab({
           </p>
         </div>
       )}
+
+      {/* Umformen: Transformationen je Kachel (Auftrag 169 / P14a) */}
+      <InspectorTransformationSection
+        selectedTile={selectedTile}
+        catalogEntry={catalogEntry}
+        onChangeTransformations={handleTransformationsChange}
+      />
     </div>
   );
 }

@@ -10,6 +10,7 @@ import {
   type ThresholdRuleV2,
 } from '../../../model/thresholdRuleV2';
 import { THRESHOLD_MESSAGES } from '../../../model/thresholdMessages';
+import { getEffectiveUnit } from '../../../model/transformations';
 import { formatTileValue } from '../../tileFormat';
 import {
   cleanThresholdRule,
@@ -48,7 +49,8 @@ export function InspectorThresholdTab({
   const formId = useId();
   const shape = (catalogEntry as ActiveCatalogEntry)?.shape;
   const isSingleValue = !shape || ['einzelwert', 'verhaeltnis', 'anteil'].includes(shape);
-  const unit = (catalogEntry as ActiveCatalogEntry)?.unit ?? '';
+  const baseUnit = (catalogEntry as ActiveCatalogEntry)?.unit ?? '';
+  const unit = getEffectiveUnit(baseUnit, selectedTile.query?.transformations);
 
   const currentThreshold = selectedTile.threshold;
   const normalizedInitial = useMemo(

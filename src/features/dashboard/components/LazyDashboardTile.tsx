@@ -15,6 +15,7 @@ import { useOptionalTimeControl } from '../time/TimeControlProvider';
 import { DashboardTile } from './DashboardTile';
 import { TileThresholdBadge } from './TileThresholdBadge';
 import { isDataOlderThanMaxAlarmAge } from '../model/alarmDataAge';
+import { applyTransformations } from '../model/transformations';
 
 export type TileDataHook = (
   tile: DashboardTileConfig,
@@ -59,7 +60,12 @@ export function LazyDashboardTile({
   });
 
   const timeControl = useOptionalTimeControl();
-  const data = useData(tile, applied, { enabled: active && !suspended });
+  const rawData = useData(tile, applied, { enabled: active && !suspended });
+  const transformations = tile.query?.transformations;
+  const data = useMemo(
+    () => applyTransformations(rawData, transformations),
+    [rawData, transformations],
+  );
 
   const notify = useRef(onActivated);
   notify.current = onActivated;
@@ -107,8 +113,9 @@ export function LazyDashboardTile({
     if (isStaleData) {
       return { stufe: 'nicht_bewertet' as const, text: 'Letzter Wert älter als 24 Stunden' };
     }
-    return evaluateThresholdV2(effectiveThreshold, singleValue, data?.state, entry?.unit);
-  }, [effectiveThreshold, isSingleValue, isStaleData, singleValue, data?.state, entry?.unit]);
+    const currentUnit = data && 'unit' in data && data.unit ? data.unit : (entry?.unit ?? '');
+    return evaluateThresholdV2(effectiveThreshold, singleValue, data?.state, currentUnit);
+  }, [effectiveThreshold, isSingleValue, isStaleData, singleValue, data, entry?.unit]);
 
   const borderClass =
     evaluation?.stufe === 'kritisch'

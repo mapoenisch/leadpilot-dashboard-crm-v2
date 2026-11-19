@@ -1,0 +1,377 @@
+[
+  {
+    "id": "tc-01",
+    "beschreibung": "EUR in Tsd. EUR Standardwert 1.234.567",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": 1234567, "einheit": "EUR" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "EUR", "zu": "Tsd. EUR" }],
+    "erwartet": { "wert": 1234.567, "einheit": "Tsd. EUR", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-02",
+    "beschreibung": "EUR in Tsd. EUR Nullwert",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": 0, "einheit": "EUR" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "EUR", "zu": "Tsd. EUR" }],
+    "erwartet": { "wert": 0, "einheit": "Tsd. EUR", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-03",
+    "beschreibung": "EUR in Tsd. EUR Negativwert",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": -50000, "einheit": "EUR" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "EUR", "zu": "Tsd. EUR" }],
+    "erwartet": { "wert": -50, "einheit": "Tsd. EUR", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-04",
+    "beschreibung": "EUR in Tsd. EUR Großer Wert 2.500.000.000",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": 2500000000, "einheit": "EUR" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "EUR", "zu": "Tsd. EUR" }],
+    "erwartet": { "wert": 2500000, "einheit": "Tsd. EUR", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-05",
+    "beschreibung": "EUR in Tsd. EUR Kommawert 100.50",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": 100.5, "einheit": "EUR" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "EUR", "zu": "Tsd. EUR" }],
+    "erwartet": { "wert": 0.1005, "einheit": "Tsd. EUR", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-06",
+    "beschreibung": "EUR in Mio. EUR Standardwert 15.000.000",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": 15000000, "einheit": "EUR" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "EUR", "zu": "Mio. EUR" }],
+    "erwartet": { "wert": 15, "einheit": "Mio. EUR", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-07",
+    "beschreibung": "EUR in Mio. EUR Nullwert",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": 0, "einheit": "EUR" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "EUR", "zu": "Mio. EUR" }],
+    "erwartet": { "wert": 0, "einheit": "Mio. EUR", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-08",
+    "beschreibung": "EUR in Mio. EUR Negativwert -3.500.000",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": -3500000, "einheit": "EUR" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "EUR", "zu": "Mio. EUR" }],
+    "erwartet": { "wert": -3.5, "einheit": "Mio. EUR", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-09",
+    "beschreibung": "EUR in Mio. EUR Große Zahl 10 Mrd",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": 10000000000, "einheit": "EUR" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "EUR", "zu": "Mio. EUR" }],
+    "erwartet": { "wert": 10000, "einheit": "Mio. EUR", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-10",
+    "beschreibung": "EUR in Mio. EUR Teilbetrag 500.000",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": 500000, "einheit": "EUR" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "EUR", "zu": "Mio. EUR" }],
+    "erwartet": { "wert": 0.5, "einheit": "Mio. EUR", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-11",
+    "beschreibung": "Anzahl in Tsd. Standard 45.000",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": 45000, "einheit": "Anzahl" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "Anzahl", "zu": "Tsd." }],
+    "erwartet": { "wert": 45, "einheit": "Tsd.", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-12",
+    "beschreibung": "Anzahl in Tsd. Nullwert",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": 0, "einheit": "Anzahl" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "Anzahl", "zu": "Tsd." }],
+    "erwartet": { "wert": 0, "einheit": "Tsd.", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-13",
+    "beschreibung": "Anzahl in Tsd. Negativwert",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": -1000, "einheit": "Anzahl" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "Anzahl", "zu": "Tsd." }],
+    "erwartet": { "wert": -1, "einheit": "Tsd.", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-14",
+    "beschreibung": "Anzahl in Tsd. Große Zahl 12 Mio",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": 12000000, "einheit": "Anzahl" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "Anzahl", "zu": "Tsd." }],
+    "erwartet": { "wert": 12000, "einheit": "Tsd.", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-15",
+    "beschreibung": "Anzahl in Tsd. Kleiner Wert 250",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": 250, "einheit": "Anzahl" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "Anzahl", "zu": "Tsd." }],
+    "erwartet": { "wert": 0.25, "einheit": "Tsd.", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-16",
+    "beschreibung": "Anteil 0–1 in % Standard 0.75 -> 75%",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": 0.75, "einheit": "Anteil 0–1" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "Anteil 0–1", "zu": "%" }],
+    "erwartet": { "wert": 75, "einheit": "%", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-17",
+    "beschreibung": "Anteil 0–1 in % Null",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": 0, "einheit": "Anteil 0–1" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "Anteil 0–1", "zu": "%" }],
+    "erwartet": { "wert": 0, "einheit": "%", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-18",
+    "beschreibung": "Anteil 0–1 in % Eins -> 100%",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": 1, "einheit": "Anteil 0–1" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "Anteil 0–1", "zu": "%" }],
+    "erwartet": { "wert": 100, "einheit": "%", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-19",
+    "beschreibung": "Anteil 0–1 in % Feiner Dezimalwert 0.0525 -> 5.25%",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": 0.0525, "einheit": "Anteil 0–1" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "Anteil 0–1", "zu": "%" }],
+    "erwartet": { "wert": 5.25, "einheit": "%", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-20",
+    "beschreibung": "Anteil 0–1 in % Negativanteil",
+    "kategorie": "umrechnung",
+    "art": "einheit_umrechnen",
+    "eingabe": { "wert": -0.15, "einheit": "Anteil 0–1" },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "Anteil 0–1", "zu": "%" }],
+    "erwartet": { "wert": -15, "einheit": "%", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-21",
+    "beschreibung": "Gleitender Durchschnitt Fenster 3 ohne Lücken",
+    "kategorie": "durchschnitt",
+    "art": "gleitender_durchschnitt",
+    "eingabe": {
+      "reihe": [10, 20, 30, 40],
+      "einheit": "EUR"
+    },
+    "transformationen": [{ "art": "gleitender_durchschnitt", "fenster": 3 }],
+    "erwartet": {
+      "reihe": [null, null, 20, 30],
+      "einheit": "EUR",
+      "alarmfaehig": false
+    }
+  },
+  {
+    "id": "tc-22",
+    "beschreibung": "Gleitender Durchschnitt Fenster 2",
+    "kategorie": "durchschnitt",
+    "art": "gleitender_durchschnitt",
+    "eingabe": {
+      "reihe": [10, 20, 30],
+      "einheit": "EUR"
+    },
+    "transformationen": [{ "art": "gleitender_durchschnitt", "fenster": 2 }],
+    "erwartet": {
+      "reihe": [null, 15, 25],
+      "einheit": "EUR",
+      "alarmfaehig": false
+    }
+  },
+  {
+    "id": "tc-23",
+    "beschreibung": "Gleitender Durchschnitt mit Lücke (null im Fenster)",
+    "kategorie": "durchschnitt",
+    "art": "gleitender_durchschnitt",
+    "eingabe": {
+      "reihe": [10, null, 30, 40],
+      "einheit": "EUR"
+    },
+    "transformationen": [{ "art": "gleitender_durchschnitt", "fenster": 3 }],
+    "erwartet": {
+      "reihe": [null, null, null, null],
+      "einheit": "EUR",
+      "alarmfaehig": false
+    }
+  },
+  {
+    "id": "tc-24",
+    "beschreibung": "Gleitender Durchschnitt Lücke mittig erzeugt Folge-Lücken",
+    "kategorie": "durchschnitt",
+    "art": "gleitender_durchschnitt",
+    "eingabe": {
+      "reihe": [10, 20, null, 40, 50],
+      "einheit": "EUR"
+    },
+    "transformationen": [{ "art": "gleitender_durchschnitt", "fenster": 3 }],
+    "erwartet": {
+      "reihe": [null, null, null, null, null],
+      "einheit": "EUR",
+      "alarmfaehig": false
+    }
+  },
+  {
+    "id": "tc-25",
+    "beschreibung": "Gleitender Durchschnitt Fenster = Länge",
+    "kategorie": "durchschnitt",
+    "art": "gleitender_durchschnitt",
+    "eingabe": {
+      "reihe": [10, 20, 30, 40],
+      "einheit": "EUR"
+    },
+    "transformationen": [{ "art": "gleitender_durchschnitt", "fenster": 4 }],
+    "erwartet": {
+      "reihe": [null, null, null, 25],
+      "einheit": "EUR",
+      "alarmfaehig": false
+    }
+  },
+  {
+    "id": "tc-26",
+    "beschreibung": "Gleitender Durchschnitt Fenster > Länge",
+    "kategorie": "durchschnitt",
+    "art": "gleitender_durchschnitt",
+    "eingabe": {
+      "reihe": [10, 20, 30],
+      "einheit": "EUR"
+    },
+    "transformationen": [{ "art": "gleitender_durchschnitt", "fenster": 5 }],
+    "erwartet": {
+      "reihe": [null, null, null],
+      "einheit": "EUR",
+      "alarmfaehig": false
+    }
+  },
+  {
+    "id": "tc-27",
+    "beschreibung": "Gleitender Durchschnitt kurze Reihe (1 Punkt)",
+    "kategorie": "durchschnitt",
+    "art": "gleitender_durchschnitt",
+    "eingabe": {
+      "reihe": [50],
+      "einheit": "EUR"
+    },
+    "transformationen": [{ "art": "gleitender_durchschnitt", "fenster": 2 }],
+    "erwartet": {
+      "reihe": [null],
+      "einheit": "EUR",
+      "alarmfaehig": false
+    }
+  },
+  {
+    "id": "tc-28",
+    "beschreibung": "Gleitender Durchschnitt Maximalfenster 30 Punkte",
+    "kategorie": "durchschnitt",
+    "art": "gleitender_durchschnitt",
+    "eingabe": {
+      "reihe": [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+      "einheit": "EUR"
+    },
+    "transformationen": [{ "art": "gleitender_durchschnitt", "fenster": 30 }],
+    "erwartet": {
+      "letzterWert": 5,
+      "anzahlNull": 29,
+      "einheit": "EUR",
+      "alarmfaehig": false
+    }
+  },
+  {
+    "id": "tc-29",
+    "beschreibung": "Kette 2 Schritte: Umbenennen + Einheit umrechnen",
+    "kategorie": "kette",
+    "art": "mehrschritt",
+    "eingabe": { "wert": 3500000, "einheit": "EUR" },
+    "transformationen": [
+      { "art": "umbenennen", "name": "Pipeline Bereinigt" },
+      { "art": "einheit_umrechnen", "von": "EUR", "zu": "Tsd. EUR" }
+    ],
+    "erwartet": { "wert": 3500, "einheit": "Tsd. EUR", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-30",
+    "beschreibung": "Kette 3 Schritte: Umbenennen + Umrechnen + Durchschnitt",
+    "kategorie": "kette",
+    "art": "mehrschritt",
+    "eingabe": {
+      "reihe": [10000, 20000, 30000, 40000],
+      "einheit": "EUR"
+    },
+    "transformationen": [
+      { "art": "umbenennen", "name": "Geglätteter Trend" },
+      { "art": "einheit_umrechnen", "von": "EUR", "zu": "Tsd. EUR" },
+      { "art": "gleitender_durchschnitt", "fenster": 3 }
+    ],
+    "erwartet": {
+      "reihe": [null, null, 20, 30],
+      "einheit": "Tsd. EUR",
+      "alarmfaehig": false
+    }
+  },
+  {
+    "id": "tc-31",
+    "beschreibung": "Umbenennen allein lässt Wert und Einheit unverändert",
+    "kategorie": "umbenennen",
+    "art": "umbenennen",
+    "eingabe": { "wert": 42, "einheit": "Anzahl" },
+    "transformationen": [{ "art": "umbenennen", "name": "Gewonnene Deals Q4" }],
+    "erwartet": { "wert": 42, "einheit": "Anzahl", "alarmfaehig": true }
+  },
+  {
+    "id": "tc-32",
+    "beschreibung": "Einheitenwechsel führt zu regel_ungueltig bei Schwellenwert",
+    "kategorie": "schwellenwert",
+    "art": "einheit_umrechnen",
+    "eingabe": {
+      "wert": 1200000,
+      "einheit": "EUR",
+      "schwellenwert": {
+        "formatVersion": 2,
+        "enabled": true,
+        "art": "hoch_ist_schlecht",
+        "einheit": "EUR",
+        "warnung": 1000000,
+        "kritisch": 2000000
+      }
+    },
+    "transformationen": [{ "art": "einheit_umrechnen", "von": "EUR", "zu": "Tsd. EUR" }],
+    "erwartet": {
+      "wert": 1200,
+      "einheit": "Tsd. EUR",
+      "schwellenwertStufe": "regel_ungueltig",
+      "alarmfaehig": true
+    }
+  }
+]

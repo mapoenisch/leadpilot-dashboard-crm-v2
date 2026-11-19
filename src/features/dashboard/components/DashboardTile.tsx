@@ -24,6 +24,7 @@ import { formatAsOf, NO_DATA, SOURCE_LABEL, timeLabel } from './tileFormat';
 import { TileStandLine } from '../time/TileStandLine';
 import { readTileStand } from '../time/useTimeControlledData';
 import { TileBody } from './TileBody';
+import { formatTransformationSummary, getEffectiveTitle } from '../model/transformations';
 
 export interface DashboardTileProps {
   tile: DashboardTileConfig;
@@ -82,7 +83,12 @@ export function DashboardTile({
   dashboardFilters,
   className,
 }: DashboardTileProps) {
-  const title = tile.title ?? entry?.name ?? tile.catalogId;
+  const transformations = tile.query?.transformations;
+  const hasTransformations = Boolean(transformations && transformations.length > 0);
+  const transformationSummary = hasTransformations
+    ? formatTransformationSummary(transformations)
+    : '';
+  const title = getEffectiveTitle(tile.title ?? entry?.name ?? tile.catalogId, transformations);
   // useId liefert Doppelpunkte, die in SVG-Referenzen (url(#…)) stören: nur Buchstaben und Ziffern.
   const idPrefix = `tile${useId()}${tile.tileId}`.replace(/[^a-zA-Z0-9]/g, '');
   const resolved = data.state === 'nicht_verfuegbar' ? null : data;
@@ -158,8 +164,17 @@ export function DashboardTile({
                 {DASHBOARD_CATEGORIES[entry.category]}
               </p>
             ) : null}
-            <h3 className="m-0 mt-[2px] break-words text-[15px] font-semibold leading-snug text-[var(--color-text-primary,#fff)]">
-              {title}
+            <h3 className="m-0 mt-[2px] break-words text-[15px] font-semibold leading-snug text-[var(--color-text-primary,#fff)] flex items-center flex-wrap gap-1.5">
+              <span>{title}</span>
+              {hasTransformations && (
+                <span
+                  data-testid="tile-transformed-hint"
+                  title={transformationSummary}
+                  className="rounded bg-white/10 px-1 py-0.5 text-[10px] font-medium text-slate-300 cursor-help"
+                >
+                  umgeformt
+                </span>
+              )}
             </h3>
             {/* Auftrag 091 (Entscheidung Marc): Klartext unter dem Kürzel; ein eigener Titel ersetzt beides. */}
             {!tile.title && entry?.plainName ? (
