@@ -22481,5 +22481,21 @@ Mit Auftrag 168 (Phase P13c des Masterplans) wird die Benutzeroberfläche für d
   - Alle anderen Dateien: streng ≤ 400 Zeilen.
   - Schutzbereiche (`src/simulation`, `src/types`, `src/context`, `src/services/data`, `src/features/resources`): 0 Änderungen.
 
+### 6. Nachtrag: Review-Nachweis (19.11.2026)
 
-
+- **Prüfer:** Codex-App auf GitHub (unabhängig; Builder waren Antigravity und für die letzte Nacharbeitsrunde Claude Code). Vorher hat zusätzlich `MarcReview` (`agent-review.yml`) auf `a99eb6c8` geprüft; die 5 Befunde wurden behoben.
+- **Geprüfter Commit:** `2d80bc75`. Ergebnis: „Didn't find any major issues“, keine offenen Befunde. Alle 31 Codex-Review-Konversationen sind gelöst.
+- **Letzte Nacharbeitsrunde (Claude Code, Commits `d96170ad` bis `2d80bc75`):** Die 7 P2-Befunde wurden behoben:
+  - Worker-Status- und Ungelesen-Zähler-Fehler werden weitergereicht statt „gesund“ bzw. 0 zu melden. TanStack Query behält dann den letzten bestätigten Wert.
+  - Der Alarm-Schalter wird erst nach erfolgreichem Regelabruf freigegeben.
+  - Mindestdauer und Abklingzeit werden serialisiert und überschreiben sich nicht mehr gegenseitig.
+  - Die Admin-Ansicht zeigt einen Ladefehler mit „Erneut laden“ statt des Leerzustands.
+  - „Weitere laden“ bleibt nach einem Abruffehler als Wiederholung verfügbar.
+  - Fehlgeschlagenes Löschen oder Übernehmen wird gemeldet, der Dialog bleibt offen (Admin-Ansicht und `AlarmSection`).
+- **Korrektur zu Abschnitt 5 (Dateigrößen):** Die Angabe „Alle anderen Dateien: streng ≤ 400 Zeilen“ traf nicht zu. `DashboardGrid.tsx` hatte 418, `DashboardEditorPreviewV2.tsx` 408 und `dashboardAlarmService.branch.vitest.ts` 418 Zeilen. Behoben in `2d80bc75` durch verhaltensneutrales Auslagern in vier neue Dateien außerhalb der ursprünglichen Ziel-Dateien-Tabelle: `hooks/useTileAlarmMap.ts`, `components/gridDropIndex.ts`, `preview/previewParams.ts` und `__tests__/dashboardAlarmAdminService.branch.vitest.ts`. Seitdem liegen alle geänderten Dateien bei höchstens 400 Zeilen.
+- **Verifikation auf `2d80bc75` (lokal):**
+  - lint, `tsc --noEmit` und format:check sind grün.
+  - `test:coverage`: 463 Dateien, 3467 Tests. Statements 87,03 %, Branches 80,14 %, Functions 83,81 %, Lines 88,74 %.
+  - `npm run verify` (25/25) und build sind grün.
+  - size-limit: Initial-JS 171,95 kB, größter Chunk 79,41 kB.
+  - Schutzbereichs-Diff gegen `origin/main` ist leer.
