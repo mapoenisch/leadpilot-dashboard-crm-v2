@@ -2,7 +2,7 @@
 // Hauptansicht der Alarmliste mit Filterung, Quittierung und Ausfallhinweis.
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Bell, Loader2 } from 'lucide-react';
+import { Bell, Loader2, AlertTriangle } from 'lucide-react';
 import { useDashboardAlarms } from '../../hooks/useDashboardAlarms';
 import { AlarmWorkerBanner } from './AlarmWorkerBanner';
 import { AlarmFilterBar } from './AlarmFilterBar';
@@ -50,6 +50,9 @@ export const AlarmList: React.FC = () => {
   const {
     events: initialEvents,
     isEventsLoading,
+    isEventsError,
+    eventsError,
+    refetchEvents,
     markRead,
     markAllRead,
     acknowledge,
@@ -59,6 +62,41 @@ export const AlarmList: React.FC = () => {
   });
 
   const [knownDashboards, setKnownDashboards] = useState<Map<string, string>>(new Map());
+  const prevInitialEventsRef = useRef(initialEvents);
+
+  // Folgeseiten synchron halten: Bei Aktualisierung oder Rechteänderung (initialEvents ändert sich)
+  // nachgeladene Seiten verwerfen oder mit aktuellen Berechtigungen neu laden
+  useEffect(() => {
+    if (prevInitialEventsRef.current !== initialEvents) {
+      prevInitialEventsRef.current = initialEvents;
+      if (initialEvents.length < PAGE_SIZE) {
+        if (appendedEvents.length > 0) {
+          setAppendedEvents([]);
+        }
+        setHasMore(false);
+      } else if (appendedEvents.length > 0) {
+        const requestGen = filterGenRef.current;
+        const countToReload = appendedEvents.length;
+        fetchDashboardAlarmEventsV2({
+          dashboardId: selectedDashboardId || undefined,
+          nurUngelesen,
+          nurWarnungKritisch,
+          limit: countToReload,
+          offset: PAGE_SIZE,
+        }).then((res) => {
+          if (filterGenRef.current !== requestGen) return;
+          if (res.ok && res.data) {
+            setAppendedEvents(res.data);
+            if (res.data.length < countToReload) {
+              setHasMore(false);
+            }
+          } else {
+            setAppendedEvents([]);
+          }
+        });
+      }
+    }
+  }, [initialEvents, appendedEvents.length, selectedDashboardId, nurUngelesen, nurWarnungKritisch]);
 
   useEffect(() => {
     if (initialEvents.length > 0 || appendedEvents.length > 0) {
@@ -211,6 +249,29 @@ export const AlarmList: React.FC = () => {
         <div className="flex items-center justify-center py-16 text-text">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
           <span className="ml-2 text-xs">Lade Alarme…</span>
+        </div>
+      ) : isEventsError ? (
+        <div
+          data-testid="alarms-error-state"
+          className="flex flex-col items-center justify-center rounded-xl border border-rose-500/30 bg-rose-500/5 py-12 px-4 text-center text-text"
+        >
+          <AlertTriangle className="h-8 w-8 text-rose-400 mb-2" />
+          <h4 className="m-0 text-sm font-semibold text-white">
+            Fehler beim Laden der Alarm-Meldungen
+          </h4>
+          <p className="mt-1 text-xs text-[var(--color-text-muted)] max-w-sm">
+            {eventsError instanceof Error
+              ? eventsError.message
+              : 'Alarmereignisse konnten nicht abgerufen werden.'}
+          </p>
+          <button
+            type="button"
+            data-testid="retry-alarms-btn"
+            onClick={() => refetchEvents()}
+            className="mt-3 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-text hover:bg-surface-raised cursor-pointer"
+          >
+            Erneut versuchen
+          </button>
         </div>
       ) : displayEvents.length === 0 ? (
         <div

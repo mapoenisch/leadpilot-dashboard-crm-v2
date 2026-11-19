@@ -258,6 +258,8 @@ export function useDashboardAlarms(
     isRulesLoading: rulesQuery.isLoading,
     events: eventsQuery.data ?? [],
     isEventsLoading: eventsQuery.isLoading,
+    isEventsError: eventsQuery.isError,
+    eventsError: eventsQuery.error,
     orgRules: orgRulesQuery.data ?? [],
     isOrgRulesLoading: orgRulesQuery.isLoading,
     workerStatus: workerStatusQuery.data,

@@ -8,6 +8,7 @@ import { useOrganization } from '@/auth/organizationContext';
 import { ForbiddenView } from '../components/InvitationForm';
 import { useDashboardAlarms } from '@/features/dashboard/hooks/useDashboardAlarms';
 import { AlarmWorkerBanner } from '@/features/dashboard/components/alarms/AlarmWorkerBanner';
+import { useModalA11y } from '@/features/dashboard/components/editor/versions/useModalA11y';
 import type { OrganizationAlarmRuleItem } from '@/features/dashboard/services/dashboardAlarmService';
 
 export function AdminAlarmsPage() {
@@ -21,6 +22,15 @@ export function AdminAlarmsPage() {
 
   const [operatingRuleId, setOperatingRuleId] = useState<string | null>(null);
   const [deleteTargetRule, setDeleteTargetRule] = useState<OrganizationAlarmRuleItem | null>(null);
+
+  const isDeleting = operatingRuleId !== null && operatingRuleId === deleteTargetRule?.id;
+  const deleteModalRef = useModalA11y<HTMLDivElement>({
+    isOpen: Boolean(deleteTargetRule),
+    onClose: () => {
+      if (!isDeleting) setDeleteTargetRule(null);
+    },
+    closeOnEscape: !isDeleting,
+  });
 
   const isPreview = typeof window !== 'undefined' && window.location.pathname.includes('vorschau');
 
@@ -200,10 +210,12 @@ export function AdminAlarmsPage() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
         >
           <div
+            ref={deleteModalRef}
+            tabIndex={-1}
             role="dialog"
             aria-modal="true"
             aria-labelledby="delete-dialog-title"
-            className="w-full max-w-sm rounded-xl border border-border bg-[var(--color-bg-deep,#041110)] p-5 shadow-2xl text-xs space-y-3"
+            className="w-full max-w-sm rounded-xl border border-border bg-[var(--color-bg-deep,#041110)] p-5 shadow-2xl text-xs space-y-3 outline-none"
           >
             <h3 id="delete-dialog-title" className="m-0 text-sm font-semibold text-white">
               Alarmregel löschen?
@@ -217,17 +229,20 @@ export function AdminAlarmsPage() {
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-soft">
               <button
                 type="button"
+                disabled={isDeleting}
                 onClick={() => setDeleteTargetRule(null)}
-                className="rounded-md border border-border bg-transparent px-3 py-1.5 text-xs text-text hover:bg-surface-raised cursor-pointer"
+                className="rounded-md border border-border bg-transparent px-3 py-1.5 text-xs text-text hover:bg-surface-raised cursor-pointer disabled:opacity-50"
               >
                 Abbrechen
               </button>
               <button
                 type="button"
+                disabled={isDeleting}
                 data-testid="confirm-delete-org-alarm-btn"
                 onClick={handleDelete}
-                className="rounded-md bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-700 cursor-pointer"
+                className="rounded-md bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-700 cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
               >
+                {isDeleting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 Endgültig löschen
               </button>
             </div>

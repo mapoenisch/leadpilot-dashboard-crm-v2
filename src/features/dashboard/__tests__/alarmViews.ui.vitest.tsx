@@ -42,6 +42,8 @@ vi.mock('../hooks/useDashboardAlarms', () => ({
     workerStatus: { status: 'ok', auswertungAktiv: true, ueberfaellig: false },
     events: mockEvents,
     isEventsLoading: false,
+    isEventsError: false,
+    eventsError: null,
     orgRules: mockOrgRules,
     isOrgRulesLoading: false,
     markRead: mockMarkRead,
@@ -50,6 +52,7 @@ vi.mock('../hooks/useDashboardAlarms', () => ({
     takeoverRule: mockTakeover,
     deleteRule: mockDeleteRule,
     refetchOrgRules: mockRefetch,
+    refetchEvents: mockRefetch,
   }),
   useSafeQueryClient: () => new QueryClient(),
 }));
