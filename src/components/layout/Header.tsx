@@ -1,7 +1,6 @@
 import { LogOut, Menu, Moon, Sun } from 'lucide-react';
+import type { ReactNode } from 'react';
 import type { ThemeMode } from './Layout';
-import { AlarmBell } from '@/features/dashboard/components/alarms/AlarmBell';
-import { AlarmWorkerBanner } from '@/features/dashboard/components/alarms/AlarmWorkerBanner';
 
 export interface HeaderProps {
   currentViewTitle: string;
@@ -15,6 +14,7 @@ export interface HeaderProps {
   userEmail?: string;
   userRoleLabel?: string;
   onLogout?: () => void;
+  alarmSlot?: ReactNode;
 }
 
 export function Header({
@@ -28,6 +28,7 @@ export function Header({
   userEmail,
   userRoleLabel,
   onLogout,
+  alarmSlot,
 }: HeaderProps) {
   return (
     <header className="border-0 app-header flex items-center justify-between flex-wrap gap-[var(--space-3)] box-border w-full min-h-[56px] border-b border-solid border-border bg-[var(--color-shell-header)] backdrop-blur-sm px-[var(--space-4)] z-10">
@@ -59,8 +60,7 @@ export function Header({
       </div>
 
       <div className="header-user-profile flex items-center gap-1 sm:gap-[var(--space-3)] min-w-0 shrink-0">
-        <AlarmWorkerBanner className="hidden lg:flex" />
-        {userEmail && <AlarmBell />}
+        {userEmail && alarmSlot}
         {/* G39 Welle 1 (Auftrag 054, Block A): Theme-Umschalter. Klassen-
             basiert (kein style-Prop) — nimmt die Block-D-Migration vorweg. */}
         {onToggleTheme && (
@@ -127,10 +127,6 @@ export function Header({
           .app-header {
             padding: 0 8px !important;
           }
-          /* Zweite Nacharbeit 054: Nutzername (nicht nur Rolle) ausblenden —
-             nur Avatar-Kreis bleibt (gängiges responsives Muster). Schafft
-             Platz für den Theme-Toggle, ohne dass vorher einzeilige Header
-             neu umbrechen. Die alte 340px-Regel ist darin aufgegangen. */
           .header-user-details,
           .header-logout-label {
             display: none !important;

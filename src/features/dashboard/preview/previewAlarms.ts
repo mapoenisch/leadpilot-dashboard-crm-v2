@@ -34,8 +34,8 @@ export function setupPreviewAlarmsScenario(): void {
     bestaetigteStufe: 'warnung',
     letzterMesswert: 14,
     letzteAuswertung: new Date().toISOString(),
+    dashboardId: PREVIEW_ALARMS_DASHBOARD_ID,
   };
-  (ruleActive as any).dashboardId = PREVIEW_ALARMS_DASHBOARD_ID;
   inMemoryAlarmStore.rules.set(ruleActive.id, ruleActive);
 
   const rulePaused: DashboardAlarmRule = {
@@ -59,8 +59,8 @@ export function setupPreviewAlarmsScenario(): void {
     bestaetigteStufe: 'normal',
     letzterMesswert: 65000,
     letzteAuswertung: new Date().toISOString(),
+    dashboardId: PREVIEW_ALARMS_DASHBOARD_ID,
   };
-  (rulePaused as any).dashboardId = PREVIEW_ALARMS_DASHBOARD_ID;
   inMemoryAlarmStore.rules.set(rulePaused.id, rulePaused);
 
   const ruleOrphaned: DashboardAlarmRule = {
@@ -84,10 +84,10 @@ export function setupPreviewAlarmsScenario(): void {
     bestaetigteStufe: 'kritisch',
     letzterMesswert: 2200,
     letzteAuswertung: new Date(Date.now() - 300000).toISOString(),
+    dashboardId: PREVIEW_ALARMS_DASHBOARD_ID,
+    responsibleEmail: 'ausgeschiedener.kollege@firma.de',
+    dashboardTitle: 'Schwellenwerte & Alarme (Vorschau)',
   };
-  (ruleOrphaned as any).dashboardId = PREVIEW_ALARMS_DASHBOARD_ID;
-  (ruleOrphaned as any).responsibleEmail = 'ausgeschiedener.kollege@firma.de';
-  (ruleOrphaned as any).dashboardTitle = 'Schwellenwerte & Alarme (Vorschau)';
   inMemoryAlarmStore.rules.set(ruleOrphaned.id, ruleOrphaned);
 
   // 2. Alarmereignisse aufbauen
@@ -191,7 +191,7 @@ export function createPreviewAlarmsConfig(): DashboardConfigV2 {
           kritisch: 20,
         },
         alarm: { status: 'aktiv' },
-      } as any,
+      },
       {
         id: 'tile-alarm-paused',
         catalogId: 'baseline.arr',
@@ -210,7 +210,7 @@ export function createPreviewAlarmsConfig(): DashboardConfigV2 {
           kritisch: 20000,
         },
         alarm: { status: 'pausiert', reason: 'Manuell pausiert' },
-      } as any,
+      },
       {
         id: 'tile-alarm-orphaned',
         catalogId: 'live.requests',
@@ -229,7 +229,7 @@ export function createPreviewAlarmsConfig(): DashboardConfigV2 {
           kritisch: 2000,
         },
         alarm: { status: 'verantwortlicher_ohne_rechte', reason: 'Rechte verloren' },
-      } as any,
+      },
     ],
   };
 }

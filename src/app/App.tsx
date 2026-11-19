@@ -28,6 +28,12 @@ const DesignSystemPage = React.lazy(() =>
   })),
 );
 
+const HeaderAlarmSlot = React.lazy(() =>
+  import('@/features/dashboard/components/alarms/HeaderAlarmSlot').then((m) => ({
+    default: m.HeaderAlarmSlot,
+  })),
+);
+
 // 067F / G49 (freigegebene UI-Verdrahtung): Lädt bei bestehender
 // Organisationssitzung einmalig den Server-Workspace (Reload / zweite Sitzung
 // sehen denselben Stand). Fehler werden geloggt, nicht verschluckt.
@@ -105,7 +111,17 @@ export function App() {
 
                 {/* Alle 41 Kern-Routen geschützt unter ProtectedRoute (Entscheidung 4) */}
                 <Route element={<ProtectedRoute />}>
-                  <Route element={<Layout />}>
+                  <Route
+                    element={
+                      <Layout
+                        alarmSlot={
+                          <React.Suspense fallback={null}>
+                            <HeaderAlarmSlot />
+                          </React.Suspense>
+                        }
+                      />
+                    }
+                  >
                     {/* Root-Redirect zum Executive Dashboard */}
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     {/* Alias /vertrieb/funnel -> /sales/funnel (Auftrag 131) mit Query-Parameter-Erhaltung */}

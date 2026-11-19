@@ -83,9 +83,20 @@ export function LazyDashboardTile({
       ? data.value
       : null;
 
-  const alarmInfo = alarm ?? (tile as any).alarm ?? (tile as any).alarmRule ?? undefined;
-  const alarmStatus = alarmInfo?.status ?? (tile as any).alarmStatus ?? undefined;
-  const alarmPauseReason = alarmInfo?.reason ?? (tile as any).alarmPauseReason ?? undefined;
+  const tileRecord = tile as unknown as Record<string, unknown>;
+  const alarmInfo =
+    alarm ??
+    (tileRecord.alarm as { status?: 'aktiv' | 'pausiert'; reason?: string } | undefined) ??
+    (tileRecord.alarmRule as { status?: 'aktiv' | 'pausiert'; reason?: string } | undefined) ??
+    undefined;
+  const alarmStatus =
+    alarmInfo?.status ??
+    (tileRecord.alarmStatus as 'aktiv' | 'pausiert' | undefined) ??
+    undefined;
+  const alarmPauseReason =
+    alarmInfo?.reason ??
+    (tileRecord.alarmPauseReason as string | undefined) ??
+    undefined;
 
   const dataTimestamp =
     data && 'timestamp' in data ? (data as { timestamp?: string }).timestamp : undefined;

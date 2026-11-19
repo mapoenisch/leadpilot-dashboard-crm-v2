@@ -135,7 +135,7 @@ export class InMemoryAlarmStore {
   }
 
   getOrgRules(): OrganizationAlarmRuleItem[] {
-    return Array.from(this.rules.values()).map((r: any) => ({
+    return Array.from(this.rules.values()).map((r: DashboardAlarmRule) => ({
       id: r.id,
       dashboardId: r.dashboardId ?? 'preview-dashboard',
       dashboardTitle: r.dashboardTitle ?? 'Dashboard Vorschau',

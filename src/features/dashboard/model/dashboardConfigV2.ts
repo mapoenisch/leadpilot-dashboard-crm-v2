@@ -77,6 +77,7 @@ export interface DashboardTileConfigV2 {
   pipelineOverride?: string;
   aggregationOverride?: string;
   threshold?: TileThresholdRule;
+  alarm?: { status?: 'aktiv' | 'pausiert' | 'verantwortlicher_ohne_rechte'; reason?: string };
   drilldownUrl?: string;
 }
 

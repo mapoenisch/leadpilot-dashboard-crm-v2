@@ -28,7 +28,11 @@ const ROLE_LABELS = {
   viewer: 'Nur Lesen',
 } as const;
 
-export function Layout() {
+export interface LayoutProps {
+  alarmSlot?: React.ReactNode;
+}
+
+export function Layout({ alarmSlot }: LayoutProps = {}) {
   const location = useLocation();
   const meta = routeForPathname(location.pathname);
 
@@ -122,6 +126,7 @@ export function Layout() {
           userEmail={user?.email}
           userRoleLabel={session ? ROLE_LABELS[session.role] : undefined}
           onLogout={handleLogout}
+          alarmSlot={alarmSlot}
         />
         <SimulationBar />
         <main

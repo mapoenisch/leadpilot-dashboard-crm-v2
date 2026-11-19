@@ -61,28 +61,32 @@ export async function fetchOrganizationAlarmRules(): Promise<{
       logger.warn('[dashboardAlarmService] list_organization_alarm_rules Fehler:', error);
       return { ok: false, error: error.message };
     }
-    const rules: OrganizationAlarmRuleItem[] = (data || []).map((r: any) => ({
-      id: r.id,
-      dashboardId: r.dashboard_id,
-      dashboardTitle: r.dashboard_title,
-      tileId: r.tile_id,
-      catalogId: r.catalog_id,
-      ruleConfig: r.rule_config,
-      mindestdauerLaeufe: r.mindestdauer_laeufe,
-      abklingzeitSekunden: r.abklingzeit_sekunden,
-      status: r.status,
-      responsibleUserId: r.responsible_user_id,
-      responsibleEmail: r.responsible_email,
-      beobachteteStufe: r.beobachtete_stufe,
-      bestaetigteStufe: r.bestaetigte_stufe,
-      letzterMesswert: r.letzter_messwert,
-      letzteAuswertung: r.letzte_auswertung,
-      createdAt: r.created_at,
-      updatedAt: r.updated_at,
+    const rawList = (data as Array<Record<string, unknown>>) || [];
+    const rules: OrganizationAlarmRuleItem[] = rawList.map((r) => ({
+      id: String(r.id),
+      dashboardId: String(r.dashboard_id),
+      dashboardTitle: String(r.dashboard_title || ''),
+      tileId: String(r.tile_id),
+      catalogId: String(r.catalog_id),
+      ruleConfig: (r.rule_config as Record<string, unknown>) || {},
+      mindestdauerLaeufe: Number(r.mindestdauer_laeufe || 1),
+      abklingzeitSekunden: Number(r.abklingzeit_sekunden || 0),
+      status: r.status as OrganizationAlarmRuleItem['status'],
+      responsibleUserId: String(r.responsible_user_id || ''),
+      responsibleEmail: String(r.responsible_email || ''),
+      beobachteteStufe: r.beobachtete_stufe ? String(r.beobachtete_stufe) : null,
+      bestaetigteStufe: r.bestaetigte_stufe ? String(r.bestaetigte_stufe) : null,
+      letzterMesswert:
+        r.letzter_messwert !== null && r.letzter_messwert !== undefined
+          ? Number(r.letzter_messwert)
+          : null,
+      letzteAuswertung: r.letzte_auswertung ? String(r.letzte_auswertung) : null,
+      createdAt: String(r.created_at || ''),
+      updatedAt: String(r.updated_at || ''),
     }));
     return { ok: true, data: rules };
-  } catch (err: any) {
-    return { ok: false, error: err.message || 'Technischer Fehler' };
+  } catch (err: unknown) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Technischer Fehler' };
   }
 }
 

@@ -21,7 +21,11 @@ export interface DashboardAlarmRule {
   letzteAuswertung?: string | null;
   letztesEreignisAm?: string | null;
   responsibleUserId: string;
+  responsibleEmail?: string;
+  dashboardId?: string;
+  dashboardTitle?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface DashboardAlarmReceipt {

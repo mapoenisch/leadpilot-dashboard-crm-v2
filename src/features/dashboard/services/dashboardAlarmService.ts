@@ -40,27 +40,31 @@ export async function fetchDashboardAlarmRules(
       logger.warn('[dashboardAlarmService] list_dashboard_alarm_rules Fehler:', error);
       return { ok: false, error: error.message };
     }
-    const rules: DashboardAlarmRule[] = (data || []).map((r: any) => ({
-      id: r.id,
-      tileId: r.tile_id,
-      catalogId: r.catalog_id,
-      pipeline: r.pipeline,
-      ruleConfig: r.rule_config,
-      mindestdauerLaeufe: r.mindestdauer_laeufe,
-      abklingzeitSekunden: r.abklingzeit_sekunden,
-      status: r.status,
-      beobachteteStufe: r.beobachtete_stufe,
-      bestaetigteStufe: r.bestaetigte_stufe,
-      letzterMesswert: r.letzter_messwert,
-      letzteAuswertung: r.letzte_auswertung,
-      letztesEreignisAm: r.letztes_ereignis_am,
-      responsibleUserId: r.responsible_user_id,
-      createdAt: r.created_at,
+    const rawList = (data as Array<Record<string, unknown>>) || [];
+    const rules: DashboardAlarmRule[] = rawList.map((r) => ({
+      id: String(r.id),
+      tileId: String(r.tile_id),
+      catalogId: String(r.catalog_id),
+      pipeline: r.pipeline ? String(r.pipeline) : null,
+      ruleConfig: (r.rule_config as Record<string, unknown>) || {},
+      mindestdauerLaeufe: Number(r.mindestdauer_laeufe || 1),
+      abklingzeitSekunden: Number(r.abklingzeit_sekunden || 0),
+      status: r.status as DashboardAlarmRule['status'],
+      beobachteteStufe: r.beobachtete_stufe ? String(r.beobachtete_stufe) : null,
+      bestaetigteStufe: r.bestaetigte_stufe ? String(r.bestaetigte_stufe) : null,
+      letzterMesswert:
+        r.letzter_messwert !== null && r.letzter_messwert !== undefined
+          ? Number(r.letzter_messwert)
+          : null,
+      letzteAuswertung: r.letzte_auswertung ? String(r.letzte_auswertung) : null,
+      letztesEreignisAm: r.letztes_ereignis_am ? String(r.letztes_ereignis_am) : null,
+      responsibleUserId: String(r.responsible_user_id || ''),
+      createdAt: String(r.created_at || ''),
     }));
     return { ok: true, data: rules };
-  } catch (err: any) {
+  } catch (err: unknown) {
     logger.warn('[dashboardAlarmService] fetchDashboardAlarmRules Exception:', err);
-    return { ok: false, error: err.message || 'Technischer Fehler' };
+    return { ok: false, error: err instanceof Error ? err.message : 'Technischer Fehler' };
   }
 }
 
@@ -86,9 +90,9 @@ export async function createDashboardAlarmRule(
       logger.warn('[dashboardAlarmService] create_dashboard_alarm_rule Fehler:', error);
       return { ok: false, error: error.message };
     }
-    return { ok: true, ruleId: data };
-  } catch (err: any) {
-    return { ok: false, error: err.message || 'Technischer Fehler' };
+    return { ok: true, ruleId: typeof data === 'string' ? data : undefined };
+  } catch (err: unknown) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Technischer Fehler' };
   }
 }
 
@@ -109,8 +113,8 @@ export async function updateDashboardAlarmRule(
     });
     if (error) return { ok: false, error: error.message };
     return { ok: true };
-  } catch (err: any) {
-    return { ok: false, error: err.message || 'Technischer Fehler' };
+  } catch (err: unknown) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Technischer Fehler' };
   }
 }
 
@@ -128,8 +132,8 @@ export async function pauseDashboardAlarmRule(
     });
     if (error) return { ok: false, error: error.message };
     return { ok: true };
-  } catch (err: any) {
-    return { ok: false, error: err.message || 'Technischer Fehler' };
+  } catch (err: unknown) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Technischer Fehler' };
   }
 }
 
@@ -147,8 +151,8 @@ export async function resumeDashboardAlarmRule(
     });
     if (error) return { ok: false, error: error.message };
     return { ok: true };
-  } catch (err: any) {
-    return { ok: false, error: err.message || 'Technischer Fehler' };
+  } catch (err: unknown) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Technischer Fehler' };
   }
 }
 
@@ -166,8 +170,8 @@ export async function deleteDashboardAlarmRule(
     });
     if (error) return { ok: false, error: error.message };
     return { ok: true };
-  } catch (err: any) {
-    return { ok: false, error: err.message || 'Technischer Fehler' };
+  } catch (err: unknown) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Technischer Fehler' };
   }
 }
 
@@ -191,34 +195,35 @@ export async function fetchDashboardAlarmEvents(
       return { ok: false, error: error.message };
     }
 
-    const events: DashboardAlarmEventItem[] = (data || []).map((ev: any) => ({
-      id: ev.id,
-      ruleId: ev.rule_id,
-      dashboardId: ev.dashboard_id,
-      dashboardTitle: ev.dashboard_title || 'Unbenanntes Dashboard',
-      tileId: ev.tile_id,
-      catalogId: ev.catalog_id,
-      alterZustand: ev.alter_zustand,
-      neuerZustand: ev.neuer_zustand,
-      messwert: ev.messwert,
-      einheit: ev.einheit,
-      grenze: ev.grenze,
-      meldung: ev.meldung,
-      createdAt: ev.created_at,
+    const rawEvents = (data as Array<Record<string, unknown>>) || [];
+    const events: DashboardAlarmEventItem[] = rawEvents.map((ev) => ({
+      id: String(ev.id),
+      ruleId: String(ev.rule_id),
+      dashboardId: String(ev.dashboard_id),
+      dashboardTitle: String(ev.dashboard_title || 'Unbenanntes Dashboard'),
+      tileId: String(ev.tile_id),
+      catalogId: String(ev.catalog_id),
+      alterZustand: String(ev.alter_zustand),
+      neuerZustand: String(ev.neuer_zustand),
+      messwert: ev.messwert !== null && ev.messwert !== undefined ? Number(ev.messwert) : null,
+      einheit: ev.einheit ? String(ev.einheit) : null,
+      grenze: ev.grenze !== null && ev.grenze !== undefined ? Number(ev.grenze) : null,
+      meldung: ev.meldung ? String(ev.meldung) : '',
+      createdAt: String(ev.created_at),
       gelesen: Boolean(ev.gelesen),
       quittiertVon: Array.isArray(ev.quittiert_von)
-        ? ev.quittiert_von.map((q: any) => ({
-            userId: q.user_id,
-            email: q.email,
-            quittiertAt: q.quittiert_at,
-            kommentar: q.kommentar,
+        ? (ev.quittiert_von as Array<Record<string, unknown>>).map((q) => ({
+            userId: String(q.user_id),
+            email: String(q.email || ''),
+            quittiertAt: String(q.quittiert_at),
+            kommentar: q.kommentar ? String(q.kommentar) : null,
           }))
         : [],
     }));
 
     return { ok: true, data: events };
-  } catch (err: any) {
-    return { ok: false, error: err.message || 'Technischer Fehler' };
+  } catch (err: unknown) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Technischer Fehler' };
   }
 }
 
@@ -238,7 +243,7 @@ export async function markAlarmEventsRead(eventIds: string[]): Promise<number> {
       return 0;
     }
     return typeof data === 'number' ? data : 0;
-  } catch (err: any) {
+  } catch {
     return 0;
   }
 }
@@ -257,7 +262,7 @@ export async function markAllAlarmEventsRead(dashboardId?: string): Promise<numb
       return 0;
     }
     return typeof data === 'number' ? data : 0;
-  } catch (err: any) {
+  } catch {
     return 0;
   }
 }
@@ -284,8 +289,8 @@ export async function acknowledgeAlarmEvent(
       return { ok: false, error: error.message };
     }
     return { ok: true };
-  } catch (err: any) {
-    return { ok: false, error: err.message || 'Technischer Fehler' };
+  } catch (err: unknown) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Technischer Fehler' };
   }
 }
 
@@ -304,8 +309,8 @@ export async function takeoverAlarmRule(ruleId: string): Promise<{ ok: boolean; 
       return { ok: false, error: error.message };
     }
     return { ok: true };
-  } catch (err: any) {
-    return { ok: false, error: err.message || 'Technischer Fehler' };
+  } catch (err: unknown) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Technischer Fehler' };
   }
 }
 
@@ -326,7 +331,7 @@ export async function fetchUnreadAlarmCount(): Promise<number> {
       return 0;
     }
     return typeof data === 'number' ? data : 0;
-  } catch (err: any) {
+  } catch {
     return 0;
   }
 }

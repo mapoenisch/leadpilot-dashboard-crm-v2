@@ -53,8 +53,9 @@ export const AlarmAcknowledgeDialog: React.FC<AlarmAcknowledgeDialogProps> = ({
     try {
       await onConfirm(comment.trim());
       onCancel();
-    } catch (err: any) {
-      setError(err?.message || 'Fehler beim Speichern der Quittierung');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Fehler beim Speichern der Quittierung';
+      setError(message);
       setIsSubmitting(false);
     }
   };
