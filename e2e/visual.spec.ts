@@ -22,6 +22,7 @@ const ROUTES = [
 const FULL_CONTENT_CSS = `
   .h-screen { height: auto !important; min-height: 100vh; overflow: visible !important; }
   #main-content { overflow: visible !important; flex: none !important; }
+  [data-testid="header-alarm-slot"],
   [data-testid="header-alarm-bell"] { display: none !important; }
 `;
 

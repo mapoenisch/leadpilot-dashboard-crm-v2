@@ -7,7 +7,7 @@ import { AlarmWorkerBanner } from './AlarmWorkerBanner';
 
 export const HeaderAlarmSlot: React.FC = () => {
   return (
-    <div className="flex items-center gap-2">
+    <div data-testid="header-alarm-slot" className="flex items-center gap-2">
       <AlarmWorkerBanner className="hidden md:flex text-[11px] py-1 px-2.5 max-w-[360px]" />
       <AlarmBell />
     </div>
