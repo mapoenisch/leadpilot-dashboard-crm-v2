@@ -7,4 +7,3 @@ import { AlarmBell } from './AlarmBell';
 export const HeaderAlarmSlot: React.FC = () => {
   return <AlarmBell />;
 };
-

@@ -1,10 +1,7 @@
 // Executive Dashboard V2 (Auftrag 168 / P13c §2.3 Nr. 20):
 // Vorbereitete Testdaten für das Vorschau-Szenario ?bereich=editor_v2&alarme=1.
 
-import {
-  inMemoryAlarmStore,
-  type DashboardAlarmRule,
-} from '../services/dashboardAlarmService';
+import { inMemoryAlarmStore, type DashboardAlarmRule } from '../services/dashboardAlarmService';
 import type { DashboardConfigV2 } from '../model/dashboardConfigV2';
 
 export const PREVIEW_ALARMS_DASHBOARD_ID = 'preview_alarms_dashboard';

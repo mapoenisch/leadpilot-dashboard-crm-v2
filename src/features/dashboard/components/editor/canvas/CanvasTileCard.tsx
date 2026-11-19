@@ -324,8 +324,10 @@ export function CanvasTileCard({
           alarm={
             (tile as unknown as { alarm?: { status?: string; reason?: string } }).alarm?.status
               ? {
-                  status: (tile as unknown as { alarm: { status: string; reason?: string } }).alarm.status,
-                  reason: (tile as unknown as { alarm?: { status?: string; reason?: string } }).alarm?.reason,
+                  status: (tile as unknown as { alarm: { status: string; reason?: string } }).alarm
+                    .status,
+                  reason: (tile as unknown as { alarm?: { status?: string; reason?: string } })
+                    .alarm?.reason,
                 }
               : undefined
           }

@@ -32,7 +32,8 @@ export const PreviewBannerV2: React.FC<PreviewBannerV2Props> = ({
           Beta-Vorschau
         </Badge>
         <span className="truncate max-w-[180px] sm:max-w-none">
-          Dashboard-Editor V2 • Vorschau {alarmeScenario ? 'mit Alarmen & Schwellenwerten' : 'mit Vorlagen und Teams'}
+          Dashboard-Editor V2 • Vorschau{' '}
+          {alarmeScenario ? 'mit Alarmen & Schwellenwerten' : 'mit Vorlagen und Teams'}
         </span>
       </div>
 

@@ -33,7 +33,12 @@ export interface FocusRequest {
 /** Berechnet die Zielposition unter Berücksichtigung der Vor-/Nach-Seite und des Entfernens der Quelle. */
 export function calculateDropIndex(from: number, target: number, side: 'before' | 'after'): number {
   if (from === target) return from;
-  if (from < target) return side === 'before' && target === from + 1 ? target : side === 'before' ? target - 1 : target;
+  if (from < target)
+    return side === 'before' && target === from + 1
+      ? target
+      : side === 'before'
+        ? target - 1
+        : target;
   return side === 'after' && target === from - 1 ? target : side === 'before' ? target : target + 1;
 }
 
@@ -145,7 +150,9 @@ export function DashboardGrid(props: DashboardGridProps) {
         <p className="m-0">Dein Dashboard enthält noch keine Kacheln.</p>
         {editing && props.onAdd && (
           <div className="mt-3 flex flex-wrap gap-2">
-            <Button size="sm" disabled={locked} onClick={props.onAdd}>Kachel hinzufügen</Button>
+            <Button size="sm" disabled={locked} onClick={props.onAdd}>
+              Kachel hinzufügen
+            </Button>
             {props.onReset && (
               <Button size="sm" variant="secondary" disabled={locked} onClick={props.onReset}>
                 Auf Standard zurücksetzen
@@ -184,9 +191,16 @@ export function DashboardGrid(props: DashboardGridProps) {
   return (
     <div className="relative">
       {editing ? (
-        <div data-testid="grid-helper-lines" aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden hidden md:grid md:grid-cols-6 lg:grid-cols-12 gap-4">
+        <div
+          data-testid="grid-helper-lines"
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10 overflow-hidden hidden md:grid md:grid-cols-6 lg:grid-cols-12 gap-4"
+        >
           {Array.from({ length: 12 }, (_, i) => (
-            <div key={i} className="h-full rounded-xl border border-dashed border-primary/20 bg-primary/[0.015]" />
+            <div
+              key={i}
+              className="h-full rounded-xl border border-dashed border-primary/20 bg-primary/[0.015]"
+            />
           ))}
         </div>
       ) : null}
@@ -362,7 +376,12 @@ export function DashboardGrid(props: DashboardGridProps) {
                   ) : null}
                 </div>
               ) : null}
-              <div className={cn('flex flex-col flex-1 min-w-0', dragId && 'pointer-events-none select-none')}>
+              <div
+                className={cn(
+                  'flex flex-col flex-1 min-w-0',
+                  dragId && 'pointer-events-none select-none',
+                )}
+              >
                 {activeEntryOf(tile) ? (
                   <LazyDashboardTile
                     tile={tile}

@@ -5,7 +5,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AlarmList } from '../components/alarms/AlarmList';
 import { AdminAlarmsPage } from '@/features/admin/pages/AdminAlarmsPage';
 import { useUnreadAlarmCount } from '../hooks/useUnreadAlarmCount';
-import type { DashboardAlarmEventItem, OrganizationAlarmRuleItem } from '../services/dashboardAlarmService';
+import type {
+  DashboardAlarmEventItem,
+  OrganizationAlarmRuleItem,
+} from '../services/dashboardAlarmService';
 
 let mockSessionRole = 'admin';
 let mockEvents: DashboardAlarmEventItem[] = [];

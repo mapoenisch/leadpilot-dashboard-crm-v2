@@ -7,10 +7,7 @@ export interface AlarmBellProps {
   onClick?: (e: React.MouseEvent) => void;
 }
 
-export const AlarmBell: React.FC<AlarmBellProps> = ({
-  to = '/dashboard/alarme',
-  onClick,
-}) => {
+export const AlarmBell: React.FC<AlarmBellProps> = ({ to = '/dashboard/alarme', onClick }) => {
   const { display, ariaLabel, hasUnread } = useUnreadAlarmCount();
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -18,7 +15,14 @@ export const AlarmBell: React.FC<AlarmBellProps> = ({
       onClick(e);
       return;
     }
-    if (!e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+    if (
+      !e.defaultPrevented &&
+      e.button === 0 &&
+      !e.metaKey &&
+      !e.ctrlKey &&
+      !e.shiftKey &&
+      !e.altKey
+    ) {
       e.preventDefault();
       window.history.pushState({}, '', to);
       window.dispatchEvent(new PopStateEvent('popstate'));

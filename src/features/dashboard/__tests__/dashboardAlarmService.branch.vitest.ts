@@ -265,7 +265,9 @@ describe('dashboardAlarmService & admin branches (Supabase RPC)', () => {
 
     it('markAllAlarmEventsRead Erfolg und Fehler', async () => {
       mockRpc.mockResolvedValueOnce({ data: 5, error: null });
-      expect(await markAllAlarmEventsRead({ dashboardId: 'd-1', nurWarnungKritisch: true })).toBe(5);
+      expect(await markAllAlarmEventsRead({ dashboardId: 'd-1', nurWarnungKritisch: true })).toBe(
+        5,
+      );
 
       mockRpc.mockResolvedValueOnce({ data: 3, error: null });
       expect(await markAllAlarmEventsRead('d-1')).toBe(3);

@@ -44,9 +44,7 @@ export const AlarmEventItemRow: React.FC<AlarmEventItemRowProps> = ({
       data-event-id={event.id}
       data-gelesen={String(event.gelesen)}
       className={`rounded-lg border p-4 transition-colors ${
-        !event.gelesen
-          ? 'border-primary/40 bg-surface-raised/60'
-          : 'border-border/60 bg-surface/30'
+        !event.gelesen ? 'border-primary/40 bg-surface-raised/60' : 'border-border/60 bg-surface/30'
       }`}
     >
       <div className="flex flex-col sm:flex-row items-start justify-between gap-3">

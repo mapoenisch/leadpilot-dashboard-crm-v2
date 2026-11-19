@@ -275,7 +275,8 @@ export function Sidebar({
               active={currentRoute.id === 's-admin-health'}
               onClick={handleLinkClick}
             />
-            {(currentRoute.id.startsWith('s-admin') || currentRoute.id === 's-dashboard-alarme') && (
+            {(currentRoute.id.startsWith('s-admin') ||
+              currentRoute.id === 's-dashboard-alarme') && (
               <NavItem
                 to="/admin/alarme"
                 dataTestId="nav-item-admin-alarms"

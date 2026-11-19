@@ -41,10 +41,7 @@ export const TileThresholdBadge: React.FC<TileThresholdBadgeProps> = React.memo(
       alarmStatus === 'regel_ungueltig';
 
     const showBadge =
-      isOverdueData ||
-      stufe === 'warnung' ||
-      stufe === 'kritisch' ||
-      stufe === 'regel_ungueltig';
+      isOverdueData || stufe === 'warnung' || stufe === 'kritisch' || stufe === 'regel_ungueltig';
 
     if (!showBadge && !isAlarmActive && !isAlarmPaused) {
       return null;

@@ -195,7 +195,10 @@ describe('dashboardAlarmService & inMemoryAlarmStore Unit Tests', () => {
       expect(inMemoryAlarmStore.events.find((e) => e.id === 'ev-1')?.gelesen).toBe(true);
 
       // markAllRead with nurWarnungKritisch filters out 'normal' (ev-2 is normal)
-      const filteredReadCount = inMemoryAlarmStore.markAllRead({ dashboardId: 'd-1', nurWarnungKritisch: true });
+      const filteredReadCount = inMemoryAlarmStore.markAllRead({
+        dashboardId: 'd-1',
+        nurWarnungKritisch: true,
+      });
       expect(filteredReadCount).toBe(0);
       expect(inMemoryAlarmStore.events.find((e) => e.id === 'ev-2')?.gelesen).toBe(false);
 

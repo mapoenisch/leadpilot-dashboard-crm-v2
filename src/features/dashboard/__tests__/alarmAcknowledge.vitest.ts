@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { canAcknowledgeAlarmEvent, validateAcknowledgementComment } from '../model/dashboardAlarmPermitted';
+import {
+  canAcknowledgeAlarmEvent,
+  validateAcknowledgementComment,
+} from '../model/dashboardAlarmPermitted';
 
 describe('Auftrag 168 - T1(c) Rot-Nachweis: Quittieren bei normal-Wechsel nicht möglich & Kommentar <= 280', () => {
   it('erlaubt Quittierung nur für warnung oder kritisch, nicht für normal oder entwarnung', () => {

@@ -6,10 +6,7 @@ import { useCallback, useState } from 'react';
 import { PreviewBannerV2 } from './PreviewBannerV2';
 import { DashboardAlarmsPage } from '../pages/DashboardAlarmsPage';
 import { AdminAlarmsPage } from '@/features/admin/pages/AdminAlarmsPage';
-import {
-  PREVIEW_ALARMS_DASHBOARD_ID,
-  setupPreviewAlarmsScenario,
-} from './previewAlarms';
+import { PREVIEW_ALARMS_DASHBOARD_ID, setupPreviewAlarmsScenario } from './previewAlarms';
 import { DashboardEditorShellV2 } from '../components/editor/DashboardEditorShellV2';
 import type { DashboardConfigV2 } from '../model/dashboardConfigV2';
 import type {
@@ -44,21 +41,35 @@ const usePreviewDataTimeControlled: TileDataHook = (tile, filters, options) =>
 
 function readPreviewParams() {
   if (typeof window === 'undefined') {
-    return { teams: null, versionen: false, schwellenwerte: false, alarme: false, live: 'nicht_konfiguriert' as const };
+    return {
+      teams: null,
+      versionen: false,
+      schwellenwerte: false,
+      alarme: false,
+      live: 'nicht_konfiguriert' as const,
+    };
   }
   const sp = new URLSearchParams(window.location.search);
   const alarme = sp.get('alarme') === '1';
   if (alarme) setupPreviewAlarmsScenario();
   return {
-    teams: sp.get('teams'), versionen: sp.get('versionen') === '1',
-    schwellenwerte: sp.get('schwellenwerte') === '1', alarme,
+    teams: sp.get('teams'),
+    versionen: sp.get('versionen') === '1',
+    schwellenwerte: sp.get('schwellenwerte') === '1',
+    alarme,
     live: parsePreviewLiveScenario(sp.get('live')),
   };
 }
 
 export function DashboardEditorPreviewV2() {
   const [params] = useState(readPreviewParams);
-  const { teams: teamsScenario, versionen: versionenScenario, schwellenwerte: schwellenwerteScenario, alarme: alarmeScenario, live: liveScenario } = params;
+  const {
+    teams: teamsScenario,
+    versionen: versionenScenario,
+    schwellenwerte: schwellenwerteScenario,
+    alarme: alarmeScenario,
+    live: liveScenario,
+  } = params;
   const [previewTab, setPreviewTab] = useState<'editor' | 'alarme' | 'admin'>('editor');
 
   const [dashboards, setDashboards] = useState<AccessibleDashboardListItemV2[]>(() =>

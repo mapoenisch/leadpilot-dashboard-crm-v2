@@ -8,10 +8,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { DashboardGrid } from '../components/DashboardGrid';
 import type { DashboardTileConfig } from '../model/dashboardConfig';
 import type { TileDataHook } from '../components/LazyDashboardTile';
-import {
-  type DashboardAlarmRule,
-  inMemoryAlarmStore,
-} from '../services/dashboardAlarmService';
+import { type DashboardAlarmRule, inMemoryAlarmStore } from '../services/dashboardAlarmService';
 
 vi.mock('@/auth/organizationContext', () => ({
   useOrganization: () => ({

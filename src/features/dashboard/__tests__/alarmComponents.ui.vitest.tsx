@@ -29,7 +29,8 @@ vi.mock('../hooks/useUnreadAlarmCount', () => ({
   useUnreadAlarmCount: () => ({
     count: mockUnreadCount,
     display: mockUnreadCount > 99 ? '99+' : String(mockUnreadCount),
-    ariaLabel: mockUnreadCount > 0 ? `${mockUnreadCount} ungelesene Alarme` : 'Keine ungelesenen Alarme',
+    ariaLabel:
+      mockUnreadCount > 0 ? `${mockUnreadCount} ungelesene Alarme` : 'Keine ungelesenen Alarme',
     hasUnread: mockUnreadCount > 0,
   }),
 }));

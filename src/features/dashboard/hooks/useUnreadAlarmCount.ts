@@ -46,14 +46,17 @@ export function useUnreadAlarmCount() {
   const isAuthOrPreview = isAuthenticated || isPreview;
   const pollEnabled = shouldPollAlarmCount({ isTabVisible, isAuthenticated: isAuthOrPreview });
 
-  const query = useQuery({
-    queryKey: unreadAlarmCountKey(orgId, userId),
-    queryFn: () => fetchUnreadAlarmCount(),
-    enabled: isAuthOrPreview,
-    refetchInterval: pollEnabled ? 60_000 : false,
-    refetchOnWindowFocus: true,
-    staleTime: 30_000,
-  }, queryClient);
+  const query = useQuery(
+    {
+      queryKey: unreadAlarmCountKey(orgId, userId),
+      queryFn: () => fetchUnreadAlarmCount(),
+      enabled: isAuthOrPreview,
+      refetchInterval: pollEnabled ? 60_000 : false,
+      refetchOnWindowFocus: true,
+      staleTime: 30_000,
+    },
+    queryClient,
+  );
 
   const count = query.data ?? 0;
   const format = useMemo(() => formatUnreadAlarmCount(count), [count]);

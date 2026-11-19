@@ -10,11 +10,7 @@ export interface DashboardAlarmRule {
   mindestdauerLaeufe: number;
   abklingzeitSekunden: number;
   status:
-    | 'aktiv'
-    | 'pausiert'
-    | 'regel_ungueltig'
-    | 'verantwortlicher_ohne_rechte'
-    | 'kachel_entfernt';
+    'aktiv' | 'pausiert' | 'regel_ungueltig' | 'verantwortlicher_ohne_rechte' | 'kachel_entfernt';
   beobachteteStufe?: string | null;
   bestaetigteStufe?: string | null;
   letzterMesswert?: number | null;
@@ -110,4 +106,3 @@ export interface AcknowledgeAlarmEventParams {
   eventId: string;
   comment?: string | null;
 }
-

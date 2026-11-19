@@ -23,10 +23,7 @@ import {
   createPreviewThresholdsConfig,
   createPreviewThresholdsListItem,
 } from './previewThresholds';
-import {
-  createPreviewAlarmsConfig,
-  createPreviewAlarmsListItem,
-} from './previewAlarms';
+import { createPreviewAlarmsConfig, createPreviewAlarmsListItem } from './previewAlarms';
 
 export type PreviewDashboardSaveResult =
   | {

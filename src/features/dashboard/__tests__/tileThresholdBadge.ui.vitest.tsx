@@ -65,7 +65,9 @@ describe('TileThresholdBadge & Kachelanzeige (Auftrag 166 / P13a)', () => {
         alarmStatus="aktiv"
       />,
     );
-    const activeBell = container.querySelector('[data-testid="tile-alarm-bell"][data-alarm-status="aktiv"]');
+    const activeBell = container.querySelector(
+      '[data-testid="tile-alarm-bell"][data-alarm-status="aktiv"]',
+    );
     expect(activeBell).not.toBeNull();
     expect(activeBell?.getAttribute('title')).toBe('Alarm aktiv, Prüfung alle 5 Minuten');
     expect(activeBell?.getAttribute('aria-label')).toBe('Alarm aktiv, Prüfung alle 5 Minuten');
@@ -77,7 +79,9 @@ describe('TileThresholdBadge & Kachelanzeige (Auftrag 166 / P13a)', () => {
         alarmPauseReason="Rechte verloren"
       />,
     );
-    const pausedBell = container.querySelector('[data-testid="tile-alarm-bell"][data-alarm-status="pausiert"]');
+    const pausedBell = container.querySelector(
+      '[data-testid="tile-alarm-bell"][data-alarm-status="pausiert"]',
+    );
     expect(pausedBell).not.toBeNull();
     expect(pausedBell?.getAttribute('title')).toBe('Alarm pausiert: Rechte verloren');
   });
