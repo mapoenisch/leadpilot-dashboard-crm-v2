@@ -28,12 +28,17 @@ export function AdminAlarmsPage() {
 
   const [operatingRuleId, setOperatingRuleId] = useState<string | null>(null);
   const [deleteTargetRule, setDeleteTargetRule] = useState<OrganizationAlarmRuleItem | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [takeoverError, setTakeoverError] = useState<string | null>(null);
 
   const isDeleting = operatingRuleId !== null && operatingRuleId === deleteTargetRule?.id;
   const deleteModalRef = useModalA11y<HTMLDivElement>({
     isOpen: Boolean(deleteTargetRule),
     onClose: () => {
-      if (!isDeleting) setDeleteTargetRule(null);
+      if (!isDeleting) {
+        setDeleteTargetRule(null);
+        setDeleteError(null);
+      }
     },
     closeOnEscape: !isDeleting,
   });
@@ -55,9 +60,18 @@ export function AdminAlarmsPage() {
 
   const handleTakeover = async (ruleId: string) => {
     setOperatingRuleId(ruleId);
+    setTakeoverError(null);
     try {
-      await takeoverRule(ruleId);
+      const res = await takeoverRule(ruleId);
+      if (res?.ok === false) {
+        setTakeoverError(res.error || 'Übernahme fehlgeschlagen. Bitte erneut versuchen.');
+        return;
+      }
       await refetchOrgRules();
+    } catch (err) {
+      setTakeoverError(
+        err instanceof Error ? err.message : 'Übernahme fehlgeschlagen. Bitte erneut versuchen.',
+      );
     } finally {
       setOperatingRuleId(null);
     }
@@ -66,10 +80,20 @@ export function AdminAlarmsPage() {
   const handleDelete = async () => {
     if (!deleteTargetRule) return;
     setOperatingRuleId(deleteTargetRule.id);
+    setDeleteError(null);
     try {
-      await deleteRule(deleteTargetRule.id);
+      // Dialog bleibt bei Fehlschlag offen, damit erneut versucht werden kann.
+      const res = await deleteRule(deleteTargetRule.id);
+      if (res?.ok === false) {
+        setDeleteError(res.error || 'Löschen fehlgeschlagen. Bitte erneut versuchen.');
+        return;
+      }
       await refetchOrgRules();
       setDeleteTargetRule(null);
+    } catch (err) {
+      setDeleteError(
+        err instanceof Error ? err.message : 'Löschen fehlgeschlagen. Bitte erneut versuchen.',
+      );
     } finally {
       setOperatingRuleId(null);
     }
@@ -92,6 +116,16 @@ export function AdminAlarmsPage() {
 
       {/* Ausfallhinweis */}
       <AlarmWorkerBanner />
+
+      {takeoverError && (
+        <div
+          data-testid="admin-alarms-takeover-error"
+          role="alert"
+          className="rounded-lg border border-rose-500/30 bg-rose-500/5 px-3 py-2 text-xs text-rose-300"
+        >
+          Regel konnte nicht übernommen werden: {takeoverError}
+        </div>
+      )}
 
       {isOrgRulesLoading ? (
         <div className="flex items-center justify-center py-16 text-text">
@@ -254,11 +288,19 @@ export function AdminAlarmsPage() {
               <strong className="text-white">{deleteTargetRule.dashboardTitle}</strong> wirklich
               löschen?
             </p>
+            {deleteError && (
+              <p data-testid="admin-alarms-delete-error" role="alert" className="text-rose-300">
+                Löschen fehlgeschlagen: {deleteError}
+              </p>
+            )}
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-soft">
               <button
                 type="button"
                 disabled={isDeleting}
-                onClick={() => setDeleteTargetRule(null)}
+                onClick={() => {
+                  setDeleteTargetRule(null);
+                  setDeleteError(null);
+                }}
                 className="rounded-md border border-border bg-transparent px-3 py-1.5 text-xs text-text hover:bg-surface-raised cursor-pointer disabled:opacity-50"
               >
                 Abbrechen

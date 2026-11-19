@@ -50,6 +50,23 @@ const mockTile: DashboardTileConfigV2 = {
   },
 };
 
+const makeRule = (
+  id: string,
+  ruleConfig: Record<string, unknown> = mockTile.threshold as unknown as Record<string, unknown>,
+): DashboardAlarmRule => ({
+  id,
+  dashboardId: 'dash-1',
+  tileId: mockTile.id,
+  catalogId: 'crm.pipeline_deals',
+  status: 'aktiv',
+  mindestdauerLaeufe: 2,
+  abklingzeitSekunden: 3600,
+  ruleConfig,
+  responsibleUserId: 'user-1',
+  createdAt: '2026-11-19T10:00:00Z',
+  updatedAt: '2026-11-19T10:00:00Z',
+});
+
 const mockCatalogEntry: ActiveCatalogEntry = {
   id: 'crm.pipeline_deals',
   name: 'Deals in Pipeline',
@@ -159,19 +176,7 @@ describe('AlarmSection (Auftrag 168 / P13c)', () => {
   });
 
   it('rendert Konfiguration und steuert Aktionen bei vorhandener Regel', async () => {
-    const activeRule: DashboardAlarmRule = {
-      id: 'rule-123',
-      dashboardId: 'dash-1',
-      tileId: mockTile.id,
-      catalogId: 'crm.pipeline_deals',
-      status: 'aktiv',
-      mindestdauerLaeufe: 2,
-      abklingzeitSekunden: 3600,
-      ruleConfig: { warnung: 10 },
-      responsibleUserId: 'user-1',
-      createdAt: '2026-11-19T10:00:00Z',
-      updatedAt: '2026-11-19T10:00:00Z',
-    };
+    const activeRule: DashboardAlarmRule = makeRule('rule-123', { warnung: 10 });
     mockRules = [activeRule];
 
     const { rerender } = render(
@@ -267,18 +272,11 @@ describe('AlarmSection (Auftrag 168 / P13c)', () => {
   });
 
   it('synchronisiert Schwellenwertänderungen nach dem Speichern mit der Alarmregel', () => {
-    const existingRule: DashboardAlarmRule = {
-      id: 'rule-sync-1',
-      dashboardId: 'dash-1',
-      tileId: mockTile.id,
-      catalogId: 'crm.pipeline_deals',
-      status: 'aktiv',
-      mindestdauerLaeufe: 2,
-      abklingzeitSekunden: 3600,
-      ruleConfig: { ...mockTile.threshold, warnung: 10, kritisch: 20 },
-      responsibleUserId: 'user-1',
-      createdAt: '2026-11-19T10:00:00Z',
-    };
+    const existingRule = makeRule('rule-sync-1', {
+      ...mockTile.threshold,
+      warnung: 10,
+      kritisch: 20,
+    });
     mockRules = [existingRule];
 
     const updatedTile: DashboardTileConfigV2 = {
@@ -310,18 +308,7 @@ describe('AlarmSection (Auftrag 168 / P13c)', () => {
   });
 
   it('pausiert Alarmregel automatisch, wenn Schwellenwert deaktiviert und gespeichert ist', () => {
-    const existingRule: DashboardAlarmRule = {
-      id: 'rule-sync-2',
-      dashboardId: 'dash-1',
-      tileId: mockTile.id,
-      catalogId: 'crm.pipeline_deals',
-      status: 'aktiv',
-      mindestdauerLaeufe: 2,
-      abklingzeitSekunden: 3600,
-      ruleConfig: { ...mockTile.threshold },
-      responsibleUserId: 'user-1',
-      createdAt: '2026-11-19T10:00:00Z',
-    };
+    const existingRule = makeRule('rule-sync-2', { ...mockTile.threshold });
     mockRules = [existingRule];
 
     const disabledThresholdTile: DashboardTileConfigV2 = {
@@ -348,14 +335,7 @@ describe('AlarmSection (Auftrag 168 / P13c)', () => {
   it('sperrt den Alarm-Schalter, solange die Regeln nicht erfolgreich geladen sind', () => {
     mockRulesSuccess = false;
     const { rerender } = render(
-      <AlarmSection
-        selectedTile={mockTile}
-        dashboardId="dash-1"
-        catalogEntry={mockCatalogEntry}
-        hasValidRule={true}
-        isDirty={false}
-        canWrite={true}
-      />,
+      <AlarmSection selectedTile={mockTile} dashboardId="dash-1" catalogEntry={mockCatalogEntry} />,
     );
     const checkbox = screen.getByTestId('alarm-toggle-checkbox');
     expect(checkbox).toBeDisabled();
@@ -365,14 +345,7 @@ describe('AlarmSection (Auftrag 168 / P13c)', () => {
 
     mockRulesError = true;
     rerender(
-      <AlarmSection
-        selectedTile={mockTile}
-        dashboardId="dash-1"
-        catalogEntry={mockCatalogEntry}
-        hasValidRule={true}
-        isDirty={false}
-        canWrite={true}
-      />,
+      <AlarmSection selectedTile={mockTile} dashboardId="dash-1" catalogEntry={mockCatalogEntry} />,
     );
     expect(screen.getByTestId('alarm-rules-unknown')).toHaveTextContent(
       'konnten nicht geladen werden',
@@ -380,35 +353,26 @@ describe('AlarmSection (Auftrag 168 / P13c)', () => {
     expect(screen.getByTestId('alarm-toggle-checkbox')).toBeDisabled();
   });
 
+  it('hält die Lösch-Bestätigung bei Fehlschlag offen', async () => {
+    mockDeleteRule.mockResolvedValueOnce({ ok: false, error: 'x' });
+    mockRules = [makeRule('rule-del')];
+    render(
+      <AlarmSection selectedTile={mockTile} dashboardId="dash-1" catalogEntry={mockCatalogEntry} />,
+    );
+    fireEvent.click(screen.getByTestId('alarm-delete-init-btn'));
+    fireEvent.click(screen.getByTestId('alarm-delete-confirm-btn'));
+    await waitFor(() => expect(screen.getByTestId('alarm-delete-error')).toBeInTheDocument());
+    expect(screen.getByTestId('alarm-delete-confirm-btn')).not.toBeDisabled();
+  });
+
   it('sperrt die Parameter-Auswahl, solange ein Update läuft', async () => {
     let resolveUpdate: (v: { ok: boolean }) => void = () => {};
     mockUpdateRule.mockImplementationOnce(
       () => new Promise<{ ok: boolean }>((r) => (resolveUpdate = r)),
     );
-    mockRules = [
-      {
-        id: 'rule-9',
-        dashboardId: 'dash-1',
-        tileId: mockTile.id,
-        catalogId: 'crm.pipeline_deals',
-        status: 'aktiv',
-        mindestdauerLaeufe: 2,
-        abklingzeitSekunden: 3600,
-        ruleConfig: mockTile.threshold as unknown as Record<string, unknown>,
-        responsibleUserId: 'user-1',
-        createdAt: '2026-11-19T10:00:00Z',
-        updatedAt: '2026-11-19T10:00:00Z',
-      },
-    ];
+    mockRules = [makeRule('rule-9')];
     render(
-      <AlarmSection
-        selectedTile={mockTile}
-        dashboardId="dash-1"
-        catalogEntry={mockCatalogEntry}
-        hasValidRule={true}
-        isDirty={false}
-        canWrite={true}
-      />,
+      <AlarmSection selectedTile={mockTile} dashboardId="dash-1" catalogEntry={mockCatalogEntry} />,
     );
     fireEvent.change(screen.getByTestId('alarm-mindestdauer-select'), { target: { value: '6' } });
     expect(screen.getByTestId('alarm-abklingzeit-select')).toBeDisabled();

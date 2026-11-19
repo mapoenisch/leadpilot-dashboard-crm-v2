@@ -64,6 +64,7 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteFailed, setDeleteFailed] = useState(false);
   // Gemeinsamer Entwurf für Mindestdauer/Abklingzeit, solange ein Update samt Refetch läuft.
   // Verhindert, dass zwei schnelle Änderungen sich gegenseitig überschreiben.
   const [pendingParams, setPendingParams] = useState<{
@@ -203,9 +204,20 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
   const handleDelete = async () => {
     if (!existingRule) return;
     setIsDeleting(true);
-    await deleteRule(existingRule.id);
-    setIsDeleting(false);
-    setConfirmDelete(false);
+    setDeleteFailed(false);
+    try {
+      const res = await deleteRule(existingRule.id);
+      // Bei Fehlschlag bleibt die Bestätigung offen, damit erneut versucht werden kann.
+      if (res?.ok === false) {
+        setDeleteFailed(true);
+        return;
+      }
+      setConfirmDelete(false);
+    } catch {
+      setDeleteFailed(true);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -313,6 +325,12 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
               Überschreitung.
             </p>
           </div>
+
+          {deleteFailed && (
+            <p data-testid="alarm-delete-error" role="alert" className="text-[10px] text-rose-300">
+              Löschen fehlgeschlagen. Bitte erneut versuchen.
+            </p>
+          )}
 
           {isDirty && (
             <p className="text-[10px] text-amber-300">

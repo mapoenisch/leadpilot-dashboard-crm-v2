@@ -19,6 +19,7 @@ let mockIsOrgRulesError = false;
 const mockRefetchEvents = vi.fn();
 const mockDeleteRule = vi.fn();
 const mockRefetchOrgRules = vi.fn();
+const mockTakeoverRule = vi.fn();
 const mockFetchDashboardAlarmEventsV2 = vi.fn().mockResolvedValue({ ok: true, data: [] });
 
 vi.mock('../services/dashboardAlarmService', async (importOriginal) => {
@@ -49,13 +50,34 @@ vi.mock('../hooks/useDashboardAlarms', () => ({
     isOrgRulesError: mockIsOrgRulesError,
     deleteRule: mockDeleteRule,
     refetchOrgRules: mockRefetchOrgRules,
-    takeoverRule: vi.fn(),
+    takeoverRule: mockTakeoverRule,
     markRead: vi.fn().mockResolvedValue(1),
     markAllRead: vi.fn().mockResolvedValue(1),
     acknowledge: vi.fn().mockResolvedValue({ ok: true }),
   }),
   useSafeQueryClient: () => new QueryClient(),
 }));
+
+const makeOrgRule = (id: string, tileId: string, status: string) =>
+  ({
+    id,
+    dashboardId: 'd-1',
+    dashboardTitle: 'Vertrieb V2',
+    tileId,
+    catalogId: 'crm.leads',
+    ruleConfig: {},
+    mindestdauerLaeufe: 1,
+    abklingzeitSekunden: 60,
+    status,
+    responsibleUserId: 'user-old',
+    responsibleEmail: 'old@example.com',
+    beobachteteStufe: 'warnung',
+    bestaetigteStufe: 'warnung',
+    letzterMesswert: 42,
+    letzteAuswertung: '2026-11-19T10:00:00Z',
+    createdAt: '2026-11-01T00:00:00Z',
+    updatedAt: '2026-11-19T00:00:00Z',
+  }) as OrganizationAlarmRuleItem;
 
 describe('Alarm Views Extra Tests (Codex findings / P13c)', () => {
   beforeEach(() => {
@@ -301,27 +323,7 @@ describe('Alarm Views Extra Tests (Codex findings / P13c)', () => {
 
   describe('AdminAlarmsPage Delete Dialog Accessibility (useModalA11y)', () => {
     it('behandelt Schließen per Escape und schützt vor Doppel-Klicks beim Löschen', async () => {
-      mockOrgRules = [
-        {
-          id: 'rule-test-del',
-          dashboardId: 'd-1',
-          dashboardTitle: 'Vertrieb V2',
-          tileId: 't-test',
-          catalogId: 'crm.leads',
-          ruleConfig: {},
-          mindestdauerLaeufe: 1,
-          abklingzeitSekunden: 60,
-          status: 'verwaist',
-          responsibleUserId: 'user-old',
-          responsibleEmail: 'old@example.com',
-          beobachteteStufe: 'warnung',
-          bestaetigteStufe: 'warnung',
-          letzterMesswert: 42,
-          letzteAuswertung: '2026-11-19T10:00:00Z',
-          createdAt: '2026-11-01T00:00:00Z',
-          updatedAt: '2026-11-19T00:00:00Z',
-        },
-      ];
+      mockOrgRules = [makeOrgRule('rule-test-del', 't-test', 'verwaist')];
 
       render(
         <MemoryRouter>
@@ -350,6 +352,36 @@ describe('Alarm Views Extra Tests (Codex findings / P13c)', () => {
       await waitFor(() => {
         expect(mockDeleteRule).toHaveBeenCalledWith('rule-test-del');
       });
+    });
+
+    it('haelt Dialog bei fehlgeschlagenem Loeschen offen und meldet fehlgeschlagene Uebernahme', async () => {
+      mockOrgRules = [makeOrgRule('rule-fail', 't-fail', 'verantwortlicher_ohne_rechte')];
+      mockDeleteRule.mockResolvedValueOnce({ ok: false, error: 'Keine Berechtigung' });
+      mockTakeoverRule.mockResolvedValueOnce({ ok: false, error: 'Netzwerkfehler' });
+
+      render(
+        <MemoryRouter>
+          <AdminAlarmsPage />
+        </MemoryRouter>,
+      );
+
+      fireEvent.click(screen.getByTestId('delete-org-alarm-rule-btn'));
+      fireEvent.click(screen.getByTestId('confirm-delete-org-alarm-btn'));
+      await waitFor(() =>
+        expect(screen.getByTestId('admin-alarms-delete-error')).toHaveTextContent(
+          'Keine Berechtigung',
+        ),
+      );
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(mockRefetchOrgRules).not.toHaveBeenCalled();
+
+      fireEvent.click(screen.getByText('Abbrechen'));
+      fireEvent.click(screen.getByTestId('admin-alarm-takeover-btn-rule-fail'));
+      await waitFor(() =>
+        expect(screen.getByTestId('admin-alarms-takeover-error')).toHaveTextContent(
+          'Netzwerkfehler',
+        ),
+      );
     });
   });
 });

@@ -2,7 +2,7 @@
 // Größe, kein automatisches Auffüllen. Im Bearbeitungsmodus trägt jede Kachel Schaltflächen zum
 // Verschieben, Bearbeiten und Entfernen; Ziehen ist nur eine Ergänzung für große Bildschirme.
 // Auftrag 090 (Paket F, Muster 5): ruhige Leiste je Kachel, Aktionen hinter „Kachel-Aktionen“.
-import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
+import { useEffect, useRef, useState, type DragEvent } from 'react';
 import { GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
@@ -15,7 +15,8 @@ import { TileActionsMenu } from './TileActionsMenu';
 import { TileQuickSizeSelector } from './TileQuickSizeSelector';
 import { TileResizeHandle } from './TileResizeHandle';
 import { UnavailableTileSlot } from './UnavailableTileSlot';
-import { useDashboardAlarms } from '../hooks/useDashboardAlarms';
+import { useTileAlarmMap } from '../hooks/useTileAlarmMap';
+import { calculateDropIndex } from './gridDropIndex';
 import type { DashboardAlarmRule } from '../services/dashboardAlarmService';
 
 export type FocusAction =
@@ -30,17 +31,7 @@ export interface FocusRequest {
   action: FocusAction;
 }
 
-/** Berechnet die Zielposition unter Berücksichtigung der Vor-/Nach-Seite und des Entfernens der Quelle. */
-export function calculateDropIndex(from: number, target: number, side: 'before' | 'after'): number {
-  if (from === target) return from;
-  if (from < target)
-    return side === 'before' && target === from + 1
-      ? target
-      : side === 'before'
-        ? target - 1
-        : target;
-  return side === 'after' && target === from - 1 ? target : side === 'before' ? target : target + 1;
-}
+export { calculateDropIndex };
 
 const SPAN: Record<string, string> = {
   klein: 'col-span-1 md:col-span-3 lg:col-span-3',
@@ -78,21 +69,7 @@ export interface DashboardGridProps {
 
 export function DashboardGrid(props: DashboardGridProps) {
   const { tiles, editing, locked, focusRequest } = props;
-  const { rules: serverRules } = useDashboardAlarms({ dashboardId: props.dashboardId });
-  const rules = props.alarmRules ?? serverRules;
-  const alarmByTileId = useMemo(() => {
-    const map = new Map<string, { status: string; reason?: string }>();
-    for (const r of rules) {
-      if (r.tileId) {
-        map.set(r.tileId, {
-          status: r.status,
-          reason: r.status === 'pausiert' ? 'Alarmregel pausiert' : undefined,
-        });
-      }
-    }
-    return map;
-  }, [rules]);
-
+  const alarmByTileId = useTileAlarmMap(props.dashboardId, props.alarmRules);
   const listRef = useRef<HTMLUListElement | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<{ index: number; side: 'before' | 'after' } | null>(

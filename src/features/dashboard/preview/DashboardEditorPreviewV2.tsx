@@ -6,7 +6,8 @@ import { useCallback, useState } from 'react';
 import { PreviewBannerV2 } from './PreviewBannerV2';
 import { DashboardAlarmsPage } from '../pages/DashboardAlarmsPage';
 import { AdminAlarmsPage } from '@/features/admin/pages/AdminAlarmsPage';
-import { PREVIEW_ALARMS_DASHBOARD_ID, setupPreviewAlarmsScenario } from './previewAlarms';
+import { PREVIEW_ALARMS_DASHBOARD_ID } from './previewAlarms';
+import { readPreviewParams } from './previewParams';
 import { DashboardEditorShellV2 } from '../components/editor/DashboardEditorShellV2';
 import type { DashboardConfigV2 } from '../model/dashboardConfigV2';
 import type {
@@ -16,7 +17,7 @@ import type {
 import { useEditorPreviewData } from './editorPreviewData';
 import { buildDerivedDashboardTitle } from '../model/dashboardTitles';
 import { useTimeControlledSource } from '../time/useTimeControlledData';
-import { createPreviewLiveStore, parsePreviewLiveScenario } from './previewLiveStore';
+import { createPreviewLiveStore } from './previewLiveStore';
 import type { TileDataHook } from '../components/LazyDashboardTile';
 import { PREVIEW_TEAMS } from './previewTeamDashboards';
 import { PREVIEW_VERSIONS_DASHBOARD_ID } from './previewRevisions';
@@ -38,28 +39,6 @@ import {
 /** Vorschau-Daten mit derselben gemeinsamen Zeitsteuerung wie der echte V2-Pfad. */
 const usePreviewDataTimeControlled: TileDataHook = (tile, filters, options) =>
   useTimeControlledSource(useEditorPreviewData, tile, filters, options);
-
-function readPreviewParams() {
-  if (typeof window === 'undefined') {
-    return {
-      teams: null,
-      versionen: false,
-      schwellenwerte: false,
-      alarme: false,
-      live: 'nicht_konfiguriert' as const,
-    };
-  }
-  const sp = new URLSearchParams(window.location.search);
-  const alarme = sp.get('alarme') === '1';
-  if (alarme) setupPreviewAlarmsScenario();
-  return {
-    teams: sp.get('teams'),
-    versionen: sp.get('versionen') === '1',
-    schwellenwerte: sp.get('schwellenwerte') === '1',
-    alarme,
-    live: parsePreviewLiveScenario(sp.get('live')),
-  };
-}
 
 export function DashboardEditorPreviewV2() {
   const [params] = useState(readPreviewParams);
@@ -313,15 +292,9 @@ export function DashboardEditorPreviewV2() {
         onTabChange={setPreviewTab}
       />
 
-      {alarmeScenario && previewTab === 'alarme' && (
+      {alarmeScenario && previewTab !== 'editor' && (
         <div className="h-[calc(100vh-2.5rem)] overflow-y-auto overflow-x-hidden p-3 sm:p-6 max-w-full">
-          <DashboardAlarmsPage />
-        </div>
-      )}
-
-      {alarmeScenario && previewTab === 'admin' && (
-        <div className="h-[calc(100vh-2.5rem)] overflow-y-auto overflow-x-hidden p-3 sm:p-6 max-w-full">
-          <AdminAlarmsPage />
+          {previewTab === 'alarme' ? <DashboardAlarmsPage /> : <AdminAlarmsPage />}
         </div>
       )}
 
