@@ -76,23 +76,36 @@ export const AlarmList: React.FC = () => {
         setHasMore(false);
       } else if (appendedEvents.length > 0) {
         const requestGen = filterGenRef.current;
-        const countToReload = appendedEvents.length;
-        fetchDashboardAlarmEventsV2({
-          dashboardId: selectedDashboardId || undefined,
-          nurUngelesen,
-          nurWarnungKritisch,
-          limit: countToReload,
-          offset: PAGE_SIZE,
-        }).then((res) => {
+        const numPages = Math.ceil(appendedEvents.length / PAGE_SIZE);
+        const pagePromises = Array.from({ length: numPages }, (_, i) =>
+          fetchDashboardAlarmEventsV2({
+            dashboardId: selectedDashboardId || undefined,
+            nurUngelesen,
+            nurWarnungKritisch,
+            limit: PAGE_SIZE,
+            offset: PAGE_SIZE + i * PAGE_SIZE,
+          }),
+        );
+
+        Promise.all(pagePromises).then((results) => {
           if (filterGenRef.current !== requestGen) return;
-          if (res.ok && res.data) {
-            setAppendedEvents(res.data);
-            if (res.data.length < countToReload) {
-              setHasMore(false);
+          let reloaded: DashboardAlarmEventItem[] = [];
+          let serverHasMore = true;
+          for (const res of results) {
+            if (res.ok && res.data) {
+              reloaded = reloaded.concat(res.data);
+              if (res.data.length < PAGE_SIZE) {
+                serverHasMore = false;
+                break;
+              }
+            } else {
+              serverHasMore = false;
+              break;
             }
-          } else {
-            setAppendedEvents([]);
           }
+          if (filterGenRef.current !== requestGen) return;
+          setAppendedEvents(reloaded);
+          setHasMore(serverHasMore);
         });
       }
     }

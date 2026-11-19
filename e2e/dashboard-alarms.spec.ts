@@ -86,13 +86,14 @@ test.describe('Dashboard-Editor V2: Alarme Integration Supabase (P13c)', () => {
           .in('id', createdDashboardIds);
       }
       if (createdTeamId) {
-        await supabaseAdmin
-          .from('dashboard_teams_v2')
+        const { error: delTeamErr } = await supabaseAdmin
+          .from('dashboard_teams')
           .delete()
           .eq('id', createdTeamId);
+        if (delTeamErr) console.warn('Cleanup dashboard_teams error:', delTeamErr.message);
       }
-    } catch {
-      // Ignoriere Fehler beim Aufräumen
+    } catch (cleanupErr: unknown) {
+      console.warn('Cleanup error:', cleanupErr);
     }
   });
 
@@ -146,11 +147,12 @@ test.describe('Dashboard-Editor V2: Alarme Integration Supabase (P13c)', () => {
     }
 
     // Team-ID ermitteln
-    const { data: teamData } = await supabaseAdmin
-      .from('dashboard_teams_v2')
+    const { data: teamData, error: teamErr } = await supabaseAdmin
+      .from('dashboard_teams')
       .select('id')
       .eq('name', teamName)
       .maybeSingle();
+    if (teamErr) console.warn('Query dashboard_teams error:', teamErr.message);
     if (teamData?.id) createdTeamId = teamData.id;
 
     await logout(page);

@@ -133,6 +133,77 @@ describe('Alarm Views Extra Tests (Codex findings / P13c)', () => {
         expect(screen.queryByText(/Event ev-p2-revoked/)).toBeNull();
       });
     });
+
+    it('laedt mehr als 200 angehaengte Ereignisse in PAGE_SIZE-Seiten neu ohne serverseitiges Abschneiden', async () => {
+      const makeEv = (id: string) => ({
+        id,
+        ruleId: 'r-1',
+        dashboardId: 'dash-1',
+        dashboardTitle: 'Dashboard 1',
+        tileId: 't-1',
+        catalogId: 'crm.leads',
+        alterZustand: 'normal',
+        neuerZustand: 'warnung',
+        messwert: 10,
+        einheit: null,
+        grenze: 5,
+        meldung: `Event ${id}`,
+        createdAt: '2026-11-19T10:00:00Z',
+        gelesen: false,
+        quittiertVon: [],
+      });
+
+      mockEvents = Array.from({ length: 50 }, (_, i) => makeEv(`ev-init-${i}`));
+      // Simuliere 5 nachgeladene Seiten a 50 = 250 angehaengte Events
+      for (let p = 0; p < 5; p++) {
+        mockFetchDashboardAlarmEventsV2.mockResolvedValueOnce({
+          ok: true,
+          data: Array.from({ length: 50 }, (_, i) => makeEv(`ev-app-${p}-${i}`)),
+        });
+      }
+
+      const { rerender } = render(
+        <MemoryRouter>
+          <AlarmList />
+        </MemoryRouter>,
+      );
+
+      for (let p = 0; p < 5; p++) {
+        const loadMoreBtn = screen.getByTestId('load-more-alarms-btn');
+        fireEvent.click(loadMoreBtn);
+        await waitFor(() => {
+          expect(screen.getByText(new RegExp(`Event ev-app-${p}-0`))).toBeInTheDocument();
+        });
+      }
+
+      mockFetchDashboardAlarmEventsV2.mockClear();
+      // Server liefert fuer alle 5 Seiten jeweils 50 Events zurueck
+      mockFetchDashboardAlarmEventsV2.mockImplementation(async (params: { limit: number }) => {
+        return {
+          ok: true,
+          data: Array.from({ length: params.limit }, (_, i) => makeEv(`ev-reloaded-${i}`)),
+        };
+      });
+
+      // initialEvents aktualisiert sich (z. B. nach Lese- oder Quittierungs-Refetch)
+      mockEvents = Array.from({ length: 50 }, (_, i) => makeEv(`ev-init-updated-${i}`));
+      rerender(
+        <MemoryRouter>
+          <AlarmList />
+        </MemoryRouter>,
+      );
+
+      await waitFor(() => {
+        expect(mockFetchDashboardAlarmEventsV2).toHaveBeenCalled();
+      });
+
+      // Alle Aufrufe muessen limit === PAGE_SIZE (50) einhalten (nie > 200)
+      for (const call of mockFetchDashboardAlarmEventsV2.mock.calls) {
+        const [params] = call as [{ limit: number }];
+        expect(params.limit).toBeLessThanOrEqual(50);
+      }
+      expect(screen.getByTestId('load-more-alarms-btn')).toBeInTheDocument();
+    });
   });
 
   describe('AdminAlarmsPage Delete Dialog Accessibility (useModalA11y)', () => {
