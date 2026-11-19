@@ -148,3 +148,35 @@ Nach dem Merge von PR #206 im Produktiv- bzw. Hosted-Projekt:
      ```sql
      UPDATE public.alarm_settings SET auswertung_aktiv = true;
      ```
+
+---
+
+## 8. Oberfläche, Quittierung & Admin-Übernahme (P13c / Auftrag 168)
+
+Mit Auftrag 168 (P13c) wurde die vollständige Benutzeroberfläche und Quittierungslogik integriert. Damit ist Phase P13 des Masterplans vollständig abgeschlossen.
+
+### 8.1 Komponenten & Seiten
+- **Inspector (`InspectorThresholdTab.tsx` & `AlarmSection.tsx`):**
+  - Toggle zur Aktivierung serverseitiger Alarme für Kacheln mit `alarmfaehig`-Kennzahlen.
+  - Konfiguration von Mindestdauer (`mindestdauer_laeufe`), Abklingzeit (`abklingzeit_sekunden`) und Quittierungspflicht (`quittierung_erforderlich`).
+  - Berechtigungsprüfung: Nur Admins und Manager können Regeln anlegen oder modifizieren (`useDashboardAlarmPermitted`).
+- **Kachel-Indikator (`TileThresholdBadge.tsx`):**
+  - Zeigt ein Glocken-Icon an, sobald für die Kachel eine aktive Server-Alarmregel hinterlegt ist.
+- **Alarm-Glocke im Header (`AlarmBell.tsx`):**
+  - Zeigt die Anzahl ungelesener Alarmereignisse via `useUnreadAlarmCount.ts` (`aria-live="polite"`).
+  - Navigiert direkt zur zentralen Alarmliste.
+- **Zentrale Alarmliste (`/dashboard/alarme` - `DashboardAlarmsPage.tsx` & `AlarmList.tsx`):**
+  - Listet alle Alarmereignisse des aktiven Dashboards oder mandantenweit auf.
+  - Filterbar (`AlarmFilterBar.tsx`) nach Dringlichkeit (`kritisch`, `warnung`, `normal`, `keine_daten`) und Lesestatus.
+  - Markiert Ereignisse beim Aufrufen/Fokussieren als gelesen (`mark_dashboard_alarm_events_read`).
+- **Persönliche Quittierung (`AlarmAcknowledgeDialog.tsx`):**
+  - Quittierung und Lesebestätigung erfolgen persönlich pro Benutzer über die Tabelle `dashboard_alarm_receipts` (Migration `20261125_dashboard_alarm_receipts.sql`).
+  - Quittieren ändert keinen Zustand der Regel (reine Nachverfolgbarkeit / Acknowledgement).
+- **Admin-Übernahme verwaister Regeln (`/admin/alarme` - `AdminAlarmsPage.tsx`):**
+  - Listet alle Regeln der Organisation mit Status `verantwortlicher_ohne_rechte` auf.
+  - Ermöglicht Admins und Managern die Übernahme der Verantwortung via RPC `takeover_dashboard_alarm_rule(rule_id)`.
+- **Ausfallhinweis (`AlarmWorkerBanner.tsx`):**
+  - Wird im Header eingeblendet, wenn `alarm_worker_status()` den Status `ueberfaellig` (> 15 Min ohne Lauf) oder `pausiert` meldet.
+- **Hinweis zur Revisionsaufbewahrung (`RevisionHistoryPanelV2.tsx`):**
+  - Transparenter Hinweis auf die 12-monatige Aufbewahrungsfrist älterer Revisionen (`cleanup_dashboard_revisions`).
+

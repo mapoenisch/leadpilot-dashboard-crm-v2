@@ -12,6 +12,7 @@ import { RevisionDiffViewV2 } from './RevisionDiffViewV2';
 import { RestoreRevisionDialogV2 } from './RestoreRevisionDialogV2';
 import { RevisionItemRowV2 } from './RevisionItemRowV2';
 import { useModalA11y } from './useModalA11y';
+import { useDashboardAlarms } from '../../../hooks/useDashboardAlarms';
 
 export interface RevisionHistoryPanelV2Props {
   isOpen: boolean;
@@ -65,6 +66,8 @@ export function RevisionHistoryPanelV2({
     isOpen,
     pageSize,
   });
+
+  const { retentionInfo } = useDashboardAlarms({ dashboardId });
 
   // Vergleichszustand
   const [comparing, setComparing] = useState<{
@@ -337,6 +340,16 @@ export function RevisionHistoryPanelV2({
                   >
                     {isLoadingMore ? 'Lade weitere…' : 'Weitere laden'}
                   </Button>
+                </div>
+              )}
+
+              {/* Aufbewahrungshinweis (Auftrag 168 §2.1 Nr. 10 / Auftrag 165 §8 Nr. 5) */}
+              {retentionInfo?.entfernt && (
+                <div
+                  data-testid="revisions-retention-notice"
+                  className="pt-2 text-center text-[11px] text-[var(--color-text-muted)] italic"
+                >
+                  Ältere Versionen wurden nach der Aufbewahrungsregel entfernt.
                 </div>
               )}
             </div>

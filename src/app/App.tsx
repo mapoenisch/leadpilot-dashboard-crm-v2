@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Layout } from '@/components/layout/Layout';
 import { queryClient } from '@/app/queryClient';
 import { APP_ROUTES } from '@/app/routes';
 import { ROUTE_PAGES, TileDetailPage } from '@/app/routePages';
@@ -25,6 +24,18 @@ const LoginPage = React.lazy(() =>
 const DesignSystemPage = React.lazy(() =>
   import('@/app/DesignSystemPage').then((m) => ({
     default: m.DesignSystemPage,
+  })),
+);
+
+const HeaderAlarmSlot = React.lazy(() =>
+  import('@/features/dashboard/components/alarms/HeaderAlarmSlot').then((m) => ({
+    default: m.HeaderAlarmSlot,
+  })),
+);
+
+const Layout = React.lazy(() =>
+  import('@/components/layout/Layout').then((m) => ({
+    default: m.Layout,
   })),
 );
 
@@ -105,7 +116,19 @@ export function App() {
 
                 {/* Alle 41 Kern-Routen geschützt unter ProtectedRoute (Entscheidung 4) */}
                 <Route element={<ProtectedRoute />}>
-                  <Route element={<Layout />}>
+                  <Route
+                    element={
+                      <React.Suspense fallback={<RouteFallback />}>
+                        <Layout
+                          alarmSlot={
+                            <React.Suspense fallback={null}>
+                              <HeaderAlarmSlot />
+                            </React.Suspense>
+                          }
+                        />
+                      </React.Suspense>
+                    }
+                  >
                     {/* Root-Redirect zum Executive Dashboard */}
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     {/* Alias /vertrieb/funnel -> /sales/funnel (Auftrag 131) mit Query-Parameter-Erhaltung */}

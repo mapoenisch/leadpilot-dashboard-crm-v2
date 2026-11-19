@@ -151,13 +151,24 @@ function PersonalExecutiveDashboardV2Container({
     return true;
   };
 
+  const reloadAndRefresh = async () => {
+    await v2Storage.reload();
+    setReloadKey((k) => k + 1);
+  };
+
   const handleReloadConflict = async () => {
     setShowConflictDialog(false);
     setConflictDraft(null);
     setConflictDialogError(null);
-    await v2Storage.reload();
-    setReloadKey((k) => k + 1);
+    await reloadAndRefresh();
   };
+
+  const getCopyError = (kind?: string, maxMsg = 'Maximale Anzahl von 20 Dashboards erreicht.') =>
+    kind === 'obergrenze_erreicht'
+      ? maxMsg
+      : kind === 'nicht_berechtigt'
+        ? 'Keine Berechtigung zum Speichern.'
+        : 'Fehler beim Speichern. Bitte erneut versuchen.';
 
   const handleSaveAsCopyConflict = async () => {
     if (!conflictDraft) return;
@@ -168,11 +179,10 @@ function PersonalExecutiveDashboardV2Container({
       setConflictDraft(null);
     } else {
       setConflictDialogError(
-        res.error?.kind === 'obergrenze_erreicht'
-          ? 'Maximale Anzahl von 20 Dashboards erreicht. Bitte lösche zunächst ein anderes Dashboard.'
-          : res.error?.kind === 'nicht_berechtigt'
-            ? 'Keine Berechtigung zum Speichern einer neuen Kopie.'
-            : 'Fehler beim Speichern der Kopie. Bitte erneut versuchen.',
+        getCopyError(
+          res.error?.kind,
+          'Maximale Anzahl von 20 Dashboards erreicht. Bitte lösche zunächst ein anderes Dashboard.',
+        ),
       );
     }
   };
@@ -185,13 +195,7 @@ function PersonalExecutiveDashboardV2Container({
       setShowDeletedDialog(false);
       setDeletedDraft(null);
     } else {
-      setDeletedDialogError(
-        res.error?.kind === 'obergrenze_erreicht'
-          ? 'Maximale Anzahl von 20 Dashboards erreicht.'
-          : res.error?.kind === 'nicht_berechtigt'
-            ? 'Keine Berechtigung zum Speichern eines neuen Dashboards.'
-            : 'Fehler beim Speichern des neuen Dashboards. Bitte erneut versuchen.',
-      );
+      setDeletedDialogError(getCopyError(res.error?.kind));
     }
   };
 
@@ -199,8 +203,7 @@ function PersonalExecutiveDashboardV2Container({
     setShowDeletedDialog(false);
     setDeletedDraft(null);
     setDeletedDialogError(null);
-    await v2Storage.reload();
-    setReloadKey((k) => k + 1);
+    await reloadAndRefresh();
   };
 
   const handleSaveAsPersonalCopyFromRevoked = async () => {
@@ -233,8 +236,7 @@ function PersonalExecutiveDashboardV2Container({
   const handleDiscardAndReloadFromRevoked = async () => {
     setShowRevokedDialog(false);
     setRevokedDraft(null);
-    await v2Storage.reload();
-    setReloadKey((k) => k + 1);
+    await reloadAndRefresh();
   };
 
   return (
@@ -369,6 +371,7 @@ export function PersonalExecutiveDashboard() {
       </p>
       <DashboardWorkspace
         preferences={preferences}
+        dashboardId={arrival?.dashboardId ?? 'personal'}
         useData={useDashboardData}
         organizationName={
           session?.organizationId ? `Organisation ${session.organizationId}` : undefined

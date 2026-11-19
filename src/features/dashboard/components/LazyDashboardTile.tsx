@@ -14,6 +14,7 @@ import type { ChartLoaders } from './charts/chartLoaders';
 import { useOptionalTimeControl } from '../time/TimeControlProvider';
 import { DashboardTile } from './DashboardTile';
 import { TileThresholdBadge } from './TileThresholdBadge';
+import { isDataOlderThanMaxAlarmAge } from '../model/alarmDataAge';
 
 export type TileDataHook = (
   tile: DashboardTileConfig,
@@ -34,6 +35,7 @@ export interface LazyDashboardTileProps {
   chartLoaders?: ChartLoaders;
   /** Auftrag 166 (P13a): Schwellenwert-Regel der Kachel */
   threshold?: TileThresholdRule;
+  alarm?: { status: string; reason?: string };
 }
 
 export function LazyDashboardTile({
@@ -47,6 +49,7 @@ export function LazyDashboardTile({
   onRetryChartLoad,
   chartLoaders,
   threshold,
+  alarm,
 }: LazyDashboardTileProps) {
   const { ref, near, active, activate } = useTileActivation();
   const lastApplied = useRef(filters);
@@ -80,10 +83,32 @@ export function LazyDashboardTile({
       ? data.value
       : null;
 
+  const tileRecord = tile as unknown as Record<string, unknown>;
+  const alarmInfo =
+    alarm ??
+    (tileRecord.alarm as { status?: 'aktiv' | 'pausiert'; reason?: string } | undefined) ??
+    (tileRecord.alarmRule as { status?: 'aktiv' | 'pausiert'; reason?: string } | undefined) ??
+    undefined;
+  const alarmStatus =
+    alarmInfo?.status ?? (tileRecord.alarmStatus as 'aktiv' | 'pausiert' | undefined) ?? undefined;
+  const alarmPauseReason =
+    alarmInfo?.reason ?? (tileRecord.alarmPauseReason as string | undefined) ?? undefined;
+
+  const dataTimestamp =
+    data &&
+    ('asOf' in data && data.asOf
+      ? data.asOf
+      : 'timestamp' in data
+        ? (data as { timestamp?: string }).timestamp
+        : undefined);
+  const isStaleData = isDataOlderThanMaxAlarmAge(dataTimestamp);
   const evaluation = useMemo(() => {
     if (!effectiveThreshold || !isSingleValue) return undefined;
+    if (isStaleData) {
+      return { stufe: 'nicht_bewertet' as const, text: 'Letzter Wert älter als 24 Stunden' };
+    }
     return evaluateThresholdV2(effectiveThreshold, singleValue, data?.state, entry?.unit);
-  }, [effectiveThreshold, isSingleValue, singleValue, data?.state, entry?.unit]);
+  }, [effectiveThreshold, isSingleValue, isStaleData, singleValue, data?.state, entry?.unit]);
 
   const borderClass =
     evaluation?.stufe === 'kritisch'
@@ -93,10 +118,12 @@ export function LazyDashboardTile({
         : '';
 
   const hasBadge =
-    evaluation &&
-    (evaluation.stufe === 'warnung' ||
-      evaluation.stufe === 'kritisch' ||
-      evaluation.stufe === 'regel_ungueltig');
+    (evaluation &&
+      (evaluation.stufe === 'warnung' ||
+        evaluation.stufe === 'kritisch' ||
+        evaluation.stufe === 'regel_ungueltig' ||
+        (evaluation.stufe === 'nicht_bewertet' && isStaleData))) ||
+    Boolean(alarmStatus);
 
   return (
     <div
@@ -109,7 +136,12 @@ export function LazyDashboardTile({
     >
       {hasBadge && (
         <div className="absolute top-3.5 right-4 z-10 pointer-events-auto">
-          <TileThresholdBadge evaluation={evaluation} />
+          <TileThresholdBadge
+            evaluation={evaluation ?? { stufe: 'normal', text: '' }}
+            alarmStatus={alarmStatus}
+            alarmPauseReason={alarmPauseReason}
+            dataTimestamp={dataTimestamp}
+          />
         </div>
       )}
       <DashboardTile

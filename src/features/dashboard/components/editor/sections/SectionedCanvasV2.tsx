@@ -3,7 +3,7 @@
 // Rendert Bereich 'Ohne Sektion' und Sektionen in Reihenfolge.
 // Eingeklappte Sektionen rendern keine Kacheln und rufen useData nicht auf.
 
-import { useRef, type DragEvent } from 'react';
+import { useRef, useMemo, type DragEvent } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
@@ -21,6 +21,7 @@ import { groupTilesBySection } from '../../../model/dashboardSections';
 import { SectionHeaderV2 } from './SectionHeaderV2';
 import { SectionAreaGridV2 } from './SectionAreaGridV2';
 import { RemoveSectionDialog } from './RemoveSectionDialog';
+import { useDashboardAlarms } from '../../../hooks/useDashboardAlarms';
 
 export interface SectionedCanvasV2Props {
   config: DashboardConfigV2;
@@ -57,6 +58,7 @@ export interface SectionedCanvasV2Props {
   onConfirmRemoveSection?: () => void;
   onCancelRemoveSection?: () => void;
   announcement?: string;
+  alarmRules?: Record<string, { status: string; reason?: string }>;
 }
 
 export function SectionedCanvasV2({
@@ -88,8 +90,20 @@ export function SectionedCanvasV2({
   onConfirmRemoveSection = () => {},
   onCancelRemoveSection = () => {},
   announcement,
+  alarmRules,
 }: SectionedCanvasV2Props) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { rules: serverAlarmRules } = useDashboardAlarms({
+    dashboardId: config.id,
+  });
+  const effectiveAlarmRules = useMemo(() => {
+    if (alarmRules) return alarmRules;
+    const map: Record<string, { status: string; reason?: string }> = {};
+    for (const r of serverAlarmRules) {
+      if (r.tileId) map[r.tileId] = { status: r.status };
+    }
+    return map;
+  }, [alarmRules, serverAlarmRules]);
   const { cols } = GRID_CONFIGS[activeBreakpoint];
   const isMobile = activeBreakpoint === 'mobile';
 
@@ -206,6 +220,7 @@ export function SectionedCanvasV2({
           useData={useData}
           globalTimeframe={config.globalTimeframe}
           globalPipeline={config.globalPipeline}
+          alarmRules={effectiveAlarmRules}
         />
       ) : (
         /* Gliederte Ansicht mit Sektionen */
@@ -250,6 +265,7 @@ export function SectionedCanvasV2({
                 useData={useData}
                 globalTimeframe={config.globalTimeframe}
                 globalPipeline={config.globalPipeline}
+                alarmRules={effectiveAlarmRules}
               />
             </div>
           )}
@@ -329,6 +345,7 @@ export function SectionedCanvasV2({
                         useData={useData}
                         globalTimeframe={config.globalTimeframe}
                         globalPipeline={config.globalPipeline}
+                        alarmRules={effectiveAlarmRules}
                       />
                     )
                   ) : null}

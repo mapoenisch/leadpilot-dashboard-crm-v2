@@ -15,6 +15,9 @@ import { TileActionsMenu } from './TileActionsMenu';
 import { TileQuickSizeSelector } from './TileQuickSizeSelector';
 import { TileResizeHandle } from './TileResizeHandle';
 import { UnavailableTileSlot } from './UnavailableTileSlot';
+import { useTileAlarmMap } from '../hooks/useTileAlarmMap';
+import { calculateDropIndex } from './gridDropIndex';
+import type { DashboardAlarmRule } from '../services/dashboardAlarmService';
 
 export type FocusAction =
   'hoch' | 'runter' | 'bearbeiten' | 'entfernen' | 'kachel' | 'details' | 'groesse';
@@ -28,17 +31,7 @@ export interface FocusRequest {
   action: FocusAction;
 }
 
-/** Berechnet die Zielposition unter Berücksichtigung der Vor-/Nach-Seite und des Entfernens der Quelle. */
-export function calculateDropIndex(from: number, target: number, side: 'before' | 'after'): number {
-  if (from === target) return from;
-  if (from < target)
-    return side === 'before' && target === from + 1
-      ? target
-      : side === 'before'
-        ? target - 1
-        : target;
-  return side === 'after' && target === from - 1 ? target : side === 'before' ? target : target + 1;
-}
+export { calculateDropIndex };
 
 const SPAN: Record<string, string> = {
   klein: 'col-span-1 md:col-span-3 lg:col-span-3',
@@ -60,6 +53,8 @@ export interface DashboardGridProps {
   focusRequest?: FocusRequest | null;
   /** Entscheidung Marc E3 (Auftrag 077): im Bearbeitungsmodus ist „Details“ gesperrt. */
   detailsBlocked?: boolean;
+  dashboardId?: string;
+  alarmRules?: readonly DashboardAlarmRule[];
   onShowDetails: (tileId: string) => void;
   onRetryChartLoad?: () => void;
   onTileActivated?: (tileId: string) => void;
@@ -74,6 +69,7 @@ export interface DashboardGridProps {
 
 export function DashboardGrid(props: DashboardGridProps) {
   const { tiles, editing, locked, focusRequest } = props;
+  const alarmByTileId = useTileAlarmMap(props.dashboardId, props.alarmRules);
   const listRef = useRef<HTMLUListElement | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<{ index: number; side: 'before' | 'after' } | null>(
@@ -129,18 +125,18 @@ export function DashboardGrid(props: DashboardGridProps) {
         className="rounded-xl border border-dashed border-border p-6 text-sm text-[var(--color-text-muted)]"
       >
         <p className="m-0">Dein Dashboard enthält noch keine Kacheln.</p>
-        {editing && props.onAdd ? (
+        {editing && props.onAdd && (
           <div className="mt-3 flex flex-wrap gap-2">
             <Button size="sm" disabled={locked} onClick={props.onAdd}>
               Kachel hinzufügen
             </Button>
-            {props.onReset ? (
+            {props.onReset && (
               <Button size="sm" variant="secondary" disabled={locked} onClick={props.onReset}>
                 Auf Standard zurücksetzen
               </Button>
-            ) : null}
+            )}
           </div>
-        ) : null}
+        )}
       </div>
     );
   }
@@ -374,12 +370,13 @@ export function DashboardGrid(props: DashboardGridProps) {
                     detailsBlocked={props.detailsBlocked}
                     onRetryChartLoad={props.onRetryChartLoad}
                     onActivated={props.onTileActivated}
+                    alarm={alarmByTileId.get(tile.tileId)}
                   />
                 ) : (
                   <UnavailableTileSlot tile={tile} />
                 )}
               </div>
-              {editing && props.onResize ? (
+              {editing && props.onResize && (
                 <TileResizeHandle
                   tileId={tile.tileId}
                   tileTitle={title}
@@ -388,7 +385,7 @@ export function DashboardGrid(props: DashboardGridProps) {
                   locked={locked}
                   onResize={props.onResize}
                 />
-              ) : null}
+              )}
             </li>
           );
         })}

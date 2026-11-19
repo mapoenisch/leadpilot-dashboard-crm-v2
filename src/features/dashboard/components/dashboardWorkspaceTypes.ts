@@ -13,6 +13,8 @@ export type ConfiguratorModule = { default: ComponentType<TileConfiguratorProps>
 
 export interface DashboardWorkspaceProps {
   preferences: WorkspacePreferences;
+  dashboardId?: string;
+  alarmRules?: readonly import('../services/dashboardAlarmService').DashboardAlarmRule[];
   useData: TileDataHook;
   chartLoaders?: ChartLoaders;
   organizationName?: string;

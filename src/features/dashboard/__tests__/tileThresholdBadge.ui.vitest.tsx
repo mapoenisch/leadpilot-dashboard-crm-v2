@@ -58,6 +58,47 @@ describe('TileThresholdBadge & Kachelanzeige (Auftrag 166 / P13a)', () => {
     expect(container.firstChild).toBeNull();
   });
 
+  it('Auftrag 168: zeigt Glockensymbol mit Tooltip bei aktivem und pausiertem Alarm', () => {
+    const { container, rerender } = render(
+      <TileThresholdBadge
+        evaluation={{ stufe: 'normal', text: 'Im Normalbereich' }}
+        alarmStatus="aktiv"
+      />,
+    );
+    const activeBell = container.querySelector(
+      '[data-testid="tile-alarm-bell"][data-alarm-status="aktiv"]',
+    );
+    expect(activeBell).not.toBeNull();
+    expect(activeBell?.getAttribute('title')).toBe('Alarm aktiv, Prüfung alle 5 Minuten');
+    expect(activeBell?.getAttribute('aria-label')).toBe('Alarm aktiv, Prüfung alle 5 Minuten');
+
+    rerender(
+      <TileThresholdBadge
+        evaluation={{ stufe: 'normal', text: 'Im Normalbereich' }}
+        alarmStatus="pausiert"
+        alarmPauseReason="Rechte verloren"
+      />,
+    );
+    const pausedBell = container.querySelector(
+      '[data-testid="tile-alarm-bell"][data-alarm-status="pausiert"]',
+    );
+    expect(pausedBell).not.toBeNull();
+    expect(pausedBell?.getAttribute('title')).toBe('Alarm pausiert: Rechte verloren');
+  });
+
+  it('Auftrag 168 (11a): zeigt "Letzter Wert älter als 24 Stunden" bei überfälligem Zeitstempel', () => {
+    const twentyFiveHoursAgo = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
+    const { getByTestId } = render(
+      <TileThresholdBadge
+        evaluation={{ stufe: 'normal', text: 'Im Normalbereich' }}
+        dataTimestamp={twentyFiveHoursAgo}
+      />,
+    );
+    const badge = getByTestId('tile-threshold-badge');
+    expect(badge).toHaveTextContent('Letzter Wert älter als 24 Stunden');
+    expect(badge.getAttribute('data-threshold-stufe')).toBe('nicht_bewertet');
+  });
+
   describe('Integration in LazyDashboardTile', () => {
     const tile: DashboardTileConfig = {
       tileId: 't-1',

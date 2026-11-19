@@ -16,7 +16,13 @@ import {
   ThresholdArtRadioGroup,
   ThresholdFormFields,
 } from './threshold/ThresholdFormFields';
-import { ThresholdLegacyAlerts, ThresholdLivePreview } from './threshold/ThresholdLegacyAlerts';
+import {
+  defaultThresholdRule,
+  ReadOnlyThresholdView,
+  ThresholdLegacyAlerts,
+  ThresholdLivePreview,
+} from './threshold/ThresholdLegacyAlerts';
+import { AlarmSection } from './threshold/AlarmSection';
 
 export interface InspectorThresholdTabProps {
   selectedTile: DashboardTileConfigV2;
@@ -25,6 +31,8 @@ export interface InspectorThresholdTabProps {
   catalogEntry?: ActiveCatalogEntry | CatalogEntry;
   isReadOnly?: boolean;
   tileDataState?: string;
+  dashboardId?: string;
+  isDirty?: boolean;
 }
 
 export function InspectorThresholdTab({
@@ -34,6 +42,8 @@ export function InspectorThresholdTab({
   catalogEntry,
   isReadOnly = false,
   tileDataState,
+  dashboardId,
+  isDirty = false,
 }: InspectorThresholdTabProps) {
   const formId = useId();
   const shape = (catalogEntry as ActiveCatalogEntry)?.shape;
@@ -46,15 +56,16 @@ export function InspectorThresholdTab({
     [currentThreshold, catalogEntry],
   );
   const isLegacy = Boolean(currentThreshold && !isThresholdRuleV2(currentThreshold));
-  const isInvalidLegacy = Boolean(
-    isLegacy && normalizedInitial && 'ungueltig' in normalizedInitial,
-  );
 
   const [draft, setDraft] = useState<Partial<ThresholdRuleV2>>(() => {
     if (currentThreshold && isThresholdRuleV2(currentThreshold)) return { ...currentThreshold };
     if (normalizedInitial && 'regel' in normalizedInitial) return { ...normalizedInitial.regel };
-    const enabled = Boolean(currentThreshold?.enabled);
-    return { formatVersion: 2, enabled, art: 'hoch_ist_schlecht', einheit: unit };
+    return {
+      formatVersion: 2,
+      enabled: Boolean(currentThreshold?.enabled),
+      art: 'hoch_ist_schlecht',
+      einheit: unit,
+    };
   });
 
   useEffect(() => {
@@ -76,16 +87,11 @@ export function InspectorThresholdTab({
   }
 
   if (isReadOnly) {
-    return (
-      <div data-testid="tab-content-schwellenwerte" className="space-y-3 p-2 text-xs">
-        <h4 className="font-medium text-white">Schwellenwert-Regel</h4>
-        {currentThreshold && isThresholdRuleV2(currentThreshold) && currentThreshold.enabled ? (
-          <p className="text-[var(--color-text-soft)]">{describeThresholdV2(currentThreshold)}</p>
-        ) : (
-          <p className="text-[var(--color-text-muted)]">Keine Schwellenwert-Überwachung aktiv.</p>
-        )}
-      </div>
-    );
+    const desc =
+      currentThreshold && isThresholdRuleV2(currentThreshold) && currentThreshold.enabled
+        ? describeThresholdV2(currentThreshold)
+        : null;
+    return <ReadOnlyThresholdView description={desc} />;
   }
 
   const cleanedRule = cleanThresholdRule(draft, unit);
@@ -128,19 +134,9 @@ export function InspectorThresholdTab({
         <div className="space-y-3 rounded-lg border border-white/10 bg-black/30 p-3">
           <ThresholdLegacyAlerts
             isLegacy={isLegacy}
-            isInvalidLegacy={isInvalidLegacy}
-            invalidMessage={
-              normalizedInitial && 'ungueltig' in normalizedInitial
-                ? normalizedInitial.ungueltig
-                : undefined
-            }
+            normalizedInitial={normalizedInitial}
             onReset={() => {
-              const r: ThresholdRuleV2 = {
-                formatVersion: 2,
-                enabled: true,
-                art: 'hoch_ist_schlecht',
-                einheit: unit,
-              };
+              const r = defaultThresholdRule(unit);
               setDraft(r);
               onTileThresholdChange(selectedTile.id, r);
             }}
@@ -183,12 +179,14 @@ export function InspectorThresholdTab({
         </div>
       )}
 
-      <p
-        data-testid="threshold-browser-notice"
-        className="text-[10px] text-[var(--color-text-muted)] leading-tight"
-      >
-        {THRESHOLD_MESSAGES.browserHinweis}
-      </p>
+      <AlarmSection
+        selectedTile={selectedTile}
+        dashboardId={dashboardId}
+        catalogEntry={catalogEntry}
+        hasValidRule={isValid && isEnabled}
+        isDirty={isDirty}
+        canWrite={!isReadOnly}
+      />
     </div>
   );
 }

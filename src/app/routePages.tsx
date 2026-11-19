@@ -256,6 +256,16 @@ const SystemHealthPage = React.lazy(() =>
     default: m.SystemHealthPage,
   })),
 );
+const DashboardAlarmsPage = React.lazy(() =>
+  import('@/features/dashboard/pages/DashboardAlarmsPage').then((m) => ({
+    default: m.DashboardAlarmsPage,
+  })),
+);
+const AdminAlarmsPage = React.lazy(() =>
+  import('@/features/admin/pages/AdminAlarmsPage').then((m) => ({
+    default: m.AdminAlarmsPage,
+  })),
+);
 
 export interface RoutePageEntry {
   id: AppRouteId;
@@ -333,6 +343,8 @@ export const ROUTE_PAGE_ENTRIES: readonly RoutePageEntry[] = [
   { id: 's-admin-teams', component: DashboardTeamsPage },
   { id: 's-admin-audit', component: AuditPage },
   { id: 's-admin-health', component: SystemHealthPage },
+  { id: 's-admin-alarms', component: AdminAlarmsPage },
+  { id: 's-dashboard-alarme', component: DashboardAlarmsPage },
 ] as const;
 
 // Dev-Guard: Validiert Vollständigkeit und Duplikate gegen APP_ROUTES

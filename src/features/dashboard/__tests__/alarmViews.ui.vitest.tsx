@@ -1,0 +1,391 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AlarmList } from '../components/alarms/AlarmList';
+import { AdminAlarmsPage } from '@/features/admin/pages/AdminAlarmsPage';
+import { useUnreadAlarmCount } from '../hooks/useUnreadAlarmCount';
+import type {
+  DashboardAlarmEventItem,
+  OrganizationAlarmRuleItem,
+} from '../services/dashboardAlarmService';
+
+let mockSessionRole = 'admin';
+let mockEvents: DashboardAlarmEventItem[] = [];
+let mockOrgRules: OrganizationAlarmRuleItem[] = [];
+const mockMarkRead = vi.fn();
+const mockMarkAllRead = vi.fn();
+const mockAcknowledge = vi.fn();
+const mockTakeover = vi.fn();
+const mockDeleteRule = vi.fn();
+const mockRefetch = vi.fn();
+const mockFetchDashboardAlarmEventsV2 = vi.fn().mockResolvedValue({ ok: true, data: [] });
+
+vi.mock('../services/dashboardAlarmService', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../services/dashboardAlarmService')>();
+  return {
+    ...actual,
+    fetchDashboardAlarmEvents: (...args: unknown[]) => mockFetchDashboardAlarmEventsV2(...args),
+    fetchDashboardAlarmEventsV2: (...args: unknown[]) => mockFetchDashboardAlarmEventsV2(...args),
+  };
+});
+
+vi.mock('@/auth/organizationContext', () => ({
+  useOrganization: () => ({
+    session: { role: mockSessionRole, organizationId: 'org-1', userId: 'user-1' },
+    isLoading: false,
+  }),
+}));
+
+vi.mock('../hooks/useDashboardAlarms', () => ({
+  useDashboardAlarms: (_opts?: { loadEvents?: boolean; loadOrgRules?: boolean }) => ({
+    workerStatus: { status: 'ok', auswertungAktiv: true, ueberfaellig: false },
+    events: mockEvents,
+    isEventsLoading: false,
+    isEventsError: false,
+    eventsError: null,
+    orgRules: mockOrgRules,
+    isOrgRulesLoading: false,
+    markRead: mockMarkRead,
+    markAllRead: mockMarkAllRead,
+    acknowledge: mockAcknowledge,
+    takeoverRule: mockTakeover,
+    deleteRule: mockDeleteRule,
+    refetchOrgRules: mockRefetch,
+    refetchEvents: mockRefetch,
+  }),
+  useSafeQueryClient: () => new QueryClient(),
+}));
+
+function UnreadCountConsumer() {
+  const { count, display, ariaLabel, hasUnread } = useUnreadAlarmCount();
+  return (
+    <div>
+      <span data-testid="count">{count}</span>
+      <span data-testid="display">{display}</span>
+      <span data-testid="label">{ariaLabel}</span>
+      <span data-testid="has-unread">{String(hasUnread)}</span>
+    </div>
+  );
+}
+
+describe('Alarm Views & useUnreadAlarmCount (Auftrag 168 / P13c)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockSessionRole = 'admin';
+    mockEvents = [];
+    mockOrgRules = [];
+  });
+
+  describe('useUnreadAlarmCount hook', () => {
+    it('rendert Zählerzustand und Formatierung über Provider', () => {
+      const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } },
+      });
+
+      render(
+        <QueryClientProvider client={queryClient}>
+          <UnreadCountConsumer />
+        </QueryClientProvider>,
+      );
+
+      expect(screen.getByTestId('count')).toBeDefined();
+      expect(screen.getByTestId('label')).toBeDefined();
+    });
+  });
+
+  describe('AlarmList View', () => {
+    it('rendert leeren Zustand wenn keine Ereignisse vorliegen', () => {
+      mockEvents = [];
+      render(
+        <MemoryRouter>
+          <AlarmList />
+        </MemoryRouter>,
+      );
+
+      expect(screen.getByTestId('alarms-empty-state')).toBeDefined();
+      expect(screen.getByText('Keine Alarm-Meldungen')).toBeDefined();
+    });
+
+    it('rendert Alarmliste mit Ereignissen und Paging-Button', async () => {
+      mockEvents = Array.from({ length: 50 }, (_, i) => ({
+        id: `ev-${i}`,
+        ruleId: `r-${i}`,
+        dashboardId: 'd-1',
+        dashboardTitle: 'Vertrieb',
+        tileId: `t-${i}`,
+        catalogId: 'crm.deals',
+        alterZustand: 'normal',
+        neuerZustand: 'warnung',
+        messwert: 15,
+        einheit: 'Stück',
+        grenze: 10,
+        meldung: `Alarm ${i}`,
+        createdAt: '2026-11-19T10:00:00Z',
+        gelesen: false,
+        quittiertVon: [],
+      }));
+
+      render(
+        <MemoryRouter>
+          <AlarmList />
+        </MemoryRouter>,
+      );
+
+      expect(screen.getByTestId('alarm-events-list')).toBeDefined();
+      const loadMoreBtn = screen.getByTestId('load-more-alarms-btn');
+      expect(loadMoreBtn).toBeDefined();
+
+      fireEvent.click(loadMoreBtn);
+
+      const markAllBtn = screen.getByTestId('mark-all-read-btn');
+      fireEvent.click(markAllBtn);
+      await waitFor(() => {
+        expect(mockMarkAllRead).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('unterstützt Einzel-Lesebestätigung, Quittierung und Filterung', async () => {
+      mockEvents = [
+        {
+          id: 'ev-test-1',
+          ruleId: 'r-1',
+          dashboardId: 'd-1',
+          dashboardTitle: 'Vertrieb',
+          tileId: 't-1',
+          catalogId: 'crm.deals',
+          alterZustand: 'normal',
+          neuerZustand: 'warnung',
+          messwert: 15,
+          einheit: 'Stück',
+          grenze: 10,
+          meldung: 'Alarm 1',
+          createdAt: '2026-11-19T10:00:00Z',
+          gelesen: false,
+          quittiertVon: [],
+        },
+      ];
+
+      render(
+        <MemoryRouter>
+          <AlarmList />
+        </MemoryRouter>,
+      );
+
+      const markReadBtn = screen.getByRole('button', { name: 'Als gelesen markieren' });
+      fireEvent.click(markReadBtn);
+      await waitFor(() => {
+        expect(mockMarkRead).toHaveBeenCalledWith(['ev-test-1']);
+      });
+
+      const ackBtn = screen.getByRole('button', { name: 'Quittieren' });
+      fireEvent.click(ackBtn);
+      const textarea = screen.getByTestId('alarm-ack-comment-input');
+      fireEvent.change(textarea, { target: { value: 'In Bearbeitung' } });
+      const confirmBtn = screen.getByTestId('alarm-ack-submit-btn');
+      fireEvent.click(confirmBtn);
+      await waitFor(() => {
+        expect(mockAcknowledge).toHaveBeenCalledWith({
+          eventId: 'ev-test-1',
+          comment: 'In Bearbeitung',
+        });
+      });
+
+      const ungelesenCheckbox = screen.getByTestId('alarm-filter-unread-toggle');
+      fireEvent.click(ungelesenCheckbox);
+
+      const warnungCheckbox = screen.getByTestId('alarm-filter-severity-toggle');
+      fireEvent.click(warnungCheckbox);
+
+      const select = screen.getByTestId('alarm-filter-dashboard-select');
+      fireEvent.change(select, { target: { value: 'd-1' } });
+    });
+
+    it('verwirft nachgeladene Seiten, wenn sich die Filterkriterien während der Anfrage geändert haben', async () => {
+      let resolvePromise: (val: {
+        ok: boolean;
+        data: DashboardAlarmEventItem[];
+      }) => void = () => {};
+      const pendingPromise = new Promise<{ ok: boolean; data: DashboardAlarmEventItem[] }>(
+        (resolve) => {
+          resolvePromise = resolve;
+        },
+      );
+      mockFetchDashboardAlarmEventsV2.mockReturnValueOnce(pendingPromise);
+
+      // 50 initiale Events erzeugen, damit der "Weitere laden"-Button gerendert wird
+      mockEvents = Array.from({ length: 50 }, (_, i) => ({
+        id: `ev-page-${i}`,
+        ruleId: 'r-1',
+        dashboardId: 'd-1',
+        dashboardTitle: 'Vertrieb',
+        tileId: 't-1',
+        catalogId: 'crm.deals',
+        alterZustand: 'normal',
+        neuerZustand: 'warnung',
+        messwert: 15,
+        einheit: 'Stück',
+        grenze: 10,
+        meldung: `Alarm ${i}`,
+        createdAt: '2026-11-19T10:00:00Z',
+        gelesen: false,
+        quittiertVon: [],
+      }));
+
+      render(
+        <MemoryRouter>
+          <AlarmList />
+        </MemoryRouter>,
+      );
+
+      const loadMoreBtn = screen.getByTestId('load-more-alarms-btn');
+      fireEvent.click(loadMoreBtn);
+
+      // Filter während laufender Anfrage ändern
+      const warnungCheckbox = screen.getByTestId('alarm-filter-severity-toggle');
+      fireEvent.click(warnungCheckbox);
+
+      expect(loadMoreBtn).not.toBeDisabled();
+
+      // Veraltete Antwort trifft verspätet ein
+      resolvePromise({
+        ok: true,
+        data: [
+          {
+            id: 'ev-stale-page',
+            ruleId: 'r-1',
+            dashboardId: 'd-old',
+            dashboardTitle: 'Altes Dashboard',
+            tileId: 't-1',
+            catalogId: 'crm.deals',
+            alterZustand: 'normal',
+            neuerZustand: 'normal',
+            messwert: 5,
+            einheit: 'Stück',
+            grenze: 10,
+            meldung: 'Stale Outdated Alarm Event',
+            createdAt: '2026-11-19T10:00:00Z',
+            gelesen: false,
+            quittiertVon: [],
+          },
+        ],
+      });
+
+      await waitFor(() => {
+        expect(screen.queryByText('Stale Outdated Alarm Event')).toBeNull();
+      });
+    });
+
+    it('aktualisiert nachgeladene Ereignisse nur nach erfolgreicher Lesebestaetigung', async () => {
+      const makeEv = (id: string, meldung: string) => ({
+        id,
+        ruleId: 'r-1',
+        dashboardId: 'd-1',
+        dashboardTitle: 'Vertrieb',
+        tileId: 't-1',
+        catalogId: 'crm.deals',
+        alterZustand: 'normal',
+        neuerZustand: 'warnung',
+        messwert: 5,
+        einheit: null,
+        grenze: 10,
+        meldung,
+        createdAt: '2026-11-19T09:00:00Z',
+        gelesen: false,
+        quittiertVon: [],
+      });
+      mockEvents = Array.from({ length: 50 }, (_, i) => makeEv(`ev-init-${i}`, `Init ${i}`));
+      mockFetchDashboardAlarmEventsV2.mockResolvedValueOnce({
+        ok: true,
+        data: [makeEv('ev-appended-fail', 'Nachgeladener Fehler-Event')],
+      });
+
+      render(
+        <MemoryRouter>
+          <AlarmList />
+        </MemoryRouter>,
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Weitere laden' }));
+      await waitFor(() => {
+        expect(screen.getByText(/Nachgeladener Fehler-Event/)).toBeInTheDocument();
+      });
+
+      mockMarkRead.mockRejectedValueOnce(new Error('RPC_FAILED'));
+      const btns = screen.getAllByRole('button', { name: 'Als gelesen markieren' });
+      fireEvent.click(btns[btns.length - 1]!);
+
+      await waitFor(() => {
+        expect(mockMarkRead).toHaveBeenCalledWith(['ev-appended-fail']);
+      });
+
+      const appendedRow = document.querySelector('[data-event-id="ev-appended-fail"]');
+      expect(appendedRow).toHaveAttribute('data-gelesen', 'false');
+    });
+  });
+
+  describe('AdminAlarmsPage View', () => {
+    it('blockiert Zugriff für Nicht-Admins (ForbiddenView)', () => {
+      mockSessionRole = 'viewer';
+      render(
+        <MemoryRouter>
+          <AdminAlarmsPage />
+        </MemoryRouter>,
+      );
+
+      expect(screen.queryByTestId('admin-alarms-table')).toBeNull();
+    });
+
+    it('rendert Admin-Tabelle mit verwaisten Regeln und Übernahme-Aktion', async () => {
+      mockSessionRole = 'admin';
+      mockOrgRules = [
+        {
+          id: 'rule-orphan-1',
+          dashboardId: 'd-1',
+          dashboardTitle: 'Vertrieb V2',
+          tileId: 't-orphan',
+          catalogId: 'crm.leads',
+          ruleConfig: {},
+          mindestdauerLaeufe: 2,
+          abklingzeitSekunden: 3600,
+          status: 'verantwortlicher_ohne_rechte',
+          responsibleUserId: 'former-colleague',
+          responsibleEmail: 'ex@firma.de',
+          beobachteteStufe: 'kritisch',
+          bestaetigteStufe: 'kritisch',
+          letzterMesswert: 100,
+          letzteAuswertung: '2026-11-19T10:00:00Z',
+          createdAt: '2026-11-01T00:00:00Z',
+          updatedAt: '2026-11-19T00:00:00Z',
+        },
+      ];
+
+      render(
+        <MemoryRouter>
+          <AdminAlarmsPage />
+        </MemoryRouter>,
+      );
+
+      expect(screen.getByText('Vertrieb V2')).toBeDefined();
+      expect(screen.getByText('ex@firma.de')).toBeDefined();
+
+      const takeoverBtn = screen.getByTestId('admin-alarm-takeover-btn-rule-orphan-1');
+      fireEvent.click(takeoverBtn);
+
+      await waitFor(() => {
+        expect(mockTakeover).toHaveBeenCalledWith('rule-orphan-1');
+      });
+
+      const deleteBtn = screen.getByTestId('delete-org-alarm-rule-btn');
+      fireEvent.click(deleteBtn);
+
+      expect(screen.getByText('Alarmregel löschen?')).toBeDefined();
+      const confirmDeleteBtn = screen.getByTestId('confirm-delete-org-alarm-btn');
+      fireEvent.click(confirmDeleteBtn);
+
+      await waitFor(() => {
+        expect(mockDeleteRule).toHaveBeenCalledWith('rule-orphan-1');
+      });
+    });
+  });
+});
