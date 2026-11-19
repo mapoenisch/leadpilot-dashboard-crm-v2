@@ -234,6 +234,23 @@ describe('Alarm UI Components (Auftrag 168 / P13c)', () => {
       expect(onOpenAcknowledge).toHaveBeenCalledWith(mockEvent);
     });
 
+    it('markiert Ereignis als gelesen beim Klick auf den Kachel-Link', () => {
+      const onMarkRead = vi.fn();
+      render(
+        <MemoryRouter>
+          <AlarmEventItemRow
+            event={{ ...mockEvent, gelesen: false }}
+            onMarkRead={onMarkRead}
+            onOpenAcknowledge={vi.fn()}
+          />
+        </MemoryRouter>,
+      );
+
+      const tileLink = screen.getByTitle('Zur Kachel springen');
+      fireEvent.click(tileLink);
+      expect(onMarkRead).toHaveBeenCalledWith('ev-test-1');
+    });
+
     it('rendert Warnungs- und Normalzustand ohne Messwert', () => {
       const warnEvent: DashboardAlarmEventItem = {
         id: 'ev-warn',

@@ -66,8 +66,14 @@ BEGIN
     INSERT INTO public.dashboard_alarm_receipts (event_id, user_id, organization_id, gelesen_at)
     SELECT e.id, v_user_id, e.organization_id, now()
     FROM public.dashboard_alarm_events e
+    JOIN public.dashboard_alarm_rules r ON r.id = e.rule_id
+    JOIN public.dashboards d ON d.id = r.dashboard_id
     JOIN public.organization_members m ON m.organization_id = e.organization_id AND m.user_id = v_user_id AND m.status = 'active'
     WHERE e.id = ANY(p_event_ids)
+      AND (
+        (d.scope = 'personal' AND d.user_id = v_user_id)
+        OR (d.scope = 'team' AND public.dashboard_team_can_read(d.team_id))
+      )
     ON CONFLICT (event_id, user_id)
     DO UPDATE SET gelesen_at = COALESCE(dashboard_alarm_receipts.gelesen_at, now())
     RETURNING 1
@@ -78,8 +84,11 @@ BEGIN
 END;
 $$;
 
--- Alle Ereignisse als gelesen markieren (optional gefiltert nach Dashboard)
-CREATE OR REPLACE FUNCTION public.mark_all_dashboard_alarm_events_read(p_dashboard_id UUID DEFAULT NULL)
+-- Alle Ereignisse als gelesen markieren (optional gefiltert nach Dashboard und Dringlichkeit)
+CREATE OR REPLACE FUNCTION public.mark_all_dashboard_alarm_events_read(
+  p_dashboard_id UUID DEFAULT NULL,
+  p_nur_warnung_kritisch BOOLEAN DEFAULT FALSE
+)
 RETURNS INT
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -101,6 +110,7 @@ BEGIN
     JOIN public.dashboards d ON d.id = r.dashboard_id
     JOIN public.organization_members m ON m.organization_id = e.organization_id AND m.user_id = v_user_id AND m.status = 'active'
     WHERE (p_dashboard_id IS NULL OR r.dashboard_id = p_dashboard_id)
+      AND (NOT p_nur_warnung_kritisch OR e.neuer_zustand IN ('warnung', 'kritisch'))
       AND (
         (d.scope = 'personal' AND d.user_id = v_user_id)
         OR (d.scope = 'team' AND public.dashboard_team_can_read(d.team_id))
@@ -138,7 +148,13 @@ BEGIN
     RAISE EXCEPTION 'LP_ALARM_COMMENT_TOO_LONG' USING ERRCODE = '22001';
   END IF;
 
-  SELECT * INTO v_event FROM public.dashboard_alarm_events WHERE id = p_event_id;
+  SELECT e.*, d.scope AS dashboard_scope, d.user_id AS dashboard_user_id, d.team_id AS dashboard_team_id
+  INTO v_event
+  FROM public.dashboard_alarm_events e
+  JOIN public.dashboard_alarm_rules r ON r.id = e.rule_id
+  JOIN public.dashboards d ON d.id = r.dashboard_id
+  WHERE e.id = p_event_id;
+
   IF NOT FOUND THEN
     RAISE EXCEPTION 'LP_ALARM_EVENT_NOT_FOUND' USING ERRCODE = 'P0002';
   END IF;
@@ -149,6 +165,13 @@ BEGIN
   ) INTO v_is_member;
 
   IF NOT v_is_member THEN
+    RAISE EXCEPTION 'LP_AUTH_INSUFFICIENT_PERMISSIONS' USING ERRCODE = '42501';
+  END IF;
+
+  IF NOT (
+    (v_event.dashboard_scope = 'personal' AND v_event.dashboard_user_id = v_user_id)
+    OR (v_event.dashboard_scope = 'team' AND public.dashboard_team_can_read(v_event.dashboard_team_id))
+  ) THEN
     RAISE EXCEPTION 'LP_AUTH_INSUFFICIENT_PERMISSIONS' USING ERRCODE = '42501';
   END IF;
 
@@ -551,7 +574,7 @@ $$;
 
 -- Berechtigungen für alle neuen RPCs an authenticated
 GRANT EXECUTE ON FUNCTION public.mark_dashboard_alarm_events_read(UUID[]) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.mark_all_dashboard_alarm_events_read(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.mark_all_dashboard_alarm_events_read(UUID, BOOLEAN) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.acknowledge_dashboard_alarm_event(UUID, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.count_unread_dashboard_alarm_events() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.list_dashboard_alarm_events_v2(UUID, BOOLEAN, BOOLEAN, INT, INT) TO authenticated;

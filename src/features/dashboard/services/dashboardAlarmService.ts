@@ -248,14 +248,27 @@ export async function markAlarmEventsRead(eventIds: string[]): Promise<number> {
   }
 }
 
-export async function markAllAlarmEventsRead(dashboardId?: string): Promise<number> {
+export interface MarkAllAlarmEventsReadOptions {
+  dashboardId?: string;
+  nurWarnungKritisch?: boolean;
+}
+
+export async function markAllAlarmEventsRead(
+  optionsOrDashboardId?: MarkAllAlarmEventsReadOptions | string,
+): Promise<number> {
+  const options: MarkAllAlarmEventsReadOptions =
+    typeof optionsOrDashboardId === 'string'
+      ? { dashboardId: optionsOrDashboardId }
+      : (optionsOrDashboardId ?? {});
+
   if (shouldUseInMemoryStore()) {
-    return inMemoryAlarmStore.markAllRead(dashboardId);
+    return inMemoryAlarmStore.markAllRead(options);
   }
 
   try {
     const { data, error } = await requireSupabase().rpc('mark_all_dashboard_alarm_events_read', {
-      p_dashboard_id: dashboardId ?? null,
+      p_dashboard_id: options.dashboardId ?? null,
+      p_nur_warnung_kritisch: options.nurWarnungKritisch ?? false,
     });
     if (error) {
       logger.warn('[dashboardAlarmService] mark_all_dashboard_alarm_events_read Fehler:', error);

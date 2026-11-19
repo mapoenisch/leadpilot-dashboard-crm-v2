@@ -96,14 +96,24 @@ export class InMemoryAlarmStore {
     return count;
   }
 
-  markAllRead(dashboardId?: string): number {
+  markAllRead(
+    optionsOrDashboardId?: { dashboardId?: string; nurWarnungKritisch?: boolean } | string,
+  ): number {
+    const options =
+      typeof optionsOrDashboardId === 'string'
+        ? { dashboardId: optionsOrDashboardId }
+        : (optionsOrDashboardId ?? {});
     let count = 0;
     for (const ev of this.events) {
-      if (!dashboardId || ev.dashboardId === dashboardId) {
-        if (!ev.gelesen) {
-          ev.gelesen = true;
-          count++;
-        }
+      if (options.dashboardId && ev.dashboardId !== options.dashboardId) {
+        continue;
+      }
+      if (options.nurWarnungKritisch && !['warnung', 'kritisch'].includes(ev.neuerZustand)) {
+        continue;
+      }
+      if (!ev.gelesen) {
+        ev.gelesen = true;
+        count++;
       }
     }
     return count;

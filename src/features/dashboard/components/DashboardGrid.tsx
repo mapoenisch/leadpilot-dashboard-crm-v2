@@ -2,7 +2,7 @@
 // Größe, kein automatisches Auffüllen. Im Bearbeitungsmodus trägt jede Kachel Schaltflächen zum
 // Verschieben, Bearbeiten und Entfernen; Ziehen ist nur eine Ergänzung für große Bildschirme.
 // Auftrag 090 (Paket F, Muster 5): ruhige Leiste je Kachel, Aktionen hinter „Kachel-Aktionen“.
-import { useEffect, useRef, useState, type DragEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import { GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,8 @@ import { TileActionsMenu } from './TileActionsMenu';
 import { TileQuickSizeSelector } from './TileQuickSizeSelector';
 import { TileResizeHandle } from './TileResizeHandle';
 import { UnavailableTileSlot } from './UnavailableTileSlot';
+import { useDashboardAlarms } from '../hooks/useDashboardAlarms';
+import type { DashboardAlarmRule } from '../services/dashboardAlarmService';
 
 export type FocusAction =
   'hoch' | 'runter' | 'bearbeiten' | 'entfernen' | 'kachel' | 'details' | 'groesse';
@@ -31,12 +33,7 @@ export interface FocusRequest {
 /** Berechnet die Zielposition unter Berücksichtigung der Vor-/Nach-Seite und des Entfernens der Quelle. */
 export function calculateDropIndex(from: number, target: number, side: 'before' | 'after'): number {
   if (from === target) return from;
-  if (from < target)
-    return side === 'before' && target === from + 1
-      ? target
-      : side === 'before'
-        ? target - 1
-        : target;
+  if (from < target) return side === 'before' && target === from + 1 ? target : side === 'before' ? target - 1 : target;
   return side === 'after' && target === from - 1 ? target : side === 'before' ? target : target + 1;
 }
 
@@ -60,6 +57,8 @@ export interface DashboardGridProps {
   focusRequest?: FocusRequest | null;
   /** Entscheidung Marc E3 (Auftrag 077): im Bearbeitungsmodus ist „Details“ gesperrt. */
   detailsBlocked?: boolean;
+  dashboardId?: string;
+  alarmRules?: readonly DashboardAlarmRule[];
   onShowDetails: (tileId: string) => void;
   onRetryChartLoad?: () => void;
   onTileActivated?: (tileId: string) => void;
@@ -74,6 +73,21 @@ export interface DashboardGridProps {
 
 export function DashboardGrid(props: DashboardGridProps) {
   const { tiles, editing, locked, focusRequest } = props;
+  const { rules: serverRules } = useDashboardAlarms({ dashboardId: props.dashboardId });
+  const rules = props.alarmRules ?? serverRules;
+  const alarmByTileId = useMemo(() => {
+    const map = new Map<string, { status: string; reason?: string }>();
+    for (const r of rules) {
+      if (r.tileId) {
+        map.set(r.tileId, {
+          status: r.status,
+          reason: r.status === 'pausiert' ? 'Alarmregel pausiert' : undefined,
+        });
+      }
+    }
+    return map;
+  }, [rules]);
+
   const listRef = useRef<HTMLUListElement | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<{ index: number; side: 'before' | 'after' } | null>(
@@ -129,18 +143,16 @@ export function DashboardGrid(props: DashboardGridProps) {
         className="rounded-xl border border-dashed border-border p-6 text-sm text-[var(--color-text-muted)]"
       >
         <p className="m-0">Dein Dashboard enthält noch keine Kacheln.</p>
-        {editing && props.onAdd ? (
+        {editing && props.onAdd && (
           <div className="mt-3 flex flex-wrap gap-2">
-            <Button size="sm" disabled={locked} onClick={props.onAdd}>
-              Kachel hinzufügen
-            </Button>
-            {props.onReset ? (
+            <Button size="sm" disabled={locked} onClick={props.onAdd}>Kachel hinzufügen</Button>
+            {props.onReset && (
               <Button size="sm" variant="secondary" disabled={locked} onClick={props.onReset}>
                 Auf Standard zurücksetzen
               </Button>
-            ) : null}
+            )}
           </div>
-        ) : null}
+        )}
       </div>
     );
   }
@@ -172,16 +184,9 @@ export function DashboardGrid(props: DashboardGridProps) {
   return (
     <div className="relative">
       {editing ? (
-        <div
-          data-testid="grid-helper-lines"
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 overflow-hidden hidden md:grid md:grid-cols-6 lg:grid-cols-12 gap-4"
-        >
+        <div data-testid="grid-helper-lines" aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden hidden md:grid md:grid-cols-6 lg:grid-cols-12 gap-4">
           {Array.from({ length: 12 }, (_, i) => (
-            <div
-              key={i}
-              className="h-full rounded-xl border border-dashed border-primary/20 bg-primary/[0.015]"
-            />
+            <div key={i} className="h-full rounded-xl border border-dashed border-primary/20 bg-primary/[0.015]" />
           ))}
         </div>
       ) : null}
@@ -357,12 +362,7 @@ export function DashboardGrid(props: DashboardGridProps) {
                   ) : null}
                 </div>
               ) : null}
-              <div
-                className={cn(
-                  'flex flex-col flex-1 min-w-0',
-                  dragId && 'pointer-events-none select-none',
-                )}
-              >
+              <div className={cn('flex flex-col flex-1 min-w-0', dragId && 'pointer-events-none select-none')}>
                 {activeEntryOf(tile) ? (
                   <LazyDashboardTile
                     tile={tile}
@@ -374,12 +374,13 @@ export function DashboardGrid(props: DashboardGridProps) {
                     detailsBlocked={props.detailsBlocked}
                     onRetryChartLoad={props.onRetryChartLoad}
                     onActivated={props.onTileActivated}
+                    alarm={alarmByTileId.get(tile.tileId)}
                   />
                 ) : (
                   <UnavailableTileSlot tile={tile} />
                 )}
               </div>
-              {editing && props.onResize ? (
+              {editing && props.onResize && (
                 <TileResizeHandle
                   tileId={tile.tileId}
                   tileTitle={title}
@@ -388,7 +389,7 @@ export function DashboardGrid(props: DashboardGridProps) {
                   locked={locked}
                   onResize={props.onResize}
                 />
-              ) : null}
+              )}
             </li>
           );
         })}

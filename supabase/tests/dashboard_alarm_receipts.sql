@@ -22,13 +22,22 @@ VALUES
   ('8f680000-0000-0000-0000-000000000002', 'df680000-0000-0000-0000-000000000001', 'viewer', 'active'),
   ('8f680000-0000-0000-0000-000000000003', 'df680000-0000-0000-0000-000000000002', 'admin', 'active');
 
--- Test-Dashboard in Org Alpha
-INSERT INTO public.dashboards (id, organization_id, scope, user_id, created_by_user_id, title, revision, config)
+INSERT INTO public.dashboard_teams (id, organization_id, name)
+VALUES ('df680000-0000-0000-0000-000000000005', 'df680000-0000-0000-0000-000000000001', 'Team Alpha 168');
+
+INSERT INTO public.dashboard_team_members (team_id, user_id, organization_id)
+VALUES
+  ('df680000-0000-0000-0000-000000000005', '8f680000-0000-0000-0000-000000000001', 'df680000-0000-0000-0000-000000000001'),
+  ('df680000-0000-0000-0000-000000000005', '8f680000-0000-0000-0000-000000000002', 'df680000-0000-0000-0000-000000000001');
+
+-- Test-Dashboard in Org Alpha (Team-Scope, damit Admin und Viewer Leserechte haben)
+INSERT INTO public.dashboards (id, organization_id, scope, user_id, team_id, created_by_user_id, title, revision, config)
 VALUES (
   'df680000-0000-0000-0000-000000000010',
   'df680000-0000-0000-0000-000000000001',
-  'personal',
-  '8f680000-0000-0000-0000-000000000001',
+  'team',
+  NULL,
+  'df680000-0000-0000-0000-000000000005',
   '8f680000-0000-0000-0000-000000000001',
   'Dashboard 168 Test',
   1,

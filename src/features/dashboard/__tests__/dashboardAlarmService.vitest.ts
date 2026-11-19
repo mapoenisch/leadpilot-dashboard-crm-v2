@@ -194,7 +194,12 @@ describe('dashboardAlarmService & inMemoryAlarmStore Unit Tests', () => {
       expect(readCount).toBe(1);
       expect(inMemoryAlarmStore.events.find((e) => e.id === 'ev-1')?.gelesen).toBe(true);
 
-      // markAllRead with dashboardId
+      // markAllRead with nurWarnungKritisch filters out 'normal' (ev-2 is normal)
+      const filteredReadCount = inMemoryAlarmStore.markAllRead({ dashboardId: 'd-1', nurWarnungKritisch: true });
+      expect(filteredReadCount).toBe(0);
+      expect(inMemoryAlarmStore.events.find((e) => e.id === 'ev-2')?.gelesen).toBe(false);
+
+      // markAllRead without filter marks ev-2
       const allReadCount = inMemoryAlarmStore.markAllRead('d-1');
       expect(allReadCount).toBe(1); // ev-2
       expect(inMemoryAlarmStore.events.find((e) => e.id === 'ev-2')?.gelesen).toBe(true);

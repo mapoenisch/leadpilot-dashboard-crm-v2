@@ -68,6 +68,11 @@ export const AlarmEventItemRow: React.FC<AlarmEventItemRowProps> = ({
               <span className="text-[var(--color-text-muted)]">·</span>
               <Link
                 to={`/dashboard?kachel=${encodeURIComponent(event.tileId)}`}
+                onClick={() => {
+                  if (!event.gelesen) {
+                    onMarkRead(event.id);
+                  }
+                }}
                 className="inline-flex items-center gap-1 font-mono text-[11px] text-primary hover:underline"
                 title="Zur Kachel springen"
               >

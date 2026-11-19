@@ -21,6 +21,7 @@ import {
   type CreateAlarmRuleParams,
   type UpdateAlarmRuleParams,
   type ListAlarmEventsParams,
+  type MarkAllAlarmEventsReadOptions,
 } from '../services/dashboardAlarmService';
 import { unreadAlarmCountKey } from './useUnreadAlarmCount';
 
@@ -181,7 +182,7 @@ export function useDashboardAlarms(options: {
   }, queryClient);
 
   const markAllReadMutation = useMutation({
-    mutationFn: (dId?: string) => markAllAlarmEventsRead(dId),
+    mutationFn: (opts?: MarkAllAlarmEventsReadOptions | string) => markAllAlarmEventsRead(opts),
     onSuccess: () => invalidateAll(),
   }, queryClient);
 

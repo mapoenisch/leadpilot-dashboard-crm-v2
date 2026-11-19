@@ -294,6 +294,8 @@ export function DashboardWorkspace(props: DashboardWorkspaceProps) {
           suspended={!ready}
           focusRequest={focusRequest}
           detailsBlocked={editing}
+          dashboardId={props.dashboardId}
+          alarmRules={props.alarmRules}
           onShowDetails={(tileId) => {
             // Entscheidung Marc E3: im Bearbeitungsmodus nie aus dem Editor heraus (auch nicht beim
             // Speichern); „Details“ ist dort gesperrt und erklärt.

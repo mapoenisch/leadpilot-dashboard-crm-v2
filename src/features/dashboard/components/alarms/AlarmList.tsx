@@ -1,51 +1,82 @@
 // Executive Dashboard V2 (Auftrag 168 / P13c §2.1 Nr. 3–5):
 // Hauptansicht der Alarmliste mit Filterung, Quittierung und Ausfallhinweis.
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Bell, Loader2 } from 'lucide-react';
 import { useDashboardAlarms } from '../../hooks/useDashboardAlarms';
 import { AlarmWorkerBanner } from './AlarmWorkerBanner';
 import { AlarmFilterBar } from './AlarmFilterBar';
 import { AlarmEventItemRow } from './AlarmEventItemRow';
 import { AlarmAcknowledgeDialog } from './AlarmAcknowledgeDialog';
-import type { DashboardAlarmEventItem } from '../../services/dashboardAlarmService';
+import {
+  fetchDashboardAlarmEventsV2,
+  type DashboardAlarmEventItem,
+} from '../../services/dashboardAlarmService';
+
+const PAGE_SIZE = 50;
 
 export const AlarmList: React.FC = () => {
   const [selectedDashboardId, setSelectedDashboardId] = useState('');
   const [nurUngelesen, setNurUngelesen] = useState(false);
   const [nurWarnungKritisch, setNurWarnungKritisch] = useState(false);
-  const [limit, setLimit] = useState(50);
+  const [appendedEvents, setAppendedEvents] = useState<DashboardAlarmEventItem[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [selectedEventForAck, setSelectedEventForAck] = useState<DashboardAlarmEventItem | null>(
     null,
   );
   const [isMarkingAll, setIsMarkingAll] = useState(false);
+
+  // Filteränderungen setzen angehängte Ereignisse und Paging zurück
+  useEffect(() => {
+    setAppendedEvents([]);
+    setHasMore(true);
+  }, [selectedDashboardId, nurUngelesen, nurWarnungKritisch]);
 
   const eventFilters = useMemo(
     () => ({
       dashboardId: selectedDashboardId || undefined,
       nurUngelesen,
       nurWarnungKritisch,
-      limit,
+      limit: PAGE_SIZE,
       offset: 0,
     }),
-    [selectedDashboardId, nurUngelesen, nurWarnungKritisch, limit],
+    [selectedDashboardId, nurUngelesen, nurWarnungKritisch],
   );
 
-  const { events, isEventsLoading, markRead, markAllRead, acknowledge } = useDashboardAlarms({
+  const {
+    events: initialEvents,
+    isEventsLoading,
+    markRead,
+    markAllRead,
+    acknowledge,
+  } = useDashboardAlarms({
     loadEvents: true,
     eventFilters,
   });
 
+  const displayEvents = useMemo(() => {
+    const list = [...initialEvents];
+    const seen = new Set(list.map((e) => e.id));
+    for (const ev of appendedEvents) {
+      if (!seen.has(ev.id)) {
+        seen.add(ev.id);
+        list.push(ev);
+      }
+    }
+    return list;
+  }, [initialEvents, appendedEvents]);
+
   // Einzigartige Dashboards aus den Ereignissen für den Filter
   const dashboardOptions = useMemo(() => {
     const map = new Map<string, string>();
-    for (const ev of events) {
+    for (const ev of displayEvents) {
       if (ev.dashboardId && !map.has(ev.dashboardId)) {
         map.set(ev.dashboardId, ev.dashboardTitle || ev.dashboardId);
       }
     }
     return Array.from(map.entries()).map(([id, title]) => ({ id, title }));
-  }, [events]);
+  }, [displayEvents]);
 
   const handleMarkRead = async (eventId: string) => {
     await markRead([eventId]);
@@ -54,9 +85,36 @@ export const AlarmList: React.FC = () => {
   const handleMarkAllRead = async () => {
     setIsMarkingAll(true);
     try {
-      await markAllRead(selectedDashboardId || undefined);
+      await markAllRead({
+        dashboardId: selectedDashboardId || undefined,
+        nurWarnungKritisch,
+      });
     } finally {
       setIsMarkingAll(false);
+    }
+  };
+
+  const handleLoadMore = async () => {
+    setIsLoadingMore(true);
+    try {
+      const nextOffset = displayEvents.length;
+      const res = await fetchDashboardAlarmEventsV2({
+        dashboardId: selectedDashboardId || undefined,
+        nurUngelesen,
+        nurWarnungKritisch,
+        limit: PAGE_SIZE,
+        offset: nextOffset,
+      });
+      if (res.ok && res.data) {
+        if (res.data.length < PAGE_SIZE) {
+          setHasMore(false);
+        }
+        setAppendedEvents((prev) => [...prev, ...(res.data ?? [])]);
+      } else {
+        setHasMore(false);
+      }
+    } finally {
+      setIsLoadingMore(false);
     }
   };
 
@@ -90,7 +148,7 @@ export const AlarmList: React.FC = () => {
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
           <span className="ml-2 text-xs">Lade Alarme…</span>
         </div>
-      ) : events.length === 0 ? (
+      ) : displayEvents.length === 0 ? (
         <div
           data-testid="alarms-empty-state"
           className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 px-4 text-center text-text"
@@ -103,7 +161,7 @@ export const AlarmList: React.FC = () => {
         </div>
       ) : (
         <div data-testid="alarm-events-list" className="space-y-2.5">
-          {events.map((ev: DashboardAlarmEventItem) => (
+          {displayEvents.map((ev: DashboardAlarmEventItem) => (
             <AlarmEventItemRow
               key={ev.id}
               event={ev}
@@ -112,16 +170,17 @@ export const AlarmList: React.FC = () => {
             />
           ))}
 
-          {/* Weitere laden (Paging) */}
-          {events.length >= limit && (
+          {/* Weitere laden (Paging mit Offset-Erhöhung) */}
+          {hasMore && displayEvents.length >= PAGE_SIZE && (
             <div className="pt-3 text-center">
               <button
                 type="button"
                 data-testid="load-more-alarms-btn"
-                onClick={() => setLimit((prev) => prev + 50)}
-                className="rounded-md border border-border bg-surface px-4 py-2 text-xs font-semibold text-text hover:bg-surface-raised transition-colors cursor-pointer"
+                disabled={isLoadingMore}
+                onClick={handleLoadMore}
+                className="rounded-md border border-border bg-surface px-4 py-2 text-xs font-semibold text-text hover:bg-surface-raised transition-colors cursor-pointer disabled:opacity-50"
               >
-                Weitere laden
+                {isLoadingMore ? 'Lade weitere…' : 'Weitere laden'}
               </button>
             </div>
           )}

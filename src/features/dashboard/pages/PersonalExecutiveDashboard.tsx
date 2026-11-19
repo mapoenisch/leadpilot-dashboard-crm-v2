@@ -369,6 +369,7 @@ export function PersonalExecutiveDashboard() {
       </p>
       <DashboardWorkspace
         preferences={preferences}
+        dashboardId={arrival?.dashboardId ?? 'personal'}
         useData={useDashboardData}
         organizationName={
           session?.organizationId ? `Organisation ${session.organizationId}` : undefined
