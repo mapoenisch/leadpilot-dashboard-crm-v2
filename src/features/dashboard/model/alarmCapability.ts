@@ -1,6 +1,7 @@
 import { ALARM_ENTRIES } from './catalog/alarmEntries';
 
-export type AlarmCapabilityStatus = 'ausgeschlossen' | 'pruefbar' | 'nicht_einzelwert';
+export type AlarmCapabilityStatus =
+  'ausgeschlossen' | 'pruefbar' | 'nicht_einzelwert' | 'alarmfaehig';
 
 export interface AlarmCapability {
   status: AlarmCapabilityStatus;

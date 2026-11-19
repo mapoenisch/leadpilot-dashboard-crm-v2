@@ -150,6 +150,9 @@ jobs:
       # ist mit dem Legacy-Dashboard entfallen; verifyLiveKpiCatalog prüft weiterhin
       # den Katalog, den die Live-Kacheln der persönlichen Ansicht nutzen.
       - run: npx tsx scripts/verifyLiveKpiCatalog.ts
+      # Auftrag 167: Paritätsgenerator-Synchronität und Alarmfähigkeitsmatrix
+      - run: npx tsx scripts/generateAlarmParitySql.ts --check
+      - run: npx tsx scripts/verifyAlarmCapability.ts
 
   size-limit:
     runs-on: ubuntu-latest
