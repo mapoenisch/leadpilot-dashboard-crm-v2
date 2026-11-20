@@ -40,6 +40,7 @@ DECLARE
   v_compare JSONB;
   v_bucket_count INT;
   v_step INTERVAL;
+  v_trunc_unit TEXT;
   v_compare_from TIMESTAMPTZ;
   v_compare_to TIMESTAMPTZ;
   v_history_start TIMESTAMPTZ;
@@ -64,6 +65,12 @@ BEGIN
     WHEN 'woche' THEN interval '1 week'
     ELSE interval '1 month'
   END;
+  v_trunc_unit := CASE p_resolution
+    WHEN 'stunde' THEN 'hour'
+    WHEN 'tag' THEN 'day'
+    WHEN 'woche' THEN 'week'
+    ELSE 'month'
+  END;
 
   IF p_compare = 'vorperiode' THEN
     -- Gleiche Anzahl Zeitabschnitte direkt vor dem Basisfenster (kalendergenau in Europe/Berlin).
@@ -76,8 +83,17 @@ BEGIN
     v_compare_from := date_trunc('week', p_from - interval '1 year');
     v_compare_to := v_compare_from + (v_step * v_bucket_count);
   ELSE
-    v_compare_from := p_from - interval '1 year';
-    v_compare_to := p_to - interval '1 year';
+    -- Vorjahr (Stunde/Tag/Monat): Fenster aus den verschobenen, bereits bündigen
+    -- Basis-Buckets ableiten. Sonst kann der Schaltjahres-Kollaps (z. B. 29.02.2028
+    -- -> 28.02.2027) ein leeres Fenster (p_from >= p_to) erzeugen.
+    v_compare_from := least(
+      date_trunc(v_trunc_unit, p_from) - interval '1 year',
+      date_trunc(v_trunc_unit, p_to - interval '1 microsecond') - interval '1 year'
+    );
+    v_compare_to := greatest(
+      date_trunc(v_trunc_unit, p_from) - interval '1 year',
+      date_trunc(v_trunc_unit, p_to - interval '1 microsecond') - interval '1 year'
+    ) + v_step;
   END IF;
 
   v_compare := public.dashboard_time_series(

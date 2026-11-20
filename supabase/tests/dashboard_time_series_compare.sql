@@ -3,7 +3,7 @@
 
 BEGIN;
 
-SELECT plan(32);
+SELECT plan(35);
 
 -- ---------------------------------------------------------------- Setup --
 DELETE FROM public.deal_stage_events WHERE deal_id LIKE 'd170-%';
@@ -173,6 +173,17 @@ SELECT is(
   'Vorjahr bei Wochen liefert genau eine ganze Woche statt zweier angeschnittener'
 );
 
+-- 13d–13e. Vorjahr an der Schaltjahrgrenze: kein leeres Vergleichsfenster
+SELECT lives_ok(
+  $$SELECT public.dashboard_time_series_compare('deal_stage_events', 'Deal gewonnen', 'tag', '2024-02-28 00:00:00+01'::timestamptz, '2024-03-01 00:00:00+01'::timestamptz, 'vorjahr')$$,
+  'Täglicher Vorjahr-Vergleich über die Schaltjahrgrenze wirft keinen Fensterfehler'
+);
+SELECT is(
+  jsonb_array_length(public.dashboard_time_series_compare('deal_stage_events', 'Deal gewonnen', 'tag', '2024-02-28 00:00:00+01'::timestamptz, '2024-03-01 00:00:00+01'::timestamptz, 'vorjahr')->'comparePoints'),
+  1,
+  'Schaltjahres-Kollaps 29.02.2024 -> 28.02.2023 liefert genau einen Vergleichstag'
+);
+
 -- 14. Vollständige Vorperiode ist nicht unvollständig
 SELECT is(
   public.dashboard_time_series_compare('deal_stage_events', 'Deal gewonnen', 'woche', '2026-10-12 00:00:00+02'::timestamptz, '2026-10-19 00:00:00+02'::timestamptz, 'vorperiode')->>'is_partial',
@@ -220,6 +231,7 @@ SELECT is(public.dashboard_config_v2_invalid_reason(pg_temp.cfg170('{"compare":"
 SELECT is(public.dashboard_config_v2_invalid_reason(pg_temp.cfg170('{"compare":"vorperiode","transformations":[{"art":"umbenennen","name":"ARR neu"}]}')), NULL, 'Vergleich mit Umbenennung ist zulässig');
 SELECT is(public.dashboard_config_v2_invalid_reason(pg_temp.cfg170('{"compare":"vorperiode"}', 'saeulen')), 'query.compare, query.join und query.bands sind nur für Linie oder Fläche zulässig', 'Vergleich wird bei Säulendarstellung abgelehnt');
 SELECT is(public.dashboard_config_v2_invalid_reason(pg_temp.cfg170('{"bands":{"type":"percentile_10_90","periodCount":8}}', 'flaeche')), NULL, 'Erwartungsband ist bei Flächendarstellung zulässig');
+SELECT is(public.dashboard_config_v2_invalid_reason(pg_temp.cfg170('{"compare":"vorperiode","transformations":[{"art":"einheit_umrechnen","von":"EUR","zu":"Tsd. EUR"}]}')), 'query.compare, query.join und query.bands sind nicht mit Umrechnung oder gleitendem Durchschnitt kombinierbar', 'Vergleich mit Einheitenumrechnung wird abgelehnt');
 
 -- 26–28. Trigger pausiert Alarme bei Vergleich und Heatmap
 INSERT INTO public.dashboards (id, organization_id, user_id, created_by_user_id, title, scope, revision, config)

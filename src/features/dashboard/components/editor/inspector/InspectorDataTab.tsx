@@ -9,6 +9,7 @@ import type { DashboardTileConfigV2 } from '../../../model/dashboardConfigV2';
 import type { TileData } from '../../../data/dashboardData';
 import { getQueryCapabilities } from '../../../model/queryCapabilities';
 import { normalizeTileQuery } from '../../../model/tileQuery';
+import { hasValueTransformation } from '../../../model/timeseries/timeSeriesQuery';
 import {
   formatHistoryLabel,
   formatResolutionText,
@@ -85,12 +86,15 @@ export function InspectorDataTab({
   };
 
   const handleTransformationsChange = (nextTransformations: TileTransformation[] | undefined) => {
-    onTileOverrideChange(selectedTile.id, {
-      query: {
-        ...normQuery,
-        transformations: nextTransformations,
-      },
-    });
+    const query = { ...normQuery, transformations: nextTransformations };
+    // Wertverändernde Transformationen sind mit Vergleich, zweiter Reihe und Band nicht
+    // kombinierbar: sie werden wie beim Darstellungswechsel entfernt, nicht unzulässig gespeichert.
+    if (hasValueTransformation(query)) {
+      delete query.compare;
+      delete query.join;
+      delete query.bands;
+    }
+    onTileOverrideChange(selectedTile.id, { query });
   };
 
   const isTimeSeries = catalogEntry?.history.kind === 'ereignisse';
