@@ -22694,3 +22694,12 @@ Builder-Seite abgeschlossen, alle lokalen Pflichtprüfungen grün (Ausnahmen obe
 - **Anlass:** `test`-Check auf `ebe90383` und `038ef85b` rot — `timeseriesHeatmap.vitest.ts` maß einen einzelnen Kalendlauf von `toHeatmapGrid` und überschritt die 16-ms-Schwelle unter CI-Coverage (29,9 ms bzw. 17,1 ms; lokal ~7 ms). Kein Codefehler.
 - **Fix:** Warmup-Aufruf + 5 Messungen, Behauptung auf dem schnellsten Lauf (`best < 16`). Die Spec-Schwelle bleibt unverändert; nur die Messung ist jetzt jittersicher.
 - **Verifikation:** betroffene Suite lokal grün (7 Tests), `format:check` grün.
+
+### 18. Prüfnachweis Codex-Review Runde 5/6 (Head `39f0f30d`, 20.11.2026)
+
+- **Prüfer:** Codex-App auf GitHub (`chatgpt-codex-connector`), Comment `7040887165`.
+- **Geprüfter Commit:** `39f0f30da3` (nach Runde-5-Nacharbeit + CI-Fix).
+- **Ergebnis:** „Didn't find any major issues." — keine offenen Befunde auf dem aktuellen Head.
+- **Verlauf:** 6 Review-Runden, 14 P2-Befunde, alle behoben (Abschnitte 11–14, 16); ein Codex-Lauf war technischer Fehlschlag („Unknown error"), Wiederholung erfolgreich.
+- **CI:** `test`-Check nach der Performancetest-Korrektur (Abschnitt 17) wieder grün; `e2e` zum Zeitpunkt des Eintrags noch laufend.
+- **Offen für Gate-Freigabe:** `e2e`-Check und gelöste Review-Konversationen; Merge durch Marc.
