@@ -77,8 +77,8 @@ export function createPreviewTransformationsConfig(): DashboardConfigV2 {
       // 3. Kachel mit gleitender_durchschnitt
       {
         id: 'preview_trans_tile_ma',
-        catalogId: 'crm.deal_volumen',
-        title: 'Deal-Volumen Verlauf',
+        catalogId: 'crm.phaseneintritte_verlauf',
+        title: 'Phaseneintritte (Gleitender Durchschnitt)',
         presentation: 'linie',
         layouts: {
           desktop: { x: 8, y: 0, w: 4, h: 4 },
@@ -96,8 +96,8 @@ export function createPreviewTransformationsConfig(): DashboardConfigV2 {
       // 4. Kachel mit pausiertem Alarm nach nicht-alarmfähiger Transformation
       {
         id: 'preview_trans_tile_paused_alarm',
-        catalogId: 'crm.deal_volumen',
-        title: 'Pipeline Volumen (Pausierter Alarm)',
+        catalogId: 'crm.gewonnen_verlauf',
+        title: 'Gewonnene Deals (Pausierter Alarm)',
         presentation: 'linie',
         layouts: {
           desktop: { x: 0, y: 4, w: 6, h: 4 },
@@ -107,9 +107,9 @@ export function createPreviewTransformationsConfig(): DashboardConfigV2 {
           formatVersion: 2,
           enabled: true,
           art: 'hoch_ist_schlecht',
-          warnung: 50000,
-          kritisch: 100000,
-          einheit: 'EUR',
+          warnung: 10,
+          kritisch: 5,
+          einheit: 'Deals',
         },
         alarm: {
           status: 'pausiert',

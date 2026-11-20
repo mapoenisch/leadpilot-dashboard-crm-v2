@@ -11,7 +11,11 @@ import {
   validateSingleTransformation,
   validateTransformations,
 } from '../model/transformations';
-import { evaluateThresholdV2, type ThresholdRuleV2 } from '../model/thresholdRuleV2';
+import {
+  evaluateThresholdV2,
+  validateThresholdRuleV2,
+  type ThresholdRuleV2,
+} from '../model/thresholdRuleV2';
 import type { ResolvedTileData } from '../data/dashboardData';
 import referenceCases from '../model/transformations/transformationReferenceCases.json';
 
@@ -97,6 +101,29 @@ describe('Auftrag 169 – Transformations-Modell & Vitest Suite', () => {
 
       const evalResult = evaluateThresholdV2(rule, 1234.567, 'bereit', effectiveUnit);
       expect(evalResult.stufe).toBe('regel_ungueltig');
+    });
+
+    it('(d) Neuer Schwellenwert mit transformierter Einheit validiert erfolgreich', () => {
+      const transformations: TileTransformation[] = [
+        { art: 'einheit_umrechnen', von: 'EUR', zu: 'Tsd. EUR' },
+      ];
+      const effectiveUnit = getEffectiveUnit('EUR', transformations);
+      expect(effectiveUnit).toBe('Tsd. EUR');
+
+      const rule: ThresholdRuleV2 = {
+        formatVersion: 2,
+        enabled: true,
+        art: 'hoch_ist_schlecht',
+        einheit: effectiveUnit,
+        warnung: 1000,
+        kritisch: 2000,
+      };
+
+      const valResult = validateThresholdRuleV2(rule, { unit: effectiveUnit });
+      expect(valResult.ok).toBe(true);
+
+      const evalResult = evaluateThresholdV2(rule, 1234.567, 'bereit', effectiveUnit);
+      expect(evalResult.stufe).toBe('warnung');
     });
   });
 

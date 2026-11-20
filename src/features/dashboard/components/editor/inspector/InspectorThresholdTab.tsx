@@ -51,6 +51,10 @@ export function InspectorThresholdTab({
   const isSingleValue = !shape || ['einzelwert', 'verhaeltnis', 'anteil'].includes(shape);
   const baseUnit = (catalogEntry as ActiveCatalogEntry)?.unit ?? '';
   const unit = getEffectiveUnit(baseUnit, selectedTile.query?.transformations);
+  const effectiveCatalogEntry = useMemo(
+    () => (catalogEntry ? { ...catalogEntry, unit } : { unit }),
+    [catalogEntry, unit],
+  );
 
   const currentThreshold = selectedTile.threshold;
   const normalizedInitial = useMemo(
@@ -96,8 +100,15 @@ export function InspectorThresholdTab({
     return <ReadOnlyThresholdView description={desc} />;
   }
 
+  const isSavedUnitMismatch = Boolean(
+    currentThreshold &&
+    isThresholdRuleV2(currentThreshold) &&
+    currentThreshold.einheit &&
+    currentThreshold.einheit !== unit,
+  );
+
   const cleanedRule = cleanThresholdRule(draft, unit);
-  const validation = validateThresholdRuleV2(cleanedRule, catalogEntry);
+  const validation = validateThresholdRuleV2(cleanedRule, effectiveCatalogEntry);
   const isValid = validation.ok;
   const fieldError = !validation.ok
     ? { feld: validation.feld, grund: validation.grund }
@@ -143,6 +154,15 @@ export function InspectorThresholdTab({
               onTileThresholdChange(selectedTile.id, r);
             }}
           />
+
+          {isSavedUnitMismatch && currentThreshold && isThresholdRuleV2(currentThreshold) && (
+            <div
+              data-testid="threshold-unit-mismatch-notice"
+              className="rounded bg-amber-500/10 p-2 text-[11px] text-amber-300 border border-amber-500/20"
+            >
+              {THRESHOLD_MESSAGES.einheitenWechsel(currentThreshold.einheit ?? '', unit)}
+            </div>
+          )}
 
           <ThresholdArtRadioGroup
             formId={formId}

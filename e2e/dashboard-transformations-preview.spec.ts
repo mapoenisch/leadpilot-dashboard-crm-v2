@@ -56,7 +56,7 @@ test.describe('Dashboard-Editor V2: Kachel-Transformationen Vorschau (P14a)', ()
       // 4. Kachel mit pausiertem Alarm
       const tilePaused = page.getByTestId('canvas-tile-preview_trans_tile_paused_alarm');
       await expect(tilePaused).toBeVisible();
-      await expect(tilePaused.getByTestId('tile-threshold-badge')).toBeVisible();
+      await expect(tilePaused.getByTestId('tile-alarm-bell')).toBeVisible();
 
       // Horizontaler Überlauf prüfen
       const overflow = await page.evaluate(() => {
@@ -101,6 +101,10 @@ test.describe('Dashboard-Editor V2: Kachel-Transformationen Vorschau (P14a)', ()
     // Pausierte Alarm-Kachel auswählen und Warnung prüfen
     const tilePaused = page.getByTestId('canvas-tile-preview_trans_tile_paused_alarm');
     await tilePaused.click();
+    await ensureInspectorOpen(page);
+    const tabDatenPaused = page.getByTestId('inspector-tab-daten');
+    await expect(tabDatenPaused).toBeVisible();
+    await tabDatenPaused.click();
     await expect(page.getByTestId('transformation-alarm-warning')).toBeVisible();
     await expect(page.getByTestId('transformation-alarm-warning')).toContainText(
       'Der Alarm dieser Kachel wird pausiert.',

@@ -365,13 +365,16 @@ export function InspectorTransformationSection({
         </div>
       )}
 
-      {kette.length > 0 && previewBefore && (
-        <div data-testid="transformation-preview" className="border-t border-white/5 pt-2 text-[10.5px] text-[var(--color-text-muted)] space-y-1">
+      {kette.length > 0 && (
+        <div
+          data-testid="transformation-preview"
+          className="border-t border-white/5 pt-2 text-[10.5px] text-[var(--color-text-muted)] space-y-1"
+        >
           <div className="font-medium text-white">Vorschau:</div>
           <div className="flex items-center justify-between">
             <span>Vorher:</span>
             <span className="text-white font-mono">
-              {'value' in previewBefore && previewBefore.value != null
+              {previewBefore && 'value' in previewBefore && previewBefore.value != null
                 ? formatTileValue(previewBefore.value, baseUnit, 'exakt')
                 : baseUnit || '—'}
             </span>

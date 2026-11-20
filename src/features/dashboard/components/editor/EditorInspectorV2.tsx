@@ -321,6 +321,7 @@ function TileInspectorContent({
             onTileOverrideChange={onTileOverrideChange}
             isCollapsed={isCollapsed}
             globalPipeline={config.globalPipeline}
+            tileData={tileData}
           />
         )}
         {activeTab === 'schwellenwerte' && (
