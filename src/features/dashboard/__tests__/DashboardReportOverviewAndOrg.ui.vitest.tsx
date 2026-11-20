@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { DashboardPrintView } from '../components/export/DashboardPrintView';
+import { PrintAppendixRows } from '../components/export/PrintAppendixTable';
 import { DashboardWorkspace, type WorkspacePreferences } from '../components/DashboardWorkspace';
 import { type DashboardTileConfig, DASHBOARD_CONFIG_VERSION } from '../model/dashboardConfig';
 import type { TileDataHook } from '../components/LazyDashboardTile';
@@ -149,5 +150,46 @@ describe('DashboardReport: Übersichtskacheln & Mandantenbindung (Auftrag 132 Ru
         /unterliegen den Datenzugriffsrechten des Mandanten Organisation org-mandant-99\./i,
       ),
     ).toBeInTheDocument();
+  });
+
+  it('wendet Transformationen im Druck-Anhang an', () => {
+    const transformedTile: DashboardTileConfig = {
+      tileId: 'tile-transformed',
+      catalogId: 'baseline.arr',
+      view: 'zahl',
+      size: 'klein',
+      filterMode: 'dashboard',
+      query: {
+        transformations: [
+          { art: 'einheit_umrechnen', von: 'EUR', zu: 'Tsd. EUR' },
+          { art: 'umbenennen', name: 'ARR in Tsd. EUR' },
+        ],
+      },
+    };
+
+    const mockDataHook: TileDataHook = () => ({
+      catalogId: 'baseline.arr',
+      state: 'bereit',
+      value: 120_000,
+      unit: 'EUR',
+      series: null,
+      overview: null,
+      timeBasis: 'Stand 2025',
+      asOf: null,
+      origin: { layer: 'baseline', module: '', exportName: '' },
+      scope: 'stammdaten',
+      effectiveFilter: { mode: 'dashboard', period: null, pipeline: null },
+    });
+
+    render(
+      <table>
+        <tbody>
+          <PrintAppendixRows tile={transformedTile} useData={mockDataHook} />
+        </tbody>
+      </table>,
+    );
+
+    expect(screen.getByText('ARR in Tsd. EUR')).toBeInTheDocument();
+    expect(screen.getByText(/120.*Tsd\.\s*EUR/i)).toBeInTheDocument();
   });
 });
