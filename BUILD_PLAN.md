@@ -1,8 +1,8 @@
 # LeadPilot Dashboard-CRM — Bauplan
 
-**Stand:** 26.11.2026
+**Stand:** 20.11.2026
 
-**Aktueller Auftrag:** Auftrag 169 – Dashboard-Editor: Transformationen je Kachel (Umbenennen, Einheit umrechnen, gleitender Durchschnitt) mit Alarmfähigkeit (P14a; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_169_TRANSFORMATIONEN.md`; Branch `auftrag-169-transformationen`; Builder Antigravity; Status: FERTIGGESTELLT / PR ERSTELLT). Zuletzt: 168 Alarme in der App, Lesebestätigung und Quittierung, Admin-Übernahme (P13c; PR #209 gemergt als `c168a929`), 167 Server-Alarme mit pg_cron, Paritätsnachweis, Lebenszeichen, Revisions-Aufbewahrung (P13b; PR #206), 166 Schwellenwerte auf Kacheln, Alarmfähigkeit je KPI, Betriebsweg für Alarme (P13a; PR #205 gemergt als `c138ce2e`). Phase P13 ist abgeschlossen; P14a eröffnet Phase P14.
+**Aktueller Auftrag:** Auftrag 170 – Dashboard-Editor: Vergleichszeitraum, zeitbezogene Verknüpfung zweier Reihen, Heatmap, Erwartungsbänder (P14b; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_170_VERGLEICH_JOINS_HEATMAP_BAENDER.md`; Branch `auftrag-170-vergleich-joins-heatmap`; Builder Antigravity, nach Kontingent-Abbruch fertiggestellt von Claude Code; Status: FERTIGGESTELLT / PR ERSTELLT, wartet auf unabhängiges Review). Zuletzt: 169 Transformationen je Kachel (P14a; PR #210 gemergt als `ac9da030`), 168 Alarme in der App (P13c; PR #209 gemergt als `c168a929`). Mit 170 ist Phase P14 abgeschlossen (mit Erwartungsbändern); nächster Schritt P15 (Auftrag 171).
 
 **Zielversion (festgelegt 18.11.2026, Marc):** `v3.2.0` – umfasst alles seit `v3.1.0` (10.11.2026) bis einschließlich P13 (Aufträge 151–168: Dashboard-Editor V2 mit Raster, Panel-Editor, Sektionen, Vorlagen, Zeitsteuerung, Server-Zeitreihen, Team-Freigaben, Versionen/Import/Export, Schwellenwerte, Server-Alarme). Neue Funktionen ohne Bruch bestehender Daten → Minor-Sprung. Release, Tag und Anheben von `package.json` macht Marc nach Merge von 168. Folgeplanung: P14–P15 → `v3.3.0`; P16 (neuer Editor wird Standard) → `v4.0.0`.
 

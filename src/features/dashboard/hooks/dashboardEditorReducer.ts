@@ -37,6 +37,7 @@ export const VIEW_LABEL: Record<DashboardView, string> = {
   gauge: 'Tachometer / Skala',
   sparkline: 'Kompakter Trendverlauf',
   trichter: 'Trichterdiagramm',
+  heatmap: 'Heatmap',
 };
 
 export const SIZE_LABEL: Record<TileSize, string> = {

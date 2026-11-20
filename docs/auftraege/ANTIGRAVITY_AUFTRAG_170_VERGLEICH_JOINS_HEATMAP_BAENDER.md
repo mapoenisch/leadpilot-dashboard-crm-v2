@@ -8,7 +8,7 @@
 **Baseline:** aktueller `main` nach Merge von 169.
 **Branch:** `auftrag-170-vergleich-joins-heatmap`.
 **Builder:** Antigravity (oder ein anderer von Marc benannter Agent). **Prüfer:** unabhängiger Agent nach `CLAUDE.md` §4.1. **Merge und Deploy:** Marc.
-**Status:** ENTWURF (wartet auf Merge von 169). Erwartungsbänder am 18.11.2026 nach Vorschlag §8 entschieden.
+**Status:** UMGESETZT (20.11.2026; Builder Antigravity, nach Kontingent-Abbruch fertiggestellt von Claude Code; Nachweis `docs/BUILD_LOG.md`). Erwartungsbänder am 18.11.2026 nach Vorschlag §8 entschieden.
 
 ---
 
@@ -68,14 +68,14 @@ Schutzbereiche unverändert; eine neue Migration, bestehende RPCs unverändert; 
 
 ## 5. Tasks
 
-- [ ] **T0** Baseline, Ist-Tabelle, Chart-Primitives, `size-limit`; Stand der Entscheidung §8 abfragen (BUILD_PLAN/Masterplan).
-- [ ] **T1** Rot-Nachweise.
-- [ ] **T2** Server-RPC und pgTAP.
-- [ ] **T3** Modell und Referenzfälle.
-- [ ] **T4** Vergleich und Join in Charts, Fadenkreuz.
-- [ ] **T5** Heatmap.
-- [ ] **T6** Erwartungsband nach §8 (entschieden 18.11.2026).
-- [ ] **T7** Vorschau, E2E, Bundle, A11y, Screenshots, Doku, Pflicht-Verifikation, BUILD_LOG, PR, Review.
+- [x] **T0** Baseline, Ist-Tabelle, Chart-Primitives, `size-limit`; Stand der Entscheidung §8 abfragen (BUILD_PLAN/Masterplan).
+- [x] **T1** Rot-Nachweise.
+- [x] **T2** Server-RPC und pgTAP.
+- [x] **T3** Modell und Referenzfälle.
+- [x] **T4** Vergleich und Join in Charts, Fadenkreuz.
+- [x] **T5** Heatmap.
+- [x] **T6** Erwartungsband nach §8 (entschieden 18.11.2026).
+- [x] **T7** Vorschau, E2E, Bundle, A11y, Screenshots, Doku, Pflicht-Verifikation, BUILD_LOG, PR, Review.
 
 ## 6. Abnahme
 

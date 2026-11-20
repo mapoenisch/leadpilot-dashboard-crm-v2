@@ -1,6 +1,7 @@
 // Gemeinsame Typen und Farben der Tiefen-Diagramme (Designprobe, Teilauftrag 0).
 import type { DatumInput, TimeDatumInput } from './depthGeometry';
 import type { TimeSeriesResolution } from '../../data/dashboardData';
+import type { TileTimeSeriesExtras } from '../../model/timeseries/types';
 
 export interface DepthChartProps {
   /** Eindeutige ID je Kachel: SVG-Verläufe und Filter dürfen sich zwischen Kacheln nicht beeinflussen. */
@@ -31,6 +32,8 @@ export interface TimeDepthChartProps extends Omit<DepthChartProps, 'data'> {
   data: readonly (DatumInput | TimeDatumInput)[];
   resolution?: TimeSeriesResolution;
   windowEnd?: string;
+  /** Auftrag 170: Vergleich, zweite Reihe, Erwartungsband und Heatmap-Daten. */
+  extras?: TileTimeSeriesExtras;
 }
 
 export type DepthBarChartProps = TimeDepthChartProps;

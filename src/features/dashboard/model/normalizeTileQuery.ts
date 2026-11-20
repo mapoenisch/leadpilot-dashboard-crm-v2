@@ -5,6 +5,7 @@ import type {
   DashboardTileConfigV2,
   TileQueryConfig,
 } from './dashboardConfigV2';
+import { normalizeTimeSeriesQueryParts } from './timeseries/timeSeriesQuery';
 
 export interface NormalizeTileQueryOptions {
   globalPipeline?: string;
@@ -131,6 +132,11 @@ export function normalizeTileQuery(
   if (windowConfig !== undefined) {
     normalized.window = windowConfig;
   }
+  // Auftrag 169/170: Transformationen, Vergleich, Verknüpfung und Band beim Speichern erhalten.
+  if (Array.isArray(rawQuery?.transformations) && rawQuery.transformations.length > 0) {
+    normalized.transformations = rawQuery.transformations.map((step) => ({ ...step }));
+  }
+  Object.assign(normalized, normalizeTimeSeriesQueryParts(rawQuery));
 
   return normalized;
 }

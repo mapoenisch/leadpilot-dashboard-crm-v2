@@ -22564,3 +22564,80 @@ Mit Auftrag 169 (Phase P14a des Masterplans) erhält der Dashboard-Editor die F�
 3. Im Inspector unter „Alarme“ Schwellenwert prüfen → Schwellenwert ist in `Tsd. EUR` hinterlegt (`1000` Warnung, `500` Kritisch), Badge spiegelt die umgerechnete Einheit wider.
 4. Kachel „Pipeline Volumen (Pausierter Alarm)“ ansehen → Badge zeigt `Alarm pausiert` mit Grund `kennzahl_nicht_alarmfaehig`, da ein gleitender Durchschnitt aktiv ist.
 
+
+## 2026-11-20 — Auftrag 170: Dashboard-Editor: Vergleichszeitraum, zeitbezogene Verknüpfung, Heatmap, Erwartungsbänder (P14b)
+
+**Rolle:** Builder. Begonnen von Antigravity; nach Abbruch durch das Antigravity-Nutzungslimit (Stand ungetestet, nicht committet: 22 TypeScript- und 6 Lint-Fehler) von **Claude Code** übernommen und fertiggestellt. **Branch:** `auftrag-170-vergleich-joins-heatmap` · **Basis:** `ac9da030` (Merge PR #210, Auftrag 169). Prüfer: unabhängiger Agent nach `CLAUDE.md` §4.1 (nicht Claude Code, nicht Antigravity).
+
+### 1. Ziel & Kontext
+Phase P14b des Masterplans: Zeitreihen-Kacheln zeigen einen Vergleichszeitraum (Vorperiode, gleiche Periode Vorjahr) nur mit belegter Historie, verknüpfen zwei Reihen über den Zeitstempel, eine neue Darstellung „Heatmap“ zeigt Woche × Wochentag bzw. Phase × Woche, und Erwartungsbänder folgen dem am 18.11.2026 entschiedenen Verfahren (§8). Vergleich, Join und Heatmap sind nicht alarmfähig.
+
+### 2. Befunde am übernommenen Zwischenstand (alle behoben)
+| Nr. | Befund | Behebung |
+|---|---|---|
+| Ü1 | Migration ersetzte `dashboard_config_v2_invalid_reason` durch eine **ältere** Fassung (fehlende Prüfung eindeutiger Kachel-IDs, `id`-Prüfung, geänderte Meldungen). | Validator aus `20261126` übernommen, nur die 170-Felder ergänzt (Diff gegen 20261126 enthält ausschließlich 170-Blöcke). |
+| Ü2 | Vergleichs-RPC duplizierte die Zeitreihenlogik (eigene Lückenregeln, Vorperiode für Monate falsch). | RPC ruft das unveränderte `dashboard_time_series` zweimal auf; Vorperiode = gleiche Anzahl Abschnitte kalendergenau davor. |
+| Ü3 | Heatmap „Phase × Woche“ war eine Attrappe: fünf erfundene Phasen mit identischem Wert. | Neue RPC `dashboard_time_series_phases` (sieben normalisierte Phasen) und echtes Raster je Phase. |
+| Ü4 | Heatmap nur bei den zwei wöchentlichen CRM-Reihen erlaubt – Woche × Wochentag ist mit Wochenwerten nicht darstellbar. | Heatmap lädt 84 Tage in Tagesauflösung; Darstellung auch für die 12 Live-Verläufe freigegeben. |
+| Ü5 | Kalenderrechnung abhängig von der Zeitzone des Rechners (CI läuft in UTC). | `model/timeseries/berlinDate.ts`; Tests grün unter `TZ=UTC` und `TZ=America/Los_Angeles`. |
+| Ü6 | Keine echte Datenanbindung: Vergleich/Join/Band existierten nur als erfundene Werte in der Vorschau. | `hooks/useTimeSeriesExtras.ts` in `useDashboardData`; Vorschau läuft über denselben Zusammenbau (`buildTimeSeriesExtras`). |
+| Ü7 | Neuer Alarm-Sperrgrund „Transformationen werden nicht unterstützt“ sperrte **alle** Transformationen – Regression gegenüber 169 (Umbenennen/Einheit sind alarmfähig). | Entfernt; nur Vergleich/Join/Heatmap sperren. |
+| Ü8 | `DepthLineChart.tsx` 429 Zeilen, Inline-Style in der Heatmap, feste Farbwerte statt Tokens. | Zusatzebenen in `DepthLineOverlays.tsx`; Heatmap ohne Inline-Style, Farben aus `MANAGEMENT_CHART_THEME`/`SERIES_COLORS`. |
+
+### 3. Weitere Befunde während der Umsetzung
+- **P14a-Fehler (vor 170 vorhanden):** `normalizeTileQuery` verwarf `query.transformations` beim Speichern (`prepareConfigForStorage`) – gespeicherte V2-Dashboards verloren ihre Transformationen. Nachweis per Skript am Basisstand, behoben, Regressionstest `timeseriesExtras.vitest.ts`.
+- **Leistung:** Join über 500 Abschnitte dauerte 41 ms (Zeilenbeschriftung über neu erzeugte `Intl`-Formatierer). Beschriftung optional gemacht → Test „< 5 ms“ grün.
+- **Kachel-Metadaten:** Abrufzeit/Stand hängen per WeakMap am Datenobjekt; die Zusammenführung erzeugt ein neues Objekt. `keepMeta` überträgt beides (Test).
+- **Einheiten-Mischung:** Vergleich/Join/Band hätten mit `einheit_umrechnen`/`gleitender_durchschnitt` Basis und Vergleich in verschiedenen Einheiten gezeichnet. Neue Kombinationsregel in Client und Server (pgTAP-Fall); Heatmap und Druckanhang zeigen die bereits umgeformte Kachelreihe.
+- **Darstellung (Screenshot-Prüfung):** abgeschnittene Phasennamen und überlappende KW-Beschriftung korrigiert; Kachelkopf der Wochentag-Heatmap nennt jetzt „letzte 84 Tage, je Tag“ statt „24 Stunden“.
+
+### 4. Geänderte Dateien
+- **Server:** `supabase/migrations/20261127_dashboard_time_series_compare.sql` (neu: `dashboard_time_series_compare`, `dashboard_time_series_phases`; Validator; Alarm-Trigger), `supabase/tests/dashboard_time_series_compare.sql` (28 pgTAP-Tests).
+- **Modell:** neu `model/timeseries/` (`types`, `berlinDate`, `computeComparison`, `alignSeries`, `toHeatmapGrid`, `expectationBands`, `buildTimeSeriesExtras`, `timeSeriesQuery`, je ≥ 20 Referenzfälle in `*ReferenceCases.json`); `dashboardConfigV2.ts` (+3 Zeilen), `dashboardCatalog.ts` (Darstellung `heatmap`), `catalog/historyEntries.ts`, `catalog/liveEntries.ts`, `dashboardAlarmPermitted.ts`, `normalizeTileQuery.ts`, `tileQuery.ts`.
+- **Daten:** neu `data/resolveTimeSeriesCompare.ts`, `data/timeSeriesSource.ts`, `hooks/useTimeSeriesExtras.ts`; `data/dashboardData.ts` (Feld `timeSeriesExtras`), `hooks/useDashboardData.ts` (Hülle + Quellhelfer, 398 Zeilen).
+- **Oberfläche:** neu `charts/HeatmapChart.tsx`, `charts/DepthLineOverlays.tsx`, `charts/depthChartHelpers.ts`, `inspector/InspectorCompareSection.tsx`, `export/printExtrasRows.ts`; `DepthLineChart.tsx`, `DashboardChart.tsx`, `chartLoaders.ts`, `chartTypes.ts`, `InspectorDataTab.tsx`, `InspectorPresentationTab.tsx`, `threshold/AlarmSection.tsx`, `PrintAppendixTable.tsx`, `hooks/dashboardEditorReducer.ts`.
+- **Vorschau:** neu `preview/previewCompare.ts`, `preview/previewTimeSeriesExtras.ts`; `editorPreviewData.ts`, `previewParams.ts`, `DashboardEditorPreviewV2.tsx` (Szenario-Auswahl ausgelagert, 393 Zeilen).
+- **Nachweise:** Vitest `timeseriesCompare/Join/Heatmap/Bands/Extras/PreviewAndFetch.vitest.ts`, `timeseriesCharts.ui.vitest.tsx`, `useTimeSeriesExtras.ui.vitest.tsx`, `alarmSwitchPermitted.vitest.ts`, Loader-Ergänzung in `DashboardWorkspace(.codex).ui.vitest.tsx`; E2E `e2e/dashboard-compare-preview.spec.ts`; `.github/workflows/ci.yml` und `scripts/runV23Acceptance.mjs` (neuer Spec); `scripts/captureAuftrag170GateScreenshots.mjs`, `docs/screenshots/auftrag-170/README.md`.
+- **Doku:** `ZEITREIHEN_P10B.md` §8, `TRANSFORMATIONEN_P14.md` (Matrix + §5), Masterplan §6 (Nachtrag „P14 abgeschlossen“), `ARCHITECTURE_DECISIONS.md` C14, `BUILD_PLAN.md`, Auftrag (Häkchen, Status).
+
+**Begründete Abweichungen von der Ziel-Dateien-Tabelle:** `normalizeTileQuery.ts`/`tileQuery.ts` (ohne sie gehen die neuen Abfragefelder beim Speichern verloren, zugleich Behebung des P14a-Fehlers), `useDashboardData.ts` (einziger Einhängepunkt des echten Datenwegs), `liveEntries.ts` (Heatmap bei Live-Verläufen), zweite RPC `dashboard_time_series_phases` in derselben Migration (Phase × Woche ist mit der Vergleichs-RPC nicht abbildbar), `runV23Acceptance.mjs` (Pflichtliste aller E2E-Dateien). Keine neue Abhängigkeit, keine Chart-Bibliothek.
+
+### 5. Funktionale Prüfungen
+- Vergleich nur mit belegter Historie; Teilhistorie: „Vergleich unvollständig: Daten ab TT.MM.JJJJ“, fehlende Abschnitte bleiben Lücken (pgTAP 11–16, Vitest).
+- 0-Vergleichswert → „nicht berechenbar“; Einheit `%` → Differenz in `Pp.` (Referenzfälle, Fadenkreuz, Druck).
+- Join nur bei gleicher Auflösung (Kandidatenliste + Client/Server-Prüfung), höchstens 500 Abschnitte, andere Einheit → rechte Achse.
+- Heatmap: Fluss = Tagessumme, Bestand/Verhältnis = letzter Wert; leere Zellen schraffiert mit „Keine Daten“ im zugänglichen Namen; Pfeiltasten-Navigation; Legende mit Wertebereich.
+- Erwartungsband: 7 Perioden → kein Band, 8 → Band, Lücke → Periode zählt nicht; Erklärsatz unter der Kachel; kein Alarm.
+- Alarme: Schalter gesperrt mit Grund bei Vergleich/Join/Heatmap; Trigger pausiert aktive Regeln (`kennzahl_nicht_alarmfaehig`).
+
+### 6. Schutzbereichs-Prüfung
+`git diff ac9da030 -- src/simulation src/types src/context src/services/data src/features/resources` → **leer**.
+
+### 7. Automatisierte Verifikation (lokal, 20.11.2026)
+| Prüfung | Ergebnis |
+|---|---|
+| `npx tsc --noEmit` | 0 Fehler |
+| `npm run lint` / `npm run format:check` | grün |
+| `npm run test:coverage` | 474 Dateien, 3.597 Tests grün; Zweige 80,40 % (Schwelle 80 %) |
+| `npm run verify` | Integritätssuiten 001–025 grün |
+| `npm run build` | grün |
+| `npm run build:production` | lokal **rot** durch Umgebungsprüfung (lokale `VITE_SUPABASE_URL` ist http) – erwartetes Verhalten des Fail-closed-Checks, kein Codefehler |
+| `npx size-limit` | Initial-JS 171,97 kB (Basis `ac9da030`: 172,06 kB, −0,09 kB), größter Chunk 79,41 kB |
+| `npx tsx scripts/verifyAlarmCapability.ts` | grün |
+| `supabase db reset --yes && supabase test db` | 27 Dateien, 679 Tests, PASS (davon 28 in `dashboard_time_series_compare.sql`) |
+| `npm run verify:migrations` | GRÜN (leere DB, Upgrade v2.2.0, Schemagleichheit, pgTAP) |
+| E2E `dashboard-compare-preview` + `dashboard-transformations-preview` + `a11y` | 60 bestanden |
+| E2E `editor-*.spec.ts` (`--workers=1`) | 18 bestanden |
+| E2E `visual.spec.ts` | lokal 15 Abweichungen auf macOS-Referenzbildern – **identisch auf sauberem `ac9da030`** (gleiche 15 Fälle, nicht durch 170 verursacht); CI prüft gegen Linux-Referenzen |
+| Leistung | Heatmap-Raster 52 × 7 < 16 ms (Vitest), Join 500 Abschnitte < 5 ms (Vitest) |
+
+### 8. Screenshot-Matrix
+`node scripts/captureAuftrag170GateScreenshots.mjs` → `docs/screenshots/auftrag-170/README.md`: 9 Szenarien × 3 Viewports × 2 Farbschemata = 54 Aufnahmen, 0 px Überlauf, je Viewport/Thema 9 eindeutige SHA-256-Hashes. Bilder lokal, nicht im Git.
+
+### 9. Grenzen
+- Die Anlage einer Alarmregel prüft serverseitig nicht die Kachelkonfiguration (wie in 169); der Trigger pausiert beim Speichern, die Oberfläche sperrt den Schalter.
+- Das Erwartungsband nutzt Perioden als feste Abschnittsanzahl; am Tag der Zeitumstellung verschiebt sich die Stundenposition um eine Stunde.
+- Budget-Bänder bleiben außerhalb des Umfangs.
+
+### 10. Ergebnis & Freigabestatus
+Builder-Seite abgeschlossen, alle lokalen Pflichtprüfungen grün (Ausnahmen oben begründet). **Freigabe steht aus:** unabhängiges Review auf GitHub, grüne Pflicht-Checks, gelöste Konversationen; Merge durch Marc.

@@ -4,6 +4,7 @@ import type { TileDataHook } from '../LazyDashboardTile';
 import { formatTileValue, formatAsOf, NO_DATA } from '../tileFormat';
 import { resolveTileInfo, noopTileDataHook } from './PrintTileCard';
 import { applyTransformations } from '../../model/transformations';
+import { printExtrasRows } from './printExtrasRows';
 
 export interface PrintAppendixRowsProps {
   tile: DashboardTileConfig;
@@ -88,6 +89,39 @@ export const PrintAppendixRows: React.FC<PrintAppendixRowsProps> = ({
           Fehler: {data.message || 'Abfrage fehlgeschlagen'}
         </td>
       </tr>
+    );
+  }
+
+  // Vergleich, zweite Reihe und Heatmap als Tabelle (Auftrag 170 / P14b)
+  const extrasRows =
+    data && data.state !== 'nicht_verfuegbar'
+      ? printExtrasRows(tile.view, data, data.unit || unit)
+      : null;
+  if (extrasRows) {
+    return (
+      <>
+        {extrasRows.map((row, idx) => (
+          <tr key={`${tile.tileId}-x-${idx}`} className={`border-b ${rowClass}`}>
+            <td className="py-2 px-3 font-medium text-slate-900">
+              {name} <span className="text-slate-400 font-normal">({row.label})</span>
+            </td>
+            <td className="py-2 px-3 text-slate-600">{category}</td>
+            <td className="py-2 px-3 text-slate-600 font-mono text-[11px]">{tile.view}</td>
+            <td className="py-2 px-3 text-slate-600">{layerCell}</td>
+            <td className={timeBasisClass}>{timeBasis}</td>
+            <td className={pipelineClass}>{pipeline}</td>
+            <td className="py-2 px-3 text-right font-semibold text-slate-900">
+              {row.value}
+              {row.notes.map((note) => (
+                <span key={note} className="block text-[10px] text-slate-500 font-normal">
+                  {note}
+                </span>
+              ))}
+              {decorations}
+            </td>
+          </tr>
+        ))}
+      </>
     );
   }
 

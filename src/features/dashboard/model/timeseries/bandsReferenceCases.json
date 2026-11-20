@@ -1,0 +1,484 @@
+[
+  {
+    "id": "band-01-exact-7-periods-fail",
+    "description": "Genau 7 Perioden vorhanden -> kein Band (mindestens 8 erforderlich)",
+    "input": {
+      "priorPoints": [
+        { "at": "1", "value": 10, "status": "belegt" },
+        { "at": "2", "value": 20, "status": "belegt" },
+        { "at": "3", "value": 10, "status": "belegt" },
+        { "at": "4", "value": 20, "status": "belegt" },
+        { "at": "5", "value": 10, "status": "belegt" },
+        { "at": "6", "value": 20, "status": "belegt" },
+        { "at": "7", "value": 10, "status": "belegt" },
+        { "at": "8", "value": 20, "status": "belegt" },
+        { "at": "9", "value": 10, "status": "belegt" },
+        { "at": "10", "value": 20, "status": "belegt" },
+        { "at": "11", "value": 10, "status": "belegt" },
+        { "at": "12", "value": 20, "status": "belegt" },
+        { "at": "13", "value": 10, "status": "belegt" },
+        { "at": "14", "value": 20, "status": "belegt" }
+      ],
+      "periodLength": 2,
+      "resolution": "tag"
+    },
+    "expectedHasBand": false,
+    "expectedReason": "Zu wenig Daten für ein Erwartungsband (mind. 8 Perioden)"
+  },
+  {
+    "id": "band-02-exact-8-periods-pass",
+    "description": "Genau 8 Perioden vorhanden -> Band wird berechnet",
+    "input": {
+      "priorPoints": [
+        { "at": "1", "value": 10, "status": "belegt" },
+        { "at": "2", "value": 20, "status": "belegt" },
+        { "at": "3", "value": 11, "status": "belegt" },
+        { "at": "4", "value": 21, "status": "belegt" },
+        { "at": "5", "value": 12, "status": "belegt" },
+        { "at": "6", "value": 22, "status": "belegt" },
+        { "at": "7", "value": 13, "status": "belegt" },
+        { "at": "8", "value": 23, "status": "belegt" },
+        { "at": "9", "value": 14, "status": "belegt" },
+        { "at": "10", "value": 24, "status": "belegt" },
+        { "at": "11", "value": 15, "status": "belegt" },
+        { "at": "12", "value": 25, "status": "belegt" },
+        { "at": "13", "value": 16, "status": "belegt" },
+        { "at": "14", "value": 26, "status": "belegt" },
+        { "at": "15", "value": 17, "status": "belegt" },
+        { "at": "16", "value": 27, "status": "belegt" }
+      ],
+      "periodLength": 2,
+      "resolution": "tag"
+    },
+    "expectedHasBand": true,
+    "expectedBandCount": 2
+  },
+  {
+    "id": "band-03-gap-in-one-of-eight-fail",
+    "description": "8 Perioden vorhanden, aber eine hat eine Lücke -> nur 7 gültig -> fail",
+    "input": {
+      "priorPoints": [
+        { "at": "1", "value": 10, "status": "belegt" },
+        { "at": "2", "value": 20, "status": "belegt" },
+        { "at": "3", "value": 11, "status": "belegt" },
+        { "at": "4", "value": 21, "status": "belegt" },
+        { "at": "5", "value": null, "status": "luecke" },
+        { "at": "6", "value": 22, "status": "belegt" },
+        { "at": "7", "value": 13, "status": "belegt" },
+        { "at": "8", "value": 23, "status": "belegt" },
+        { "at": "9", "value": 14, "status": "belegt" },
+        { "at": "10", "value": 24, "status": "belegt" },
+        { "at": "11", "value": 15, "status": "belegt" },
+        { "at": "12", "value": 25, "status": "belegt" },
+        { "at": "13", "value": 16, "status": "belegt" },
+        { "at": "14", "value": 26, "status": "belegt" },
+        { "at": "15", "value": 17, "status": "belegt" },
+        { "at": "16", "value": 27, "status": "belegt" }
+      ],
+      "periodLength": 2,
+      "resolution": "tag"
+    },
+    "expectedHasBand": false,
+    "expectedReason": "Zu wenig Daten für ein Erwartungsband (mind. 8 Perioden)"
+  },
+  {
+    "id": "band-04-nine-periods-one-gap-pass",
+    "description": "9 Perioden vorhanden, eine hat Lücke -> 8 gültig -> pass",
+    "input": {
+      "priorPoints": [
+        { "at": "0a", "value": null, "status": "luecke" },
+        { "at": "0b", "value": 20, "status": "belegt" },
+        { "at": "1", "value": 10, "status": "belegt" },
+        { "at": "2", "value": 20, "status": "belegt" },
+        { "at": "3", "value": 11, "status": "belegt" },
+        { "at": "4", "value": 21, "status": "belegt" },
+        { "at": "5", "value": 12, "status": "belegt" },
+        { "at": "6", "value": 22, "status": "belegt" },
+        { "at": "7", "value": 13, "status": "belegt" },
+        { "at": "8", "value": 23, "status": "belegt" },
+        { "at": "9", "value": 14, "status": "belegt" },
+        { "at": "10", "value": 24, "status": "belegt" },
+        { "at": "11", "value": 15, "status": "belegt" },
+        { "at": "12", "value": 25, "status": "belegt" },
+        { "at": "13", "value": 16, "status": "belegt" },
+        { "at": "14", "value": 26, "status": "belegt" },
+        { "at": "15", "value": 17, "status": "belegt" },
+        { "at": "16", "value": 27, "status": "belegt" }
+      ],
+      "periodLength": 2,
+      "resolution": "tag"
+    },
+    "expectedHasBand": true,
+    "expectedBandCount": 2
+  },
+  {
+    "id": "band-05-constant-values",
+    "description": "Konstante Werte -> lower == upper",
+    "input": {
+      "priorPoints": [
+        { "at": "1", "value": 50, "status": "belegt" },
+        { "at": "2", "value": 50, "status": "belegt" },
+        { "at": "3", "value": 50, "status": "belegt" },
+        { "at": "4", "value": 50, "status": "belegt" },
+        { "at": "5", "value": 50, "status": "belegt" },
+        { "at": "6", "value": 50, "status": "belegt" },
+        { "at": "7", "value": 50, "status": "belegt" },
+        { "at": "8", "value": 50, "status": "belegt" }
+      ],
+      "periodLength": 1,
+      "resolution": "woche"
+    },
+    "expectedHasBand": true,
+    "expectedBandCount": 1
+  },
+  {
+    "id": "band-06-zero-values",
+    "description": "0-Werte gelten als belegt",
+    "input": {
+      "priorPoints": [
+        { "at": "1", "value": 0, "status": "belegt" },
+        { "at": "2", "value": 0, "status": "belegt" },
+        { "at": "3", "value": 0, "status": "belegt" },
+        { "at": "4", "value": 0, "status": "belegt" },
+        { "at": "5", "value": 0, "status": "belegt" },
+        { "at": "6", "value": 0, "status": "belegt" },
+        { "at": "7", "value": 0, "status": "belegt" },
+        { "at": "8", "value": 0, "status": "belegt" }
+      ],
+      "periodLength": 1,
+      "resolution": "woche"
+    },
+    "expectedHasBand": true,
+    "expectedBandCount": 1
+  },
+  {
+    "id": "band-07-empty-prior-points",
+    "description": "Keine Punkte -> fail",
+    "input": {
+      "priorPoints": [],
+      "periodLength": 1,
+      "resolution": "woche"
+    },
+    "expectedHasBand": false,
+    "expectedReason": "Zu wenig Daten für ein Erwartungsband (mind. 8 Perioden)"
+  },
+  {
+    "id": "band-08-status-vor-historienbeginn",
+    "description": "Punkt mit vor_historienbeginn gilt als unvollständig",
+    "input": {
+      "priorPoints": [
+        { "at": "1", "value": null, "status": "vor_historienbeginn" },
+        { "at": "2", "value": 50, "status": "belegt" },
+        { "at": "3", "value": 50, "status": "belegt" },
+        { "at": "4", "value": 50, "status": "belegt" },
+        { "at": "5", "value": 50, "status": "belegt" },
+        { "at": "6", "value": 50, "status": "belegt" },
+        { "at": "7", "value": 50, "status": "belegt" },
+        { "at": "8", "value": 50, "status": "belegt" }
+      ],
+      "periodLength": 1,
+      "resolution": "woche"
+    },
+    "expectedHasBand": false,
+    "expectedReason": "Zu wenig Daten für ein Erwartungsband (mind. 8 Perioden)"
+  },
+  {
+    "id": "band-09-ten-periods-pass",
+    "description": "10 Perioden -> nimmt die letzten 8",
+    "input": {
+      "priorPoints": [
+        { "at": "0", "value": 1, "status": "belegt" },
+        { "at": "00", "value": 2, "status": "belegt" },
+        { "at": "1", "value": 10, "status": "belegt" },
+        { "at": "2", "value": 11, "status": "belegt" },
+        { "at": "3", "value": 12, "status": "belegt" },
+        { "at": "4", "value": 13, "status": "belegt" },
+        { "at": "5", "value": 14, "status": "belegt" },
+        { "at": "6", "value": 15, "status": "belegt" },
+        { "at": "7", "value": 16, "status": "belegt" },
+        { "at": "8", "value": 17, "status": "belegt" }
+      ],
+      "periodLength": 1,
+      "resolution": "woche"
+    },
+    "expectedHasBand": true,
+    "expectedBandCount": 1
+  },
+  {
+    "id": "band-10-three-positions-period",
+    "description": "Periode mit 3 Positionen (z. B. 3 Schichten)",
+    "input": {
+      "priorPoints": [
+        { "at": "1", "value": 1, "status": "belegt" },
+        { "at": "2", "value": 2, "status": "belegt" },
+        { "at": "3", "value": 3, "status": "belegt" },
+        { "at": "4", "value": 1, "status": "belegt" },
+        { "at": "5", "value": 2, "status": "belegt" },
+        { "at": "6", "value": 3, "status": "belegt" },
+        { "at": "7", "value": 1, "status": "belegt" },
+        { "at": "8", "value": 2, "status": "belegt" },
+        { "at": "9", "value": 3, "status": "belegt" },
+        { "at": "10", "value": 1, "status": "belegt" },
+        { "at": "11", "value": 2, "status": "belegt" },
+        { "at": "12", "value": 3, "status": "belegt" },
+        { "at": "13", "value": 1, "status": "belegt" },
+        { "at": "14", "value": 2, "status": "belegt" },
+        { "at": "15", "value": 3, "status": "belegt" },
+        { "at": "16", "value": 1, "status": "belegt" },
+        { "at": "17", "value": 2, "status": "belegt" },
+        { "at": "18", "value": 3, "status": "belegt" },
+        { "at": "19", "value": 1, "status": "belegt" },
+        { "at": "20", "value": 2, "status": "belegt" },
+        { "at": "21", "value": 3, "status": "belegt" },
+        { "at": "22", "value": 1, "status": "belegt" },
+        { "at": "23", "value": 2, "status": "belegt" },
+        { "at": "24", "value": 3, "status": "belegt" }
+      ],
+      "periodLength": 3,
+      "resolution": "stunde"
+    },
+    "expectedHasBand": true,
+    "expectedBandCount": 3
+  },
+  {
+    "id": "band-11-negative-values",
+    "description": "Negative Werte",
+    "input": {
+      "priorPoints": [
+        { "at": "1", "value": -10, "status": "belegt" },
+        { "at": "2", "value": -12, "status": "belegt" },
+        { "at": "3", "value": -14, "status": "belegt" },
+        { "at": "4", "value": -16, "status": "belegt" },
+        { "at": "5", "value": -18, "status": "belegt" },
+        { "at": "6", "value": -20, "status": "belegt" },
+        { "at": "7", "value": -22, "status": "belegt" },
+        { "at": "8", "value": -24, "status": "belegt" }
+      ],
+      "periodLength": 1,
+      "resolution": "monat"
+    },
+    "expectedHasBand": true,
+    "expectedBandCount": 1
+  },
+  {
+    "id": "band-12-outliers-dampened",
+    "description": "Ausreißer werden durch 10/90-Perzentil gedämpft",
+    "input": {
+      "priorPoints": [
+        { "at": "1", "value": 0, "status": "belegt" },
+        { "at": "2", "value": 100, "status": "belegt" },
+        { "at": "3", "value": 100, "status": "belegt" },
+        { "at": "4", "value": 100, "status": "belegt" },
+        { "at": "5", "value": 100, "status": "belegt" },
+        { "at": "6", "value": 100, "status": "belegt" },
+        { "at": "7", "value": 100, "status": "belegt" },
+        { "at": "8", "value": 1000, "status": "belegt" }
+      ],
+      "periodLength": 1,
+      "resolution": "woche"
+    },
+    "expectedHasBand": true,
+    "expectedBandCount": 1
+  },
+  {
+    "id": "band-13-incomplete-last-period",
+    "description": "Letzte Periode ist unvollständig (nur halbe Länge)",
+    "input": {
+      "priorPoints": [
+        { "at": "1", "value": 10, "status": "belegt" },
+        { "at": "2", "value": 20, "status": "belegt" },
+        { "at": "3", "value": 11, "status": "belegt" },
+        { "at": "4", "value": 21, "status": "belegt" },
+        { "at": "5", "value": 12, "status": "belegt" },
+        { "at": "6", "value": 22, "status": "belegt" },
+        { "at": "7", "value": 13, "status": "belegt" },
+        { "at": "8", "value": 23, "status": "belegt" },
+        { "at": "9", "value": 14, "status": "belegt" },
+        { "at": "10", "value": 24, "status": "belegt" },
+        { "at": "11", "value": 15, "status": "belegt" },
+        { "at": "12", "value": 25, "status": "belegt" },
+        { "at": "13", "value": 16, "status": "belegt" },
+        { "at": "14", "value": 26, "status": "belegt" },
+        { "at": "15", "value": 17, "status": "belegt" },
+        { "at": "16", "value": 27, "status": "belegt" },
+        { "at": "17", "value": 18, "status": "belegt" }
+      ],
+      "periodLength": 2,
+      "resolution": "tag"
+    },
+    "expectedHasBand": true,
+    "expectedBandCount": 2
+  },
+  {
+    "id": "band-14-zero-period-length",
+    "description": "PeriodLength 0 -> fail",
+    "input": {
+      "priorPoints": [{ "at": "1", "value": 10, "status": "belegt" }],
+      "periodLength": 0,
+      "resolution": "tag"
+    },
+    "expectedHasBand": false,
+    "expectedReason": "Zu wenig Daten für ein Erwartungsband (mind. 8 Perioden)"
+  },
+  {
+    "id": "band-15-custom-min-periods",
+    "description": "Benutzerdefiniertes minPeriods = 10 bei 8 Perioden -> fail",
+    "input": {
+      "priorPoints": [
+        { "at": "1", "value": 10, "status": "belegt" },
+        { "at": "2", "value": 11, "status": "belegt" },
+        { "at": "3", "value": 12, "status": "belegt" },
+        { "at": "4", "value": 13, "status": "belegt" },
+        { "at": "5", "value": 14, "status": "belegt" },
+        { "at": "6", "value": 15, "status": "belegt" },
+        { "at": "7", "value": 16, "status": "belegt" },
+        { "at": "8", "value": 17, "status": "belegt" }
+      ],
+      "periodLength": 1,
+      "resolution": "monat",
+      "minPeriods": 10
+    },
+    "expectedHasBand": false,
+    "expectedReason": "Zu wenig Daten für ein Erwartungsband (mind. 10 Perioden)"
+  },
+  {
+    "id": "band-16-nan-value-in-period",
+    "description": "NaN Wert in Periode -> unvollständig",
+    "input": {
+      "priorPoints": [
+        { "at": "1", "value": 10, "status": "belegt" },
+        { "at": "2", "value": 11, "status": "belegt" },
+        { "at": "3", "value": 12, "status": "belegt" },
+        { "at": "4", "value": 13, "status": "belegt" },
+        { "at": "5", "value": 14, "status": "belegt" },
+        { "at": "6", "value": 15, "status": "belegt" },
+        { "at": "7", "value": 16, "status": "belegt" },
+        { "at": "8", "value": null, "status": "belegt" }
+      ],
+      "periodLength": 1,
+      "resolution": "woche"
+    },
+    "expectedHasBand": false,
+    "expectedReason": "Zu wenig Daten für ein Erwartungsband (mind. 8 Perioden)"
+  },
+  {
+    "id": "band-17-large-values",
+    "description": "Sehr große Zahlen (ARR)",
+    "input": {
+      "priorPoints": [
+        { "at": "1", "value": 1000000, "status": "belegt" },
+        { "at": "2", "value": 1050000, "status": "belegt" },
+        { "at": "3", "value": 1100000, "status": "belegt" },
+        { "at": "4", "value": 1150000, "status": "belegt" },
+        { "at": "5", "value": 1200000, "status": "belegt" },
+        { "at": "6", "value": 1250000, "status": "belegt" },
+        { "at": "7", "value": 1300000, "status": "belegt" },
+        { "at": "8", "value": 1350000, "status": "belegt" }
+      ],
+      "periodLength": 1,
+      "resolution": "monat"
+    },
+    "expectedHasBand": true,
+    "expectedBandCount": 1
+  },
+  {
+    "id": "band-18-fractions",
+    "description": "Dezimalbrüche (Coverage)",
+    "input": {
+      "priorPoints": [
+        { "at": "1", "value": 2.1, "status": "belegt" },
+        { "at": "2", "value": 2.2, "status": "belegt" },
+        { "at": "3", "value": 2.3, "status": "belegt" },
+        { "at": "4", "value": 2.4, "status": "belegt" },
+        { "at": "5", "value": 2.5, "status": "belegt" },
+        { "at": "6", "value": 2.6, "status": "belegt" },
+        { "at": "7", "value": 2.7, "status": "belegt" },
+        { "at": "8", "value": 2.8, "status": "belegt" }
+      ],
+      "periodLength": 1,
+      "resolution": "woche"
+    },
+    "expectedHasBand": true,
+    "expectedBandCount": 1
+  },
+  {
+    "id": "band-19-four-positions-per-day",
+    "description": "4 Quartalsstunden je Tag über 8 Tage -> 4 Bänder",
+    "input": {
+      "priorPoints": [
+        { "at": "1a", "value": 1, "status": "belegt" },
+        { "at": "1b", "value": 2, "status": "belegt" },
+        { "at": "1c", "value": 3, "status": "belegt" },
+        { "at": "1d", "value": 4, "status": "belegt" },
+        { "at": "2a", "value": 1, "status": "belegt" },
+        { "at": "2b", "value": 2, "status": "belegt" },
+        { "at": "2c", "value": 3, "status": "belegt" },
+        { "at": "2d", "value": 4, "status": "belegt" },
+        { "at": "3a", "value": 1, "status": "belegt" },
+        { "at": "3b", "value": 2, "status": "belegt" },
+        { "at": "3c", "value": 3, "status": "belegt" },
+        { "at": "3d", "value": 4, "status": "belegt" },
+        { "at": "4a", "value": 1, "status": "belegt" },
+        { "at": "4b", "value": 2, "status": "belegt" },
+        { "at": "4c", "value": 3, "status": "belegt" },
+        { "at": "4d", "value": 4, "status": "belegt" },
+        { "at": "5a", "value": 1, "status": "belegt" },
+        { "at": "5b", "value": 2, "status": "belegt" },
+        { "at": "5c", "value": 3, "status": "belegt" },
+        { "at": "5d", "value": 4, "status": "belegt" },
+        { "at": "6a", "value": 1, "status": "belegt" },
+        { "at": "6b", "value": 2, "status": "belegt" },
+        { "at": "6c", "value": 3, "status": "belegt" },
+        { "at": "6d", "value": 4, "status": "belegt" },
+        { "at": "7a", "value": 1, "status": "belegt" },
+        { "at": "7b", "value": 2, "status": "belegt" },
+        { "at": "7c", "value": 3, "status": "belegt" },
+        { "at": "7d", "value": 4, "status": "belegt" },
+        { "at": "8a", "value": 1, "status": "belegt" },
+        { "at": "8b", "value": 2, "status": "belegt" },
+        { "at": "8c", "value": 3, "status": "belegt" },
+        { "at": "8d", "value": 4, "status": "belegt" }
+      ],
+      "periodLength": 4,
+      "resolution": "stunde"
+    },
+    "expectedHasBand": true,
+    "expectedBandCount": 4
+  },
+  {
+    "id": "band-20-twelve-periods-alternating",
+    "description": "12 Perioden alternierend",
+    "input": {
+      "priorPoints": [
+        { "at": "1", "value": 10, "status": "belegt" },
+        { "at": "2", "value": 20, "status": "belegt" },
+        { "at": "3", "value": 10, "status": "belegt" },
+        { "at": "4", "value": 20, "status": "belegt" },
+        { "at": "5", "value": 10, "status": "belegt" },
+        { "at": "6", "value": 20, "status": "belegt" },
+        { "at": "7", "value": 10, "status": "belegt" },
+        { "at": "8", "value": 20, "status": "belegt" },
+        { "at": "9", "value": 10, "status": "belegt" },
+        { "at": "10", "value": 20, "status": "belegt" },
+        { "at": "11", "value": 10, "status": "belegt" },
+        { "at": "12", "value": 20, "status": "belegt" },
+        { "at": "13", "value": 10, "status": "belegt" },
+        { "at": "14", "value": 20, "status": "belegt" },
+        { "at": "15", "value": 10, "status": "belegt" },
+        { "at": "16", "value": 20, "status": "belegt" },
+        { "at": "17", "value": 10, "status": "belegt" },
+        { "at": "18", "value": 20, "status": "belegt" },
+        { "at": "19", "value": 10, "status": "belegt" },
+        { "at": "20", "value": 20, "status": "belegt" },
+        { "at": "21", "value": 10, "status": "belegt" },
+        { "at": "22", "value": 20, "status": "belegt" },
+        { "at": "23", "value": 10, "status": "belegt" },
+        { "at": "24", "value": 20, "status": "belegt" }
+      ],
+      "periodLength": 2,
+      "resolution": "tag"
+    },
+    "expectedHasBand": true,
+    "expectedBandCount": 2
+  }
+]

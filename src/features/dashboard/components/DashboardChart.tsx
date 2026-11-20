@@ -47,7 +47,7 @@ export function reserveFor(view: ChartView, labels: readonly string[]): ChartRes
     labels,
     stableLegend: true,
     controls:
-      view === 'linie' || view === 'flaeche' || view === 'sparkline'
+      view === 'linie' || view === 'flaeche' || view === 'sparkline' || view === 'heatmap'
         ? 'slider'
         : view === 'kreis' || view === 'ring'
           ? 'legend-dots'
@@ -70,6 +70,7 @@ const SERIES_VIEWS: readonly DashboardView[] = [
   'gauge',
   'sparkline',
   'trichter',
+  'heatmap',
 ];
 
 /** Prüft die Werte für die gewählte Darstellung. */
@@ -323,6 +324,7 @@ function LazyChart({
               stableLegend
               resolution={data.timeSeries?.resolution}
               windowEnd={data.timeSeries?.to}
+              extras={data.timeSeriesExtras}
             />
           </div>
         </Suspense>

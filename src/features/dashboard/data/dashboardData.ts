@@ -5,6 +5,7 @@ import type { HISTORIE } from '@/domain/unternehmenData';
 import type { LiveKpiActivityItem } from '@/hooks/useLiveKpiActivity';
 import type { CatalogEntry, SourceLayer } from '../model/dashboardCatalog';
 import type { EffectiveTileFilter } from '../model/dashboardFilters';
+import type { TileTimeSeriesExtras } from '../model/timeseries/types';
 
 export type TileDataState =
   | 'laden'
@@ -51,6 +52,8 @@ export interface ResolvedTileData {
   combination?: TileCombination;
   /** Auftrag 160 (P10b-1): Belegte Zeitreihe vom Server. */
   timeSeries?: TileTimeSeriesData;
+  /** Auftrag 170 (P14b): Vergleich, zweite Reihe, Erwartungsband, Heatmap-Daten. */
+  timeSeriesExtras?: TileTimeSeriesExtras;
 }
 
 export type TimeSeriesResolution = 'stunde' | 'tag' | 'woche' | 'monat';

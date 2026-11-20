@@ -50,6 +50,10 @@ Liegt synchron im Client (`model/transformations/unitConversions.ts`) und in SQL
 | `einheit_umrechnen` | Ja | Server rechnet denselben Faktor in `alarm_apply_transformations`. |
 | `gleitender_durchschnitt` | Nein | Geglättete Verläufe haben keinen einzelnen Wert für einen Alarm. |
 | *unbekannt* | Nein | Standardmäßig nicht alarmfähig. |
+| Vergleich (`query.compare`, Auftrag 170) | Nein | Zwei Reihen statt eines Einzelwerts. Trigger pausiert aktive Regeln. |
+| Zweite Reihe (`query.join`, Auftrag 170) | Nein | Zwei Reihen statt eines Einzelwerts. Trigger pausiert aktive Regeln. |
+| Darstellung `heatmap` (Auftrag 170) | Nein | Raster statt Einzelwert. Trigger pausiert aktive Regeln. |
+| Erwartungsband (`query.bands`, Auftrag 170) | Kein Alarm auf das Band | Das Band ist eine Lesehilfe, keine Schwelle (Auftrag 170 §8). |
 
 ---
 
@@ -60,3 +64,26 @@ Liegt synchron im Client (`model/transformations/unitConversions.ts`) und in SQL
   - Prüft bei jedem `UPDATE` oder `INSERT` der Dashboard-Konfiguration V2, ob Kacheln mit Alarmen nicht alarmfähige Transformationen enthalten.
   - Pausiert betroffene Regeln in `public.dashboard_alarm_rules` atomar mit `pause_grund = 'kennzahl_nicht_alarmfaehig'`.
 - **Worker:** `evaluate_dashboard_alarms` wendet kachelspezifische Transformationen über `alarm_apply_transformations` vor dem Schwellenwert-Vergleich an. Zwei Kacheln mit gleicher Kennzahl, aber unterschiedlichen Einheiten (z. B. EUR vs. Tsd. EUR) werden deterministisch und unabhängig korrekt ausgewertet.
+
+---
+
+## 5. Vergleich, zweite Reihe, Heatmap und Erwartungsband (Auftrag 170 / P14b, 20.11.2026)
+
+**Abfrage:** `query.compare?: 'vorperiode' | 'vorjahr'`, `query.join?: { metricId, typ: 'inner' | 'links' }`, `query.bands?: { type: 'percentile_10_90', periodCount: 8 }`. Nur für Zeitreihen. Client (`model/timeseries/timeSeriesQuery.ts`, `validateTileQuery`) und Server (`dashboard_config_v2_invalid_reason`) prüfen dieselben Regeln. Beim Speichern bleiben die Angaben erhalten (`normalizeTileQuery`).
+
+**Kombinationsregel:** Vergleich, zweite Reihe und Band sind nicht mit `einheit_umrechnen` oder `gleitender_durchschnitt` kombinierbar, weil sonst Basis und Vergleich in verschiedenen Einheiten oder Glättungen gezeichnet würden. `umbenennen` bleibt erlaubt. Der Inspector zeigt den Sperrgrund, Client und Server lehnen die Kombination ab.
+
+**Server:**
+- `dashboard_time_series_compare(p_source, p_metric, p_resolution, p_from, p_to, p_compare, p_pipeline)` liefert Basis und Vergleichsfenster in einem Aufruf, dazu `datenstand_ab`, `is_partial` und `partial_reason` („Vergleich unvollständig: Daten ab TT.MM.JJJJ“). Vorperiode = gleiche Anzahl Abschnitte direkt vor dem Fenster (kalendergenau in Europe/Berlin), Vorjahr = gleiches Fenster ein Jahr früher.
+- `dashboard_time_series_phases(p_resolution, p_from, p_to, p_pipeline)` liefert Phaseneintritte je Phase (sieben normalisierte Phasen) für die Heatmap „Phase × Woche“.
+- Beide rufen das unveränderte `dashboard_time_series` auf: gleiche Rechte (aktive Mitgliedschaft, eigene Organisation), gleiche Lückenregeln, höchstens 400 Punkte je Fenster. Nie Rückrechnung aus heutigen CRM-Daten.
+
+**Rechenkern (reine Funktionen, je ≥ 20 Referenzfälle in `model/timeseries/*ReferenceCases.json`):**
+- `computeComparison`: Abweichung absolut und in Prozent; Prozent nur bei Vergleichswert ≠ 0, sonst „nicht berechenbar“. Bei Einheit `%` wird die Differenz in Prozentpunkten (`Pp.`) beschriftet.
+- `alignSeries`: Schlüssel ist der Zeitstempel (als Zeitpunkt, nicht als Text), nur gleiche Auflösung, Typ „nur gemeinsame Zeitpunkte“ oder „alle Zeitpunkte der ersten Reihe“, höchstens 500 Abschnitte. Andere Einheit der zweiten Reihe → eigene rechte Achse, nie gemeinsame Achse.
+- `toHeatmapGrid`: Kalender in Europe/Berlin, unabhängig von der Rechner-Zeitzone. Flussgrößen als Tagessumme, Bestände und Verhältnisse als letzter gültiger Wert des Tages (`last_value`, wie der Server bei Tagesauflösung). Leere Zellen „Keine Daten“ mit Schraffur (Muster, nicht Farbe allein).
+- `calculateExpectationBands`: 10. und 90. Perzentil der gleichen Position in den letzten 8 vollständigen Vorperioden; Perioden mit Lücke zählen nicht; Periode je Auflösung: Stunde → Tag (24 Positionen), Tag → Woche (7), Woche → Woche (1), Monat → Monat (1). Geladen werden 12 Vorperioden über `dashboard_time_series`.
+
+**Heatmap-Daten:** „Woche × Wochentag“ lädt 84 abgeschlossene Tage in Tagesauflösung; „Phase × Woche“ (nur `crm.phaseneintritte_verlauf`) zwölf Wochen über die Phasen-RPC. Für die Heatmap sind Vergleich, zweite Reihe und Band gesperrt.
+
+**Anzeige:** Vergleich gestrichelt (Token `neutral`), zweite Reihe gepunktet (Token `secondary`), Band als Fläche (Token `glow`/`border`), Heatmap in fünf Stufen der vorhandenen Türkis-Abstufung (`SERIES_COLORS`). Das Fadenkreuz nennt beide Werte am selben Zeitpunkt. Druckansicht: Vergleich, zweite Reihe und Heatmap als Tabellenzeilen im Anhang.

@@ -18,6 +18,7 @@ import { useOptionalTimeControl } from '../../../time/TimeControlProvider';
 import { useDashboardData } from '../../../hooks/useDashboardData';
 import { TimeWindowField, type TimeWindowConfig } from './TimeWindowField';
 import { InspectorTransformationSection } from './InspectorTransformationSection';
+import { InspectorCompareSection } from './InspectorCompareSection';
 import type { TileTransformation } from '../../../model/transformations';
 
 export function InspectorDataTab({
@@ -264,6 +265,13 @@ export function InspectorDataTab({
           </p>
         </div>
       )}
+
+      {/* Vergleichen & Verknüpfen (Auftrag 170 / P14b) */}
+      <InspectorCompareSection
+        selectedTile={selectedTile}
+        catalogEntry={catalogEntry}
+        onTileOverrideChange={onTileOverrideChange}
+      />
 
       {/* Umformen: Transformationen je Kachel (Auftrag 169 / P14a) */}
       <InspectorTransformationSection

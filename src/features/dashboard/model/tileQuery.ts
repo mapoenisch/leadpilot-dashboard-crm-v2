@@ -1,5 +1,6 @@
 import type { ActiveCatalogEntry } from './dashboardCatalog';
 import { getQueryCapabilities } from './queryCapabilities';
+import { validateTimeSeriesQueryParts } from './timeseries/timeSeriesQuery';
 
 export type TileQueryValidationErrorCode =
   | 'metrik_abweichend'
@@ -9,6 +10,7 @@ export type TileQueryValidationErrorCode =
   | 'zeitraum_unzulaessig'
   | 'unbekanntes_feld'
   | 'fenster_unzulaessig'
+  | 'zeitreihe_unzulaessig'
   | 'typ_ungueltig';
 
 export interface TileQueryValidationError {
@@ -36,6 +38,10 @@ export const ALLOWED_QUERY_KEYS = new Set([
   'groupBy',
   'filters',
   'window',
+  'transformations',
+  'compare',
+  'join',
+  'bands',
 ]);
 
 /**
@@ -289,6 +295,11 @@ export function validateTileQuery(
         }
       }
     }
+  }
+
+  // 9. Vergleich, Verknüpfung, Erwartungsband (Auftrag 170)
+  for (const issue of validateTimeSeriesQueryParts(record, entry)) {
+    errors.push({ code: 'zeitreihe_unzulaessig', message: issue.message, field: issue.field });
   }
 
   return {

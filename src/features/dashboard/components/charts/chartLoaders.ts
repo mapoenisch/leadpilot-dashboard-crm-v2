@@ -8,10 +8,19 @@ import type { DepthChartProps } from './chartTypes';
 
 export type ChartView = Extract<
   DashboardView,
-  'saeulen' | 'balken' | 'kreis' | 'ring' | 'linie' | 'flaeche' | 'gauge' | 'sparkline' | 'trichter'
+  | 'saeulen'
+  | 'balken'
+  | 'kreis'
+  | 'ring'
+  | 'linie'
+  | 'flaeche'
+  | 'gauge'
+  | 'sparkline'
+  | 'trichter'
+  | 'heatmap'
 >;
 export type ChartModuleId =
-  'balken' | 'ring' | 'linie' | 'flaeche' | 'gauge' | 'sparkline' | 'trichter';
+  'balken' | 'ring' | 'linie' | 'flaeche' | 'gauge' | 'sparkline' | 'trichter' | 'heatmap';
 type ChartModule = { default: React.ComponentType<DepthChartProps> };
 export type ChartLoaders = Record<ChartModuleId, () => Promise<ChartModule>>;
 
@@ -25,6 +34,7 @@ export const CHART_VIEWS: readonly ChartView[] = [
   'gauge',
   'sparkline',
   'trichter',
+  'heatmap',
 ];
 
 export const MODULE_BY_VIEW: Record<ChartView, ChartModuleId> = {
@@ -37,6 +47,7 @@ export const MODULE_BY_VIEW: Record<ChartView, ChartModuleId> = {
   gauge: 'gauge',
   sparkline: 'sparkline',
   trichter: 'trichter',
+  heatmap: 'heatmap',
 };
 
 export const DEFAULT_CHART_LOADERS: ChartLoaders = {
@@ -58,6 +69,10 @@ export const DEFAULT_CHART_LOADERS: ChartLoaders = {
   sparkline: () =>
     import('./DepthSparklineChart').then((m) => ({ default: m.DepthSparklineChart })),
   trichter: () => import('./DepthFunnelChart').then((m) => ({ default: m.DepthFunnelChart })),
+  heatmap: () =>
+    import('./HeatmapChart').then((m) => ({
+      default: m.HeatmapChart as unknown as React.ComponentType<DepthChartProps>,
+    })),
 };
 
 export function isChartView(view: DashboardView): view is ChartView {

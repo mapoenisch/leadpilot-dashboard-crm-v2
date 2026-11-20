@@ -90,4 +90,24 @@ describe('Auftrag 168 - T1(a) Rot-Nachweis: Schalter gesperrt für Viewer mit Gr
       'Diese Kachel nutzt Filter, die vom Server-Alarm nicht unterstützt werden.',
     );
   });
+
+  it('sperrt den Schalter bei Vergleich oder Join', () => {
+    const result = checkAlarmTogglePermitted({
+      userRole: 'manager',
+      hasCompareOrJoin: true,
+    });
+    expect(result.permitted).toBe(false);
+    expect(result.reason).toBe(
+      'Vergleich und Verknüpfung liefern keinen Einzelwert und sind nicht alarmfähig.',
+    );
+  });
+
+  it('sperrt den Schalter bei Heatmap-Darstellung', () => {
+    const result = checkAlarmTogglePermitted({
+      userRole: 'manager',
+      isHeatmap: true,
+    });
+    expect(result.permitted).toBe(false);
+    expect(result.reason).toBe('Heatmaps liefern keinen Einzelwert und sind nicht alarmfähig.');
+  });
 });

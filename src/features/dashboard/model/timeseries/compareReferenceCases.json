@@ -1,0 +1,324 @@
+[
+  {
+    "id": "case-01-standard-growth",
+    "description": "Standard-Wachstum mit EUR",
+    "input": {
+      "baseValue": 120,
+      "compareValue": 100,
+      "unit": "EUR",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2026-06-01T00:00:00+02:00"
+    },
+    "expected": {
+      "deltaAbsolute": 20,
+      "deltaPercent": 20,
+      "isPartial": false
+    }
+  },
+  {
+    "id": "case-02-standard-drop",
+    "description": "Rückgang um 25%",
+    "input": {
+      "baseValue": 75,
+      "compareValue": 100,
+      "unit": "EUR",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2026-06-01T00:00:00+02:00"
+    },
+    "expected": {
+      "deltaAbsolute": -25,
+      "deltaPercent": -25,
+      "isPartial": false
+    }
+  },
+  {
+    "id": "case-03-zero-compare",
+    "description": "Vergleichswert ist 0 -> Prozent nicht berechenbar",
+    "input": {
+      "baseValue": 50,
+      "compareValue": 0,
+      "unit": "EUR",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2026-06-01T00:00:00+02:00"
+    },
+    "expected": {
+      "deltaAbsolute": 50,
+      "deltaPercent": null,
+      "isPartial": false
+    }
+  },
+  {
+    "id": "case-04-percentage-points",
+    "description": "Einheit % wird in Prozentpunkten (Pp.) getrennt ausgewiesen",
+    "input": {
+      "baseValue": 35,
+      "compareValue": 25,
+      "unit": "%",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2026-06-01T00:00:00+02:00"
+    },
+    "expected": {
+      "deltaAbsolute": 10,
+      "deltaPercent": 40,
+      "isPartial": false
+    }
+  },
+  {
+    "id": "case-05-partial-history-past",
+    "description": "Vergleichszeitpunkt liegt vor Aufzeichnungsbeginn -> Teilhistorie",
+    "input": {
+      "baseValue": 100,
+      "compareValue": 80,
+      "unit": "EUR",
+      "historyStartAt": "2026-03-15T00:00:00+01:00",
+      "compareBucketStart": "2026-01-15T00:00:00+01:00"
+    },
+    "expected": {
+      "deltaAbsolute": 20,
+      "deltaPercent": 25,
+      "isPartial": true,
+      "partialNotice": "Vergleich unvollständig: Daten ab 15.03.2026"
+    }
+  },
+  {
+    "id": "case-06-null-compare-value",
+    "description": "Lücke im Vergleichszeitraum (compareValue null)",
+    "input": {
+      "baseValue": 100,
+      "compareValue": null,
+      "unit": "EUR",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2026-06-01T00:00:00+02:00"
+    },
+    "expected": {
+      "deltaAbsolute": null,
+      "deltaPercent": null,
+      "isPartial": false
+    }
+  },
+  {
+    "id": "case-07-null-base-value",
+    "description": "Lücke im aktuellen Zeitraum (baseValue null)",
+    "input": {
+      "baseValue": null,
+      "compareValue": 100,
+      "unit": "EUR",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2026-06-01T00:00:00+02:00"
+    },
+    "expected": {
+      "deltaAbsolute": null,
+      "deltaPercent": null,
+      "isPartial": false
+    }
+  },
+  {
+    "id": "case-08-both-null",
+    "description": "Beide Werte null",
+    "input": {
+      "baseValue": null,
+      "compareValue": null,
+      "unit": "EUR",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2026-06-01T00:00:00+02:00"
+    },
+    "expected": {
+      "deltaAbsolute": null,
+      "deltaPercent": null,
+      "isPartial": false
+    }
+  },
+  {
+    "id": "case-09-no-change",
+    "description": "Absolut identische Werte",
+    "input": {
+      "baseValue": 100,
+      "compareValue": 100,
+      "unit": "Stück",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2026-06-01T00:00:00+02:00"
+    },
+    "expected": {
+      "deltaAbsolute": 0,
+      "deltaPercent": 0,
+      "isPartial": false
+    }
+  },
+  {
+    "id": "case-10-negative-compare",
+    "description": "Negativer Vergleichswert",
+    "input": {
+      "baseValue": 10,
+      "compareValue": -20,
+      "unit": "EUR",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2026-06-01T00:00:00+02:00"
+    },
+    "expected": {
+      "deltaAbsolute": 30,
+      "deltaPercent": 150,
+      "isPartial": false
+    }
+  },
+  {
+    "id": "case-11-negative-base",
+    "description": "Negativer Basiswert",
+    "input": {
+      "baseValue": -30,
+      "compareValue": 50,
+      "unit": "EUR",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2026-06-01T00:00:00+02:00"
+    },
+    "expected": {
+      "deltaAbsolute": -80,
+      "deltaPercent": -160,
+      "isPartial": false
+    }
+  },
+  {
+    "id": "case-12-both-negative",
+    "description": "Beide Werte negativ",
+    "input": {
+      "baseValue": -20,
+      "compareValue": -40,
+      "unit": "EUR",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2026-06-01T00:00:00+02:00"
+    },
+    "expected": {
+      "deltaAbsolute": 20,
+      "deltaPercent": 50,
+      "isPartial": false
+    }
+  },
+  {
+    "id": "case-13-small-fraction",
+    "description": "Kleine Dezimalwerte",
+    "input": {
+      "baseValue": 1.25,
+      "compareValue": 1.0,
+      "unit": "x",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2026-06-01T00:00:00+02:00"
+    },
+    "expected": {
+      "deltaAbsolute": 0.25,
+      "deltaPercent": 25,
+      "isPartial": false
+    }
+  },
+  {
+    "id": "case-14-large-volume",
+    "description": "Große Volumen-Zahlen",
+    "input": {
+      "baseValue": 2500000,
+      "compareValue": 2000000,
+      "unit": "EUR",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2026-06-01T00:00:00+02:00"
+    },
+    "expected": {
+      "deltaAbsolute": 500000,
+      "deltaPercent": 25,
+      "isPartial": false
+    }
+  },
+  {
+    "id": "case-15-exact-history-start",
+    "description": "Genau am Historienbeginn (keine Teilhistorie)",
+    "input": {
+      "baseValue": 200,
+      "compareValue": 150,
+      "unit": "EUR",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2026-01-01T00:00:00+01:00"
+    },
+    "expected": {
+      "deltaAbsolute": 50,
+      "deltaPercent": 33.33,
+      "isPartial": false
+    }
+  },
+  {
+    "id": "case-16-one-second-before-history",
+    "description": "1 Sekunde vor Historienbeginn -> Teilhistorie",
+    "input": {
+      "baseValue": 200,
+      "compareValue": 150,
+      "unit": "EUR",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2025-12-31T23:59:59+01:00"
+    },
+    "expected": {
+      "deltaAbsolute": 50,
+      "deltaPercent": 33.33,
+      "isPartial": true,
+      "partialNotice": "Vergleich unvollständig: Daten ab 01.01.2026"
+    }
+  },
+  {
+    "id": "case-17-percentage-negative-pp",
+    "description": "Prozent mit negativem Prozentpunkt-Unterschied",
+    "input": {
+      "baseValue": 12.5,
+      "compareValue": 20.0,
+      "unit": "%",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2026-06-01T00:00:00+02:00"
+    },
+    "expected": {
+      "deltaAbsolute": -7.5,
+      "deltaPercent": -37.5,
+      "isPartial": false
+    }
+  },
+  {
+    "id": "case-18-zero-base-positive-compare",
+    "description": "Basis 0, Vergleich positiv",
+    "input": {
+      "baseValue": 0,
+      "compareValue": 80,
+      "unit": "Deals",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2026-06-01T00:00:00+02:00"
+    },
+    "expected": {
+      "deltaAbsolute": -80,
+      "deltaPercent": -100,
+      "isPartial": false
+    }
+  },
+  {
+    "id": "case-19-zero-both",
+    "description": "Beide Werte 0 -> Prozent nicht berechenbar",
+    "input": {
+      "baseValue": 0,
+      "compareValue": 0,
+      "unit": "EUR",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2026-06-01T00:00:00+02:00"
+    },
+    "expected": {
+      "deltaAbsolute": 0,
+      "deltaPercent": null,
+      "isPartial": false
+    }
+  },
+  {
+    "id": "case-20-dst-spring",
+    "description": "Sommerzeit-Sprungstunde",
+    "input": {
+      "baseValue": 45,
+      "compareValue": 30,
+      "unit": "Tickets",
+      "historyStartAt": "2026-01-01T00:00:00+01:00",
+      "compareBucketStart": "2026-03-29T03:00:00+02:00"
+    },
+    "expected": {
+      "deltaAbsolute": 15,
+      "deltaPercent": 50,
+      "isPartial": false
+    }
+  }
+]

@@ -292,6 +292,7 @@ describe('DashboardWorkspace – Konfigurationsfenster und Verlassen', () => {
     gauge: () => Promise.reject(new Error('x')),
     sparkline: () => Promise.reject(new Error('x')),
     trichter: () => Promise.reject(new Error('x')),
+    heatmap: () => Promise.reject(new Error('x')),
   };
 
   it('fragt vor dem Neuladen nach, wenn Änderungen offen sind', async () => {

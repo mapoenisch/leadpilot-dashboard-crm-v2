@@ -106,6 +106,8 @@ export const AlarmSection: React.FC<AlarmSectionProps> = ({
     hasValidV2Rule: hasValidRule,
     isAlarmCapable,
     hasSupportedFiltersOnly,
+    hasCompareOrJoin: Boolean(selectedTile.query?.compare || selectedTile.query?.join),
+    isHeatmap: selectedTile.presentation === 'heatmap',
   });
 
   // Synchronisiere Änderungen an Schwellenwerten nach erfolgreichem Speichern mit der Alarmregel

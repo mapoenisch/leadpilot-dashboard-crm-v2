@@ -55,6 +55,9 @@ export interface TileQueryConfig {
   filters?: Record<string, unknown>;
   window?: { count: number; resolution: 'stunde' | 'tag' | 'woche' | 'monat' };
   transformations?: TileTransformation[];
+  compare?: import('./timeseries/types').TimeSeriesCompareType;
+  join?: import('./timeseries/types').TimeSeriesJoinConfig;
+  bands?: import('./timeseries/types').TimeSeriesBandsConfig;
 }
 
 import type { TileTransformation } from './transformations/types';

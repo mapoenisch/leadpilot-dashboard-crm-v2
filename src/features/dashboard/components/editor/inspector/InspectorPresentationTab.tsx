@@ -18,6 +18,7 @@ export const AVAILABLE_VIEWS: Array<{ id: DashboardView; label: string }> = [
   { id: 'gauge', label: 'Gauge' },
   { id: 'sparkline', label: 'Sparkline' },
   { id: 'trichter', label: 'Trichter' },
+  { id: 'heatmap', label: 'Heatmap' },
 ];
 
 export function InspectorPresentationTab({

@@ -2264,6 +2264,14 @@ Artefakt-/Versionsabgleichs.
   - Bleibt der pg_cron-Worker länger als 15 Minuten aus oder ist Not-Aus aktiv, wird im Header ein deutlicher Warnhinweis eingeblendet (`alarm_worker_status()` `ueberfaellig` / `pausiert`).
 - **Phasenabschluss P13:** Mit P13a (Schwellenwertmodell & Alarmfähigkeit), P13b (Server-Engine mit pg_cron & Parität) und P13c (In-App-Alarme, Quittierung & Admin-Übernahme) ist Phase P13 des Dashboard-Editor-Masterplans vollständig abgeschlossen.
 
+## C14. Dashboard V2 Vergleich, zeitbezogene Verknüpfung, Heatmap & Erwartungsband (Auftrag 170 / P14b, 2026-11-20)
+
+- **Migration `20261127_dashboard_time_series_compare.sql`:** Neue RPCs `dashboard_time_series_compare` (Basis- und Vergleichsfenster in einem Aufruf, `datenstand_ab`, Teilhistorie) und `dashboard_time_series_phases` (Phaseneintritte je Phase). Beide `SECURITY INVOKER` und ausschließlich über das unveränderte `dashboard_time_series`: gleiche Mandantenbindung, Lückenregeln und Grenze von 400 Punkten je Fenster. `dashboard_config_v2_invalid_reason` (Fassung aus 20261126) um `query.compare`, `query.join`, `query.bands` und die Kombinationsregel ergänzt; `check_dashboard_alarm_transformations` pausiert aktive Regeln bei Vergleich, Join oder Heatmap.
+- **Rechenkern:** Reine Funktionen in `src/features/dashboard/model/timeseries/` (`computeComparison`, `alignSeries`, `toHeatmapGrid`, `calculateExpectationBands`, `buildTimeSeriesExtras`) mit je ≥ 20 Referenzfällen; Kalender in Europe/Berlin unabhängig von der Rechner-Zeitzone.
+- **Datenweg:** `useDashboardData` hängt über `useTimeSeriesExtras` Vergleich, zweite Reihe, Band und Heatmap-Daten an; Vorschau nutzt denselben Zusammenbau (`buildTimeSeriesExtras`) mit Testdaten.
+- **Korrektur aus P14a:** `normalizeTileQuery` hat `query.transformations` beim Speichern verworfen (`prepareConfigForStorage`); jetzt bleiben Transformationen, Vergleich, Join und Band erhalten (Regressionstest).
+- **Erwartungsband:** Verfahren nach Entscheidung Marc 18.11.2026 (Auftrag 170 §8); keine Prognose, keine Alarme auf das Band.
+
 ---
 
 ---
