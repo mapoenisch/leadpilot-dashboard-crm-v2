@@ -44,7 +44,14 @@ const usePreviewDataTimeControlled: TileDataHook = (tile, filters, options) =>
 
 export function DashboardEditorPreviewV2() {
   const [params] = useState(readPreviewParams);
-  const { teams: teamsScenario, versionen: versionenScenario, schwellenwerte: schwellenwerteScenario, alarme: alarmeScenario, transformationen: transformationenScenario, live: liveScenario } = params;
+  const {
+    teams: teamsScenario,
+    versionen: versionenScenario,
+    schwellenwerte: schwellenwerteScenario,
+    alarme: alarmeScenario,
+    transformationen: transformationenScenario,
+    live: liveScenario,
+  } = params;
   const [previewTab, setPreviewTab] = useState<'editor' | 'alarme' | 'admin'>('editor');
 
   const [dashboards, setDashboards] = useState<AccessibleDashboardListItemV2[]>(() => {
