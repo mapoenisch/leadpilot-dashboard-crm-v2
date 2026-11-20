@@ -12,6 +12,7 @@ import type {
   TilePhaseSeriesData,
 } from '../../data/resolveTimeSeriesCompare';
 import { alignSeries } from './alignSeries';
+import { berlinDayKey, dayNumber } from './berlinDate';
 import { bandsForDisplay, calculateExpectationBands } from './expectationBands';
 import type { TileTimeSeriesExtras, TimeSeriesJoinType } from './types';
 
@@ -40,6 +41,13 @@ const GAP = (at: string): TimeSeriesPoint => ({
   status: 'luecke',
   measuredAt: null,
 });
+
+/** Zeitbasis des dargestellten Tagesfensters (Heatmap), nicht des stündlichen Basisverlaufs. */
+function dailyHeatmapTimeBasis(daily: TileTimeSeriesData): string {
+  const days = dayNumber(berlinDayKey(daily.to)) - dayNumber(berlinDayKey(daily.from));
+  if (days > 0 && days % 7 === 0) return `Letzte ${days / 7} Wochen (täglich)`;
+  return `Letzte ${Math.max(days, 1)} Tage (täglich)`;
+}
 
 export function buildTimeSeriesExtras(input: BuildTimeSeriesExtrasInput): ResolvedTileData {
   const { data, entry, compare, join, bandPrior, heatmap } = input;
@@ -98,6 +106,8 @@ export function buildTimeSeriesExtras(input: BuildTimeSeriesExtrasInput): Resolv
         periodLabel: period.label,
       }),
       allPoints.length,
+      allPoints,
+      input.series.resolution,
     );
     extras.bands = result.bands
       ? { ...result, bands: kept.map((i, index) => ({ ...result.bands![i]!, index })) }
@@ -120,6 +130,16 @@ export function buildTimeSeriesExtras(input: BuildTimeSeriesExtrasInput): Resolv
   }
 
   // Wochentag-Heatmap: Kachelkopf und Stand beschreiben das Tagesfenster der Heatmap.
-  const timeSeries = heatmap?.daily ?? { ...input.series, points };
+  if (heatmap?.daily) {
+    const last = heatmap.daily.points[heatmap.daily.points.length - 1];
+    return {
+      ...data,
+      timeBasis: dailyHeatmapTimeBasis(heatmap.daily),
+      asOf: last ? (last.measuredAt ?? last.at) : data.asOf,
+      timeSeries: heatmap.daily,
+      timeSeriesExtras: extras,
+    };
+  }
+  const timeSeries = { ...input.series, points };
   return { ...data, timeSeries, timeSeriesExtras: extras };
 }

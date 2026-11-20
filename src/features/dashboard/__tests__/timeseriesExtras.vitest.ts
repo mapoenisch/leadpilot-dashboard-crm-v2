@@ -230,10 +230,13 @@ describe('Auftrag 170 – Abfrage: Normalisierung, Prüfung, Speichern', () => {
     ).toBe(true);
   });
 
-  it('nennt Sperrgründe für Heatmap und Nicht-Zeitreihen', () => {
+  it('nennt Sperrgründe für Darstellungen, die Vergleich nicht zeichnen', () => {
     expect(compareBlockReason(crm, {}, 'heatmap')).toMatch(/Heatmap/);
     expect(compareBlockReason(entry('live.arr'), {}, 'zahl')).toMatch(/Zeitreihen/);
+    expect(compareBlockReason(crm, {}, 'saeulen')).toMatch(/Linien- oder Flächendarstellung/);
+    expect(compareBlockReason(crm, {}, 'tabelle')).toMatch(/Linien- oder Flächendarstellung/);
     expect(compareBlockReason(crm, {}, 'linie')).toBeNull();
+    expect(compareBlockReason(crm, {}, 'flaeche')).toBeNull();
   });
 
   it('Speichern behält Transformationen, Vergleich, Join und Band (Regression P14a/P14b)', () => {

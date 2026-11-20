@@ -3,7 +3,7 @@
 
 BEGIN;
 
-SELECT plan(28);
+SELECT plan(32);
 
 -- ---------------------------------------------------------------- Setup --
 DELETE FROM public.deal_stage_events WHERE deal_id LIKE 'd170-%';
@@ -161,6 +161,18 @@ SELECT ok(
   'Vorjahr vor Historienbeginn ist unvollständig und nennt datenstand_ab'
 );
 
+-- 13b–13c. Vorjahr bei Wochen: ausgerichtet auf ganze Kalenderwochen (Montag)
+SELECT is(
+  (public.dashboard_time_series_compare('deal_stage_events', 'Deal gewonnen', 'woche', '2026-10-12 00:00:00+02'::timestamptz, '2026-10-19 00:00:00+02'::timestamptz, 'vorjahr')->>'compareFrom')::timestamptz,
+  '2025-10-06 00:00:00+02'::timestamptz,
+  'Vorjahr bei Wochen beginnt am Montag der zugehörigen Kalenderwoche'
+);
+SELECT is(
+  jsonb_array_length(public.dashboard_time_series_compare('deal_stage_events', 'Deal gewonnen', 'woche', '2026-10-12 00:00:00+02'::timestamptz, '2026-10-19 00:00:00+02'::timestamptz, 'vorjahr')->'comparePoints'),
+  1,
+  'Vorjahr bei Wochen liefert genau eine ganze Woche statt zweier angeschnittener'
+);
+
 -- 14. Vollständige Vorperiode ist nicht unvollständig
 SELECT is(
   public.dashboard_time_series_compare('deal_stage_events', 'Deal gewonnen', 'woche', '2026-10-12 00:00:00+02'::timestamptz, '2026-10-19 00:00:00+02'::timestamptz, 'vorperiode')->>'is_partial',
@@ -206,6 +218,8 @@ SELECT is(public.dashboard_config_v2_invalid_reason(pg_temp.cfg170('{"join":{"me
 SELECT is(public.dashboard_config_v2_invalid_reason(pg_temp.cfg170('{"bands":{"type":"percentile_10_90","periodCount":7}}')), 'query.bands.periodCount muss 8 sein', 'Bänder nur mit 8 Vorperioden');
 SELECT is(public.dashboard_config_v2_invalid_reason(pg_temp.cfg170('{"compare":"vorperiode","transformations":[{"art":"gleitender_durchschnitt","fenster":3}]}')), 'query.compare, query.join und query.bands sind nicht mit Umrechnung oder gleitendem Durchschnitt kombinierbar', 'Vergleich mit gleitendem Durchschnitt wird abgelehnt');
 SELECT is(public.dashboard_config_v2_invalid_reason(pg_temp.cfg170('{"compare":"vorperiode","transformations":[{"art":"umbenennen","name":"ARR neu"}]}')), NULL, 'Vergleich mit Umbenennung ist zulässig');
+SELECT is(public.dashboard_config_v2_invalid_reason(pg_temp.cfg170('{"compare":"vorperiode"}', 'saeulen')), 'query.compare, query.join und query.bands sind nur für Linie oder Fläche zulässig', 'Vergleich wird bei Säulendarstellung abgelehnt');
+SELECT is(public.dashboard_config_v2_invalid_reason(pg_temp.cfg170('{"bands":{"type":"percentile_10_90","periodCount":8}}', 'flaeche')), NULL, 'Erwartungsband ist bei Flächendarstellung zulässig');
 
 -- 26–28. Trigger pausiert Alarme bei Vergleich und Heatmap
 INSERT INTO public.dashboards (id, organization_id, user_id, created_by_user_id, title, scope, revision, config)

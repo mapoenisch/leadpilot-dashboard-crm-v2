@@ -69,6 +69,12 @@ BEGIN
     -- Gleiche Anzahl Zeitabschnitte direkt vor dem Basisfenster (kalendergenau in Europe/Berlin).
     v_compare_to := (v_base->>'from')::timestamptz;
     v_compare_from := v_compare_to - (v_step * v_bucket_count);
+  ELSIF p_resolution = 'woche' THEN
+    -- Vorjahr bei Wochen: auf den Montag der Kalenderwoche ausrichten und dieselbe Anzahl ganzer
+    -- Wochen liefern. Ein Kalenderjahr zurück kann auf einen anderen Wochentag fallen; ohne
+    -- Ausrichtung enthielte der Vergleich zwei angeschnittene Wochen.
+    v_compare_from := date_trunc('week', p_from - interval '1 year');
+    v_compare_to := v_compare_from + (v_step * v_bucket_count);
   ELSE
     v_compare_from := p_from - interval '1 year';
     v_compare_to := p_to - interval '1 year';
@@ -515,6 +521,12 @@ BEGIN
            OR (v_query->'bands'->>'periodCount')::NUMERIC <> 8 THEN
           RETURN 'query.bands.periodCount muss 8 sein';
         END IF;
+      END IF;
+
+      -- Auftrag 170: Vergleich, Join und Band zeichnet nur die Linien-/Flächendarstellung
+      IF (v_query ? 'compare' OR v_query ? 'join' OR v_query ? 'bands')
+         AND (v_tile->>'presentation') NOT IN ('linie', 'flaeche') THEN
+        RETURN 'query.compare, query.join und query.bands sind nur für Linie oder Fläche zulässig';
       END IF;
 
       -- Auftrag 170: Vergleich, Join und Band nicht mit wertverändernden Transformationen

@@ -82,6 +82,13 @@ export function hasValueTransformation(query: Partial<TileQueryConfig> | undefin
 const VALUE_TRANSFORMATION_REASON =
   'Vergleich, zweite Reihe und Erwartungsband sind nicht mit Einheiten-Umrechnung oder gleitendem Durchschnitt kombinierbar.';
 
+/** Nur Linie und Fläche zeichnen Vergleich, zweite Reihe und Erwartungsband. */
+const COMPARE_PRESENTATIONS: readonly string[] = ['linie', 'flaeche'];
+
+export function supportsComparePresentation(presentation: string | undefined): boolean {
+  return presentation !== undefined && COMPARE_PRESENTATIONS.includes(presentation);
+}
+
 /** Sperrgrund für den Abschnitt „Vergleichen“ oder null, wenn alles zulässig ist. */
 export function compareBlockReason(
   entry: ActiveCatalogEntry | undefined,
@@ -90,6 +97,9 @@ export function compareBlockReason(
 ): string | null {
   if (!entry || !isTimeSeriesEntry(entry)) return 'Nur für Zeitreihen-Kennzahlen verfügbar.';
   if (presentation === 'heatmap') return 'Bei der Darstellung „Heatmap“ nicht verfügbar.';
+  if (!supportsComparePresentation(presentation)) {
+    return 'Vergleich, zweite Reihe und Erwartungsband zeigt nur die Linien- oder Flächendarstellung.';
+  }
   if (hasValueTransformation(query)) return VALUE_TRANSFORMATION_REASON;
   return null;
 }

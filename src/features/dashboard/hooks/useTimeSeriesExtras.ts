@@ -33,9 +33,11 @@ const HEATMAP_DAYS = 84;
 const BAND_FETCH_PERIODS = 12;
 
 /** Abrufzeit und Stand hängen am Objekt (WeakMap) und müssen das neue Objekt begleiten. */
-function keepMeta(source: TileData, result: TileData): TileData {
+function keepMeta(source: TileData, result: TileData, fetching = false): TileData {
   const meta = readCrmQueryMeta(source);
-  if (meta) attachCrmQueryMeta(result, meta);
+  if (meta) {
+    attachCrmQueryMeta(result, { ...meta, isFetching: meta.isFetching || fetching });
+  }
   const stand = readTileStand(source);
   if (stand) attachTileStand(result, stand);
   return result;
@@ -183,6 +185,13 @@ export function useTimeSeriesExtras(
     const wanted = Boolean(parts.compare || parts.join || parts.bands || isHeatmap);
     if (!wanted) return data;
 
+    // Laufende Zusatzabfragen gehören zum Ladezustand: sonst friert eine Pause die Kachel
+    // bereits nach dem Basisabruf ein und die später eintreffenden Reihen blieben unsichtbar.
+    const extrasFetching =
+      (Boolean(parts.compare) && compareQuery.isFetching) ||
+      (Boolean(joinEntry) && joinQuery.isFetching) ||
+      (Boolean(parts.bands) && bandsQuery.isFetching);
+
     if (isHeatmap && !heatmapQuery.data) {
       if (heatmapQuery.isError) {
         return keepMeta(data, {
@@ -218,7 +227,7 @@ export function useTimeSeriesExtras(
       heatmap: isHeatmap ? heatmapQuery.data : undefined,
       notices,
     });
-    return keepMeta(data, result);
+    return keepMeta(data, result, extrasFetching);
   }, [
     data,
     entry,
@@ -231,12 +240,15 @@ export function useTimeSeriesExtras(
     compareQuery.data,
     compareQuery.isError,
     compareQuery.error,
+    compareQuery.isFetching,
     joinQuery.data,
     joinQuery.isError,
     joinQuery.error,
+    joinQuery.isFetching,
     bandsQuery.data,
     bandsQuery.isError,
     bandsQuery.error,
+    bandsQuery.isFetching,
     heatmapQuery.data,
     heatmapQuery.isError,
     heatmapQuery.error,

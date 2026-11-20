@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  bandsForDisplay,
   calculateExpectationBands,
   type ExpectationBandsInput,
 } from '../model/timeseries/expectationBands';
@@ -96,5 +97,70 @@ describe('Auftrag 170 (P14b / §8) - calculateExpectationBands & Referenzfälle'
         expect(res.reason).toBe(testCase.expectedReason);
       }
     }
+  });
+
+  it('ordnet Stunden über die Zeitumstellung nach Berliner Kalenderstunden zu', () => {
+    // Zwölf Tage vor dem 31.03.2026; der 29.03. hat durch die Umstellung nur 23 Stunden.
+    const priorPoints: TimeSeriesPoint[] = [];
+    const days = [
+      '2026-03-19',
+      '2026-03-20',
+      '2026-03-21',
+      '2026-03-22',
+      '2026-03-23',
+      '2026-03-24',
+      '2026-03-25',
+      '2026-03-26',
+      '2026-03-27',
+      '2026-03-28',
+      '2026-03-29',
+      '2026-03-30',
+    ];
+    for (const day of days) {
+      for (let hour = 0; hour < 24; hour++) {
+        // Am 29.03. springt die Uhr von 02:00 auf 03:00.
+        if (day === '2026-03-29' && hour === 2) continue;
+        const offset =
+          day < '2026-03-29' || (day === '2026-03-29' && hour < 2) ? '+01:00' : '+02:00';
+        priorPoints.push(p(`${day}T${String(hour).padStart(2, '0')}:00:00${offset}`, hour));
+      }
+    }
+
+    const res = calculateExpectationBands({
+      priorPoints,
+      periodLength: 24,
+      resolution: 'stunde',
+    });
+
+    expect(res.hasBand).toBe(true);
+    // Jede vollständige Periode liefert an Position 0 den Wert 0 (nicht 16,1 durch Verschiebung).
+    expect(res.bands![0]).toEqual({ index: 0, lower: 0, upper: 0 });
+    expect(res.bands![23]).toEqual({ index: 23, lower: 23, upper: 23 });
+  });
+
+  it('ordnet Anzeigepunkte nach ihrer Stundenposition statt nach dem Index zu', () => {
+    const priorPoints: TimeSeriesPoint[] = [];
+    for (let day = 19; day <= 30; day++) {
+      for (let hour = 0; hour < 24; hour++) {
+        if (day === 29 && hour === 2) continue;
+        const offset = day < 29 || (day === 29 && hour < 2) ? '+01:00' : '+02:00';
+        priorPoints.push(
+          p(
+            `2026-03-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:00:00${offset}`,
+            hour,
+          ),
+        );
+      }
+    }
+    const res = calculateExpectationBands({
+      priorPoints,
+      periodLength: 24,
+      resolution: 'stunde',
+    });
+
+    // Anzeige am Umstellungstag: 01:00 (Index 1) und 03:00 (Index 2).
+    const display = [p('2026-03-29T01:00:00+01:00', 1), p('2026-03-29T03:00:00+02:00', 3)];
+    const shown = bandsForDisplay(res, display.length, display, 'stunde');
+    expect(shown.bands!.map((b) => b.lower)).toEqual([1, 3]);
   });
 });

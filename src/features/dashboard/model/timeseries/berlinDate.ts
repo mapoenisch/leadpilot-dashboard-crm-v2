@@ -6,6 +6,12 @@ const BERLIN_DAY = new Intl.DateTimeFormat('en-CA', {
   day: '2-digit',
 });
 
+const BERLIN_HOUR = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Europe/Berlin',
+  hour: '2-digit',
+  hour12: false,
+});
+
 const dayKeyCache = new Map<string, string>();
 
 /** Berliner Kalendertag eines Zeitpunkts als `YYYY-MM-DD`. */
@@ -28,6 +34,14 @@ export function dayNumber(dayKey: string): number {
 /** Kalendertag `YYYY-MM-DD` zu einer Tagesnummer. */
 export function dayKeyFromNumber(day: number): string {
   return new Date(day * 86_400_000).toISOString().slice(0, 10);
+}
+
+/** Berliner Kalenderstunde eines Zeitpunkts (0–23); `NaN`, wenn nicht lesbar. */
+export function berlinHour(at: string): number {
+  const ms = Date.parse(at);
+  if (Number.isNaN(ms)) return Number.NaN;
+  const hour = Number(BERLIN_HOUR.format(new Date(ms)));
+  return hour === 24 ? 0 : hour;
 }
 
 /** Wochentag 0 = Montag … 6 = Sonntag. */

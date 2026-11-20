@@ -7,6 +7,7 @@ import { UpdateTileConfigCommand } from '../../core/editorCommands';
 import type { EditorCommand } from '../../core/commandTypes';
 import type { DashboardTileConfigV2, TileThresholdRule } from '../../model/dashboardConfigV2';
 import type { DashboardView } from '../../model/dashboardCatalog';
+import { supportsComparePresentation } from '../../model/timeseries/timeSeriesQuery';
 
 export interface UseTileInspectorActionsOptions {
   tiles: readonly DashboardTileConfigV2[];
@@ -29,6 +30,26 @@ export function useTileInspectorActions({ tiles, dispatch }: UseTileInspectorAct
     (tileId: string, newView: DashboardView) => {
       const tile = tiles.find((t) => t.id === tileId);
       if (!tile || tile.presentation === newView) return;
+
+      // Vergleich, zweite Reihe und Band zeichnet nur die Linien-/Flächendarstellung. Beim Wechsel
+      // auf eine andere Darstellung werden sie mit entfernt, statt unsichtbar gespeichert zu bleiben.
+      if (
+        !supportsComparePresentation(newView) &&
+        tile.query &&
+        (tile.query.compare || tile.query.join || tile.query.bands)
+      ) {
+        const query = { ...tile.query };
+        delete query.compare;
+        delete query.join;
+        delete query.bands;
+        const cmd = new UpdateTileConfigCommand(
+          tileId,
+          { presentation: tile.presentation, query: tile.query },
+          { presentation: newView, query },
+        );
+        dispatch(cmd);
+        return;
+      }
 
       const cmd = new UpdateTileConfigCommand(
         tileId,
