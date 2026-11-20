@@ -21,6 +21,7 @@ import {
 import { ChartLayoutReserve } from './charts/ChartReadout';
 import type { DatumInput, TimeDatumInput } from './charts/depthGeometry';
 import { formatPointLabel } from '../data/resolveTimeSeries';
+import { toHeatmapGrid } from '../model/timeseries/toHeatmapGrid';
 import { TileNumber, TileTable } from './TileValue';
 import { TileOverview } from './TileOverview';
 import { formatTileValue, NO_DATA } from './tileFormat';
@@ -139,6 +140,32 @@ export function checkTileValues(
   return { kind: 'ok', rows: series };
 }
 
+/**
+ * Die Tabellenalternative der Heatmap zeigt dasselbe Raster wie die Grafik
+ * (Woche × Wochentag bzw. Phase × Woche), nicht die rohen Zeitreihenpunkte.
+ * Spiegelt die Druckanhang-Umsetzung in `printExtrasRows`.
+ */
+function heatmapTableRows(data: ResolvedTileData): (DatumInput | TimeDatumInput)[] | null {
+  const heatmap = data.timeSeriesExtras?.heatmap;
+  const series = data.timeSeries;
+  if (!heatmap || !series) return null;
+  const grid = toHeatmapGrid({
+    points: heatmap.mode === 'woche_wochentag' ? series.points : heatmap.points,
+    phaseSeries: heatmap.phaseSeries,
+    sourceResolution: 'tag',
+    aggregationType: heatmap.aggregation,
+    mode: heatmap.mode,
+    unit: data.unit,
+  });
+  if (grid.cells.length === 0) return null;
+  return grid.cells.map((cell) => ({
+    label: `${cell.rowLabel}, ${cell.colLabel} (${cell.dateKey.split('-').reverse().join('.')})`,
+    value: cell.value,
+    status: cell.isNull ? 'luecke' : 'belegt',
+    at: cell.dateKey,
+  }));
+}
+
 function valueRow(data: ResolvedTileData, title: string): DatumInput[] {
   return data.value !== null && Number.isFinite(data.value)
     ? [{ label: title, value: data.value }]
@@ -173,12 +200,13 @@ export function DashboardChart(props: DashboardChartProps) {
     );
   }
   if (check.kind === 'hinweis') {
+    const hintRows = view === 'heatmap' ? (heatmapTableRows(data) ?? check.rows) : check.rows;
     const hint = (
       <div className="flex flex-col gap-[10px]">
         <p data-testid="tile-chart-hint" className="m-0 text-[13px] text-accent">
           {check.text}
         </p>
-        <TileTable rows={check.rows} unit={data.unit} caption={caption} />
+        <TileTable rows={hintRows} unit={data.unit} caption={caption} />
       </div>
     );
     return chartView ? (
@@ -273,6 +301,10 @@ function LazyChart({
 }) {
   const reducedMotion = useReducedMotion();
   const unit = data.unit;
+  const tableRows = useMemo(
+    () => (view === 'heatmap' ? (heatmapTableRows(data) ?? rows) : rows),
+    [view, data, rows],
+  );
   const formatValue = useMemo(
     () => (value: number) => formatTileValue(value, unit, 'exakt'),
     [unit],
@@ -335,7 +367,7 @@ function LazyChart({
           Werte als Tabelle
         </summary>
         <div className="mt-[8px]">
-          <TileTable rows={rows} unit={data.unit} caption={caption} />
+          <TileTable rows={tableRows} unit={data.unit} caption={caption} />
         </div>
       </details>
     </>

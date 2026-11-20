@@ -22681,3 +22681,10 @@ Builder-Seite abgeschlossen, alle lokalen Pflichtprüfungen grün (Ausnahmen obe
 - **Ergebnis:** „Didn't find any major issues. 👍" — keine offenen Befunde auf dem aktuellen Head.
 - **Verlauf:** 4 Review-Runden, insgesamt 12 P2-Befunde, alle behoben (Abschnitte 11–14).
 - **Offen für Gate-Freigabe:** grüne Pflicht-Checks und gelöste Review-Konversationen auf GitHub; Merge durch Marc.
+
+### 16. Nacharbeit Codex-Review Runde 5 (Head `ebe90383`, 2 P2-Befunde, alle behoben)
+
+- **B13 Migration – Vorjahresgrenzen nur aus Rand-Buckets:** Bei stündlichen Vorjahresfenstern über den Schaltjahresbeginn ist die Kalenderzuordnung nicht-monoton (29.02. kollabiert auf 28.02.); `least`/`greatest` über die beiden Rand-Buckets ließ benötigte Vergleichsstunden (z. B. 23:00, 00:00, 01:00) außerhalb des Abruffensters → Lücken trotz vorhandener Messung. Das Fenster wird jetzt per `generate_series` über ALLE bündigen Basis-Buckets verschoben und aus `min`/`max` + `v_step` gebildet. Neuer pgTAP-Fall: 4 Stunden über 28./29.02.2024 → 24 Vergleichsstunden (vorher 22).
+- **B14 `DashboardChart.tsx` – Heatmap-Tabelle zeigte Rohreihe statt Raster:** Die „Werte als Tabelle“-Alternative (und der Hinweis-Fallback) nutzte weiterhin `data.timeSeries`-Punkte; bei `phase_woche` fehlen dort die Phasenwerte komplett, bei `woche_wochentag` weichen Anzahl und Zeitraum vom Raster ab. Neu: `heatmapTableRows` baut die Tabellenzeilen mit `toHeatmapGrid` aus demselben Input wie Grafik und Druckanhang (`printExtrasRows`). Neue Suite `heatmapTableAlternative.ui.vitest.tsx` (beide Modi).
+
+**Verifikation (lokal, 20.11.2026):** `tsc --noEmit` 0 Fehler; `lint` 0; `format:check` grün; `npm test` 476 Dateien / 3.606 Tests grün; `npm run verify` 25/25 Suites grün; `npm run build` grün; `supabase test db` auf `dashboard_time_series_compare.sql`: 36 pgTAP-Tests PASS. Schutzbereichs-Diff gegen `ac9da030` leer.

@@ -83,17 +83,17 @@ BEGIN
     v_compare_from := date_trunc('week', p_from - interval '1 year');
     v_compare_to := v_compare_from + (v_step * v_bucket_count);
   ELSE
-    -- Vorjahr (Stunde/Tag/Monat): Fenster aus den verschobenen, bereits bündigen
-    -- Basis-Buckets ableiten. Sonst kann der Schaltjahres-Kollaps (z. B. 29.02.2028
-    -- -> 28.02.2027) ein leeres Fenster (p_from >= p_to) erzeugen.
-    v_compare_from := least(
-      date_trunc(v_trunc_unit, p_from) - interval '1 year',
-      date_trunc(v_trunc_unit, p_to - interval '1 microsecond') - interval '1 year'
-    );
-    v_compare_to := greatest(
-      date_trunc(v_trunc_unit, p_from) - interval '1 year',
-      date_trunc(v_trunc_unit, p_to - interval '1 microsecond') - interval '1 year'
-    ) + v_step;
+    -- Vorjahr (Stunde/Tag/Monat): Abrufgrenzen aus ALLEN verschobenen Basis-Buckets
+    -- ableiten. Der Schaltjahres-Kollaps (29.02. -> 28.02.) macht die Zuordnung
+    -- bei Stundenfenstern nicht-monoton; die beiden Rand-Buckets reichen nicht.
+    SELECT min(b - interval '1 year'),
+           max(b - interval '1 year') + v_step
+      INTO v_compare_from, v_compare_to
+      FROM generate_series(
+        date_trunc(v_trunc_unit, p_from),
+        date_trunc(v_trunc_unit, p_to - interval '1 microsecond'),
+        v_step
+      ) AS b;
   END IF;
 
   v_compare := public.dashboard_time_series(

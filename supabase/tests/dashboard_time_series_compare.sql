@@ -3,7 +3,7 @@
 
 BEGIN;
 
-SELECT plan(35);
+SELECT plan(36);
 
 -- ---------------------------------------------------------------- Setup --
 DELETE FROM public.deal_stage_events WHERE deal_id LIKE 'd170-%';
@@ -182,6 +182,14 @@ SELECT is(
   jsonb_array_length(public.dashboard_time_series_compare('deal_stage_events', 'Deal gewonnen', 'tag', '2024-02-28 00:00:00+01'::timestamptz, '2024-03-01 00:00:00+01'::timestamptz, 'vorjahr')->'comparePoints'),
   1,
   'Schaltjahres-Kollaps 29.02.2024 -> 28.02.2023 liefert genau einen Vergleichstag'
+);
+
+-- 13f. Stündlicher Vorjahr-Vergleich über den Schaltjahresbeginn: nicht-monotone
+-- Zuordnung (29.02. kollabiert auf 28.02.) darf keine benötigten Stunden abschneiden
+SELECT is(
+  jsonb_array_length(public.dashboard_time_series_compare('deal_stage_events', 'Deal gewonnen', 'stunde', '2024-02-28 23:00:00+01'::timestamptz, '2024-02-29 03:00:00+01'::timestamptz, 'vorjahr')->'comparePoints'),
+  24,
+  'Stündlicher Vorjahr über den Schaltjahresbeginn lädt alle 24 benötigten Vergleichsstunden'
 );
 
 -- 14. Vollständige Vorperiode ist nicht unvollständig
