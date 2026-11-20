@@ -54,7 +54,11 @@ export interface TileQueryConfig {
   groupBy?: string[];
   filters?: Record<string, unknown>;
   window?: { count: number; resolution: 'stunde' | 'tag' | 'woche' | 'monat' };
+  transformations?: TileTransformation[];
 }
+
+import type { TileTransformation } from './transformations/types';
+export type { TileTransformation };
 
 import {
   validateThresholdRuleForm,

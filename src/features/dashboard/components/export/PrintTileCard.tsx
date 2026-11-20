@@ -5,14 +5,22 @@ import { formatTileValue, formatAsOf, NO_DATA } from '../tileFormat';
 import type { TileDataHook } from '../LazyDashboardTile';
 import type { TileData } from '../../data/dashboardData';
 import { PrintOverviewCard } from './PrintOverviewCard';
+import {
+  applyTransformations,
+  formatTransformationSummary,
+  getEffectiveTitle,
+  getEffectiveUnit,
+} from '../../model/transformations';
 
 export function resolveTileInfo(tile: DashboardTileConfig) {
   const entry = getCatalogEntry(tile.catalogId);
-  const name = tile.title?.trim() || entry?.name || tile.catalogId;
-  const unit = entry?.unit || '';
+  const transformations = tile.query?.transformations;
+  const rawName = tile.title?.trim() || entry?.name || tile.catalogId;
+  const name = getEffectiveTitle(rawName, transformations);
+  const unit = getEffectiveUnit(entry?.unit || '', transformations);
   const category = entry?.category || 'Allgemein';
   const layer = entry?.source.layer || 'baseline';
-  return { name, unit, category, layer, entry };
+  return { name, unit, category, layer, entry, transformations };
 }
 
 export const noopTileDataHook: TileDataHook = (t) => ({
@@ -35,8 +43,12 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
   useData = noopTileDataHook,
   onTileResolved,
 }) => {
-  const { name, unit, category, layer } = resolveTileInfo(tile);
-  const data = useData(tile, filters);
+  const { name, unit, category, layer, transformations } = resolveTileInfo(tile);
+  const rawData = useData(tile, filters);
+  const data = React.useMemo(
+    () => applyTransformations(rawData, transformations),
+    [rawData, transformations],
+  );
 
   React.useEffect(() => {
     onTileResolved?.(tile.tileId, data);
@@ -207,6 +219,15 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
         <span data-testid={`print-tile-filter-${tile.tileId}`}>{filterDisplay}</span>
         <span>ID: {tile.catalogId}</span>
       </div>
+
+      {transformations && transformations.length > 0 && (
+        <div
+          data-testid={`print-tile-transformations-${tile.tileId}`}
+          className="mt-1.5 border-t border-slate-100 pt-1 text-[10.5px] italic text-slate-500"
+        >
+          Umformung: {formatTransformationSummary(transformations)}
+        </div>
+      )}
     </div>
   );
 };

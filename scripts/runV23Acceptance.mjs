@@ -40,6 +40,7 @@ export const E2E_PARALLEL = [
   'e2e/dashboard-versions-preview.spec.ts',
   'e2e/dashboard-thresholds-preview.spec.ts',
   'e2e/dashboard-alarms-preview.spec.ts',
+  'e2e/dashboard-transformations-preview.spec.ts',
   'e2e/tenant-isolation.spec.ts',
   'e2e/visual.spec.ts',
 ];

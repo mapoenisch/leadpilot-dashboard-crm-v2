@@ -5,3 +5,4 @@ export { AVAILABLE_VIEWS, InspectorPresentationTab } from './InspectorPresentati
 export { InspectorDataTab } from './InspectorDataTab';
 export { InspectorThresholdTab } from './InspectorThresholdTab';
 export { InspectorInteractionTab } from './InspectorInteractionTab';
+export { InspectorTransformationSection } from './InspectorTransformationSection';

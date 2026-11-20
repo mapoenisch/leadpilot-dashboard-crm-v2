@@ -86,13 +86,13 @@
 
 ## 5. Tasks
 
-- [ ] **T0** Baseline, Ist-Tabelle, Fundstellen Panel-Editor, `size-limit`.
-- [ ] **T1** Rot-Nachweise §3 Nr. 6.
-- [ ] **T2** Modell, Umrechnungsliste, Referenzfälle, `applyTransformations`.
-- [ ] **T3** Server: Formprüfung, Umrechnungstabelle per Generator, Alarmwert, Pausieren.
-- [ ] **T4** Panel-Editor „Umformen“, Kachel-Hinweis, Druck-Fußnote.
-- [ ] **T5** Vorschau, E2E, Bundle, A11y, Screenshots.
-- [ ] **T6** Doku, Pflicht-Verifikation, Schutzbereichs-Diff, BUILD_LOG (Smoke für Marc: Pipeline-Volumen in Tsd. EUR umrechnen, Schwellenwert in Tsd. EUR setzen, Alarm einschalten), PR, Review.
+- [x] **T0** Baseline, Ist-Tabelle, Fundstellen Panel-Editor, `size-limit`.
+- [x] **T1** Rot-Nachweise §3 Nr. 6.
+- [x] **T2** Modell, Umrechnungsliste, Referenzfälle, `applyTransformations`.
+- [x] **T3** Server: Formprüfung, Umrechnungstabelle per Generator, Alarmwert, Pausieren.
+- [x] **T4** Panel-Editor „Umformen“, Kachel-Hinweis, Druck-Fußnote.
+- [x] **T5** Vorschau, E2E, Bundle, A11y, Screenshots.
+- [x] **T6** Doku, Pflicht-Verifikation, Schutzbereichs-Diff, BUILD_LOG (Smoke für Marc: Pipeline-Volumen in Tsd. EUR umrechnen, Schwellenwert in Tsd. EUR setzen, Alarm einschalten), PR, Review.
 
 ## 6. Abnahme
 

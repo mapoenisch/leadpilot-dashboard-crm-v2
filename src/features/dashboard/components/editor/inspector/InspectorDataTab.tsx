@@ -6,6 +6,7 @@ import { QueryClientContext } from '@tanstack/react-query';
 import type { ActiveCatalogEntry, DashboardView } from '../../../model/dashboardCatalog';
 import type { DashboardFilters, DashboardTileConfig } from '../../../model/dashboardConfig';
 import type { DashboardTileConfigV2 } from '../../../model/dashboardConfigV2';
+import type { TileData } from '../../../data/dashboardData';
 import { getQueryCapabilities } from '../../../model/queryCapabilities';
 import { normalizeTileQuery } from '../../../model/tileQuery';
 import {
@@ -16,6 +17,8 @@ import {
 import { useOptionalTimeControl } from '../../../time/TimeControlProvider';
 import { useDashboardData } from '../../../hooks/useDashboardData';
 import { TimeWindowField, type TimeWindowConfig } from './TimeWindowField';
+import { InspectorTransformationSection } from './InspectorTransformationSection';
+import type { TileTransformation } from '../../../model/transformations';
 
 export function InspectorDataTab({
   selectedTile,
@@ -23,12 +26,14 @@ export function InspectorDataTab({
   onTileOverrideChange,
   isCollapsed = false,
   globalPipeline,
+  tileData,
 }: {
   selectedTile: DashboardTileConfigV2;
   catalogEntry: ActiveCatalogEntry | undefined;
   onTileOverrideChange: (tileId: string, patch: Partial<DashboardTileConfigV2>) => void;
   isCollapsed?: boolean;
   globalPipeline?: string;
+  tileData?: TileData;
 }) {
   const normQuery = normalizeTileQuery(selectedTile);
   const caps = catalogEntry ? getQueryCapabilities(catalogEntry) : undefined;
@@ -74,6 +79,15 @@ export function InspectorDataTab({
       query: {
         ...normQuery,
         window: nextWindow,
+      },
+    });
+  };
+
+  const handleTransformationsChange = (nextTransformations: TileTransformation[] | undefined) => {
+    onTileOverrideChange(selectedTile.id, {
+      query: {
+        ...normQuery,
+        transformations: nextTransformations,
       },
     });
   };
@@ -250,6 +264,14 @@ export function InspectorDataTab({
           </p>
         </div>
       )}
+
+      {/* Umformen: Transformationen je Kachel (Auftrag 169 / P14a) */}
+      <InspectorTransformationSection
+        selectedTile={selectedTile}
+        catalogEntry={catalogEntry}
+        onChangeTransformations={handleTransformationsChange}
+        currentData={tileData}
+      />
     </div>
   );
 }

@@ -15,6 +15,7 @@ import { useOptionalTimeControl } from '../time/TimeControlProvider';
 import { DashboardTile } from './DashboardTile';
 import { TileThresholdBadge } from './TileThresholdBadge';
 import { isDataOlderThanMaxAlarmAge } from '../model/alarmDataAge';
+import { applyTransformations, getUnitConversion } from '../model/transformations';
 
 export type TileDataHook = (
   tile: DashboardTileConfig,
@@ -59,7 +60,12 @@ export function LazyDashboardTile({
   });
 
   const timeControl = useOptionalTimeControl();
-  const data = useData(tile, applied, { enabled: active && !suspended });
+  const rawData = useData(tile, applied, { enabled: active && !suspended });
+  const transformations = tile.query?.transformations;
+  const data = useMemo(
+    () => applyTransformations(rawData, transformations),
+    [rawData, transformations],
+  );
 
   const notify = useRef(onActivated);
   notify.current = onActivated;
@@ -69,11 +75,35 @@ export function LazyDashboardTile({
 
   useEffect(() => {
     if (data && tile.tileId) {
-      timeControl?.tileDataStore.set(tile.tileId, data);
+      timeControl?.tileDataStore.set(tile.tileId, data, rawData);
     }
-  }, [data, tile.tileId, timeControl]);
+  }, [data, rawData, tile.tileId, timeControl]);
 
-  const entry = activeEntryOf(tile);
+  const rawEntry = activeEntryOf(tile);
+  const entry = useMemo(() => {
+    if (!rawEntry) return undefined;
+    if (!rawEntry.comparison || !transformations || transformations.length === 0) {
+      return rawEntry;
+    }
+    let compValue = rawEntry.comparison.value;
+    for (const step of transformations) {
+      if (step.art === 'einheit_umrechnen') {
+        const conv = getUnitConversion(step.von, step.zu);
+        if (conv) {
+          compValue =
+            conv.operation === 'divide' ? compValue / conv.operand : compValue * conv.operand;
+        }
+      }
+    }
+    if (compValue === rawEntry.comparison.value) return rawEntry;
+    return {
+      ...rawEntry,
+      comparison: {
+        ...rawEntry.comparison,
+        value: compValue,
+      },
+    };
+  }, [rawEntry, transformations]);
   const effectiveThreshold = threshold ?? (tile as { threshold?: TileThresholdRule }).threshold;
   const isSingleValue = entry
     ? ['einzelwert', 'verhaeltnis', 'anteil'].includes(entry.shape)
@@ -107,8 +137,9 @@ export function LazyDashboardTile({
     if (isStaleData) {
       return { stufe: 'nicht_bewertet' as const, text: 'Letzter Wert älter als 24 Stunden' };
     }
-    return evaluateThresholdV2(effectiveThreshold, singleValue, data?.state, entry?.unit);
-  }, [effectiveThreshold, isSingleValue, isStaleData, singleValue, data?.state, entry?.unit]);
+    const currentUnit = data && 'unit' in data && data.unit ? data.unit : (entry?.unit ?? '');
+    return evaluateThresholdV2(effectiveThreshold, singleValue, data?.state, currentUnit);
+  }, [effectiveThreshold, isSingleValue, isStaleData, singleValue, data, entry?.unit]);
 
   const borderClass =
     evaluation?.stufe === 'kritisch'

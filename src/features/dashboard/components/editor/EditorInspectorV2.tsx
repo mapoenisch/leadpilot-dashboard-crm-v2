@@ -143,6 +143,10 @@ function TileInspectorContent({
     (cb) => timeControl?.tileDataStore.subscribe(selectedTile.id, cb) ?? (() => {}),
     () => timeControl?.tileDataStore.get(selectedTile.id),
   );
+  const displayedRawData = useSyncExternalStore(
+    (cb) => timeControl?.tileDataStore.subscribe(selectedTile.id, cb) ?? (() => {}),
+    () => timeControl?.tileDataStore.getRaw(selectedTile.id),
+  );
 
   const fallbackTileData = useData(
     convertV2TileToV1(selectedTile, config.globalTimeframe, config.globalPipeline),
@@ -151,6 +155,7 @@ function TileInspectorContent({
   );
 
   const tileData = displayedTileData ?? fallbackTileData;
+  const rawTileData = displayedRawData ?? fallbackTileData;
 
   const currentTileValue =
     currentValue !== undefined
@@ -321,6 +326,7 @@ function TileInspectorContent({
             onTileOverrideChange={onTileOverrideChange}
             isCollapsed={isCollapsed}
             globalPipeline={config.globalPipeline}
+            tileData={rawTileData}
           />
         )}
         {activeTab === 'schwellenwerte' && (

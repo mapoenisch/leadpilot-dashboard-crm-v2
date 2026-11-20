@@ -3,6 +3,7 @@ import type { DashboardTileConfig, DashboardFilters } from '../../model/dashboar
 import type { TileDataHook } from '../LazyDashboardTile';
 import { formatTileValue, formatAsOf, NO_DATA } from '../tileFormat';
 import { resolveTileInfo, noopTileDataHook } from './PrintTileCard';
+import { applyTransformations } from '../../model/transformations';
 
 export interface PrintAppendixRowsProps {
   tile: DashboardTileConfig;
@@ -15,8 +16,12 @@ export const PrintAppendixRows: React.FC<PrintAppendixRowsProps> = ({
   filters,
   useData = noopTileDataHook,
 }) => {
-  const { name, category, layer, unit } = resolveTileInfo(tile);
-  const data = useData(tile, filters);
+  const { name, category, layer, unit, transformations } = resolveTileInfo(tile);
+  const rawData = useData(tile, filters);
+  const data = React.useMemo(
+    () => applyTransformations(rawData, transformations),
+    [rawData, transformations],
+  );
   const isVeraltet = data?.state === 'veraltet';
   const isDegradiert = data && data.state !== 'nicht_verfuegbar' && data.quality === 'degradiert';
   const stand =

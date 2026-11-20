@@ -171,6 +171,112 @@ describe('TileThresholdBadge & Kachelanzeige (Auftrag 166 / P13a)', () => {
 
       expect(screen.queryByTestId('tile-threshold-badge')).toBeNull();
     });
+
+    it('zeigt kritischen linken Rand bei Überschreitung des kritischen Schwellenwerts', () => {
+      render(
+        <LazyDashboardTile
+          tile={tile}
+          useData={() => ({ ...fakeData, value: 600 })}
+          onShowDetails={vi.fn()}
+          threshold={{
+            formatVersion: 2,
+            enabled: true,
+            art: 'hoch_ist_schlecht',
+            einheit: 'EUR',
+            warnung: 200,
+            kritisch: 500,
+          }}
+        />,
+      );
+
+      const badge = screen.getByTestId('tile-threshold-badge');
+      expect(badge).toHaveTextContent('Kritisch');
+      const card = screen.getByTestId('dashboard-tile');
+      expect(card.className).toContain('border-l-2 border-l-rose-500');
+    });
+
+    it('rechnet den Vorjahresvergleich bei Einheit-Umrechnen (divide und multiply) um', () => {
+      const umsatzTileDivide: DashboardTileConfig = {
+        tileId: 't-umsatz-div',
+        catalogId: 'baseline.umsatz',
+        view: 'zahl',
+        size: 'klein',
+        filterMode: 'dashboard',
+        query: {
+          transformations: [{ art: 'einheit_umrechnen', von: 'EUR', zu: 'Tsd. EUR' }],
+        },
+      };
+
+      const umsatzData: TileData = {
+        catalogId: 'baseline.umsatz',
+        state: 'bereit',
+        value: 200_000,
+        series: null,
+        overview: null,
+        unit: 'EUR',
+        timeBasis: 'Stand 2025',
+        asOf: null,
+        origin: { layer: 'baseline', module: '', exportName: '' },
+        scope: 'stammdaten',
+        effectiveFilter: { mode: 'dashboard', period: null, pipeline: null },
+      };
+
+      const { unmount } = render(
+        <LazyDashboardTile
+          tile={umsatzTileDivide}
+          useData={() => umsatzData}
+          onShowDetails={vi.fn()}
+        />,
+      );
+
+      // baseline.umsatz comparison.value ist 164.000 EUR -> durch 1000 geteilt = 164 Tsd. EUR
+      const compEl = screen.getByTestId('tile-comparison');
+      expect(compEl.textContent).toContain('164');
+      unmount();
+
+      // Multiply-Zweig (Anteil -> %)
+      const umsatzTileMult: DashboardTileConfig = {
+        tileId: 't-umsatz-mult',
+        catalogId: 'baseline.umsatz',
+        view: 'zahl',
+        size: 'klein',
+        filterMode: 'dashboard',
+        query: {
+          transformations: [{ art: 'einheit_umrechnen', von: 'Anteil 0–1', zu: '%' }],
+        },
+      };
+
+      const { unmount: unmount2 } = render(
+        <LazyDashboardTile
+          tile={umsatzTileMult}
+          useData={() => umsatzData}
+          onShowDetails={vi.fn()}
+        />,
+      );
+      expect(screen.getByTestId('tile-comparison')).not.toBeNull();
+      unmount2();
+
+      // Unveränderter Zweig (umbenennen ohne Einheitenänderung)
+      const umsatzTileRename: DashboardTileConfig = {
+        tileId: 't-umsatz-rename',
+        catalogId: 'baseline.umsatz',
+        view: 'zahl',
+        size: 'klein',
+        filterMode: 'dashboard',
+        query: {
+          transformations: [{ art: 'umbenennen', name: 'Neuer Umsatz' }],
+        },
+      };
+
+      render(
+        <LazyDashboardTile
+          tile={umsatzTileRename}
+          useData={() => umsatzData}
+          onShowDetails={vi.fn()}
+        />,
+      );
+      expect(screen.getByTestId('tile-comparison')).not.toBeNull();
+    });
   });
 
   describe('Render-Zähler-Test (2.4 Nr. 25)', () => {

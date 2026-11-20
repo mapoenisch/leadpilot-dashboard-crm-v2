@@ -1,7 +1,4 @@
-// Executive Dashboard V2 (Auftrag 148 & 158 / P05 & P09b, Auftrag 163 / P11b):
-// Vorschau-Komponente für den visuellen Dashboard-Editor V2 ohne Anmeldung.
-// Unterstützt Vorlagen, Sektionen, Dashboard-Auswahl und Team-Freigaben (&teams=1 / &teams=entzogen).
-
+// Executive Dashboard V2: Vorschau-Komponente für visuellen Dashboard-Editor V2 ohne Anmeldung.
 import { useCallback, useState } from 'react';
 import { PreviewBannerV2 } from './PreviewBannerV2';
 import { DashboardAlarmsPage } from '../pages/DashboardAlarmsPage';
@@ -35,6 +32,11 @@ import {
   savePreviewDraftCopy,
   savePreviewDashboardDraft,
 } from './previewDashboardMutations';
+import {
+  PREVIEW_TRANSFORMATIONS_DASHBOARD_ID,
+  createPreviewTransformationsConfig,
+  createPreviewTransformationsListItem,
+} from './previewTransformations';
 
 /** Vorschau-Daten mit derselben gemeinsamen Zeitsteuerung wie der echte V2-Pfad. */
 const usePreviewDataTimeControlled: TileDataHook = (tile, filters, options) =>
@@ -47,15 +49,23 @@ export function DashboardEditorPreviewV2() {
     versionen: versionenScenario,
     schwellenwerte: schwellenwerteScenario,
     alarme: alarmeScenario,
+    transformationen: transformationenScenario,
     live: liveScenario,
   } = params;
   const [previewTab, setPreviewTab] = useState<'editor' | 'alarme' | 'admin'>('editor');
 
-  const [dashboards, setDashboards] = useState<AccessibleDashboardListItemV2[]>(() =>
-    initPreviewDashboards(versionenScenario, teamsScenario, schwellenwerteScenario, alarmeScenario),
-  );
+  const [dashboards, setDashboards] = useState<AccessibleDashboardListItemV2[]>(() => {
+    const list = initPreviewDashboards(
+      versionenScenario,
+      teamsScenario,
+      schwellenwerteScenario,
+      alarmeScenario,
+    );
+    return transformationenScenario ? [createPreviewTransformationsListItem(), ...list] : list;
+  });
 
   const [activeDashboardId, setActiveDashboardId] = useState<string>(() => {
+    if (transformationenScenario) return PREVIEW_TRANSFORMATIONS_DASHBOARD_ID;
     if (alarmeScenario) return PREVIEW_ALARMS_DASHBOARD_ID;
     if (schwellenwerteScenario) return 'preview_thresholds_dashboard';
     if (versionenScenario) return PREVIEW_VERSIONS_DASHBOARD_ID;
@@ -65,9 +75,15 @@ export function DashboardEditorPreviewV2() {
 
   const [showRevokedDialog, setShowRevokedDialog] = useState(false);
   const [liveStore] = useState(() => createPreviewLiveStore(liveScenario));
-  const [config, setConfig] = useState<DashboardConfigV2>(() =>
-    initPreviewConfig(versionenScenario, teamsScenario, schwellenwerteScenario, alarmeScenario),
-  );
+  const [config, setConfig] = useState<DashboardConfigV2>(() => {
+    if (transformationenScenario) return createPreviewTransformationsConfig();
+    return initPreviewConfig(
+      versionenScenario,
+      teamsScenario,
+      schwellenwerteScenario,
+      alarmeScenario,
+    );
+  });
 
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [revokedDraftConfig, setRevokedDraftConfig] = useState<DashboardConfigV2 | null>(null);

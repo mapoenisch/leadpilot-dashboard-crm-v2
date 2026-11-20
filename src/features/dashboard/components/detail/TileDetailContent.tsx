@@ -16,6 +16,7 @@ import { BLOCKING_STATES, blockingText, MUTED, TileNotices, TileStateBadge } fro
 import { formatAsOf, formatPeriod, formatTileValue, SOURCE_LABEL, timeLabel } from '../tileFormat';
 import { CombinationDetails } from './CombinationDetails';
 import { DETAIL_CARD, DETAIL_SECTION_TITLE } from './detailStyles';
+import { formatTransformationSummary } from '../../model/transformations';
 
 const STATE_LABEL: Record<TileDataState, string> = {
   bereit: 'Aktuell',
@@ -150,9 +151,18 @@ export function TileDetailContent({
               ref={headingRef}
               tabIndex={-1}
               data-testid="tile-detail-heading"
-              className="m-0 mt-[4px] break-words text-[22px] font-semibold text-[var(--color-text-primary,#fff)] outline-none"
+              className="m-0 mt-[4px] break-words text-[22px] font-semibold text-[var(--color-text-primary,#fff)] outline-none flex items-center flex-wrap gap-2"
             >
-              {title}
+              <span>{title}</span>
+              {tile.query?.transformations && tile.query.transformations.length > 0 && (
+                <span
+                  data-testid="tile-detail-transformed-hint"
+                  title={formatTransformationSummary(tile.query.transformations)}
+                  className="rounded bg-white/10 px-1.5 py-0.5 text-xs font-normal text-slate-300 cursor-help"
+                >
+                  umgeformt
+                </span>
+              )}
             </h2>
             {entry && !isOverview ? (
               <p

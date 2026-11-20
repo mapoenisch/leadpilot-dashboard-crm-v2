@@ -5,20 +5,27 @@ import type { TileData } from '../data/dashboardData';
 
 export interface TileDataStore {
   get: (tileId: string) => TileData | undefined;
-  set: (tileId: string, data: TileData) => void;
+  getRaw: (tileId: string) => TileData | undefined;
+  set: (tileId: string, data: TileData, rawData?: TileData) => void;
   subscribe: (tileId: string, listener: () => void) => () => void;
 }
 
 export function createTileDataStore(): TileDataStore {
   const dataMap = new Map<string, TileData>();
+  const rawDataMap = new Map<string, TileData>();
   const listenersMap = new Map<string, Set<() => void>>();
 
   return {
     get: (tileId: string) => dataMap.get(tileId),
-    set: (tileId: string, data: TileData) => {
+    getRaw: (tileId: string) => rawDataMap.get(tileId),
+    set: (tileId: string, data: TileData, rawData?: TileData) => {
       const prev = dataMap.get(tileId);
-      if (prev === data) return;
+      const prevRaw = rawDataMap.get(tileId);
+      if (prev === data && prevRaw === rawData) return;
       dataMap.set(tileId, data);
+      if (rawData) {
+        rawDataMap.set(tileId, rawData);
+      }
       const listeners = listenersMap.get(tileId);
       if (listeners) {
         listeners.forEach((listener) => listener());
