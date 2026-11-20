@@ -96,6 +96,48 @@ describe('Auftrag 170 – buildTimeSeriesExtras', () => {
     expect(extras.compare!.partialNotice).toBe('Vergleich unvollständig: Daten ab 05.10.2026');
   });
 
+  it('ordnet tägliche Vorjahreswerte kalenderbezogen zu (Schaltjahr)', () => {
+    // Basis 27.02.–03.03.2029 (kein Schaltjahr), Vergleich 2028 mit 29.02.:
+    // 01.03.2029 muss mit 01.03.2028 verglichen werden, nicht mit 29.02.2028.
+    const days = ['2029-02-27', '2029-02-28', '2029-03-01', '2029-03-02', '2029-03-03'];
+    const base: TileTimeSeriesData = {
+      source: 'deal_stage_events',
+      resolution: 'tag',
+      from: `${days[0]}T00:00:00+01:00`,
+      to: '2029-03-04T00:00:00+01:00',
+      historyStartAt: '2029-02-27T00:00:00+01:00',
+      points: days.map((d, i) => pt(`${d}T00:00:00+01:00`, i + 1)),
+    };
+    const cmpDays = [
+      '2028-02-27',
+      '2028-02-28',
+      '2028-02-29',
+      '2028-03-01',
+      '2028-03-02',
+      '2028-03-03',
+    ];
+    const out = buildTimeSeriesExtras({
+      data: resolved(base),
+      entry: crm,
+      series: base,
+      compare: {
+        compare: 'vorjahr',
+        resolution: 'tag',
+        compareFrom: 'a',
+        compareTo: 'b',
+        datenstandAb: null,
+        isPartial: false,
+        partialNotice: null,
+        basePoints: base.points,
+        comparePoints: cmpDays.map((d, i) => pt(`${d}T00:00:00+01:00`, 100 + i)),
+      },
+    });
+    // 29.02.2028 (Wert 102) hat keinen Basis-Pendant und bleibt ungenutzt.
+    expect(out.timeSeriesExtras!.compare!.points.map((p) => p.value)).toEqual([
+      100, 101, 103, 104, 105,
+    ]);
+  });
+
   it('Inner-Join filtert die Basis auf gemeinsame Zeitpunkte, Bänder bleiben positionsgenau', () => {
     const base = series([3, 4, 5, 6]);
     const other = series([1, null, 2], [WEEKS[0]!, WEEKS[2]!, WEEKS[3]!]);

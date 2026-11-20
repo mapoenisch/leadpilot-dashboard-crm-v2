@@ -49,6 +49,27 @@ export function weekdayIndex(day: number): number {
   return (((day + 3) % 7) + 7) % 7;
 }
 
+/** Wand-Schlüssel (Berliner Kalendertag + Kalenderstunde) für Jahres-Vergleiche. */
+export function berlinWallKey(at: string): string | null {
+  const hour = berlinHour(at);
+  if (Number.isNaN(hour)) return null;
+  return `${berlinDayKey(at)}T${String(hour).padStart(2, '0')}`;
+}
+
+/**
+ * Wand-Schlüssel minus ein Kalenderjahr; der 29. Februar fällt im Vorjahr ohne
+ * Schaltjahr auf den 28. Februar. Vergleicht Kalendereinträge, nicht Punktindizes.
+ */
+export function berlinWallKeyMinusYear(at: string): string | null {
+  const hour = berlinHour(at);
+  if (Number.isNaN(hour)) return null;
+  const [y, m, d] = berlinDayKey(at).split('-').map(Number);
+  if (!y || !m || !d) return null;
+  const md =
+    m === 2 && d === 29 ? '02-28' : `${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  return `${y - 1}-${md}T${String(hour).padStart(2, '0')}`;
+}
+
 /** ISO-Kalenderwoche eines Tages. */
 export function isoWeek(day: number): number {
   const thursday = day - weekdayIndex(day) + 3;

@@ -12,7 +12,7 @@ import type {
   TilePhaseSeriesData,
 } from '../../data/resolveTimeSeriesCompare';
 import { alignSeries } from './alignSeries';
-import { berlinDayKey, dayNumber } from './berlinDate';
+import { berlinDayKey, berlinWallKey, berlinWallKeyMinusYear, dayNumber } from './berlinDate';
 import { bandsForDisplay, calculateExpectationBands } from './expectationBands';
 import type { TileTimeSeriesExtras, TimeSeriesJoinType } from './types';
 
@@ -84,13 +84,34 @@ export function buildTimeSeriesExtras(input: BuildTimeSeriesExtrasInput): Resolv
   const points = kept.map((i) => allPoints[i]!);
 
   if (compare) {
-    const byAt = new Map(compare.basePoints.map((p, i) => [p.at, i]));
-    extras.compare = {
-      type: compare.compare,
-      points: kept.map((i) => {
+    // Vorjahr bei Stunde/Tag kann anders viele Buckets liefern (Schaltjahr,
+    // Zeitumstellung): kalenderbezogene Zuordnung über den Berliner Wand-Schlüssel.
+    // Vorperiode sowie Woche/Monat bleiben positionsgleich.
+    const calendarVorjahr =
+      compare.compare === 'vorjahr' &&
+      (input.series.resolution === 'stunde' || input.series.resolution === 'tag');
+    let mapped: TimeSeriesPoint[];
+    if (calendarVorjahr) {
+      const byWall = new Map<string, TimeSeriesPoint>();
+      for (const cp of compare.comparePoints) {
+        const key = berlinWallKey(cp.at);
+        if (key !== null) byWall.set(key, cp);
+      }
+      mapped = kept.map((i) => {
+        const at = allPoints[i]!.at;
+        const key = berlinWallKeyMinusYear(at);
+        return (key !== null ? byWall.get(key) : undefined) ?? GAP(at);
+      });
+    } else {
+      const byAt = new Map(compare.basePoints.map((p, i) => [p.at, i]));
+      mapped = kept.map((i) => {
         const at = allPoints[i]!.at;
         return compare.comparePoints[byAt.get(at) ?? i] ?? GAP(at);
-      }),
+      });
+    }
+    extras.compare = {
+      type: compare.compare,
+      points: mapped,
       datenstandAb: compare.datenstandAb,
       partialNotice: compare.partialNotice,
     };
