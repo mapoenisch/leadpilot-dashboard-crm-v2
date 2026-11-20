@@ -75,9 +75,9 @@ export function LazyDashboardTile({
 
   useEffect(() => {
     if (data && tile.tileId) {
-      timeControl?.tileDataStore.set(tile.tileId, data);
+      timeControl?.tileDataStore.set(tile.tileId, data, rawData);
     }
-  }, [data, tile.tileId, timeControl]);
+  }, [data, rawData, tile.tileId, timeControl]);
 
   const entry = activeEntryOf(tile);
   const effectiveThreshold = threshold ?? (tile as { threshold?: TileThresholdRule }).threshold;

@@ -6,6 +6,12 @@
 import type { ResolvedTileData, TileData, TimeSeriesPoint } from '../../data/dashboardData';
 import type { TileTransformation } from './types';
 import { getUnitConversion } from './unitConversions';
+import {
+  attachTileStand,
+  readTileStand,
+  attachCrmQueryMeta,
+  readCrmQueryMeta,
+} from '../../time/useTimeControlledData';
 
 export function getEffectiveUnit(
   baseUnit: string,
@@ -68,6 +74,15 @@ export function applyTransformations<T extends TileData>(
     current = applySingleStep(current, step);
   }
 
+  const stand = readTileStand(ergebnis);
+  if (stand) {
+    attachTileStand(current as unknown as TileData, stand);
+  }
+  const crmMeta = readCrmQueryMeta(ergebnis);
+  if (crmMeta) {
+    attachCrmQueryMeta(current as unknown as TileData, crmMeta);
+  }
+
   return current as unknown as T;
 }
 
@@ -124,6 +139,9 @@ function applySingleStep(data: ResolvedTileData, step: TileTransformation): Reso
     }
 
     let nextTimeSeries = data.timeSeries;
+    let nextValue = data.value;
+    let nextSeries = data.series;
+
     if (data.timeSeries) {
       const origPoints = data.timeSeries.points;
       const computedPoints: TimeSeriesPoint[] = [];
@@ -166,10 +184,33 @@ function applySingleStep(data: ResolvedTileData, step: TileTransformation): Reso
         ...data.timeSeries,
         points: computedPoints,
       };
-    }
 
-    let nextSeries = data.series;
-    if (data.series && !data.timeSeries) {
+      // Letzten geglätteten Wert ableiten (oder null bei Lücke/Fehlen)
+      const latestPoint = computedPoints[computedPoints.length - 1];
+      nextValue =
+        latestPoint && latestPoint.status === 'belegt' && latestPoint.value !== null
+          ? latestPoint.value
+          : null;
+
+      // Kurzfassung (series) aus den geglätteten belegten Punkten ableiten
+      if (data.series) {
+        const labelByAt = new Map<string, string>();
+        let sIdx = 0;
+        for (const pt of origPoints) {
+          const sItem = data.series[sIdx];
+          if (pt.status === 'belegt' && pt.value !== null && sItem) {
+            labelByAt.set(pt.at, sItem.label);
+            sIdx++;
+          }
+        }
+        nextSeries = computedPoints
+          .filter((p) => p.status === 'belegt' && p.value !== null)
+          .map((p) => ({
+            label: labelByAt.get(p.at) ?? p.at,
+            value: p.value as number,
+          }));
+      }
+    } else if (data.series) {
       const origSeries = data.series;
       nextSeries = origSeries.map((item, i) => {
         if (i < fenster - 1) {
@@ -179,10 +220,13 @@ function applySingleStep(data: ResolvedTileData, step: TileTransformation): Reso
         const sum = slice.reduce((acc, s) => acc + s.value, 0);
         return { ...item, value: sum / fenster };
       });
+      const lastItem = nextSeries[nextSeries.length - 1];
+      nextValue = lastItem ? lastItem.value : null;
     }
 
     return {
       ...data,
+      value: nextValue,
       series: nextSeries,
       timeSeries: nextTimeSeries,
     };

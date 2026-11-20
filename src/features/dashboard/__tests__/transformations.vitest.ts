@@ -17,6 +17,12 @@ import {
   type ThresholdRuleV2,
 } from '../model/thresholdRuleV2';
 import type { ResolvedTileData } from '../data/dashboardData';
+import {
+  attachTileStand,
+  readTileStand,
+  attachCrmQueryMeta,
+  readCrmQueryMeta,
+} from '../time/useTimeControlledData';
 import referenceCases from '../model/transformations/transformationReferenceCases.json';
 
 function createMockResolvedData(overrides: Partial<ResolvedTileData> = {}): ResolvedTileData {
@@ -66,21 +72,16 @@ describe('Auftrag 169 – Transformations-Modell & Vitest Suite', () => {
         },
       });
 
-      const transformations: TileTransformation[] = [
-        { art: 'gleitender_durchschnitt', fenster: 3 },
-      ];
-
-      const result = applyTransformations(data, transformations);
+      const result = applyTransformations(data, [{ art: 'gleitender_durchschnitt', fenster: 3 }]);
       const pts = result.timeSeries?.points;
       expect(pts).toBeDefined();
-      expect(pts?.[0]?.value).toBeNull();
-      expect(pts?.[1]?.value).toBeNull();
-      expect(pts?.[2]?.value).toBeNull();
-      expect(pts?.[2]?.status).toBe('luecke');
-      expect(pts?.[3]?.value).toBeNull();
-      expect(pts?.[3]?.status).toBe('luecke');
-      expect(pts?.[4]?.value).toBeNull();
-      expect(pts?.[4]?.status).toBe('luecke');
+      expect(pts?.map((p) => [p.value, p.status])).toEqual([
+        [null, 'luecke'],
+        [null, 'luecke'],
+        [null, 'luecke'],
+        [null, 'luecke'],
+        [null, 'luecke'],
+      ]);
     });
 
     it('(c) Schwellenwert nach Einheitenwechsel wird regel_ungueltig', () => {
@@ -146,12 +147,8 @@ describe('Auftrag 169 – Transformations-Modell & Vitest Suite', () => {
             unit: tc.eingabe.einheit,
           });
           const res = applyTransformations(inputData, trans);
-          if ('wert' in tc.erwartet) {
-            expect(res.value).toBeCloseTo(tc.erwartet.wert as number, 4);
-          }
-          if ('einheit' in tc.erwartet) {
-            expect(res.unit).toBe(tc.erwartet.einheit);
-          }
+          if ('wert' in tc.erwartet) expect(res.value).toBeCloseTo(tc.erwartet.wert as number, 4);
+          if ('einheit' in tc.erwartet) expect(res.unit).toBe(tc.erwartet.einheit);
         }
 
         if (
@@ -186,11 +183,8 @@ describe('Auftrag 169 – Transformations-Modell & Vitest Suite', () => {
             expect(resPoints?.length).toBe(expectedRow.length);
             expectedRow.forEach((expVal, idx) => {
               const pt = resPoints?.[idx];
-              if (expVal === null) {
-                expect(pt?.value).toBeNull();
-              } else {
-                expect(pt?.value).toBeCloseTo(expVal, 4);
-              }
+              if (expVal === null) expect(pt?.value).toBeNull();
+              else expect(pt?.value).toBeCloseTo(expVal, 4);
             });
           }
 
@@ -320,10 +314,55 @@ describe('Auftrag 169 – Transformations-Modell & Vitest Suite', () => {
       );
     });
 
-    it('ermittelt effektiven Titel', () => {
-      const chain: TileTransformation[] = [{ art: 'umbenennen', name: 'Neuer Titel' }];
-      expect(getEffectiveTitle('Alter Titel', chain)).toBe('Neuer Titel');
-      expect(getEffectiveTitle('Alter Titel', [])).toBe('Alter Titel');
+    it('erhaelt TileStand und CrmQueryMeta beim Transformieren', () => {
+      const data = createMockResolvedData({ value: 1000, unit: 'EUR' });
+      attachTileStand(data, {
+        mode: 'zeitpunkt',
+        analysisAt: '2026-11-01T00:00:00Z',
+        observedAt: '2026-11-01T12:00:00Z',
+        loadedAfterPause: false,
+      });
+      attachCrmQueryMeta(data, { fetchedAt: 123456789, isFetching: false });
+
+      const res = applyTransformations(data, [{ art: 'umbenennen', name: 'Neuer Titel' }]);
+      expect(readTileStand(res)).toEqual({
+        mode: 'zeitpunkt',
+        analysisAt: '2026-11-01T00:00:00Z',
+        observedAt: '2026-11-01T12:00:00Z',
+        loadedAfterPause: false,
+      });
+      expect(readCrmQueryMeta(res)).toEqual({ fetchedAt: 123456789, isFetching: false });
+      expect(getEffectiveTitle('Alter Titel', [{ art: 'umbenennen', name: 'Neuer Titel' }])).toBe(
+        'Neuer Titel',
+      );
+    });
+
+    it('aktualisiert beim Glaetten einer Zeitreihe auch value und series', () => {
+      const points = [
+        { at: '2026-11-01', value: 10, status: 'belegt' as const, measuredAt: '2026-11-01' },
+        { at: '2026-11-02', value: 20, status: 'belegt' as const, measuredAt: '2026-11-02' },
+        { at: '2026-11-03', value: 30, status: 'belegt' as const, measuredAt: '2026-11-03' },
+      ];
+      const data = createMockResolvedData({
+        value: 30,
+        series: [
+          { label: '01.11.', value: 10 },
+          { label: '02.11.', value: 20 },
+          { label: '03.11.', value: 30 },
+        ],
+        timeSeries: {
+          source: 'deal_stage_events',
+          resolution: 'tag',
+          from: '2026-11-01',
+          to: '2026-11-03',
+          historyStartAt: '2026-11-01',
+          points,
+        },
+      });
+
+      const res = applyTransformations(data, [{ art: 'gleitender_durchschnitt', fenster: 3 }]);
+      expect(res.value).toBe(20);
+      expect(res.series).toEqual([{ label: '03.11.', value: 20 }]);
     });
   });
 

@@ -859,7 +859,8 @@ BEGIN
                 beobachtete_laeufe = v_laeufe_neu,
                 letzter_messwert = v_wert,
                 letzte_einheit = v_einheit,
-                letzte_auswertung = p_now
+                letzte_auswertung = p_now,
+                auswertungsfehler = NULL
             WHERE rule_id = v_r.id;
           END IF;
         ELSE
@@ -870,8 +871,9 @@ BEGIN
               beobachtete_laeufe = v_laeufe_neu,
               letzter_messwert = v_wert,
               letzte_einheit = v_einheit,
-              letzte_auswertung = p_now
-          WHERE rule_id = v_r.id;
+              letzte_auswertung = p_now,
+              auswertungsfehler = NULL
+            WHERE rule_id = v_r.id;
         END IF;
       END IF;
 
@@ -879,6 +881,10 @@ BEGIN
 
     EXCEPTION WHEN OTHERS THEN
       v_fehler_anzahl := v_fehler_anzahl + 1;
+      UPDATE public.dashboard_alarm_state
+      SET auswertungsfehler = SQLERRM,
+          letzte_auswertung = p_now
+      WHERE rule_id = v_r.id;
     END;
   END LOOP;
 
