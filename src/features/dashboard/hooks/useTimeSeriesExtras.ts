@@ -208,10 +208,10 @@ export function useTimeSeriesExtras(
       notices.push(`Vergleich: ${errorMessage(compareQuery.error, 'nicht geladen')}`);
     if (joinQuery.isError)
       notices.push(`Zweite Reihe: ${errorMessage(joinQuery.error, 'nicht geladen')}`);
-    if (bandsQuery.isError)
+    if (parts.bands && bandsQuery.isError)
       notices.push(`Erwartungsband: ${errorMessage(bandsQuery.error, 'nicht geladen')}`);
     if (parts.join && !joinEntry) {
-      notices.push('Zweite Reihe nicht verknüpfbar: nur Zeitreihen gleicher Auflösung.');
+      notices.push('Zweite Reihe nicht verknüpfbar: Auflösung wird nicht unterstützt.');
     }
 
     const result = buildTimeSeriesExtras({
@@ -223,7 +223,9 @@ export function useTimeSeriesExtras(
         joinEntry && joinQuery.data
           ? { entry: joinEntry, typ: parts.join!.typ, series: joinQuery.data }
           : undefined,
-      bandPrior: bandsQuery.data,
+      // Banddaten nur bei aktivem Band: sonst bliebe ein Band aus dem Cache sichtbar,
+      // obwohl es ausgeschaltet wurde (oder eine zweite Kachel den Cache teilt).
+      bandPrior: parts.bands ? bandsQuery.data : undefined,
       heatmap: isHeatmap ? heatmapQuery.data : undefined,
       notices,
     });

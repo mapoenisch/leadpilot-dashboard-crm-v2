@@ -124,7 +124,7 @@ describe('Auftrag 170 – Vorschau-Zusatzreihen', () => {
       entry('crm.gewonnen_verlauf'),
       data('crm.gewonnen_verlauf', CRM),
     );
-    expect(bad.timeSeriesExtras!.notices[0]).toMatch(/gleicher Auflösung/);
+    expect(bad.timeSeriesExtras!.notices[0]).toMatch(/nicht verknüpfbar/);
     const plain = data('live.arr.verlauf', LIVE);
     expect(
       withPreviewTimeSeriesExtras(

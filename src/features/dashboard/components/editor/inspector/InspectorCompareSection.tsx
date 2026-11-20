@@ -115,7 +115,7 @@ export function InspectorCompareSection({
         </select>
         {!blocked && candidates.length === 0 ? (
           <p data-testid="inspector-join-none" className={HINT_CLASS}>
-            Keine weitere Zeitreihe mit gleicher Auflösung vorhanden.
+            Keine weitere Zeitreihe mit unterstützter Auflösung vorhanden.
           </p>
         ) : null}
         {query.join ? (

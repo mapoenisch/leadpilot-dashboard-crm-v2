@@ -191,7 +191,8 @@ describe('Auftrag 170 – Abfrage: Normalisierung, Prüfung, Speichern', () => {
     });
   });
 
-  it('Join nur zwischen Zeitreihen gleicher Auflösung (Rot-Nachweis)', () => {
+  it('Join nur zwischen Zeitreihen mit unterstützter Auflösung (Rot-Nachweis)', () => {
+    // Live-Standard ist Stunde: CRM-Ereignisse unterstützen keine Stundenauflösung.
     expect(
       joinCandidates(live).every((c) => c.history.defaultWindow?.resolution === 'stunde'),
     ).toBe(true);
@@ -200,7 +201,35 @@ describe('Auftrag 170 – Abfrage: Normalisierung, Prüfung, Speichern', () => {
       { metricId: live.id, join: { metricId: 'crm.gewonnen_verlauf', typ: 'inner' } },
       live,
     );
-    expect(issues[0]?.message).toMatch(/gleicher Auflösung/);
+    expect(issues[0]?.message).toMatch(/unterstützter Auflösung/);
+  });
+
+  it('Join-Kandidaten folgen der effektiven Auflösung, nicht dem Standardfenster', () => {
+    // Tag-Fenster (z. B. 30 Tage): Live- und CRM-Quellen unterstützen Tag.
+    const tagWindow = { count: 30, resolution: 'tag' as const };
+    const ids = joinCandidates(live, tagWindow).map((c) => c.id);
+    expect(ids).toContain('live.mrr.verlauf');
+    expect(ids).toContain('crm.gewonnen_verlauf');
+    expect(ids).toContain('crm.phaseneintritte_verlauf');
+
+    // Eine gespeicherte Verknüpfung über Quellen hinweg ist bei Tag gültig.
+    expect(
+      validateTimeSeriesQueryParts(
+        {
+          metricId: live.id,
+          window: tagWindow,
+          join: { metricId: 'crm.gewonnen_verlauf', typ: 'inner' },
+        },
+        live,
+      ),
+    ).toEqual([]);
+
+    // Ohne passendes Fenster bleibt die Verknüpfung ungültig (Live hat keine Wochen).
+    const issues = validateTimeSeriesQueryParts(
+      { metricId: live.id, join: { metricId: 'crm.gewonnen_verlauf', typ: 'inner' } },
+      live,
+    );
+    expect(issues[0]?.message).toMatch(/unterstützter Auflösung/);
   });
 
   it('lehnt Vergleich bei Nicht-Zeitreihen und bei wertverändernden Transformationen ab', () => {

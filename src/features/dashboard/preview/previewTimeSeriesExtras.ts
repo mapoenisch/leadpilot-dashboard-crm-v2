@@ -183,7 +183,7 @@ export function withPreviewTimeSeriesExtras(
     heatmap,
     notices:
       parts.join && !joinEntry
-        ? ['Zweite Reihe nicht verknüpfbar: nur Zeitreihen gleicher Auflösung.']
+        ? ['Zweite Reihe nicht verknüpfbar: Auflösung wird nicht unterstützt.']
         : [],
   });
 }

@@ -1,6 +1,8 @@
 // Auftrag 170 (P14b): Normalisierung und Prüfung von query.compare, query.join und query.bands.
 import { DASHBOARD_CATALOG, isActiveEntry, type ActiveCatalogEntry } from '../dashboardCatalog';
 import type { TileQueryConfig } from '../dashboardConfigV2';
+import type { TimeSeriesResolution } from '../../data/dashboardData';
+import { supportsResolution } from './resolutionLimits';
 import type { TimeSeriesCompareType, TimeSeriesJoinConfig, TimeSeriesBandsConfig } from './types';
 
 export interface TimeSeriesQueryParts {
@@ -58,19 +60,27 @@ export function effectiveResolution(
   return window?.resolution ?? entry.history.defaultWindow?.resolution;
 }
 
-/** Zulässige zweite Reihen: aktive Zeitreihen mit gleicher Auflösung (§2.1 Nr. 3). */
+/**
+ * Zulässige zweite Reihen: aktive Zeitreihen, deren Quelle die effektive Auflösung der ersten
+ * Reihe unterstützt (Tag/Woche/Monat für CRM, Stunde/Tag für Live). Der Join-Abruf übergibt
+ * Auflösung und Fenster der ersten Reihe, daher zählt nicht das Standardfenster des Kandidaten.
+ */
 export function joinCandidates(
   entry: ActiveCatalogEntry,
   window?: TileQueryConfig['window'],
 ): ActiveCatalogEntry[] {
   if (!isTimeSeriesEntry(entry)) return [];
   const resolution = effectiveResolution(entry, window);
+  if (!resolution) return [];
   return DASHBOARD_CATALOG.filter(
     (candidate): candidate is ActiveCatalogEntry =>
       isActiveEntry(candidate) &&
       candidate.id !== entry.id &&
       isTimeSeriesEntry(candidate) &&
-      candidate.history.defaultWindow?.resolution === resolution,
+      supportsResolution(
+        candidate.source.layer === 'crm' ? 'crm' : 'live',
+        resolution as TimeSeriesResolution,
+      ),
   );
 }
 
@@ -130,7 +140,7 @@ export function validateTimeSeriesQueryParts(
     } else if (!joinCandidates(entry, window).some((c) => c.id === normalized.join!.metricId)) {
       issues.push({
         field: 'join',
-        message: `Verknüpfung mit "${normalized.join.metricId}" ist nur zwischen Zeitreihen gleicher Auflösung zulässig.`,
+        message: `Verknüpfung mit "${normalized.join.metricId}" ist nur zwischen Zeitreihen mit unterstützter Auflösung zulässig.`,
       });
     }
   }
