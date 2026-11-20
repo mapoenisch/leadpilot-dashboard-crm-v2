@@ -164,6 +164,47 @@ describe('useTimeControlledData', () => {
     expect(screen.getByTestId('pipe-after')).toHaveTextContent('true');
   });
 
+  it('verwirft den Einfrierstand bei geänderten Zusatzreihen oder Heatmap während einer Pause', () => {
+    const useExtrasSource: TileDataHook = (t) =>
+      fakeData(t, t.query?.compare ? 77 : t.view === 'heatmap' ? 55 : 10);
+
+    function ExtrasHarness() {
+      const [current, setCurrent] = useState<DashboardTileConfig>(tile);
+      const data = useTimeControlledSource(useExtrasSource, current, undefined, {});
+      const stand = readTileStand(data);
+      return (
+        <>
+          <button
+            type="button"
+            onClick={() => setCurrent({ ...tile, query: { compare: 'vorperiode' } })}
+          >
+            vergleich-an
+          </button>
+          <button type="button" onClick={() => setCurrent({ ...tile, view: 'heatmap' })}>
+            heatmap-an
+          </button>
+          <span data-testid="ex-val">{data.state === 'nicht_verfuegbar' ? '' : data.value}</span>
+          <span data-testid="ex-after">{String(stand?.loadedAfterPause ?? false)}</span>
+        </>
+      );
+    }
+
+    render(
+      <TimeControlProvider
+        initialState={{ mode: 'pausiert', analysisAt: '2026-11-15T14:32:00.000Z', resumeToken: 0 }}
+      >
+        <ExtrasHarness />
+      </TimeControlProvider>,
+    );
+
+    expect(screen.getByTestId('ex-val')).toHaveTextContent('10');
+    fireEvent.click(screen.getByRole('button', { name: 'vergleich-an' }));
+    expect(screen.getByTestId('ex-val')).toHaveTextContent('77');
+    expect(screen.getByTestId('ex-after')).toHaveTextContent('true');
+    fireEvent.click(screen.getByRole('button', { name: 'heatmap-an' }));
+    expect(screen.getByTestId('ex-val')).toHaveTextContent('55');
+  });
+
   it('schließt Erstinitialisierung von Live-Kacheln ab, sobald nach Pausenbeginn der erste Snapshot eintrifft', () => {
     let emitSnapshot: ((snap: boolean) => void) | null = null;
     const useInitialLiveSource: TileDataHook = (t) => {

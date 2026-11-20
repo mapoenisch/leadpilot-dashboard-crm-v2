@@ -299,6 +299,7 @@ describe('DashboardWorkspace: Codex-Befunde PR #59, Runde 5', () => {
       gauge: () => Promise.reject(new Error('x')),
       sparkline: () => Promise.reject(new Error('x')),
       trichter: () => Promise.reject(new Error('x')),
+      heatmap: () => Promise.reject(new Error('x')),
     };
     const { props } = setup(prefs(), { chartLoaders: failing });
     startEditing();

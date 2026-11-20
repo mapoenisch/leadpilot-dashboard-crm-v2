@@ -9,6 +9,7 @@ import type { DashboardTileConfigV2 } from '../../../model/dashboardConfigV2';
 import type { TileData } from '../../../data/dashboardData';
 import { getQueryCapabilities } from '../../../model/queryCapabilities';
 import { normalizeTileQuery } from '../../../model/tileQuery';
+import { hasValueTransformation } from '../../../model/timeseries/timeSeriesQuery';
 import {
   formatHistoryLabel,
   formatResolutionText,
@@ -18,6 +19,7 @@ import { useOptionalTimeControl } from '../../../time/TimeControlProvider';
 import { useDashboardData } from '../../../hooks/useDashboardData';
 import { TimeWindowField, type TimeWindowConfig } from './TimeWindowField';
 import { InspectorTransformationSection } from './InspectorTransformationSection';
+import { InspectorCompareSection } from './InspectorCompareSection';
 import type { TileTransformation } from '../../../model/transformations';
 
 export function InspectorDataTab({
@@ -84,12 +86,15 @@ export function InspectorDataTab({
   };
 
   const handleTransformationsChange = (nextTransformations: TileTransformation[] | undefined) => {
-    onTileOverrideChange(selectedTile.id, {
-      query: {
-        ...normQuery,
-        transformations: nextTransformations,
-      },
-    });
+    const query = { ...normQuery, transformations: nextTransformations };
+    // Wertverändernde Transformationen sind mit Vergleich, zweiter Reihe und Band nicht
+    // kombinierbar: sie werden wie beim Darstellungswechsel entfernt, nicht unzulässig gespeichert.
+    if (hasValueTransformation(query)) {
+      delete query.compare;
+      delete query.join;
+      delete query.bands;
+    }
+    onTileOverrideChange(selectedTile.id, { query });
   };
 
   const isTimeSeries = catalogEntry?.history.kind === 'ereignisse';
@@ -264,6 +269,13 @@ export function InspectorDataTab({
           </p>
         </div>
       )}
+
+      {/* Vergleichen & Verknüpfen (Auftrag 170 / P14b) */}
+      <InspectorCompareSection
+        selectedTile={selectedTile}
+        catalogEntry={catalogEntry}
+        onTileOverrideChange={onTileOverrideChange}
+      />
 
       {/* Umformen: Transformationen je Kachel (Auftrag 169 / P14a) */}
       <InspectorTransformationSection

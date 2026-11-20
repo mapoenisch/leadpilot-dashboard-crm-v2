@@ -4,6 +4,7 @@
  */
 
 import type { ResolvedTileData, TileData, TimeSeriesPoint } from '../../data/dashboardData';
+import type { TileTimeSeriesExtras } from '../timeseries/types';
 import type { TileTransformation } from './types';
 import { getUnitConversion } from './unitConversions';
 import {
@@ -12,6 +13,57 @@ import {
   attachCrmQueryMeta,
   readCrmQueryMeta,
 } from '../../time/useTimeControlledData';
+
+/** Glättet eine Punktreihe; die ersten `fenster - 1` Punkte bleiben als Lücke. */
+function movingAveragePoints(
+  origPoints: readonly TimeSeriesPoint[],
+  fenster: number,
+): TimeSeriesPoint[] {
+  const computedPoints: TimeSeriesPoint[] = [];
+  for (let i = 0; i < origPoints.length; i++) {
+    const pt = origPoints[i];
+    if (!pt) continue;
+    if (i < fenster - 1) {
+      computedPoints.push({ ...pt, value: null, status: 'luecke' });
+      continue;
+    }
+    const windowSlice = origPoints.slice(i - fenster + 1, i + 1);
+    const hasGap = windowSlice.some(
+      (p) => p.value === null || p.status === 'luecke' || p.status === 'vor_historienbeginn',
+    );
+    if (hasGap) {
+      computedPoints.push({ ...pt, value: null, status: 'luecke' });
+    } else {
+      const sum = windowSlice.reduce((acc, p) => acc + (p.value ?? 0), 0);
+      computedPoints.push({ ...pt, value: sum / fenster, status: 'belegt' });
+    }
+  }
+  return computedPoints;
+}
+
+/** Überträgt eine Wertänderung auf die Heatmap-Rohpunkte und jede Phasenreihe. */
+function mapHeatmapValues(
+  extras: TileTimeSeriesExtras | undefined,
+  mapPoints: (points: readonly TimeSeriesPoint[]) => TimeSeriesPoint[],
+): TileTimeSeriesExtras | undefined {
+  if (!extras?.heatmap) return extras;
+  const { heatmap } = extras;
+  return {
+    ...extras,
+    heatmap: {
+      ...heatmap,
+      points: mapPoints(heatmap.points),
+      ...(heatmap.phaseSeries
+        ? {
+            phaseSeries: heatmap.phaseSeries.map((series) => ({
+              ...series,
+              points: mapPoints(series.points),
+            })),
+          }
+        : {}),
+    },
+  };
+}
 
 export function getEffectiveUnit(
   baseUnit: string,
@@ -126,6 +178,9 @@ function applySingleStep(data: ResolvedTileData, step: TileTransformation): Reso
       value: nextValue,
       series: nextSeries,
       timeSeries: nextTimeSeries,
+      timeSeriesExtras: mapHeatmapValues(data.timeSeriesExtras, (points) =>
+        points.map((p) => ({ ...p, value: convertNum(p.value) })),
+      ),
     };
   }
 
@@ -141,41 +196,7 @@ function applySingleStep(data: ResolvedTileData, step: TileTransformation): Reso
 
     if (data.timeSeries) {
       const origPoints = data.timeSeries.points;
-      const computedPoints: TimeSeriesPoint[] = [];
-
-      for (let i = 0; i < origPoints.length; i++) {
-        const pt = origPoints[i];
-        if (!pt) continue;
-        if (i < fenster - 1) {
-          computedPoints.push({
-            ...pt,
-            value: null,
-            status: 'luecke',
-          });
-          continue;
-        }
-
-        const windowSlice = origPoints.slice(i - fenster + 1, i + 1);
-        const hasGap = windowSlice.some(
-          (p) => p.value === null || p.status === 'luecke' || p.status === 'vor_historienbeginn',
-        );
-
-        if (hasGap) {
-          computedPoints.push({
-            ...pt,
-            value: null,
-            status: 'luecke',
-          });
-        } else {
-          const sum = windowSlice.reduce((acc, p) => acc + (p.value ?? 0), 0);
-          const avg = sum / fenster;
-          computedPoints.push({
-            ...pt,
-            value: avg,
-            status: 'belegt',
-          });
-        }
-      }
+      const computedPoints = movingAveragePoints(origPoints, fenster);
 
       nextTimeSeries = {
         ...data.timeSeries,
@@ -226,6 +247,9 @@ function applySingleStep(data: ResolvedTileData, step: TileTransformation): Reso
       value: nextValue,
       series: nextSeries,
       timeSeries: nextTimeSeries,
+      timeSeriesExtras: mapHeatmapValues(data.timeSeriesExtras, (points) =>
+        movingAveragePoints(points, fenster),
+      ),
     };
   }
 

@@ -93,7 +93,7 @@ export const LIVE_HISTORY_ENTRIES: readonly ActiveCatalogEntry[] = LIVE_ENTRIES.
   shape: 'zeitreihe' as const,
   aggregation: entry.aggregation === 'verhaeltnis' ? ('verhaeltnis' as const) : ('keine' as const),
   timeBasis: 'Verlauf 24 Stunden (stündlich)',
-  views: ['linie', 'flaeche', 'tabelle'] as const,
+  views: ['linie', 'flaeche', 'tabelle', 'heatmap'] as const,
   defaultView: 'linie' as const,
   minSize: 'mittel' as const,
   history: {

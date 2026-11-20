@@ -9,6 +9,8 @@ export interface CheckAlarmTogglePermittedParams {
   hasValidV2Rule?: boolean;
   isAlarmCapable?: boolean;
   hasSupportedFiltersOnly?: boolean;
+  hasCompareOrJoin?: boolean;
+  isHeatmap?: boolean;
 }
 
 export interface AlarmTogglePermittedResult {
@@ -27,7 +29,23 @@ export function checkAlarmTogglePermitted(
     hasValidV2Rule = true,
     isAlarmCapable = true,
     hasSupportedFiltersOnly = true,
+    hasCompareOrJoin = false,
+    isHeatmap = false,
   } = params;
+
+  if (hasCompareOrJoin) {
+    return {
+      permitted: false,
+      reason: 'Vergleich und Verknüpfung liefern keinen Einzelwert und sind nicht alarmfähig.',
+    };
+  }
+
+  if (isHeatmap) {
+    return {
+      permitted: false,
+      reason: 'Heatmaps liefern keinen Einzelwert und sind nicht alarmfähig.',
+    };
+  }
 
   if (userRole !== 'manager' && userRole !== 'admin') {
     return { permitted: false, reason: 'Alarme verwalten nur Manager und Admins.' };

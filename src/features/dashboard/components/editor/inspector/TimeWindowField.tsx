@@ -5,6 +5,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import type { ActiveCatalogEntry } from '../../../model/dashboardCatalog';
 import type { TimeSeriesResolution } from '../../../data/dashboardData';
+import { getMaxCountForResolution } from '../../../model/timeseries/resolutionLimits';
 
 export interface TimeWindowConfig {
   count: number;
@@ -47,22 +48,7 @@ const LIVE_PRESETS: readonly WindowPreset[] = [
   { id: '30_tage', label: '30 Tage (je Tag)', window: { count: 30, resolution: 'tag' } },
 ];
 
-export function getMaxCountForResolution(
-  layer: 'crm' | 'live',
-  resolution: TimeSeriesResolution,
-): number | null {
-  if (layer === 'crm') {
-    if (resolution === 'stunde') return null; // unzulässig
-    if (resolution === 'tag') return 366;
-    if (resolution === 'woche') return 260;
-    if (resolution === 'monat') return 120;
-  } else {
-    if (resolution === 'stunde') return 168;
-    if (resolution === 'tag') return 90;
-    return null; // woche/monat unzulässig
-  }
-  return null;
-}
+export { getMaxCountForResolution };
 
 function parsePositiveInteger(raw: string): number | null {
   const trimmed = raw.trim();

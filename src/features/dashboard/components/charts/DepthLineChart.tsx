@@ -1,6 +1,7 @@
 // Designprobe Dashboard-Testkachel (Teilauftrag 0): Linie und Fläche.
 // Klare Linie mit dezentem Schatten; die Datenpunkte liegen exakt auf dem Wert (keine Tiefenverschiebung).
 // Die Fläche (filled) ergänzt einen ruhigen Verlauf. Zugang für Tastatur und Touch: Bereichsregler.
+// Auftrag 170: Vergleichslinie, zweite Reihe (eigene Achse) und Erwartungsband als Zusatzebenen.
 import { useMemo } from 'react';
 import { MANAGEMENT_CHART_THEME } from '@/components/ui/charts/managementChartTheme';
 import {
@@ -20,9 +21,10 @@ import {
   formatDe,
   linePath,
   linePoints,
-  niceScale,
   summarizeSeries,
 } from './depthGeometry';
+import { buildExtraReadout } from './depthChartHelpers';
+import { LineOverlayLayers, LineOverlayNotes, useLineOverlays } from './DepthLineOverlays';
 
 const AREA = { left: 56, top: 26, width: 470, height: 196 };
 const THEME = MANAGEMENT_CHART_THEME.colors;
@@ -44,6 +46,7 @@ export function DepthLineChart({
   filled = false,
   resolution,
   windowEnd,
+  extras,
 }: DepthLineChartProps) {
   const tileId = propTileId ?? idPrefix;
   const {
@@ -52,13 +55,8 @@ export function DepthLineChart({
     handleSelect,
     handleClear,
   } = useCrosshairController(data, tileId, { resolution, windowEnd });
-  const scale = useMemo(() => {
-    const valid = data
-      .map((d) => d.value)
-      .filter((v): v is number => v !== null && Number.isFinite(v));
-    const max = valid.length > 0 ? Math.max(...valid) : 0;
-    return niceScale(max);
-  }, [data]);
+  const overlay = useLineOverlays(data, unit, extras, AREA);
+  const scale = overlay.scale;
   const points = useMemo(() => linePoints(data, AREA, scale.max), [data, scale.max]);
   const baseline = AREA.top + AREA.height;
   const summaryId = `${idPrefix}-summary`;
@@ -186,6 +184,7 @@ export function DepthLineChart({
               </g>
             );
           })}
+          <LineOverlayLayers overlay={overlay} extras={extras} basePoints={points} area={AREA} />
           {filled ? <path d={areaPath(points, baseline)} fill={`url(#${fillId})`} /> : null}
           <path
             d={linePath(points)}
@@ -282,7 +281,9 @@ export function DepthLineChart({
         period={period}
         stableHeight={stableLegend}
         announce={isAnnouncing}
+        extra={buildExtraReadout(active, data, unit, extras)}
       />
+      <LineOverlayNotes extras={extras} unit={unit} />
       <label className={SLIDER_ROW_CLASS}>
         <span>{SLIDER_LABEL}</span>
         <input

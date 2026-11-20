@@ -13,6 +13,7 @@ import type {
 } from '../model/dashboardConfigV2';
 import { getCatalogEntry, isActiveEntry } from '../model/dashboardCatalog';
 import { normalizeTileQuery, validateTileQuery } from '../model/tileQuery';
+import { supportsComparePresentation } from '../model/timeseries/timeSeriesQuery';
 import {
   findOverlap,
   getBreakpointLayout,
@@ -79,6 +80,12 @@ export function findLayoutIntegrityError(config: DashboardConfigV2): string | nu
     }
     if (isActiveEntry(entry)) {
       const query = tile.query ?? normalizeTileQuery(tile, config);
+      if (
+        (query.compare || query.join || query.bands) &&
+        !supportsComparePresentation(tile.presentation)
+      ) {
+        return `Kachel '${tile.id}' (${tile.title}): Vergleich, zweite Reihe und Erwartungsband sind nur für Linie oder Fläche zulässig`;
+      }
       const val = validateTileQuery(query, entry);
       if (!val.valid) {
         return `Kachel '${tile.id}' (${tile.title}): ${val.errors[0]?.message}`;

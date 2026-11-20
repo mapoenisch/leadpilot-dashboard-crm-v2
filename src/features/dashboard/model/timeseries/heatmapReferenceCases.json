@@ -1,0 +1,703 @@
+[
+  {
+    "id": "heatmap-01-daily-flow-sum",
+    "description": "Flussgröße summiert über den Tag",
+    "input": {
+      "points": [
+        {
+          "at": "2026-06-01T08:00:00+02:00",
+          "value": 2,
+          "status": "belegt",
+          "measuredAt": "2026-06-01T08:00:00+02:00"
+        },
+        {
+          "at": "2026-06-01T12:00:00+02:00",
+          "value": 3,
+          "status": "belegt",
+          "measuredAt": "2026-06-01T12:00:00+02:00"
+        },
+        {
+          "at": "2026-06-01T16:00:00+02:00",
+          "value": 5,
+          "status": "belegt",
+          "measuredAt": "2026-06-01T16:00:00+02:00"
+        }
+      ],
+      "sourceResolution": "stunde",
+      "aggregationType": "fluss",
+      "mode": "woche_wochentag",
+      "unit": "Eintritte"
+    },
+    "expectedCellCount": 7,
+    "expectedNullCellCount": 6
+  },
+  {
+    "id": "heatmap-02-daily-stock-last-value",
+    "description": "Bestandsgröße nimmt last_value, summiert niemals",
+    "input": {
+      "points": [
+        {
+          "at": "2026-06-01T08:00:00+02:00",
+          "value": 100000,
+          "status": "belegt",
+          "measuredAt": "2026-06-01T08:00:00+02:00"
+        },
+        {
+          "at": "2026-06-01T16:00:00+02:00",
+          "value": 102000,
+          "status": "belegt",
+          "measuredAt": "2026-06-01T16:00:00+02:00"
+        }
+      ],
+      "sourceResolution": "stunde",
+      "aggregationType": "bestand",
+      "mode": "woche_wochentag",
+      "unit": "EUR"
+    },
+    "expectedCellCount": 7,
+    "expectedNullCellCount": 6
+  },
+  {
+    "id": "heatmap-03-ratio-last-value",
+    "description": "Verhältnisgröße nimmt last_value",
+    "input": {
+      "points": [
+        {
+          "at": "2026-06-01T08:00:00+02:00",
+          "value": 1.2,
+          "status": "belegt",
+          "measuredAt": "2026-06-01T08:00:00+02:00"
+        },
+        {
+          "at": "2026-06-01T18:00:00+02:00",
+          "value": 1.5,
+          "status": "belegt",
+          "measuredAt": "2026-06-01T18:00:00+02:00"
+        }
+      ],
+      "sourceResolution": "stunde",
+      "aggregationType": "verhaeltnis",
+      "mode": "woche_wochentag",
+      "unit": "x"
+    },
+    "expectedCellCount": 7,
+    "expectedNullCellCount": 6
+  },
+  {
+    "id": "heatmap-04-empty-input",
+    "description": "Keine Punkte -> 0 Zellen",
+    "input": {
+      "points": [],
+      "sourceResolution": "tag",
+      "aggregationType": "fluss",
+      "mode": "woche_wochentag",
+      "unit": "Deals"
+    },
+    "expectedCellCount": 0,
+    "expectedNullCellCount": 0
+  },
+  {
+    "id": "heatmap-05-full-week",
+    "description": "Vollständige Woche (7 Tage)",
+    "input": {
+      "points": [
+        {
+          "at": "2026-06-01T00:00:00+02:00",
+          "value": 1,
+          "status": "belegt",
+          "measuredAt": "2026-06-01T00:00:00+02:00"
+        },
+        {
+          "at": "2026-06-02T00:00:00+02:00",
+          "value": 2,
+          "status": "belegt",
+          "measuredAt": "2026-06-02T00:00:00+02:00"
+        },
+        {
+          "at": "2026-06-03T00:00:00+02:00",
+          "value": 3,
+          "status": "belegt",
+          "measuredAt": "2026-06-03T00:00:00+02:00"
+        },
+        {
+          "at": "2026-06-04T00:00:00+02:00",
+          "value": 4,
+          "status": "belegt",
+          "measuredAt": "2026-06-04T00:00:00+02:00"
+        },
+        {
+          "at": "2026-06-05T00:00:00+02:00",
+          "value": 5,
+          "status": "belegt",
+          "measuredAt": "2026-06-05T00:00:00+02:00"
+        },
+        {
+          "at": "2026-06-06T00:00:00+02:00",
+          "value": 6,
+          "status": "belegt",
+          "measuredAt": "2026-06-06T00:00:00+02:00"
+        },
+        {
+          "at": "2026-06-07T00:00:00+02:00",
+          "value": 7,
+          "status": "belegt",
+          "measuredAt": "2026-06-07T00:00:00+02:00"
+        }
+      ],
+      "sourceResolution": "tag",
+      "aggregationType": "fluss",
+      "mode": "woche_wochentag",
+      "unit": "Deals"
+    },
+    "expectedCellCount": 7,
+    "expectedNullCellCount": 0
+  },
+  {
+    "id": "heatmap-06-two-weeks",
+    "description": "Zwei aufeinanderfolgende Wochen -> 14 Zellen",
+    "input": {
+      "points": [
+        {
+          "at": "2026-06-01T00:00:00+02:00",
+          "value": 1,
+          "status": "belegt",
+          "measuredAt": "2026-06-01T00:00:00+02:00"
+        },
+        {
+          "at": "2026-06-08T00:00:00+02:00",
+          "value": 2,
+          "status": "belegt",
+          "measuredAt": "2026-06-08T00:00:00+02:00"
+        }
+      ],
+      "sourceResolution": "tag",
+      "aggregationType": "fluss",
+      "mode": "woche_wochentag",
+      "unit": "Deals"
+    },
+    "expectedCellCount": 14,
+    "expectedNullCellCount": 12
+  },
+  {
+    "id": "heatmap-07-with-null-points",
+    "description": "Punkte mit value=null erzeugen keine Fehlberechnung",
+    "input": {
+      "points": [
+        {
+          "at": "2026-06-01T08:00:00+02:00",
+          "value": null,
+          "status": "luecke",
+          "measuredAt": null
+        },
+        {
+          "at": "2026-06-01T12:00:00+02:00",
+          "value": 10,
+          "status": "belegt",
+          "measuredAt": "2026-06-01T12:00:00+02:00"
+        }
+      ],
+      "sourceResolution": "stunde",
+      "aggregationType": "fluss",
+      "mode": "woche_wochentag",
+      "unit": "Stück"
+    },
+    "expectedCellCount": 7,
+    "expectedNullCellCount": 6
+  },
+  {
+    "id": "heatmap-08-only-null-points-day",
+    "description": "Tag hat nur Null-Punkte -> Zelle isNull",
+    "input": {
+      "points": [
+        {
+          "at": "2026-06-01T08:00:00+02:00",
+          "value": null,
+          "status": "luecke",
+          "measuredAt": null
+        }
+      ],
+      "sourceResolution": "stunde",
+      "aggregationType": "fluss",
+      "mode": "woche_wochentag",
+      "unit": "Stück"
+    },
+    "expectedCellCount": 7,
+    "expectedNullCellCount": 7
+  },
+  {
+    "id": "heatmap-09-phase-week-mode",
+    "description": "Phase × Woche: sieben Phasen, eine Woche, Verhandlung ohne Eintritt bleibt 0 (keine Lücke)",
+    "input": {
+      "points": [],
+      "sourceResolution": "woche",
+      "aggregationType": "fluss",
+      "mode": "phase_woche",
+      "unit": "Eintritte",
+      "phaseSeries": [
+        {
+          "phase": "Lead eingegangen",
+          "points": [
+            {
+              "at": "2026-06-01T00:00:00+02:00",
+              "value": 1,
+              "status": "belegt",
+              "measuredAt": null
+            }
+          ]
+        },
+        {
+          "phase": "Erstgespräch geführt",
+          "points": [
+            {
+              "at": "2026-06-01T00:00:00+02:00",
+              "value": 2,
+              "status": "belegt",
+              "measuredAt": null
+            }
+          ]
+        },
+        {
+          "phase": "Bedarfsanalyse",
+          "points": [
+            {
+              "at": "2026-06-01T00:00:00+02:00",
+              "value": 3,
+              "status": "belegt",
+              "measuredAt": null
+            }
+          ]
+        },
+        {
+          "phase": "Angebot erstellt",
+          "points": [
+            {
+              "at": "2026-06-01T00:00:00+02:00",
+              "value": 4,
+              "status": "belegt",
+              "measuredAt": null
+            }
+          ]
+        },
+        {
+          "phase": "Verhandlung",
+          "points": [
+            {
+              "at": "2026-06-01T00:00:00+02:00",
+              "value": 0,
+              "status": "belegt",
+              "measuredAt": null
+            }
+          ]
+        },
+        {
+          "phase": "Deal gewonnen",
+          "points": [
+            {
+              "at": "2026-06-01T00:00:00+02:00",
+              "value": 6,
+              "status": "belegt",
+              "measuredAt": null
+            }
+          ]
+        },
+        {
+          "phase": "Deal verloren",
+          "points": [
+            {
+              "at": "2026-06-01T00:00:00+02:00",
+              "value": 7,
+              "status": "belegt",
+              "measuredAt": null
+            }
+          ]
+        }
+      ]
+    },
+    "expectedCellCount": 7,
+    "expectedNullCellCount": 0
+  },
+  {
+    "id": "heatmap-10-three-weeks-span",
+    "description": "Drei Wochen -> 21 Zellen",
+    "input": {
+      "points": [
+        {
+          "at": "2026-06-01T00:00:00+02:00",
+          "value": 5,
+          "status": "belegt",
+          "measuredAt": "2026-06-01T00:00:00+02:00"
+        },
+        {
+          "at": "2026-06-15T00:00:00+02:00",
+          "value": 10,
+          "status": "belegt",
+          "measuredAt": "2026-06-15T00:00:00+02:00"
+        }
+      ],
+      "sourceResolution": "tag",
+      "aggregationType": "fluss",
+      "mode": "woche_wochentag",
+      "unit": "Leads"
+    },
+    "expectedCellCount": 21
+  },
+  {
+    "id": "heatmap-11-weekend-activity",
+    "description": "Aktivität nur am Samstag und Sonntag",
+    "input": {
+      "points": [
+        {
+          "at": "2026-06-06T10:00:00+02:00",
+          "value": 3,
+          "status": "belegt",
+          "measuredAt": "2026-06-06T10:00:00+02:00"
+        },
+        {
+          "at": "2026-06-07T14:00:00+02:00",
+          "value": 4,
+          "status": "belegt",
+          "measuredAt": "2026-06-07T14:00:00+02:00"
+        }
+      ],
+      "sourceResolution": "stunde",
+      "aggregationType": "fluss",
+      "mode": "woche_wochentag",
+      "unit": "Ereignisse"
+    },
+    "expectedCellCount": 7,
+    "expectedNullCellCount": 5
+  },
+  {
+    "id": "heatmap-12-dst-march",
+    "description": "März-DST-Woche",
+    "input": {
+      "points": [
+        {
+          "at": "2026-03-29T01:00:00+01:00",
+          "value": 10,
+          "status": "belegt",
+          "measuredAt": "2026-03-29T01:00:00+01:00"
+        },
+        {
+          "at": "2026-03-29T03:00:00+02:00",
+          "value": 20,
+          "status": "belegt",
+          "measuredAt": "2026-03-29T03:00:00+02:00"
+        }
+      ],
+      "sourceResolution": "stunde",
+      "aggregationType": "fluss",
+      "mode": "woche_wochentag",
+      "unit": "Calls"
+    },
+    "expectedCellCount": 7,
+    "expectedNullCellCount": 6
+  },
+  {
+    "id": "heatmap-13-dst-october",
+    "description": "Oktober-DST-Woche",
+    "input": {
+      "points": [
+        {
+          "at": "2026-10-25T01:00:00+02:00",
+          "value": 5,
+          "status": "belegt",
+          "measuredAt": "2026-10-25T01:00:00+02:00"
+        },
+        {
+          "at": "2026-10-25T02:00:00+01:00",
+          "value": 5,
+          "status": "belegt",
+          "measuredAt": "2026-10-25T02:00:00+01:00"
+        }
+      ],
+      "sourceResolution": "stunde",
+      "aggregationType": "fluss",
+      "mode": "woche_wochentag",
+      "unit": "Calls"
+    },
+    "expectedCellCount": 7,
+    "expectedNullCellCount": 6
+  },
+  {
+    "id": "heatmap-14-stock-multiple-days",
+    "description": "Bestandsgröße über 3 Tage",
+    "input": {
+      "points": [
+        {
+          "at": "2026-06-01T12:00:00+02:00",
+          "value": 100,
+          "status": "belegt",
+          "measuredAt": "2026-06-01T12:00:00+02:00"
+        },
+        {
+          "at": "2026-06-02T12:00:00+02:00",
+          "value": 105,
+          "status": "belegt",
+          "measuredAt": "2026-06-02T12:00:00+02:00"
+        },
+        {
+          "at": "2026-06-03T12:00:00+02:00",
+          "value": 110,
+          "status": "belegt",
+          "measuredAt": "2026-06-03T12:00:00+02:00"
+        }
+      ],
+      "sourceResolution": "tag",
+      "aggregationType": "bestand",
+      "mode": "woche_wochentag",
+      "unit": "FTE"
+    },
+    "expectedCellCount": 7,
+    "expectedNullCellCount": 4
+  },
+  {
+    "id": "heatmap-15-four-weeks-span",
+    "description": "4 Wochen -> 28 Zellen",
+    "input": {
+      "points": [
+        {
+          "at": "2026-06-01T00:00:00+02:00",
+          "value": 1,
+          "status": "belegt",
+          "measuredAt": "2026-06-01T00:00:00+02:00"
+        },
+        {
+          "at": "2026-06-22T00:00:00+02:00",
+          "value": 2,
+          "status": "belegt",
+          "measuredAt": "2026-06-22T00:00:00+02:00"
+        }
+      ],
+      "sourceResolution": "tag",
+      "aggregationType": "fluss",
+      "mode": "woche_wochentag",
+      "unit": "Deals"
+    },
+    "expectedCellCount": 28
+  },
+  {
+    "id": "heatmap-16-year-transition",
+    "description": "Jahresübergang Silvester/Neujahr",
+    "input": {
+      "points": [
+        {
+          "at": "2025-12-31T12:00:00+01:00",
+          "value": 99,
+          "status": "belegt",
+          "measuredAt": "2025-12-31T12:00:00+01:00"
+        },
+        {
+          "at": "2026-01-01T12:00:00+01:00",
+          "value": 101,
+          "status": "belegt",
+          "measuredAt": "2026-01-01T12:00:00+01:00"
+        }
+      ],
+      "sourceResolution": "tag",
+      "aggregationType": "bestand",
+      "mode": "woche_wochentag",
+      "unit": "EUR"
+    },
+    "expectedCellCount": 7
+  },
+  {
+    "id": "heatmap-17-phase-week-two-weeks",
+    "description": "Phase × Woche über zwei Wochen; Woche vor Historienbeginn ohne Wert ist Leerzelle",
+    "input": {
+      "points": [],
+      "sourceResolution": "woche",
+      "aggregationType": "fluss",
+      "mode": "phase_woche",
+      "unit": "Eintritte",
+      "phaseSeries": [
+        {
+          "phase": "Lead eingegangen",
+          "points": [
+            {
+              "at": "2026-06-01T00:00:00+02:00",
+              "value": null,
+              "status": "vor_historienbeginn",
+              "measuredAt": null
+            },
+            {
+              "at": "2026-06-08T00:00:00+02:00",
+              "value": 0,
+              "status": "belegt",
+              "measuredAt": null
+            }
+          ]
+        },
+        {
+          "phase": "Erstgespräch geführt",
+          "points": [
+            {
+              "at": "2026-06-01T00:00:00+02:00",
+              "value": null,
+              "status": "vor_historienbeginn",
+              "measuredAt": null
+            },
+            {
+              "at": "2026-06-08T00:00:00+02:00",
+              "value": 1,
+              "status": "belegt",
+              "measuredAt": null
+            }
+          ]
+        },
+        {
+          "phase": "Bedarfsanalyse",
+          "points": [
+            {
+              "at": "2026-06-01T00:00:00+02:00",
+              "value": null,
+              "status": "vor_historienbeginn",
+              "measuredAt": null
+            },
+            {
+              "at": "2026-06-08T00:00:00+02:00",
+              "value": 2,
+              "status": "belegt",
+              "measuredAt": null
+            }
+          ]
+        },
+        {
+          "phase": "Angebot erstellt",
+          "points": [
+            {
+              "at": "2026-06-01T00:00:00+02:00",
+              "value": null,
+              "status": "vor_historienbeginn",
+              "measuredAt": null
+            },
+            {
+              "at": "2026-06-08T00:00:00+02:00",
+              "value": 3,
+              "status": "belegt",
+              "measuredAt": null
+            }
+          ]
+        },
+        {
+          "phase": "Verhandlung",
+          "points": [
+            {
+              "at": "2026-06-01T00:00:00+02:00",
+              "value": null,
+              "status": "vor_historienbeginn",
+              "measuredAt": null
+            },
+            {
+              "at": "2026-06-08T00:00:00+02:00",
+              "value": 4,
+              "status": "belegt",
+              "measuredAt": null
+            }
+          ]
+        },
+        {
+          "phase": "Deal gewonnen",
+          "points": [
+            {
+              "at": "2026-06-01T00:00:00+02:00",
+              "value": null,
+              "status": "vor_historienbeginn",
+              "measuredAt": null
+            },
+            {
+              "at": "2026-06-08T00:00:00+02:00",
+              "value": 5,
+              "status": "belegt",
+              "measuredAt": null
+            }
+          ]
+        },
+        {
+          "phase": "Deal verloren",
+          "points": [
+            {
+              "at": "2026-06-01T00:00:00+02:00",
+              "value": null,
+              "status": "vor_historienbeginn",
+              "measuredAt": null
+            },
+            {
+              "at": "2026-06-08T00:00:00+02:00",
+              "value": 6,
+              "status": "belegt",
+              "measuredAt": null
+            }
+          ]
+        }
+      ]
+    },
+    "expectedCellCount": 14,
+    "expectedNullCellCount": 7
+  },
+  {
+    "id": "heatmap-18-single-point-midweek",
+    "description": "Mittwoch einzelner Datenpunkt",
+    "input": {
+      "points": [
+        {
+          "at": "2026-06-03T12:00:00+02:00",
+          "value": 42,
+          "status": "belegt",
+          "measuredAt": "2026-06-03T12:00:00+02:00"
+        }
+      ],
+      "sourceResolution": "tag",
+      "aggregationType": "fluss",
+      "mode": "woche_wochentag",
+      "unit": "Deals"
+    },
+    "expectedCellCount": 7,
+    "expectedNullCellCount": 6
+  },
+  {
+    "id": "heatmap-19-zero-values",
+    "description": "0-Werte gelten als belegt, nicht als Lücke",
+    "input": {
+      "points": [
+        {
+          "at": "2026-06-01T12:00:00+02:00",
+          "value": 0,
+          "status": "belegt",
+          "measuredAt": "2026-06-01T12:00:00+02:00"
+        }
+      ],
+      "sourceResolution": "tag",
+      "aggregationType": "fluss",
+      "mode": "woche_wochentag",
+      "unit": "Deals"
+    },
+    "expectedCellCount": 7,
+    "expectedNullCellCount": 6
+  },
+  {
+    "id": "heatmap-20-five-weeks-span",
+    "description": "5 Wochen -> 35 Zellen",
+    "input": {
+      "points": [
+        {
+          "at": "2026-06-01T00:00:00+02:00",
+          "value": 1,
+          "status": "belegt",
+          "measuredAt": "2026-06-01T00:00:00+02:00"
+        },
+        {
+          "at": "2026-06-29T00:00:00+02:00",
+          "value": 2,
+          "status": "belegt",
+          "measuredAt": "2026-06-29T00:00:00+02:00"
+        }
+      ],
+      "sourceResolution": "tag",
+      "aggregationType": "fluss",
+      "mode": "woche_wochentag",
+      "unit": "Deals"
+    },
+    "expectedCellCount": 35
+  }
+]

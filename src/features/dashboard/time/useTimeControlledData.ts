@@ -7,6 +7,7 @@ import { useDashboardData, type UseDashboardDataOptions } from '../hooks/useDash
 import type { DashboardFilters, DashboardTileConfig } from '../model/dashboardConfig';
 import type { TileData } from '../data/dashboardData';
 import { useTimeControl } from './TimeControlProvider';
+import { normalizeTimeSeriesQueryParts } from '../model/timeseries/timeSeriesQuery';
 
 export interface TileStand {
   mode: 'live' | 'pausiert' | 'zeitpunkt';
@@ -88,7 +89,17 @@ function effectiveQueryKeyOf(tile: DashboardTileConfig, source: TileData): strin
   const win = tile.query?.window
     ? `${tile.query.window.count}_${tile.query.window.resolution}`
     : '';
-  return `${tile.catalogId}|${pipeline}|${period}|${win}`;
+  // Zusatzreihen (Vergleich, Join, Band) und Heatmap verändern die angezeigten Daten:
+  // ohne sie im Schlüssel bliebe der Einfrierstand bei Änderungen während der Pause stehen.
+  const extras = normalizeTimeSeriesQueryParts(tile.query);
+  const join = extras.join ? `${extras.join.metricId}:${extras.join.typ}` : '';
+  const extrasKey = [
+    tile.view === 'heatmap' ? 'heatmap' : '',
+    extras.compare ?? '',
+    join,
+    extras.bands ? 'bands' : '',
+  ].join('|');
+  return `${tile.catalogId}|${pipeline}|${period}|${win}|${extrasKey}`;
 }
 
 /**

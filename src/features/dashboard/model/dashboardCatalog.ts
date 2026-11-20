@@ -59,7 +59,8 @@ export type DashboardView =
   | 'uebersicht'
   | 'gauge'
   | 'sparkline'
-  | 'trichter';
+  | 'trichter'
+  | 'heatmap';
 
 export type TileSize = 'klein' | 'mittel' | 'gross' | 'voll';
 export const TILE_SIZES: readonly TileSize[] = ['klein', 'mittel', 'gross', 'voll'];
@@ -170,7 +171,7 @@ export const VIEWS_BY_SHAPE: Record<DataShape, readonly DashboardView[]> = {
   verhaeltnis: ['zahl', 'tabelle', 'gauge'],
   kategorien: ['tabelle', 'saeulen', 'balken', 'trichter'],
   anteile: ['tabelle', 'saeulen', 'balken', 'kreis', 'ring', 'trichter'],
-  zeitreihe: ['tabelle', 'linie', 'flaeche', 'saeulen', 'sparkline'],
+  zeitreihe: ['tabelle', 'linie', 'flaeche', 'saeulen', 'sparkline', 'heatmap'],
   uebersicht: ['uebersicht'],
   anteil: ['zahl', 'tabelle', 'ring', 'kreis', 'gauge'],
 };
@@ -189,6 +190,7 @@ export const MIN_SIZE_BY_VIEW: Record<DashboardView, TileSize> = {
   gauge: 'klein',
   sparkline: 'klein',
   trichter: 'mittel',
+  heatmap: 'mittel',
 };
 
 export const PIE_VIEWS: readonly DashboardView[] = ['kreis', 'ring'];

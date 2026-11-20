@@ -140,7 +140,7 @@ GRANT EXECUTE ON FUNCTION public.dashboard_time_series TO authenticated, service
 - **Kein synchrones Crosshair:** Folgt in Auftrag 161 (*erledigt mit 161/164*).
 - **Keine Bestands-Rekonstruktion:** Historische Bestände bleiben nicht rekonstruierbar.
 - **Keine Alarme:** Schwellenwert-Alarme und Benachrichtigungen folgen in P13.
-- **Keine Vergleichsbänder:** Vorjahres- oder Budget-Bänder folgen in P14.
+- **Keine Vergleichsbänder:** Vorjahres- oder Budget-Bänder folgen in P14. *Nachtrag 20.11.2026: Vergleich/Join/Heatmap umgesetzt in 170* (Vorperiode und Vorjahr über die neue RPC `dashboard_time_series_compare`, zweite Reihe über den Zeitstempel bei gleicher Auflösung, Heatmap „Woche × Wochentag“ und „Phase × Woche“ über `dashboard_time_series_phases`, Erwartungsband 10.–90. Perzentil nach Auftrag 170 §8). Budget-Bänder bleiben außerhalb des Umfangs. `dashboard_time_series` ist unverändert; beide neuen RPCs rufen sie auf und erben Rechte, Lückenregeln und die Grenze von 400 Punkten je Fenster. Details: `TRANSFORMATIONEN_P14.md` §5.
 
 ---
 

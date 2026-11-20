@@ -32,11 +32,7 @@ import {
   savePreviewDraftCopy,
   savePreviewDashboardDraft,
 } from './previewDashboardMutations';
-import {
-  PREVIEW_TRANSFORMATIONS_DASHBOARD_ID,
-  createPreviewTransformationsConfig,
-  createPreviewTransformationsListItem,
-} from './previewTransformations';
+import { previewScenarioDashboard } from './previewCompare';
 
 /** Vorschau-Daten mit derselben gemeinsamen Zeitsteuerung wie der echte V2-Pfad. */
 const usePreviewDataTimeControlled: TileDataHook = (tile, filters, options) =>
@@ -49,9 +45,9 @@ export function DashboardEditorPreviewV2() {
     versionen: versionenScenario,
     schwellenwerte: schwellenwerteScenario,
     alarme: alarmeScenario,
-    transformationen: transformationenScenario,
     live: liveScenario,
   } = params;
+  const scenario = previewScenarioDashboard(params);
   const [previewTab, setPreviewTab] = useState<'editor' | 'alarme' | 'admin'>('editor');
 
   const [dashboards, setDashboards] = useState<AccessibleDashboardListItemV2[]>(() => {
@@ -61,11 +57,11 @@ export function DashboardEditorPreviewV2() {
       schwellenwerteScenario,
       alarmeScenario,
     );
-    return transformationenScenario ? [createPreviewTransformationsListItem(), ...list] : list;
+    return scenario ? [scenario.listItem, ...list] : list;
   });
 
   const [activeDashboardId, setActiveDashboardId] = useState<string>(() => {
-    if (transformationenScenario) return PREVIEW_TRANSFORMATIONS_DASHBOARD_ID;
+    if (scenario) return scenario.id;
     if (alarmeScenario) return PREVIEW_ALARMS_DASHBOARD_ID;
     if (schwellenwerteScenario) return 'preview_thresholds_dashboard';
     if (versionenScenario) return PREVIEW_VERSIONS_DASHBOARD_ID;
@@ -76,7 +72,7 @@ export function DashboardEditorPreviewV2() {
   const [showRevokedDialog, setShowRevokedDialog] = useState(false);
   const [liveStore] = useState(() => createPreviewLiveStore(liveScenario));
   const [config, setConfig] = useState<DashboardConfigV2>(() => {
-    if (transformationenScenario) return createPreviewTransformationsConfig();
+    if (scenario) return scenario.config;
     return initPreviewConfig(
       versionenScenario,
       teamsScenario,

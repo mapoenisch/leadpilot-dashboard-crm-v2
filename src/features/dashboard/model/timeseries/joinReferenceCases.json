@@ -1,0 +1,542 @@
+[
+  {
+    "id": "join-01-inner-perfect-match",
+    "description": "Inner Join mit 3 identischen Zeitpunkten",
+    "shouldThrow": false,
+    "seriesA": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 10,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      },
+      {
+        "at": "2026-06-02T00:00:00+02:00",
+        "value": 20,
+        "status": "belegt",
+        "measuredAt": "2026-06-02T00:00:00+02:00"
+      }
+    ],
+    "seriesB": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 15,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      },
+      {
+        "at": "2026-06-02T00:00:00+02:00",
+        "value": 25,
+        "status": "belegt",
+        "measuredAt": "2026-06-02T00:00:00+02:00"
+      }
+    ],
+    "options": { "resolutionA": "tag", "resolutionB": "tag", "typ": "inner" },
+    "expectedRowCount": 2
+  },
+  {
+    "id": "join-02-inner-partial-overlap",
+    "description": "Inner Join mit Teilüberschneidung",
+    "shouldThrow": false,
+    "seriesA": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 10,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      },
+      {
+        "at": "2026-06-02T00:00:00+02:00",
+        "value": 20,
+        "status": "belegt",
+        "measuredAt": "2026-06-02T00:00:00+02:00"
+      }
+    ],
+    "seriesB": [
+      {
+        "at": "2026-06-02T00:00:00+02:00",
+        "value": 25,
+        "status": "belegt",
+        "measuredAt": "2026-06-02T00:00:00+02:00"
+      },
+      {
+        "at": "2026-06-03T00:00:00+02:00",
+        "value": 30,
+        "status": "belegt",
+        "measuredAt": "2026-06-03T00:00:00+02:00"
+      }
+    ],
+    "options": { "resolutionA": "tag", "resolutionB": "tag", "typ": "inner" },
+    "expectedRowCount": 1
+  },
+  {
+    "id": "join-03-inner-no-overlap",
+    "description": "Inner Join ohne Schnittmenge",
+    "shouldThrow": false,
+    "seriesA": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 10,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      }
+    ],
+    "seriesB": [
+      {
+        "at": "2026-06-05T00:00:00+02:00",
+        "value": 50,
+        "status": "belegt",
+        "measuredAt": "2026-06-05T00:00:00+02:00"
+      }
+    ],
+    "options": { "resolutionA": "tag", "resolutionB": "tag", "typ": "inner" },
+    "expectedRowCount": 0
+  },
+  {
+    "id": "join-04-left-join-full",
+    "description": "Links Join behält alle Punkte von A",
+    "shouldThrow": false,
+    "seriesA": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 10,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      },
+      {
+        "at": "2026-06-02T00:00:00+02:00",
+        "value": 20,
+        "status": "belegt",
+        "measuredAt": "2026-06-02T00:00:00+02:00"
+      }
+    ],
+    "seriesB": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 15,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      }
+    ],
+    "options": { "resolutionA": "tag", "resolutionB": "tag", "typ": "links" },
+    "expectedRowCount": 2
+  },
+  {
+    "id": "join-05-left-join-empty-b",
+    "description": "Links Join mit leerer Reihe B",
+    "shouldThrow": false,
+    "seriesA": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 10,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      }
+    ],
+    "seriesB": [],
+    "options": { "resolutionA": "tag", "resolutionB": "tag", "typ": "links" },
+    "expectedRowCount": 1
+  },
+  {
+    "id": "join-06-differing-resolution-throw",
+    "description": "Ungleiche Auflösung wirft Fehler",
+    "shouldThrow": true,
+    "seriesA": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 10,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      }
+    ],
+    "seriesB": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 15,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      }
+    ],
+    "options": { "resolutionA": "stunde", "resolutionB": "tag", "typ": "inner" }
+  },
+  {
+    "id": "join-07-differing-resolution-week-month",
+    "description": "Woche vs Monat wirft Fehler",
+    "shouldThrow": true,
+    "seriesA": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 10,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      }
+    ],
+    "seriesB": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 15,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      }
+    ],
+    "options": { "resolutionA": "woche", "resolutionB": "monat", "typ": "links" }
+  },
+  {
+    "id": "join-08-hourly-resolution-inner",
+    "description": "Stundenauflösung mit 4 Stunden",
+    "shouldThrow": false,
+    "seriesA": [
+      {
+        "at": "2026-06-01T01:00:00+02:00",
+        "value": 1,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T01:00:00+02:00"
+      },
+      {
+        "at": "2026-06-01T02:00:00+02:00",
+        "value": 2,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T02:00:00+02:00"
+      }
+    ],
+    "seriesB": [
+      {
+        "at": "2026-06-01T01:00:00+02:00",
+        "value": 10,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T01:00:00+02:00"
+      },
+      {
+        "at": "2026-06-01T02:00:00+02:00",
+        "value": 20,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T02:00:00+02:00"
+      }
+    ],
+    "options": { "resolutionA": "stunde", "resolutionB": "stunde", "typ": "inner" },
+    "expectedRowCount": 2
+  },
+  {
+    "id": "join-09-weekly-resolution-links",
+    "description": "Wochenauflösung Links-Join",
+    "shouldThrow": false,
+    "seriesA": [
+      {
+        "at": "2026-05-25T00:00:00+02:00",
+        "value": 5,
+        "status": "belegt",
+        "measuredAt": "2026-05-25T00:00:00+02:00"
+      },
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 8,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      }
+    ],
+    "seriesB": [
+      {
+        "at": "2026-05-25T00:00:00+02:00",
+        "value": 50,
+        "status": "belegt",
+        "measuredAt": "2026-05-25T00:00:00+02:00"
+      }
+    ],
+    "options": { "resolutionA": "woche", "resolutionB": "woche", "typ": "links" },
+    "expectedRowCount": 2
+  },
+  {
+    "id": "join-10-monthly-resolution-inner",
+    "description": "Monatsauflösung Inner-Join",
+    "shouldThrow": false,
+    "seriesA": [
+      {
+        "at": "2026-01-01T00:00:00+01:00",
+        "value": 100,
+        "status": "belegt",
+        "measuredAt": "2026-01-01T00:00:00+01:00"
+      },
+      {
+        "at": "2026-02-01T00:00:00+01:00",
+        "value": 120,
+        "status": "belegt",
+        "measuredAt": "2026-02-01T00:00:00+01:00"
+      }
+    ],
+    "seriesB": [
+      {
+        "at": "2026-02-01T00:00:00+01:00",
+        "value": 300,
+        "status": "belegt",
+        "measuredAt": "2026-02-01T00:00:00+01:00"
+      }
+    ],
+    "options": { "resolutionA": "monat", "resolutionB": "monat", "typ": "inner" },
+    "expectedRowCount": 1
+  },
+  {
+    "id": "join-11-both-empty-inner",
+    "description": "Beide Reihen leer",
+    "shouldThrow": false,
+    "seriesA": [],
+    "seriesB": [],
+    "options": { "resolutionA": "tag", "resolutionB": "tag", "typ": "inner" },
+    "expectedRowCount": 0
+  },
+  {
+    "id": "join-12-seriesA-empty-links",
+    "description": "Reihe A leer beim Links-Join",
+    "shouldThrow": false,
+    "seriesA": [],
+    "seriesB": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 10,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      }
+    ],
+    "options": { "resolutionA": "tag", "resolutionB": "tag", "typ": "links" },
+    "expectedRowCount": 0
+  },
+  {
+    "id": "join-13-gaps-in-both-inner",
+    "description": "Lücken in beiden Reihen",
+    "shouldThrow": false,
+    "seriesA": [
+      { "at": "2026-06-01T00:00:00+02:00", "value": null, "status": "luecke", "measuredAt": null }
+    ],
+    "seriesB": [
+      { "at": "2026-06-01T00:00:00+02:00", "value": null, "status": "luecke", "measuredAt": null }
+    ],
+    "options": { "resolutionA": "tag", "resolutionB": "tag", "typ": "inner" },
+    "expectedRowCount": 1
+  },
+  {
+    "id": "join-14-status-preservation",
+    "description": "Status vor_historienbeginn bleibt erhalten",
+    "shouldThrow": false,
+    "seriesA": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": null,
+        "status": "vor_historienbeginn",
+        "measuredAt": null
+      }
+    ],
+    "seriesB": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 20,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      }
+    ],
+    "options": { "resolutionA": "tag", "resolutionB": "tag", "typ": "inner" },
+    "expectedRowCount": 1
+  },
+  {
+    "id": "join-15-interleaved-points",
+    "description": "Verschachtelte Zeitpunkte",
+    "shouldThrow": false,
+    "seriesA": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 1,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      },
+      {
+        "at": "2026-06-03T00:00:00+02:00",
+        "value": 3,
+        "status": "belegt",
+        "measuredAt": "2026-06-03T00:00:00+02:00"
+      }
+    ],
+    "seriesB": [
+      {
+        "at": "2026-06-02T00:00:00+02:00",
+        "value": 2,
+        "status": "belegt",
+        "measuredAt": "2026-06-02T00:00:00+02:00"
+      },
+      {
+        "at": "2026-06-03T00:00:00+02:00",
+        "value": 30,
+        "status": "belegt",
+        "measuredAt": "2026-06-03T00:00:00+02:00"
+      }
+    ],
+    "options": { "resolutionA": "tag", "resolutionB": "tag", "typ": "inner" },
+    "expectedRowCount": 1
+  },
+  {
+    "id": "join-16-interleaved-points-links",
+    "description": "Verschachtelte Zeitpunkte Links-Join",
+    "shouldThrow": false,
+    "seriesA": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 1,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      },
+      {
+        "at": "2026-06-03T00:00:00+02:00",
+        "value": 3,
+        "status": "belegt",
+        "measuredAt": "2026-06-03T00:00:00+02:00"
+      }
+    ],
+    "seriesB": [
+      {
+        "at": "2026-06-02T00:00:00+02:00",
+        "value": 2,
+        "status": "belegt",
+        "measuredAt": "2026-06-02T00:00:00+02:00"
+      },
+      {
+        "at": "2026-06-03T00:00:00+02:00",
+        "value": 30,
+        "status": "belegt",
+        "measuredAt": "2026-06-03T00:00:00+02:00"
+      }
+    ],
+    "options": { "resolutionA": "tag", "resolutionB": "tag", "typ": "links" },
+    "expectedRowCount": 2
+  },
+  {
+    "id": "join-17-dst-changeover",
+    "description": "DST Umstellungstag",
+    "shouldThrow": false,
+    "seriesA": [
+      {
+        "at": "2026-03-29T01:00:00+01:00",
+        "value": 10,
+        "status": "belegt",
+        "measuredAt": "2026-03-29T01:00:00+01:00"
+      },
+      {
+        "at": "2026-03-29T03:00:00+02:00",
+        "value": 20,
+        "status": "belegt",
+        "measuredAt": "2026-03-29T03:00:00+02:00"
+      }
+    ],
+    "seriesB": [
+      {
+        "at": "2026-03-29T01:00:00+01:00",
+        "value": 15,
+        "status": "belegt",
+        "measuredAt": "2026-03-29T01:00:00+01:00"
+      },
+      {
+        "at": "2026-03-29T03:00:00+02:00",
+        "value": 25,
+        "status": "belegt",
+        "measuredAt": "2026-03-29T03:00:00+02:00"
+      }
+    ],
+    "options": { "resolutionA": "stunde", "resolutionB": "stunde", "typ": "inner" },
+    "expectedRowCount": 2
+  },
+  {
+    "id": "join-18-single-bucket-match",
+    "description": "Genau 1 Bucket Treffer",
+    "shouldThrow": false,
+    "seriesA": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 99,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      }
+    ],
+    "seriesB": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 101,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      }
+    ],
+    "options": { "resolutionA": "tag", "resolutionB": "tag", "typ": "inner" },
+    "expectedRowCount": 1
+  },
+  {
+    "id": "join-19-order-preserved",
+    "description": "Reihenfolge von A bleibt exakt erhalten",
+    "shouldThrow": false,
+    "seriesA": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 1,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      },
+      {
+        "at": "2026-06-02T00:00:00+02:00",
+        "value": 2,
+        "status": "belegt",
+        "measuredAt": "2026-06-02T00:00:00+02:00"
+      },
+      {
+        "at": "2026-06-03T00:00:00+02:00",
+        "value": 3,
+        "status": "belegt",
+        "measuredAt": "2026-06-03T00:00:00+02:00"
+      }
+    ],
+    "seriesB": [
+      {
+        "at": "2026-06-03T00:00:00+02:00",
+        "value": 30,
+        "status": "belegt",
+        "measuredAt": "2026-06-03T00:00:00+02:00"
+      },
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 10,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      }
+    ],
+    "options": { "resolutionA": "tag", "resolutionB": "tag", "typ": "inner" },
+    "expectedRowCount": 2
+  },
+  {
+    "id": "join-20-many-buckets-limit-pass",
+    "description": "50 Buckets unter dem Limit",
+    "shouldThrow": false,
+    "seriesA": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 1,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      },
+      {
+        "at": "2026-06-02T00:00:00+02:00",
+        "value": 2,
+        "status": "belegt",
+        "measuredAt": "2026-06-02T00:00:00+02:00"
+      }
+    ],
+    "seriesB": [
+      {
+        "at": "2026-06-01T00:00:00+02:00",
+        "value": 10,
+        "status": "belegt",
+        "measuredAt": "2026-06-01T00:00:00+02:00"
+      },
+      {
+        "at": "2026-06-02T00:00:00+02:00",
+        "value": 20,
+        "status": "belegt",
+        "measuredAt": "2026-06-02T00:00:00+02:00"
+      }
+    ],
+    "options": { "resolutionA": "tag", "resolutionB": "tag", "typ": "inner" },
+    "expectedRowCount": 2
+  }
+]

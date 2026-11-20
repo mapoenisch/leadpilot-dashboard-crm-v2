@@ -30,6 +30,8 @@ import {
 } from '../data/resolveTimeSeries';
 import { attachCrmQueryMeta } from '../time/useTimeControlledData';
 import { useOptionalTimeControl } from '../time/TimeControlProvider';
+import { timeSeriesMetricOf, timeSeriesSourceOf } from '../data/timeSeriesSource';
+import { useTimeSeriesExtras } from './useTimeSeriesExtras';
 
 const LIVE_IDS = LIVE_KPI_DEFINITIONS.map((def) => def.id);
 
@@ -64,10 +66,16 @@ function loadingTileData(
   };
 }
 
-/**
- * Zentraler Hook zur Datenauflösung einer Dashboard-Kachel.
- */
+/** Datenauflösung einer Kachel; Auftrag 170: Zusatzreihen über useTimeSeriesExtras. */
 export function useDashboardData(
+  tile: DashboardTileConfig,
+  filters?: DashboardFilters,
+  options: UseDashboardDataOptions = { enabled: true },
+): TileData {
+  return useTimeSeriesExtras(tile, useDashboardDataCore(tile, filters, options), options);
+}
+
+function useDashboardDataCore(
   tile: DashboardTileConfig,
   filters?: DashboardFilters,
   options: UseDashboardDataOptions = { enabled: true },
@@ -172,17 +180,8 @@ export function useDashboardData(
     }
   }, [isTimeSeries, activeEntry, windowTick, effectiveAnalysisAt, tile.query?.window]);
 
-  const timeSeriesMetric =
-    isTimeSeries && activeEntry
-      ? activeEntry.source.layer === 'crm'
-        ? activeEntry.id === 'crm.gewonnen_verlauf'
-          ? 'Deal gewonnen'
-          : '*'
-        : (activeEntry.source.liveKpiId ?? '')
-      : '';
-
-  const timeSeriesSource =
-    activeEntry?.history.source === 'live_kpi_events' ? 'live_kpi' : 'deal_stage_events';
+  const timeSeriesMetric = isTimeSeries && activeEntry ? timeSeriesMetricOf(activeEntry) : '';
+  const timeSeriesSource = activeEntry ? timeSeriesSourceOf(activeEntry) : 'deal_stage_events';
 
   const timeSeriesQuery = useQuery({
     queryKey:

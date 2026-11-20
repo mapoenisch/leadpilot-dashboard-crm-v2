@@ -23,6 +23,7 @@ import {
 } from '../data/dashboardData';
 import type { TileDataHook } from '../components/LazyDashboardTile';
 import { SAMPLE_SERIES, SAMPLE_SHARES, SAMPLE_STAGES } from './previewSampleData';
+import { withPreviewTimeSeriesExtras } from './previewTimeSeriesExtras';
 
 export const EDITOR_PREVIEW_NOTICE = 'Testdaten · Editor-Vorschau';
 
@@ -204,14 +205,14 @@ export const useEditorPreviewData: TileDataHook = (
       value: p.value as number,
     }));
     const lastPoint = belegtPoints[belegtPoints.length - 1];
-    return {
+    return withPreviewTimeSeriesExtras(tile, catalogEntry, {
       ...base,
       state: ready ? 'bereit' : 'laden',
       value: lastPoint ? lastPoint.value : null,
       series,
       timeSeries,
       overview: null,
-    };
+    });
   }
   const isOverview = catalogEntry.shape === 'uebersicht';
   const series = ready && !isOverview ? seriesFor(catalogEntry) : null;

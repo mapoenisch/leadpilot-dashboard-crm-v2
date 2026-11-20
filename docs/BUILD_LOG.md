@@ -22564,3 +22564,142 @@ Mit Auftrag 169 (Phase P14a des Masterplans) erhält der Dashboard-Editor die F�
 3. Im Inspector unter „Alarme“ Schwellenwert prüfen → Schwellenwert ist in `Tsd. EUR` hinterlegt (`1000` Warnung, `500` Kritisch), Badge spiegelt die umgerechnete Einheit wider.
 4. Kachel „Pipeline Volumen (Pausierter Alarm)“ ansehen → Badge zeigt `Alarm pausiert` mit Grund `kennzahl_nicht_alarmfaehig`, da ein gleitender Durchschnitt aktiv ist.
 
+
+## 2026-11-20 — Auftrag 170: Dashboard-Editor: Vergleichszeitraum, zeitbezogene Verknüpfung, Heatmap, Erwartungsbänder (P14b)
+
+**Rolle:** Builder. Begonnen von Antigravity; nach Abbruch durch das Antigravity-Nutzungslimit (Stand ungetestet, nicht committet: 22 TypeScript- und 6 Lint-Fehler) von **Claude Code** übernommen und fertiggestellt. **Branch:** `auftrag-170-vergleich-joins-heatmap` · **Basis:** `ac9da030` (Merge PR #210, Auftrag 169). Prüfer: unabhängiger Agent nach `CLAUDE.md` §4.1 (nicht Claude Code, nicht Antigravity).
+
+### 1. Ziel & Kontext
+Phase P14b des Masterplans: Zeitreihen-Kacheln zeigen einen Vergleichszeitraum (Vorperiode, gleiche Periode Vorjahr) nur mit belegter Historie, verknüpfen zwei Reihen über den Zeitstempel, eine neue Darstellung „Heatmap“ zeigt Woche × Wochentag bzw. Phase × Woche, und Erwartungsbänder folgen dem am 18.11.2026 entschiedenen Verfahren (§8). Vergleich, Join und Heatmap sind nicht alarmfähig.
+
+### 2. Befunde am übernommenen Zwischenstand (alle behoben)
+| Nr. | Befund | Behebung |
+|---|---|---|
+| Ü1 | Migration ersetzte `dashboard_config_v2_invalid_reason` durch eine **ältere** Fassung (fehlende Prüfung eindeutiger Kachel-IDs, `id`-Prüfung, geänderte Meldungen). | Validator aus `20261126` übernommen, nur die 170-Felder ergänzt (Diff gegen 20261126 enthält ausschließlich 170-Blöcke). |
+| Ü2 | Vergleichs-RPC duplizierte die Zeitreihenlogik (eigene Lückenregeln, Vorperiode für Monate falsch). | RPC ruft das unveränderte `dashboard_time_series` zweimal auf; Vorperiode = gleiche Anzahl Abschnitte kalendergenau davor. |
+| Ü3 | Heatmap „Phase × Woche“ war eine Attrappe: fünf erfundene Phasen mit identischem Wert. | Neue RPC `dashboard_time_series_phases` (sieben normalisierte Phasen) und echtes Raster je Phase. |
+| Ü4 | Heatmap nur bei den zwei wöchentlichen CRM-Reihen erlaubt – Woche × Wochentag ist mit Wochenwerten nicht darstellbar. | Heatmap lädt 84 Tage in Tagesauflösung; Darstellung auch für die 12 Live-Verläufe freigegeben. |
+| Ü5 | Kalenderrechnung abhängig von der Zeitzone des Rechners (CI läuft in UTC). | `model/timeseries/berlinDate.ts`; Tests grün unter `TZ=UTC` und `TZ=America/Los_Angeles`. |
+| Ü6 | Keine echte Datenanbindung: Vergleich/Join/Band existierten nur als erfundene Werte in der Vorschau. | `hooks/useTimeSeriesExtras.ts` in `useDashboardData`; Vorschau läuft über denselben Zusammenbau (`buildTimeSeriesExtras`). |
+| Ü7 | Neuer Alarm-Sperrgrund „Transformationen werden nicht unterstützt“ sperrte **alle** Transformationen – Regression gegenüber 169 (Umbenennen/Einheit sind alarmfähig). | Entfernt; nur Vergleich/Join/Heatmap sperren. |
+| Ü8 | `DepthLineChart.tsx` 429 Zeilen, Inline-Style in der Heatmap, feste Farbwerte statt Tokens. | Zusatzebenen in `DepthLineOverlays.tsx`; Heatmap ohne Inline-Style, Farben aus `MANAGEMENT_CHART_THEME`/`SERIES_COLORS`. |
+
+### 3. Weitere Befunde während der Umsetzung
+- **P14a-Fehler (vor 170 vorhanden):** `normalizeTileQuery` verwarf `query.transformations` beim Speichern (`prepareConfigForStorage`) – gespeicherte V2-Dashboards verloren ihre Transformationen. Nachweis per Skript am Basisstand, behoben, Regressionstest `timeseriesExtras.vitest.ts`.
+- **Leistung:** Join über 500 Abschnitte dauerte 41 ms (Zeilenbeschriftung über neu erzeugte `Intl`-Formatierer). Beschriftung optional gemacht → Test „< 5 ms“ grün.
+- **Kachel-Metadaten:** Abrufzeit/Stand hängen per WeakMap am Datenobjekt; die Zusammenführung erzeugt ein neues Objekt. `keepMeta` überträgt beides (Test).
+- **Einheiten-Mischung:** Vergleich/Join/Band hätten mit `einheit_umrechnen`/`gleitender_durchschnitt` Basis und Vergleich in verschiedenen Einheiten gezeichnet. Neue Kombinationsregel in Client und Server (pgTAP-Fall); Heatmap und Druckanhang zeigen die bereits umgeformte Kachelreihe.
+- **Darstellung (Screenshot-Prüfung):** abgeschnittene Phasennamen und überlappende KW-Beschriftung korrigiert; Kachelkopf der Wochentag-Heatmap nennt jetzt „letzte 84 Tage, je Tag“ statt „24 Stunden“.
+
+### 4. Geänderte Dateien
+- **Server:** `supabase/migrations/20261127_dashboard_time_series_compare.sql` (neu: `dashboard_time_series_compare`, `dashboard_time_series_phases`; Validator; Alarm-Trigger), `supabase/tests/dashboard_time_series_compare.sql` (28 pgTAP-Tests).
+- **Modell:** neu `model/timeseries/` (`types`, `berlinDate`, `computeComparison`, `alignSeries`, `toHeatmapGrid`, `expectationBands`, `buildTimeSeriesExtras`, `timeSeriesQuery`, je ≥ 20 Referenzfälle in `*ReferenceCases.json`); `dashboardConfigV2.ts` (+3 Zeilen), `dashboardCatalog.ts` (Darstellung `heatmap`), `catalog/historyEntries.ts`, `catalog/liveEntries.ts`, `dashboardAlarmPermitted.ts`, `normalizeTileQuery.ts`, `tileQuery.ts`.
+- **Daten:** neu `data/resolveTimeSeriesCompare.ts`, `data/timeSeriesSource.ts`, `hooks/useTimeSeriesExtras.ts`; `data/dashboardData.ts` (Feld `timeSeriesExtras`), `hooks/useDashboardData.ts` (Hülle + Quellhelfer, 398 Zeilen).
+- **Oberfläche:** neu `charts/HeatmapChart.tsx`, `charts/DepthLineOverlays.tsx`, `charts/depthChartHelpers.ts`, `inspector/InspectorCompareSection.tsx`, `export/printExtrasRows.ts`; `DepthLineChart.tsx`, `DashboardChart.tsx`, `chartLoaders.ts`, `chartTypes.ts`, `InspectorDataTab.tsx`, `InspectorPresentationTab.tsx`, `threshold/AlarmSection.tsx`, `PrintAppendixTable.tsx`, `hooks/dashboardEditorReducer.ts`.
+- **Vorschau:** neu `preview/previewCompare.ts`, `preview/previewTimeSeriesExtras.ts`; `editorPreviewData.ts`, `previewParams.ts`, `DashboardEditorPreviewV2.tsx` (Szenario-Auswahl ausgelagert, 393 Zeilen).
+- **Nachweise:** Vitest `timeseriesCompare/Join/Heatmap/Bands/Extras/PreviewAndFetch.vitest.ts`, `timeseriesCharts.ui.vitest.tsx`, `useTimeSeriesExtras.ui.vitest.tsx`, `alarmSwitchPermitted.vitest.ts`, Loader-Ergänzung in `DashboardWorkspace(.codex).ui.vitest.tsx`; E2E `e2e/dashboard-compare-preview.spec.ts`; `.github/workflows/ci.yml` und `scripts/runV23Acceptance.mjs` (neuer Spec); `scripts/captureAuftrag170GateScreenshots.mjs`, `docs/screenshots/auftrag-170/README.md`.
+- **Doku:** `ZEITREIHEN_P10B.md` §8, `TRANSFORMATIONEN_P14.md` (Matrix + §5), Masterplan §6 (Nachtrag „P14 abgeschlossen“), `ARCHITECTURE_DECISIONS.md` C14, `BUILD_PLAN.md`, Auftrag (Häkchen, Status).
+
+**Begründete Abweichungen von der Ziel-Dateien-Tabelle:** `normalizeTileQuery.ts`/`tileQuery.ts` (ohne sie gehen die neuen Abfragefelder beim Speichern verloren, zugleich Behebung des P14a-Fehlers), `useDashboardData.ts` (einziger Einhängepunkt des echten Datenwegs), `liveEntries.ts` (Heatmap bei Live-Verläufen), zweite RPC `dashboard_time_series_phases` in derselben Migration (Phase × Woche ist mit der Vergleichs-RPC nicht abbildbar), `runV23Acceptance.mjs` (Pflichtliste aller E2E-Dateien). Keine neue Abhängigkeit, keine Chart-Bibliothek.
+
+### 5. Funktionale Prüfungen
+- Vergleich nur mit belegter Historie; Teilhistorie: „Vergleich unvollständig: Daten ab TT.MM.JJJJ“, fehlende Abschnitte bleiben Lücken (pgTAP 11–16, Vitest).
+- 0-Vergleichswert → „nicht berechenbar“; Einheit `%` → Differenz in `Pp.` (Referenzfälle, Fadenkreuz, Druck).
+- Join nur bei gleicher Auflösung (Kandidatenliste + Client/Server-Prüfung), höchstens 500 Abschnitte, andere Einheit → rechte Achse.
+- Heatmap: Fluss = Tagessumme, Bestand/Verhältnis = letzter Wert; leere Zellen schraffiert mit „Keine Daten“ im zugänglichen Namen; Pfeiltasten-Navigation; Legende mit Wertebereich.
+- Erwartungsband: 7 Perioden → kein Band, 8 → Band, Lücke → Periode zählt nicht; Erklärsatz unter der Kachel; kein Alarm.
+- Alarme: Schalter gesperrt mit Grund bei Vergleich/Join/Heatmap; Trigger pausiert aktive Regeln (`kennzahl_nicht_alarmfaehig`).
+
+### 6. Schutzbereichs-Prüfung
+`git diff ac9da030 -- src/simulation src/types src/context src/services/data src/features/resources` → **leer**.
+
+### 7. Automatisierte Verifikation (lokal, 20.11.2026)
+| Prüfung | Ergebnis |
+|---|---|
+| `npx tsc --noEmit` | 0 Fehler |
+| `npm run lint` / `npm run format:check` | grün |
+| `npm run test:coverage` | 474 Dateien, 3.597 Tests grün; Zweige 80,40 % (Schwelle 80 %) |
+| `npm run verify` | Integritätssuiten 001–025 grün |
+| `npm run build` | grün |
+| `npm run build:production` | lokal **rot** durch Umgebungsprüfung (lokale `VITE_SUPABASE_URL` ist http) – erwartetes Verhalten des Fail-closed-Checks, kein Codefehler |
+| `npx size-limit` | Initial-JS 171,97 kB (Basis `ac9da030`: 172,06 kB, −0,09 kB), größter Chunk 79,41 kB |
+| `npx tsx scripts/verifyAlarmCapability.ts` | grün |
+| `supabase db reset --yes && supabase test db` | 27 Dateien, 679 Tests, PASS (davon 28 in `dashboard_time_series_compare.sql`) |
+| `npm run verify:migrations` | GRÜN (leere DB, Upgrade v2.2.0, Schemagleichheit, pgTAP) |
+| E2E `dashboard-compare-preview` + `dashboard-transformations-preview` + `a11y` | 60 bestanden |
+| E2E `editor-*.spec.ts` (`--workers=1`) | 18 bestanden |
+| E2E `visual.spec.ts` | lokal 15 Abweichungen auf macOS-Referenzbildern – **identisch auf sauberem `ac9da030`** (gleiche 15 Fälle, nicht durch 170 verursacht); CI prüft gegen Linux-Referenzen |
+| Leistung | Heatmap-Raster 52 × 7 < 16 ms (Vitest), Join 500 Abschnitte < 5 ms (Vitest) |
+
+### 8. Screenshot-Matrix
+`node scripts/captureAuftrag170GateScreenshots.mjs` → `docs/screenshots/auftrag-170/README.md`: 9 Szenarien × 3 Viewports × 2 Farbschemata = 54 Aufnahmen, 0 px Überlauf, je Viewport/Thema 9 eindeutige SHA-256-Hashes. Bilder lokal, nicht im Git.
+
+### 9. Grenzen
+- Die Anlage einer Alarmregel prüft serverseitig nicht die Kachelkonfiguration (wie in 169); der Trigger pausiert beim Speichern, die Oberfläche sperrt den Schalter.
+- Das Erwartungsband nutzt Perioden als feste Abschnittsanzahl; am Tag der Zeitumstellung verschiebt sich die Stundenposition um eine Stunde.
+- Budget-Bänder bleiben außerhalb des Umfangs.
+
+### 10. Ergebnis & Freigabestatus
+Builder-Seite abgeschlossen, alle lokalen Pflichtprüfungen grün (Ausnahmen oben begründet). **Freigabe steht aus:** unabhängiges Review auf GitHub, grüne Pflicht-Checks, gelöste Konversationen; Merge durch Marc.
+
+### 11. Nacharbeit Codex-Review Runde 1 (Head `f5318be`, 6 P2-Befunde, alle behoben)
+
+- **B1 `expectationBands.ts` – stündliche Bänder über die Zeitumstellung:** Perioden wurden rein indexbasiert geschnitten; 24 Punkte entsprechen dann keinem Berliner Kalendertag mehr. Neu: `calendarPeriods`/`slotOf`/`periodKeyOf` ordnen Punkte über `berlinHour`/`berlinDayKey` (neu in `berlinDate.ts`) ihrer Kalenderposition zu (Stunde des Tages, Wochentag); 23-/25-Stunden-Perioden gelten als unvollständig. `bandsForDisplay` ordnet Anzeigepunkte nach derselben Kalenderposition zu; ohne Zeitstempel bleibt der Index-Rückfall. 2 neue Tests in `timeseriesBands.vitest.ts` (inkl. Reproduktion des 16,1-Befunds).
+- **B2 `HeatmapChart.tsx` – Phasenreihen blieben ungeglättet:** `applyTransformations` bildet jetzt `timeSeriesExtras.heatmap.points` und jede `phaseSeries` über `mapHeatmapValues` um (gleitender Durchschnitt je Reihe, Einheitenumrechnung). Neue Suite `transformationsHeatmap.vitest.ts` (2 Tests).
+- **B3 `timeSeriesQuery.ts` – Vergleich bei Säulen/Tabelle speicherbar, aber nicht dargestellt:** Neue `supportsComparePresentation` (nur `linie`/`flaeche`). `compareBlockReason` sperrt die Optionen mit Grund; `dashboard_config_v2_invalid_reason` (Migration) und `findLayoutIntegrityError` lehnen die Kombination ab; ein Darstellungswechsel auf nicht unterstützte Ansicht entfernt `compare`/`join`/`bands` statt sie unsichtbar zu behalten (`useTileInspectorActions`). Tests in `timeseriesExtras.vitest.ts` + 2 pgTAP-Fälle.
+- **B4 Migration – wöchentlicher Vorjahresvergleich:** `p_from - interval '1 year'` landete auf einen anderen Wochentag und lieferte zwei angeschnittene Wochen. Jetzt `date_trunc('week', …)` (Funktion läuft mit `SET timezone = 'Europe/Berlin'`) plus dieselbe Bucketanzahl. 2 neue pgTAP-Fälle (compareFrom = Montag 06.10.2025, genau 1 Vergleichswoche).
+- **B5 `useTimeSeriesExtras.ts` – Pause fror vor Zusatzabrufen ein:** `extrasFetching` (compare/join/bands `isFetching`) wird per `keepMeta` in die CRM-Query-Meta geschrieben; `isSettled` in `useTimeControlledData` wartet dadurch auch auf die Zusatzreihen.
+- **B6 `buildTimeSeriesExtras.ts` – Zeitbasis/Stand bei Tages-Heatmap:** `timeBasis` wird aus dem Heatmap-Fenster abgeleitet („Letzte N Wochen/Tage (täglich)“), `asOf` auf den letzten Heatmap-Punkt gesetzt.
+
+**Verifikation (lokal, 20.11.2026):** `tsc --noEmit` 0 Fehler; `lint` 0; `format:check` grün; `npm test` 475 Dateien / 3.601 Tests grün; `npm run verify` 25/25 Suites grün; `npm run build` grün; `npx size-limit` Initial 171,98 kB / Chunk 79,41 kB; `supabase db reset` + `supabase test db` auf `dashboard_time_series_compare.sql`: 32 pgTAP-Tests PASS; Kalendertests auch unter `TZ=UTC` grün. Schutzbereichs-Diff gegen `ac9da030` unverändert leer (keine Schutzbereich-Dateien berührt). Die Codeänderungen stammen aus dem vorherigen, abgebrochenen Lauf; diese Runde hat alle sechs Befunde gegen die Umsetzung geprüft, fehlende Regressionstests ergänzt (2 pgTAP, 2 Vitest in neuer Suite) und alle Gates neu gefahren.
+
+### 12. Nacharbeit Codex-Review Runde 2 (Head `589af844`, 2 P2-Befunde, alle behoben)
+
+- **B7 `useTimeSeriesExtras.ts` – Banddaten ohne aktives Band:** `bandPrior` wurde auch bei ausgeschaltetem Erwartungsband aus dem React-Query-Cache übergeben (gleiches Query-Fenster wie Vergleich). Jetzt `bandPrior: parts.bands ? bandsQuery.data : undefined`; der Band-Fehlerhinweis wird ebenfalls nur bei aktivem Band gesetzt.
+- **B8 `timeSeriesQuery.ts` – Join-Kandidaten nach Standardfenster statt unterstützter Auflösung:** `joinCandidates` verglich die effektive Auflösung der ersten Reihe mit dem `defaultWindow` der Kandidaten; bei Tagesfenster (z. B. 30 Tage) blieb die Liste leer und gespeicherte Joins wurden invalidiert. Neu: `model/timeseries/resolutionLimits.ts` mit `getMaxCountForResolution`/`supportsResolution` (aus `TimeWindowField` ausgelagert, eine Quelle für UI und Prüfung). Kandidaten sind jetzt alle aktiven Zeitreihen, deren Quelle die effektive Auflösung unterstützt (CRM: Tag/Woche/Monat, Live: Stunde/Tag). Hinweise und Validierungsmeldung angepasst („unterstützte Auflösung“), `InspectorCompareSection`-Leertext aktualisiert. Tests: `timeseriesExtras.vitest.ts` (Tag-Fenster erlaubt Live↔CRM, Standard-Stunde nicht), `timeseriesPreviewAndFetch.vitest.ts` (Meldung).
+
+**Verifikation (lokal, 20.11.2026):** `tsc --noEmit` 0 Fehler; `lint` 0; `format:check` grün; `npm test` 475 Dateien / 3.602 Tests grün; `npm run verify` 25/25 Suites grün; `npm run build` grün; `npx size-limit` Initial 171,97 kB / Chunk 79,41 kB. Keine Server-Änderung (pgTAP unverändert). Schutzbereichs-Diff gegen `ac9da030` leer.
+
+### 13. Nacharbeit Codex-Review Runde 3 (Head `14566dc4`, 2 P2-Befunde, alle behoben)
+
+- **B9 `useTimeControlledData.ts` – Einfrierstand kannte keine Zusatzreihen:** `effectiveQueryKeyOf` berücksichtigte weder `query.compare`/`join`/`bands` noch die Heatmap-Darstellung; Änderungen während einer gemeinsamen Pause wurden geladen, aber nicht angezeigt (bei Heatmap sogar die falsche Reihe). Der Schlüssel enthält jetzt die normalisierten Zusatzoptionen (`normalizeTimeSeriesQueryParts`) und den Heatmap-Modus. UI-Regressionstest in `useTimeControlledData.ui.vitest.tsx` (Vergleich und Heatmap während Pause).
+- **B10 `buildTimeSeriesExtras.ts` + Migration – Vorjahr tag-/stundenweise positionsweise falsch:** Bei `vorjahr` mit `tag`/`stunde` kann das Vergleichsfenster andere Bucketzahlen liefern (Schaltjahr, Zeitumstellung); die Zuordnung war indexbasiert (01.03.2029 wurde mit 29.02.2028 statt 01.03.2028 verglichen). Neu: `berlinWallKey`/`berlinWallKeyMinusYear` in `berlinDate.ts` — Zuordnung über den Berliner Wand-Schlüssel (Kalendertag + Stunde), Schaltregel 29.02.→28.02. Vorperiode sowie `woche`/`monat` bleiben positionsgleich (dort ist die Bucketzahl garantiert). Regressionstest Schaltjahr in `timeseriesExtras.vitest.ts`.
+
+**Verifikation (lokal, 20.11.2026):** `tsc --noEmit` 0 Fehler; `lint` 0; `format:check` grün; `npm test` 475 Dateien / 3.604 Tests grün; `npm run verify` 25/25 Suites grün; `npm run build` grün; `npx size-limit` Initial 171,97 kB / Chunk 79,41 kB. Keine Server-Änderung nötig (RPC-Lieferung unverändert, Zuordnung clientseitig). Schutzbereichs-Diff gegen `ac9da030` leer.
+
+### 14. Nacharbeit Codex-Review Runde 4 (Head `3659d06b`, 2 P2-Befunde, alle behoben)
+
+- **B11 Migration – leere Vorjahresfenster an Schaltjahrgrenzen:** `p_from/p_to - interval '1 year'` kollabierte z. B. bei 28.–29.02.2028 auf denselben Tag 28.02.2027 → `p_from >= p_to`-Fehler statt Vergleich. Das Vergleichsfenster wird jetzt aus den verschobenen, bündigen Basis-Buckets abgeleitet (`date_trunc` + `least`/`greatest` + `v_step`), sodass der Schaltjahres-Kollaps (29.02.→28.02.) ein nicht-leeres Fenster mit genau den benötigten Vergleichstagen liefert. `woche`/`vorperiode` unverändert. 2 neue pgTAP-Fälle (kein Fehler, genau 1 Vergleichstag).
+- **B12 `InspectorDataTab.tsx` – wertverändernde Transformation bei aktivem Vergleich speicherbar:** `compareBlockReason`/Validator prüften nur beim Hinzufügen von Vergleich/Join/Band, nicht umgekehrt: Bei bereits aktivem Vergleich konnte `einheit_umrechnen`/`gleitender_durchschnitt` hinzugefügt werden → nur Basis transformiert, Vergleich rohdargestellt, erst der Save-Validator lehnte ab. `handleTransformationsChange` entfernt `compare`/`join`/`bands` jetzt bei jeder wertverändernden Transformation (gleiches Verhalten wie beim Darstellungswechsel). 1 neuer pgTAP-Validator-Fall (`einheit_umrechnen` + `vorperiode` → Abgelehnt).
+
+**Verifikation (lokal, 20.11.2026):** `tsc --noEmit` 0 Fehler; `lint` 0; `format:check` grün; `npm test` 475 Dateien / 3.604 Tests grün (einzelner Flake in `DashboardDesignPreview.ui.vitest.tsx` beim ersten Lauf, isoliert und im Re-Run grün); `npm run verify` 25/25 Suites grün; `npm run build` grün; `npx size-limit` Initial 171,97 kB / Chunk 79,41 kB; `supabase test db` auf `dashboard_time_series_compare.sql`: 35 pgTAP-Tests PASS. Schutzbereichs-Diff gegen `ac9da030` leer.
+
+### 15. Prüfnachweis Codex-Review (Head `7af42075`, 20.11.2026)
+
+- **Prüfer:** Codex-App auf GitHub (`chatgpt-codex-connector`), Comment `7040171029`.
+- **Geprüfter Commit:** `7af420751d` (Head nach Runde-4-Nacharbeit).
+- **Ergebnis:** „Didn't find any major issues. 👍" — keine offenen Befunde auf dem aktuellen Head.
+- **Verlauf:** 4 Review-Runden, insgesamt 12 P2-Befunde, alle behoben (Abschnitte 11–14).
+- **Offen für Gate-Freigabe:** grüne Pflicht-Checks und gelöste Review-Konversationen auf GitHub; Merge durch Marc.
+
+### 16. Nacharbeit Codex-Review Runde 5 (Head `ebe90383`, 2 P2-Befunde, alle behoben)
+
+- **B13 Migration – Vorjahresgrenzen nur aus Rand-Buckets:** Bei stündlichen Vorjahresfenstern über den Schaltjahresbeginn ist die Kalenderzuordnung nicht-monoton (29.02. kollabiert auf 28.02.); `least`/`greatest` über die beiden Rand-Buckets ließ benötigte Vergleichsstunden (z. B. 23:00, 00:00, 01:00) außerhalb des Abruffensters → Lücken trotz vorhandener Messung. Das Fenster wird jetzt per `generate_series` über ALLE bündigen Basis-Buckets verschoben und aus `min`/`max` + `v_step` gebildet. Neuer pgTAP-Fall: 4 Stunden über 28./29.02.2024 → 24 Vergleichsstunden (vorher 22).
+- **B14 `DashboardChart.tsx` – Heatmap-Tabelle zeigte Rohreihe statt Raster:** Die „Werte als Tabelle“-Alternative (und der Hinweis-Fallback) nutzte weiterhin `data.timeSeries`-Punkte; bei `phase_woche` fehlen dort die Phasenwerte komplett, bei `woche_wochentag` weichen Anzahl und Zeitraum vom Raster ab. Neu: `heatmapTableRows` baut die Tabellenzeilen mit `toHeatmapGrid` aus demselben Input wie Grafik und Druckanhang (`printExtrasRows`). Neue Suite `heatmapTableAlternative.ui.vitest.tsx` (beide Modi).
+
+**Verifikation (lokal, 20.11.2026):** `tsc --noEmit` 0 Fehler; `lint` 0; `format:check` grün; `npm test` 476 Dateien / 3.606 Tests grün; `npm run verify` 25/25 Suites grün; `npm run build` grün; `supabase test db` auf `dashboard_time_series_compare.sql`: 36 pgTAP-Tests PASS. Schutzbereichs-Diff gegen `ac9da030` leer.
+
+### 17. CI-Nacharbeit: Heatmap-Performancetest robust gemacht (20.11.2026)
+
+- **Anlass:** `test`-Check auf `ebe90383` und `038ef85b` rot — `timeseriesHeatmap.vitest.ts` maß einen einzelnen Kalendlauf von `toHeatmapGrid` und überschritt die 16-ms-Schwelle unter CI-Coverage (29,9 ms bzw. 17,1 ms; lokal ~7 ms). Kein Codefehler.
+- **Fix:** Warmup-Aufruf + 5 Messungen, Behauptung auf dem schnellsten Lauf (`best < 16`). Die Spec-Schwelle bleibt unverändert; nur die Messung ist jetzt jittersicher.
+- **Verifikation:** betroffene Suite lokal grün (7 Tests), `format:check` grün.
+
+### 18. Prüfnachweis Codex-Review Runde 5/6 (Head `39f0f30d`, 20.11.2026)
+
+- **Prüfer:** Codex-App auf GitHub (`chatgpt-codex-connector`), Comment `7040887165`.
+- **Geprüfter Commit:** `39f0f30da3` (nach Runde-5-Nacharbeit + CI-Fix).
+- **Ergebnis:** „Didn't find any major issues." — keine offenen Befunde auf dem aktuellen Head.
+- **Verlauf:** 6 Review-Runden, 14 P2-Befunde, alle behoben (Abschnitte 11–14, 16); ein Codex-Lauf war technischer Fehlschlag („Unknown error"), Wiederholung erfolgreich.
+- **CI:** `test`-Check nach der Performancetest-Korrektur (Abschnitt 17) wieder grün; `e2e` zum Zeitpunkt des Eintrags noch laufend.
+- **Offen für Gate-Freigabe:** `e2e`-Check und gelöste Review-Konversationen; Merge durch Marc.
