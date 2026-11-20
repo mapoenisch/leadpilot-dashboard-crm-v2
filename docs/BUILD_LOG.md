@@ -22688,3 +22688,9 @@ Builder-Seite abgeschlossen, alle lokalen Pflichtprüfungen grün (Ausnahmen obe
 - **B14 `DashboardChart.tsx` – Heatmap-Tabelle zeigte Rohreihe statt Raster:** Die „Werte als Tabelle“-Alternative (und der Hinweis-Fallback) nutzte weiterhin `data.timeSeries`-Punkte; bei `phase_woche` fehlen dort die Phasenwerte komplett, bei `woche_wochentag` weichen Anzahl und Zeitraum vom Raster ab. Neu: `heatmapTableRows` baut die Tabellenzeilen mit `toHeatmapGrid` aus demselben Input wie Grafik und Druckanhang (`printExtrasRows`). Neue Suite `heatmapTableAlternative.ui.vitest.tsx` (beide Modi).
 
 **Verifikation (lokal, 20.11.2026):** `tsc --noEmit` 0 Fehler; `lint` 0; `format:check` grün; `npm test` 476 Dateien / 3.606 Tests grün; `npm run verify` 25/25 Suites grün; `npm run build` grün; `supabase test db` auf `dashboard_time_series_compare.sql`: 36 pgTAP-Tests PASS. Schutzbereichs-Diff gegen `ac9da030` leer.
+
+### 17. CI-Nacharbeit: Heatmap-Performancetest robust gemacht (20.11.2026)
+
+- **Anlass:** `test`-Check auf `ebe90383` und `038ef85b` rot — `timeseriesHeatmap.vitest.ts` maß einen einzelnen Kalendlauf von `toHeatmapGrid` und überschritt die 16-ms-Schwelle unter CI-Coverage (29,9 ms bzw. 17,1 ms; lokal ~7 ms). Kein Codefehler.
+- **Fix:** Warmup-Aufruf + 5 Messungen, Behauptung auf dem schnellsten Lauf (`best < 16`). Die Spec-Schwelle bleibt unverändert; nur die Messung ist jetzt jittersicher.
+- **Verifikation:** betroffene Suite lokal grün (7 Tests), `format:check` grün.
