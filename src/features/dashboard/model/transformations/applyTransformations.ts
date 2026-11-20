@@ -88,10 +88,7 @@ export function applyTransformations<T extends TileData>(
 
 function applySingleStep(data: ResolvedTileData, step: TileTransformation): ResolvedTileData {
   if (step.art === 'umbenennen') {
-    return {
-      ...data,
-      series: data.series ? data.series.map((s) => ({ ...s, label: step.name })) : null,
-    };
+    return data;
   }
 
   if (step.art === 'einheit_umrechnen') {

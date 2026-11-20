@@ -15,7 +15,7 @@ import { useOptionalTimeControl } from '../time/TimeControlProvider';
 import { DashboardTile } from './DashboardTile';
 import { TileThresholdBadge } from './TileThresholdBadge';
 import { isDataOlderThanMaxAlarmAge } from '../model/alarmDataAge';
-import { applyTransformations } from '../model/transformations';
+import { applyTransformations, getUnitConversion } from '../model/transformations';
 
 export type TileDataHook = (
   tile: DashboardTileConfig,
@@ -79,7 +79,31 @@ export function LazyDashboardTile({
     }
   }, [data, rawData, tile.tileId, timeControl]);
 
-  const entry = activeEntryOf(tile);
+  const rawEntry = activeEntryOf(tile);
+  const entry = useMemo(() => {
+    if (!rawEntry) return undefined;
+    if (!rawEntry.comparison || !transformations || transformations.length === 0) {
+      return rawEntry;
+    }
+    let compValue = rawEntry.comparison.value;
+    for (const step of transformations) {
+      if (step.art === 'einheit_umrechnen') {
+        const conv = getUnitConversion(step.von, step.zu);
+        if (conv) {
+          compValue =
+            conv.operation === 'divide' ? compValue / conv.operand : compValue * conv.operand;
+        }
+      }
+    }
+    if (compValue === rawEntry.comparison.value) return rawEntry;
+    return {
+      ...rawEntry,
+      comparison: {
+        ...rawEntry.comparison,
+        value: compValue,
+      },
+    };
+  }, [rawEntry, transformations]);
   const effectiveThreshold = threshold ?? (tile as { threshold?: TileThresholdRule }).threshold;
   const isSingleValue = entry
     ? ['einzelwert', 'verhaeltnis', 'anteil'].includes(entry.shape)

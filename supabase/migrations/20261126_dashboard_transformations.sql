@@ -896,6 +896,7 @@ BEGIN
       regeln_gesamt = v_regeln_gesamt,
       regeln_ausgewertet = v_regeln_ausgewertet,
       ereignisse_erzeugt = v_ereignisse_erzeugt,
+      fehler_anzahl = v_fehler_anzahl,
       fehler_text = CASE WHEN v_fehler_anzahl > 0 THEN v_fehler_anzahl || ' Fehler bei der Regelauswertung aufgetreten' ELSE NULL END
   WHERE id = v_run_id;
 

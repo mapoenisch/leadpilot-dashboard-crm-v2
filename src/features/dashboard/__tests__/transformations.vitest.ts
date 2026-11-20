@@ -210,12 +210,7 @@ describe('Auftrag 169 – Transformations-Modell & Vitest Suite', () => {
 
   describe('Validierung und Kettenregeln', () => {
     it('lehnt mehr als 3 Schritte ab', () => {
-      const chain: TileTransformation[] = [
-        { art: 'umbenennen', name: 'Schritt 1' },
-        { art: 'umbenennen', name: 'Schritt 2' },
-        { art: 'umbenennen', name: 'Schritt 3' },
-        { art: 'umbenennen', name: 'Schritt 4' },
-      ];
+      const chain: TileTransformation[] = Array(4).fill({ art: 'umbenennen', name: 'Schritt' });
       const res = validateTransformations(chain, 'EUR');
       expect(res.ok).toBe(false);
       expect(res.grund).toContain('Maximal 3 Transformationsschritte');
@@ -303,60 +298,64 @@ describe('Auftrag 169 – Transformations-Modell & Vitest Suite', () => {
 
   describe('Zusammenfassungs- und Titel-Formatierung', () => {
     it('erzeugt korrekte Zusammenfassung für Tooltip und Fußnote', () => {
-      const chain: TileTransformation[] = [
-        { art: 'umbenennen', name: 'Netto Pipeline' },
-        { art: 'einheit_umrechnen', von: 'EUR', zu: 'Tsd. EUR' },
-        { art: 'gleitender_durchschnitt', fenster: 7 },
-      ];
-      const summary = formatTransformationSummary(chain);
-      expect(summary).toBe(
-        'Umbenannt in „Netto Pipeline“ · EUR → Tsd. EUR · Gleitender Durchschnitt (7 Punkte)',
-      );
+      expect(
+        formatTransformationSummary([
+          { art: 'umbenennen', name: 'Netto Pipeline' },
+          { art: 'einheit_umrechnen', von: 'EUR', zu: 'Tsd. EUR' },
+          { art: 'gleitender_durchschnitt', fenster: 7 },
+        ]),
+      ).toBe('Umbenannt in „Netto Pipeline“ · EUR → Tsd. EUR · Gleitender Durchschnitt (7 Punkte)');
     });
 
     it('erhaelt TileStand und CrmQueryMeta beim Transformieren', () => {
       const data = createMockResolvedData({ value: 1000, unit: 'EUR' });
-      attachTileStand(data, {
-        mode: 'zeitpunkt',
+      const standMeta = {
+        mode: 'zeitpunkt' as const,
         analysisAt: '2026-11-01T00:00:00Z',
         observedAt: '2026-11-01T12:00:00Z',
         loadedAfterPause: false,
-      });
+      };
+      attachTileStand(data, standMeta);
       attachCrmQueryMeta(data, { fetchedAt: 123456789, isFetching: false });
 
       const res = applyTransformations(data, [{ art: 'umbenennen', name: 'Neuer Titel' }]);
-      expect(readTileStand(res)).toEqual({
-        mode: 'zeitpunkt',
-        analysisAt: '2026-11-01T00:00:00Z',
-        observedAt: '2026-11-01T12:00:00Z',
-        loadedAfterPause: false,
-      });
+      expect(readTileStand(res)).toEqual(standMeta);
       expect(readCrmQueryMeta(res)).toEqual({ fetchedAt: 123456789, isFetching: false });
       expect(getEffectiveTitle('Alter Titel', [{ art: 'umbenennen', name: 'Neuer Titel' }])).toBe(
         'Neuer Titel',
       );
+
+      const catData = createMockResolvedData({
+        series: [
+          { label: 'Stufe A', value: 10 },
+          { label: 'Stufe B', value: 20 },
+        ],
+      });
+      const resCat = applyTransformations(catData, [{ art: 'umbenennen', name: 'Funnel Neu' }]);
+      expect(resCat.series).toEqual([
+        { label: 'Stufe A', value: 10 },
+        { label: 'Stufe B', value: 20 },
+      ]);
     });
 
     it('aktualisiert beim Glaetten einer Zeitreihe auch value und series', () => {
-      const points = [
-        { at: '2026-11-01', value: 10, status: 'belegt' as const, measuredAt: '2026-11-01' },
-        { at: '2026-11-02', value: 20, status: 'belegt' as const, measuredAt: '2026-11-02' },
-        { at: '2026-11-03', value: 30, status: 'belegt' as const, measuredAt: '2026-11-03' },
-      ];
+      const points = [10, 20, 30].map((v, i) => ({
+        at: `2026-11-0${i + 1}`,
+        value: v,
+        status: 'belegt' as const,
+        measuredAt: `2026-11-0${i + 1}`,
+      }));
+      const series = [10, 20, 30].map((v, i) => ({ label: `0${i + 1}.11.`, value: v }));
       const data = createMockResolvedData({
         value: 30,
-        series: [
-          { label: '01.11.', value: 10 },
-          { label: '02.11.', value: 20 },
-          { label: '03.11.', value: 30 },
-        ],
+        series,
         timeSeries: {
           source: 'deal_stage_events',
           resolution: 'tag',
+          points,
           from: '2026-11-01',
           to: '2026-11-03',
           historyStartAt: '2026-11-01',
-          points,
         },
       });
 
