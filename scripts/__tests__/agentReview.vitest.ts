@@ -126,6 +126,7 @@ describe('truncation', () => {
 
 describe('Workflow-Vertrag', () => {
   const wf = fs.readFileSync(path.join(root, '.github/workflows/agent-review.yml'), 'utf8');
+  const copilotWf = fs.readFileSync(path.join(root, '.github/workflows/copilot-review.yml'), 'utf8');
   it('reagiert nur auf Kommentare von Marc in PRs', () => {
     expect(wf).toContain('issue_comment');
     expect(wf).toContain("github.event.comment.user.login == 'mapoenisch'");
@@ -152,5 +153,15 @@ describe('Workflow-Vertrag', () => {
   });
   it('CI-Agenten und lokale Agenten sind getrennt', () => {
     expect(Object.entries(AGENTS).filter(([, a]) => a.mode === 'local').map(([k]) => k)).toEqual(['antigravity', 'proto']);
+  });
+  it('fordert Copilot nur vom sicheren PR-Workflow für neue Heads an', () => {
+    expect(copilotWf).toContain('pull_request_target');
+    expect(copilotWf).toContain('types: [opened, synchronize, reopened, ready_for_review]');
+    expect(copilotWf).toContain("!github.event.pull_request.draft");
+    expect(copilotWf).toContain('github.event.pull_request.head.repo.full_name == github.repository');
+    expect(copilotWf).toContain('/copilot-code-review');
+    expect(copilotWf).toContain('review_effort=balanced');
+    expect(copilotWf).not.toContain('/requested_reviewers');
+    expect(copilotWf).not.toContain('actions/checkout');
   });
 });

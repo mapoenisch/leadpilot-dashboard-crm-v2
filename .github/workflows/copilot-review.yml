@@ -1,0 +1,30 @@
+# Automatische Anforderung des GitHub-Copilot-Code-Reviews.
+# Der Workflow läuft nur mit Repository-Rechten und checkt nie den PR-Code aus.
+name: Copilot Review
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: copilot-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  request:
+    if: ${{ !github.event.pull_request.draft && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Copilot als Reviewer anfordern
+        env:
+          GH_TOKEN: ${{ secrets.MARCREVIEW_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh api --method POST \
+            "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/copilot-code-review" \
+            --field 'review_effort=balanced'
