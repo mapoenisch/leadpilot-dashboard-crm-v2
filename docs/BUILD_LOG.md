@@ -22673,3 +22673,11 @@ Builder-Seite abgeschlossen, alle lokalen Pflichtprüfungen grün (Ausnahmen obe
 - **B12 `InspectorDataTab.tsx` – wertverändernde Transformation bei aktivem Vergleich speicherbar:** `compareBlockReason`/Validator prüften nur beim Hinzufügen von Vergleich/Join/Band, nicht umgekehrt: Bei bereits aktivem Vergleich konnte `einheit_umrechnen`/`gleitender_durchschnitt` hinzugefügt werden → nur Basis transformiert, Vergleich rohdargestellt, erst der Save-Validator lehnte ab. `handleTransformationsChange` entfernt `compare`/`join`/`bands` jetzt bei jeder wertverändernden Transformation (gleiches Verhalten wie beim Darstellungswechsel). 1 neuer pgTAP-Validator-Fall (`einheit_umrechnen` + `vorperiode` → Abgelehnt).
 
 **Verifikation (lokal, 20.11.2026):** `tsc --noEmit` 0 Fehler; `lint` 0; `format:check` grün; `npm test` 475 Dateien / 3.604 Tests grün (einzelner Flake in `DashboardDesignPreview.ui.vitest.tsx` beim ersten Lauf, isoliert und im Re-Run grün); `npm run verify` 25/25 Suites grün; `npm run build` grün; `npx size-limit` Initial 171,97 kB / Chunk 79,41 kB; `supabase test db` auf `dashboard_time_series_compare.sql`: 35 pgTAP-Tests PASS. Schutzbereichs-Diff gegen `ac9da030` leer.
+
+### 15. Prüfnachweis Codex-Review (Head `7af42075`, 20.11.2026)
+
+- **Prüfer:** Codex-App auf GitHub (`chatgpt-codex-connector`), Comment `7040171029`.
+- **Geprüfter Commit:** `7af420751d` (Head nach Runde-4-Nacharbeit).
+- **Ergebnis:** „Didn't find any major issues. 👍" — keine offenen Befunde auf dem aktuellen Head.
+- **Verlauf:** 4 Review-Runden, insgesamt 12 P2-Befunde, alle behoben (Abschnitte 11–14).
+- **Offen für Gate-Freigabe:** grüne Pflicht-Checks und gelöste Review-Konversationen auf GitHub; Merge durch Marc.
