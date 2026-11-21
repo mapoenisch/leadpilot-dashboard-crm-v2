@@ -1,5 +1,5 @@
 // Auftrag 171 (P15a §2.1 Nr. 1/4): Kiosk-Seite — nur angemeldet, Sitzungsablauf stoppt Abrufe.
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -18,13 +18,14 @@ let orgSession: { role: string; organizationId: string; userId: string } | null 
   organizationId: 'org-1',
   userId: 'user-1',
 };
+let orgLoading = false;
 let emitAuth: ((e: SessionSourceEvent, at: number | null) => void) | null = null;
 const dataCalls = { count: 0 };
 const resetLive = vi.fn();
 
 vi.mock('@/auth/AuthContext', () => ({ useAuth: () => auth }));
 vi.mock('@/auth/organizationContext', () => ({
-  useOrganization: () => ({ session: orgSession, isLoading: false }),
+  useOrganization: () => ({ session: orgSession, isLoading: orgLoading }),
 }));
 vi.mock('@/services/liveKpi/liveKpiStreamStore', () => ({
   liveKpiStreamStore: {
@@ -91,10 +92,10 @@ vi.mock('../time/useTimeControlledData', async (orig) => {
 
 import { DashboardKioskPage } from '../pages/DashboardKioskPage';
 
-function renderPage(client = new QueryClient()) {
+function renderPage(client = new QueryClient(), search = '?ids=d1&intervall=60') {
   render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={['/dashboard/kiosk?ids=d1&intervall=60']}>
+      <MemoryRouter initialEntries={[`/dashboard/kiosk${search}`]}>
         <Routes>
           <Route path="/dashboard/kiosk" element={<DashboardKioskPage />} />
           <Route path="/login" element={<p data-testid="login-page">Login</p>} />
@@ -110,6 +111,7 @@ describe('DashboardKioskPage (Auftrag 171)', () => {
     auth.isAuthenticated = true;
     auth.user = { id: 'user-1', email: 'a@e2e.local' };
     orgSession = { role: 'viewer', organizationId: 'org-1', userId: 'user-1' };
+    orgLoading = false;
     dataCalls.count = 0;
     resetLive.mockClear();
     access.list.mockReset().mockResolvedValue({
@@ -221,5 +223,69 @@ describe('DashboardKioskPage (Auftrag 171)', () => {
     act(() => emitAuth?.('angemeldet', Date.now() + 3_600_000));
     expect(await screen.findByRole('heading', { name: 'Vertrieb Live' })).toBeInTheDocument();
     expect(access.load.mock.calls.length).toBeGreaterThan(loads); // frisch geladen, nicht übernommen
+  });
+
+  it('Token-Erneuerung: Hülle bleibt samt Pause und Rotation montiert (Codex PR #212)', async () => {
+    // Zwei Dashboards, damit die Rotation überhaupt läuft und die Pause prüfbar ist.
+    access.list.mockResolvedValue({
+      ok: true,
+      value: [
+        {
+          id: 'd1',
+          title: 'Vertrieb Live',
+          scope: 'team',
+          revision: 1,
+          tileCount: config.tiles.length,
+          sectionCount: 0,
+          updatedAt: '2026-11-21T07:00:00Z',
+          teamId: 't1',
+          teamName: 'Nord',
+          canWrite: false,
+        },
+        {
+          id: 'd2',
+          title: 'Team Nord',
+          scope: 'team',
+          revision: 1,
+          tileCount: config.tiles.length,
+          sectionCount: 0,
+          updatedAt: '2026-11-21T07:00:00Z',
+          teamId: 't1',
+          teamName: 'Nord',
+          canWrite: false,
+        },
+      ],
+    });
+    access.load.mockImplementation(async (id: string) => ({
+      ok: true as const,
+      value: {
+        id,
+        title: id === 'd1' ? 'Vertrieb Live' : 'Team Nord',
+        scope: 'team',
+        revision: 1,
+        config: { ...config, id, title: id === 'd1' ? 'Vertrieb Live' : 'Team Nord' },
+        updatedAt: '2026-11-21T07:00:00Z',
+        teamId: 't1',
+        teamName: 'Nord',
+        canWrite: false,
+      },
+    }));
+    renderPage(new QueryClient(), '?ids=d1,d2&intervall=60');
+    await screen.findByRole('heading', { name: 'Vertrieb Live' });
+    fireEvent.click(screen.getByTestId('kiosk-pause-button'));
+    expect(screen.getByTestId('kiosk-root')).toHaveAttribute('data-paused', 'true');
+    const loads = access.load.mock.calls.length;
+
+    // Supabase erneuert das Token: neues User-Objekt, OrganizationProvider prüft erneut.
+    orgLoading = true;
+    act(() => emitAuth?.('erneuert', Date.now() + 3_600_000));
+
+    expect(screen.getByTestId('kiosk-root')).toHaveAttribute('data-paused', 'true');
+    expect(screen.getByRole('heading', { name: 'Vertrieb Live' })).toBeInTheDocument();
+    expect(access.load.mock.calls.length).toBe(loads); // keine Neumontage, kein Neuladen
+
+    orgLoading = false;
+    act(() => emitAuth?.('erneuert', Date.now() + 3_600_000));
+    expect(screen.getByTestId('kiosk-root')).toHaveAttribute('data-paused', 'true');
   });
 });

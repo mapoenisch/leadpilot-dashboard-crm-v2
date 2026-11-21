@@ -201,6 +201,17 @@ describe('KioskShell (Auftrag 171)', () => {
     expect(screen.getByTestId('kiosk-title')).toHaveTextContent('Mein Vertrieb');
   });
 
+  it('pausiert bei Tastaturfokus auf ein Bedienelement (Codex PR #212)', async () => {
+    renderShell();
+    await flush();
+    act(() => screen.getByTestId('kiosk-pause-button').focus());
+    expect(screen.getByTestId('kiosk-rotation-state')).toHaveTextContent('pausiert (Bedienung)');
+    await act(async () => {
+      vi.advanceTimersByTime(59_000);
+    });
+    expect(screen.getByTestId('kiosk-title')).toHaveTextContent('Mein Vertrieb');
+  });
+
   it('wechselt nicht, solange das nächste Dashboard noch lädt', async () => {
     const source = makeSource();
     let release: (() => void) | null = null;

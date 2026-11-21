@@ -102,7 +102,10 @@ export function DashboardKioskPage() {
 
   // Benutzerwechsel ohne Abmeldung: Hülle ausblenden, bis der Organisationskontext zur aktuellen
   // Auth-Identität gehört; der Schlüssel verwirft danach lokalen Zustand (Liste, Konfigurationen).
-  if (isOrgLoading || !user || session.userId !== user.id) return null;
+  // Eine reine Token-Erneuerung erzeugt zwar ein neues User-Objekt und lässt `isOrgLoading`
+  // vorübergehend true werden, die Identität bleibt aber gleich: Dann bleibt die Hülle montiert,
+  // damit Rotation und manuelle Pause nicht neu starten (Codex PR #212).
+  if (!user || session.userId !== user.id) return null;
 
   return (
     <KioskShell

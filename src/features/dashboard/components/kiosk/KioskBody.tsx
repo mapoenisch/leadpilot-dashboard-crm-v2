@@ -66,6 +66,7 @@ function useKioskKeyboard(rotation: KioskRotation) {
       } else if (event.key === 'ArrowLeft') {
         previous();
       } else if (event.key !== 'Tab') {
+        // Tab zählt erst, wenn wirklich ein Bedienelement den Fokus bekommt (onFocus am Container).
         noteInteraction();
       }
     };
@@ -137,6 +138,8 @@ export function KioskBody(props: KioskBodyProps) {
       className="kiosk-root flex h-screen w-full flex-col overflow-hidden bg-[var(--color-bg)] text-[var(--color-text)]"
       onPointerDown={rotation.noteInteraction}
       onWheel={rotation.noteInteraction}
+      // Tastaturfokus (Tab) ist Bedienung: die Rotation pausiert für ein ruhiges Intervall.
+      onFocusCapture={rotation.noteInteraction}
     >
       <KioskStatusBar
         title={dashboard?.title ?? 'Kiosk'}
