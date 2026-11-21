@@ -184,6 +184,38 @@ describe('dashboardV2Access (Auftrag 163 T3)', () => {
     }
   });
 
+  it('startet nach Abbruch keinen persönlichen Rückfallabruf mehr (Codex PR #212)', async () => {
+    vi.spyOn(dbClient, 'isSupabaseConfigured', 'get').mockReturnValue(true);
+    // @ts-expect-error Mock supabase
+    vi.spyOn(dbClient, 'supabase', 'get').mockReturnValue({});
+    const controller = new AbortController();
+    vi.spyOn(sharingService, 'listAccessibleDashboardsV2').mockImplementation(async () => {
+      // Fehlerantwort trifft erst nach dem Sitzungsablauf ein.
+      controller.abort();
+      return { ok: false, error: { kind: 'server_funktion_fehlt' } };
+    });
+    const personalSpy = vi.spyOn(selectionService, 'listPersonalDashboardsV2');
+
+    const res = await fetchAccessibleDashboards(controller.signal);
+
+    expect(personalSpy).not.toHaveBeenCalled();
+    expect(res.ok).toBe(false);
+  });
+
+  it('listet mit bereits abgebrochenem Signal gar nicht (Codex PR #212)', async () => {
+    vi.spyOn(dbClient, 'isSupabaseConfigured', 'get').mockReturnValue(true);
+    // @ts-expect-error Mock supabase
+    vi.spyOn(dbClient, 'supabase', 'get').mockReturnValue({});
+    const accessibleSpy = vi.spyOn(sharingService, 'listAccessibleDashboardsV2');
+    const controller = new AbortController();
+    controller.abort();
+
+    const res = await fetchAccessibleDashboards(controller.signal);
+
+    expect(accessibleSpy).not.toHaveBeenCalled();
+    expect(res.ok).toBe(false);
+  });
+
   describe('fetchDashboardById & loadAndActivateAnyDashboardV2', () => {
     it('lädt Dashboard ohne Supabase oder bei server_funktion_fehlt über loadPersonalDashboardV2', async () => {
       vi.spyOn(dbClient, 'isSupabaseConfigured', 'get').mockReturnValue(false);

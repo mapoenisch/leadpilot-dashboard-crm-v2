@@ -34,16 +34,22 @@ function failTechnically<T>(cause: unknown): StorageResult<T> {
 
 /**
  * Listet alle für den Nutzer zugänglichen Dashboards (eigene persönliche und freigegebene Team-Dashboards).
+ * `signal` bricht den RPC ab; nach Abbruch wird kein technischer Fehler protokolliert.
  */
-export async function listAccessibleDashboardsV2(): Promise<
-  StorageResult<AccessibleDashboardListItemV2[]>
-> {
+export async function listAccessibleDashboardsV2(
+  signal?: AbortSignal,
+): Promise<StorageResult<AccessibleDashboardListItemV2[]>> {
   if (!isSupabaseConfigured || !supabase) {
     return unavailableResult();
   }
+  if (signal?.aborted) {
+    return { ok: false, error: { kind: 'technisch' } };
+  }
 
   try {
-    const { data, error, status } = await supabase.rpc('list_accessible_dashboards_v2');
+    const request = supabase.rpc('list_accessible_dashboards_v2');
+    const { data, error, status } = signal ? await request.abortSignal(signal) : await request;
+    if (error && signal?.aborted) return { ok: false, error: { kind: 'technisch' } };
     if (error) {
       const classified = classifyDashboardV2Error(error, status);
       return classified.kind === 'technisch'
@@ -79,6 +85,7 @@ export async function listAccessibleDashboardsV2(): Promise<
 
     return { ok: true, value: items };
   } catch (cause) {
+    if (signal?.aborted) return { ok: false, error: { kind: 'technisch' } };
     return failTechnically(cause);
   }
 }

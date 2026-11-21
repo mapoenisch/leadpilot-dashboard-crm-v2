@@ -18,7 +18,8 @@ import { KioskBody } from './KioskBody';
 import './kiosk.css';
 
 export interface KioskDashboardSource {
-  list: () => Promise<StorageResult<AccessibleDashboardListItemV2[]>>;
+  /** `signal` bricht die Listenladefolge ab, wenn die Hülle ausgehängt wird. */
+  list: (signal?: AbortSignal) => Promise<StorageResult<AccessibleDashboardListItemV2[]>>;
   /** `signal` bricht die Ladefolge ab, wenn die Hülle ausgehängt wird (z. B. Sitzungsablauf). */
   load: (id: string, signal?: AbortSignal) => Promise<StorageResult<StoredDashboardV2Row>>;
   /** Zuletzt aktives Dashboard, wenn die Adresse keine IDs nennt. */
@@ -64,12 +65,15 @@ export function KioskShell(props: KioskShellProps) {
 
   useEffect(() => {
     let cancelled = false;
-    void source.list().then((res) => {
+    // Auch die Listenladefolge (Team-RPC → persönlicher Rückfall) beim Aushängen abbrechen.
+    const controller = new AbortController();
+    void source.list(controller.signal).then((res) => {
       if (cancelled) return;
       setList(res.ok ? { status: 'bereit', items: res.value } : { status: 'fehler' });
     });
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [source, listAttempt]);
 

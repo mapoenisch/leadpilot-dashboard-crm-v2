@@ -53,6 +53,15 @@ function isInteractiveTarget(target: EventTarget | null): boolean {
 }
 
 /** Leertaste pausiert/setzt fort, Pfeiltasten blättern; jede andere Taste zählt als Bedienung. */
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  return (
+    target.isContentEditable ||
+    ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) ||
+    target.getAttribute('role') === 'slider'
+  );
+}
+
 function useKioskKeyboard(rotation: KioskRotation) {
   const { togglePause, next, previous, noteInteraction } = rotation;
   useEffect(() => {
@@ -61,10 +70,14 @@ function useKioskKeyboard(rotation: KioskRotation) {
         if (isInteractiveTarget(event.target)) return; // Schaltfläche löst selbst aus
         event.preventDefault();
         togglePause();
-      } else if (event.key === 'ArrowRight') {
-        next();
-      } else if (event.key === 'ArrowLeft') {
-        previous();
+      } else if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+        // Diagramm-/Eingabesteuerung behandelt Pfeiltasten selbst (preventDefault): nicht blättern.
+        if (event.defaultPrevented || isEditableTarget(event.target)) {
+          noteInteraction();
+          return;
+        }
+        if (event.key === 'ArrowRight') next();
+        else previous();
       } else if (event.key !== 'Tab') {
         // Tab zählt erst, wenn wirklich ein Bedienelement den Fokus bekommt (onFocus am Container).
         noteInteraction();

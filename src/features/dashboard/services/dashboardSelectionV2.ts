@@ -22,10 +22,11 @@ function failTechnically<T>(cause: unknown): StorageResult<T> {
 
 /**
  * Listet alle persönlichen Dashboards des aktuellen Nutzers im aktuellen Mandanten auf.
+ * `signal` bricht den RPC ab (z. B. wenn der Kiosk beim Sitzungsablauf ausgehängt wird).
  */
-export async function listPersonalDashboardsV2(): Promise<
-  StorageResult<PersonalDashboardListItemV2[]>
-> {
+export async function listPersonalDashboardsV2(
+  signal?: AbortSignal,
+): Promise<StorageResult<PersonalDashboardListItemV2[]>> {
   if (!isSupabaseConfigured || !supabase) {
     const list: PersonalDashboardListItemV2[] = Array.from(inMemoryStore.values())
       .filter((e) => e.row.scope === 'personal')
@@ -41,9 +42,14 @@ export async function listPersonalDashboardsV2(): Promise<
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.id.localeCompare(b.id));
     return { ok: true, value: list };
   }
+  if (signal?.aborted) {
+    return { ok: false, error: { kind: 'technisch' } };
+  }
 
   try {
-    const { data, error, status } = await supabase.rpc('list_personal_dashboards_v2');
+    const request = supabase.rpc('list_personal_dashboards_v2');
+    const { data, error, status } = signal ? await request.abortSignal(signal) : await request;
+    if (error && signal?.aborted) return { ok: false, error: { kind: 'technisch' } };
     if (error) {
       const classified = classifyDashboardV2Error(error, status);
       return classified.kind === 'technisch'
@@ -73,6 +79,7 @@ export async function listPersonalDashboardsV2(): Promise<
 
     return { ok: true, value: list };
   } catch (cause) {
+    if (signal?.aborted) return { ok: false, error: { kind: 'technisch' } };
     return failTechnically(cause);
   }
 }

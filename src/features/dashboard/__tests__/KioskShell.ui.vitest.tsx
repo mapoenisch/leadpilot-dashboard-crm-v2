@@ -91,7 +91,10 @@ function listItem(row: StoredDashboardV2Row): AccessibleDashboardListItemV2 {
   };
 }
 
-function makeSource(): KioskDashboardSource & { load: ReturnType<typeof vi.fn> } {
+function makeSource(): KioskDashboardSource & {
+  list: ReturnType<typeof vi.fn>;
+  load: ReturnType<typeof vi.fn>;
+} {
   return {
     list: vi.fn(async () => ({
       ok: true as const,
@@ -250,6 +253,44 @@ describe('KioskShell (Auftrag 171)', () => {
     unmount();
     expect(signal?.aborted).toBe(true);
     await act(async () => release?.());
+  });
+
+  it('bricht auch die Listenladefolge beim Aushängen ab (Codex PR #212)', async () => {
+    const source = makeSource();
+    let release: (() => void) | null = null;
+    let signal: AbortSignal | undefined;
+    source.list.mockImplementation(async (s?: AbortSignal) => {
+      signal = s;
+      await new Promise<void>((r) => (release = r));
+      return { ok: true as const, value: Array.from(DASHBOARDS.values()).map(listItem) };
+    });
+    const { unmount } = renderShell({ source });
+    await flush();
+    expect(signal).toBeInstanceOf(AbortSignal);
+    expect(signal?.aborted).toBe(false);
+    unmount();
+    expect(signal?.aborted).toBe(true);
+    await act(async () => release?.());
+  });
+
+  it('lässt Pfeiltasten der Diagrammsteuerung unangetastet (Codex PR #212)', async () => {
+    renderShell();
+    await flush();
+    // Diagrammzelle/Regler: behandelt die Pfeiltaste selbst und ruft preventDefault.
+    const chartControl = document.createElement('div');
+    chartControl.tabIndex = 0;
+    screen.getByTestId('kiosk-root').appendChild(chartControl);
+    const swallow = (event: KeyboardEvent) => event.preventDefault();
+    chartControl.addEventListener('keydown', swallow);
+    fireEvent.keyDown(chartControl, { key: 'ArrowRight' });
+    expect(screen.getByTestId('kiosk-title')).toHaveTextContent('Mein Vertrieb');
+    chartControl.removeEventListener('keydown', swallow);
+    chartControl.remove();
+
+    // Außerhalb der Steuerung blättert die Pfeiltaste weiterhin.
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    await flush();
+    expect(screen.getByTestId('kiosk-title')).toHaveTextContent('Team Nord');
   });
 
   it('zeigt offline den letzten Stand als veraltet mit deutlichem Hinweis', async () => {
