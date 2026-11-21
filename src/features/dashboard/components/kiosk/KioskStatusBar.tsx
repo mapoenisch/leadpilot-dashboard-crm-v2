@@ -46,6 +46,8 @@ function pauseText(reason: KioskPauseReason, intervalSec: number, total: number)
       return 'Rotation pausiert';
     case 'interaktion':
       return 'Rotation pausiert (Bedienung)';
+    case 'offline':
+      return 'Rotation pausiert (offline)';
     case 'laden':
       return 'Rotation wartet (lädt)';
     default:

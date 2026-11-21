@@ -15,6 +15,9 @@ import { offlineMessage } from './kioskData';
 export interface KioskBodyProps extends KioskShellProps {
   listStatus: 'laden' | 'fehler' | 'bereit';
   onRetryList: () => void;
+  /** Konfiguration des aktuellen Dashboards konnte technisch nicht geladen werden. */
+  loadFailed: boolean;
+  onRetryLoad: () => void;
   dashboard: StoredDashboardV2Row | null;
   isLoadingCurrent: boolean;
   position: number;
@@ -93,13 +96,7 @@ function useFullscreen() {
   return { isFullscreen, request };
 }
 
-function visibleTiles(dashboard: StoredDashboardV2Row | null): DashboardTileConfigV2[] {
-  if (!dashboard) return [];
-  const collapsedIds = new Set(
-    (dashboard.config.sections ?? []).filter((s) => s.collapsed).flatMap((s) => s.tileIds),
-  );
-  return dashboard.config.tiles.filter((tile) => !collapsedIds.has(tile.id));
-}
+const NO_TILES: DashboardTileConfigV2[] = [];
 
 export function KioskBody(props: KioskBodyProps) {
   const { dashboard, rotation, online, onDataAsOf } = props;
@@ -107,7 +104,8 @@ export function KioskBody(props: KioskBodyProps) {
   const fullscreen = useFullscreen();
   useKioskKeyboard(rotation);
 
-  const tiles = useMemo(() => visibleTiles(dashboard), [dashboard]);
+  // Kiosk klappt alle Sektionen auf: Status über alle Kacheln, die tatsächlich sichtbar sind.
+  const tiles = dashboard?.config.tiles ?? NO_TILES;
   const liveStatus = useEditorLiveStatus({
     tiles,
     defaultPipeline: dashboard?.config.globalPipeline,
@@ -191,13 +189,15 @@ function KioskPlaceholder(props: KioskBodyProps) {
   const text =
     props.listStatus === 'fehler'
       ? 'Die Dashboards konnten nicht geladen werden.'
-      : props.listStatus === 'laden' || props.isLoadingCurrent
-        ? 'Dashboard wird geladen …'
-        : props.total === 0
-          ? 'Kein lesbares Dashboard für den Kiosk ausgewählt.'
-          : props.online.online
-            ? 'Dashboard wird geladen …'
-            : 'Dashboard ist offline nicht verfügbar.';
+      : props.loadFailed
+        ? 'Das Dashboard konnte nicht geladen werden.'
+        : props.listStatus === 'laden' || props.isLoadingCurrent
+          ? 'Dashboard wird geladen …'
+          : props.total === 0
+            ? 'Kein lesbares Dashboard für den Kiosk ausgewählt.'
+            : props.online.online
+              ? 'Dashboard wird geladen …'
+              : 'Dashboard ist offline nicht verfügbar.';
   return (
     <div
       data-testid="kiosk-placeholder"
@@ -206,10 +206,11 @@ function KioskPlaceholder(props: KioskBodyProps) {
       className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-[var(--kiosk-text-small)] text-[var(--color-text-muted)]"
     >
       <p className="m-0">{text}</p>
-      {props.listStatus === 'fehler' && (
+      {(props.listStatus === 'fehler' || props.loadFailed) && (
         <button
           type="button"
-          onClick={props.onRetryList}
+          data-testid="kiosk-retry"
+          onClick={props.listStatus === 'fehler' ? props.onRetryList : props.onRetryLoad}
           className="min-h-[44px] rounded-md border border-[var(--color-border)] bg-transparent px-4 text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
         >
           Erneut versuchen

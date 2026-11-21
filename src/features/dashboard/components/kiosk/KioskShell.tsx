@@ -55,6 +55,9 @@ export function KioskShell(props: KioskShellProps) {
   const [configs, setConfigs] = useState<ReadonlyMap<string, StoredDashboardV2Row>>(new Map());
   const [denied, setDenied] = useState<ReadonlySet<string>>(new Set());
   const [pendingId, setPendingId] = useState<string | null>(null);
+  // Technischer Ladefehler der Konfiguration (kein Rechteproblem): Hinweis mit erneutem Versuch.
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   // Referenzstabiler Datenhook: Kacheln dürfen beim Offline-Wechsel nicht neu montieren.
   const [kioskUseData] = useState(() => createKioskDataHook(props.useData));
 
@@ -94,6 +97,7 @@ export function KioskShell(props: KioskShellProps) {
     count: rotation.ids.length,
     intervalMs: intervalSec * 1000,
     loading: pendingId !== null,
+    offline: !online.online,
   });
   const currentId = rotation.ids[rot.index] ?? rotation.ids[0] ?? null;
 
@@ -107,16 +111,20 @@ export function KioskShell(props: KioskShellProps) {
       if (cancelled) return;
       setPendingId(null);
       if (res.ok) {
+        setLoadError(null);
         setConfigs((prev) => new Map(prev).set(currentId, res.value));
       } else if (res.error.kind === 'nicht_gefunden' || res.error.kind === 'nicht_berechtigt') {
+        setLoadError(null);
         setDenied((prev) => new Set(prev).add(currentId));
+      } else {
+        setLoadError(currentId);
       }
     });
     return () => {
       cancelled = true;
       setPendingId(null);
     };
-  }, [currentId, online.online, source]);
+  }, [currentId, online.online, source, loadAttempt]);
 
   const current = currentId ? (configs.get(currentId) ?? null) : null;
   const connectivity = useMemo(() => ({ offlineSince: online.offlineSince }), [online]);
@@ -130,6 +138,11 @@ export function KioskShell(props: KioskShellProps) {
           onRetryList={() => {
             setList({ status: 'laden' });
             setListAttempt((n) => n + 1);
+          }}
+          loadFailed={loadError !== null && loadError === currentId && current === null}
+          onRetryLoad={() => {
+            setLoadError(null);
+            setLoadAttempt((n) => n + 1);
           }}
           dashboard={current}
           isLoadingCurrent={pendingId !== null && current === null}

@@ -39,10 +39,9 @@ export function DashboardKioskPage() {
   if (isHydrated && !isOrgLoading && isAuthenticated && session) startedRef.current = true;
 
   const handleExpired = useCallback(() => {
-    // Laufende Abrufe abbrechen und vertrauliche Daten verwerfen; Live-Feed schließen.
+    // Sofort: laufende Abrufe abbrechen. Cache und Live-Feed werden erst geleert, wenn die Kacheln
+    // ausgehängt sind (Effekt unten) — sonst startet reset() für noch gehaltene Abos neue Abrufe.
     void queryClient.cancelQueries();
-    queryClient.removeQueries();
-    liveKpiStreamStore.reset();
   }, [queryClient]);
 
   const guard = useSessionGuard({
@@ -50,6 +49,15 @@ export function DashboardKioskPage() {
     isAuthenticated,
     onExpired: handleExpired,
   });
+
+  const isExpired = startedRef.current && (guard.status === 'abgelaufen' || !session);
+  useEffect(() => {
+    if (!isExpired) return;
+    // Läuft nach dem Aushängen der Kiosk-Hülle (Passive-Cleanup der Kacheln kommt zuerst).
+    void queryClient.cancelQueries();
+    queryClient.removeQueries();
+    liveKpiStreamStore.reset();
+  }, [isExpired, queryClient]);
 
   const organizationId = session?.organizationId ?? null;
   const userId = session?.userId ?? null;

@@ -249,6 +249,38 @@ describe('KioskShell (Auftrag 171)', () => {
     expect(screen.queryByTestId('kiosk-offline-banner')).toBeNull();
   });
 
+  it('pausiert die Rotation offline und behält den letzten Stand (Codex PR #212)', async () => {
+    const { rerenderWith } = renderShell();
+    await flush();
+    rerenderWith({ online: { online: false, offlineSince: '2026-11-21T08:00:00.000Z' } });
+    await flush();
+    expect(screen.getByTestId('kiosk-rotation-state')).toHaveTextContent('pausiert (offline)');
+    await act(async () => {
+      vi.advanceTimersByTime(5 * 60_000);
+    });
+    await flush();
+    expect(screen.getByTestId('kiosk-title')).toHaveTextContent('Mein Vertrieb');
+    expect(screen.queryByTestId('kiosk-placeholder')).toBeNull();
+    expect(screen.getAllByTestId('dashboard-tile').length).toBeGreaterThan(0);
+  });
+
+  it('bietet nach technischem Ladefehler einen erneuten Versuch an (Codex PR #212)', async () => {
+    const source = makeSource();
+    source.load.mockResolvedValueOnce({
+      ok: false as const,
+      error: { kind: 'nicht_verfuegbar' as const },
+    });
+    renderShell({ ids: ['eigen'], source });
+    await flush();
+    expect(screen.getByTestId('kiosk-placeholder')).toHaveTextContent(
+      'Das Dashboard konnte nicht geladen werden.',
+    );
+    fireEvent.click(screen.getByTestId('kiosk-retry'));
+    await flush();
+    expect(source.load).toHaveBeenCalledTimes(2);
+    expect(screen.getByTestId('kiosk-title')).toHaveTextContent('Mein Vertrieb');
+  });
+
   it('Dauerlauf 12 h: Abos und Fenster-Listener bleiben konstant', async () => {
     const add = vi.spyOn(window, 'addEventListener');
     const remove = vi.spyOn(window, 'removeEventListener');

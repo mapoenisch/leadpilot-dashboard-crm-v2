@@ -1,16 +1,18 @@
 // Auftrag 171 (P15a §2.1 Nr. 3): Rotation der Kiosk-Dashboards.
 // Ein einziger Timer je Anzeige; Pause per Leertaste/Schaltfläche (bleibt, bis erneut umgeschaltet)
 // oder automatisch bei Interaktion (endet nach einem Intervall ohne weitere Interaktion) und solange
-// das aktuelle Dashboard lädt. Keine Animation — der Wechsel ist ein reiner Inhaltswechsel.
+// das aktuelle Dashboard lädt oder das Netz fehlt (offline bleibt der letzte Stand stehen). Keine Animation — der Wechsel ist ein reiner Inhaltswechsel.
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export type KioskPauseReason = 'manuell' | 'interaktion' | 'laden' | null;
+export type KioskPauseReason = 'manuell' | 'interaktion' | 'offline' | 'laden' | null;
 
 export interface UseKioskRotationOptions {
   count: number;
   intervalMs: number;
   /** true, solange das aktuelle Dashboard lädt. */
   loading: boolean;
+  /** true, solange das Netz fehlt: kein Wechsel auf nicht geladene Dashboards. */
+  offline?: boolean;
 }
 
 export interface KioskRotation {
@@ -28,6 +30,7 @@ export function useKioskRotation({
   count,
   intervalMs,
   loading,
+  offline = false,
 }: UseKioskRotationOptions): KioskRotation {
   const [index, setIndex] = useState(0);
   const [manualPause, setManualPause] = useState(false);
@@ -50,9 +53,11 @@ export function useKioskRotation({
     ? 'manuell'
     : interactionPause
       ? 'interaktion'
-      : loading
-        ? 'laden'
-        : null;
+      : offline
+        ? 'offline'
+        : loading
+          ? 'laden'
+          : null;
   const isPaused = pauseReason !== null;
 
   useEffect(() => {

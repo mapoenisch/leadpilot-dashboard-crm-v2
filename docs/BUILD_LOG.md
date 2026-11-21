@@ -22772,3 +22772,12 @@ Geändert: `src/app/App.tsx` (Route), `components/editor/EditorTopBarV2.tsx` (Ei
 
 ### 10. Ergebnis & Freigabestatus
 Alle Tasks T0–T6 erledigt, Pflicht-Verifikation grün (lokale Vorbefunde oben benannt). **Status:** PR erstellt, wartet auf unabhängiges Review (Codex-App) und grüne Pflicht-Checks; Merge durch Marc.
+
+### 11. Nacharbeit Runde 1 (PR #212, Codex-Review auf `d18b498c`, CI `test`)
+- **CI `test` rot:** `scripts/__tests__/runV23Acceptance.vitest.ts` verlangt jede E2E-Datei auch im Orchestrator. `e2e/dashboard-kiosk.spec.ts` in `E2E_PARALLEL` von `scripts/runV23Acceptance.mjs` ergänzt (CI-Liste hatte sie schon).
+- **P2 Rotation offline:** `useKioskRotation` hat neuen Pausegrund `offline` („Rotation pausiert (offline)“); offline wechselt der Kiosk nicht mehr auf ein nicht geladenes Dashboard, der letzte Stand bleibt sichtbar. Test „pausiert die Rotation offline …“.
+- **P2 Ladefehler ohne Wiederholung:** Technische Fehler von `source.load()` (nicht Rechte/nicht gefunden) setzen `loadError`; Platzhalter „Das Dashboard konnte nicht geladen werden.“ mit „Erneut versuchen“ (`kiosk-retry`, neuer Ladeversuch). Test „bietet nach technischem Ladefehler …“.
+- **P2 Live-Abrufe beim Ablauf:** `handleExpired` bricht nur noch Abfragen ab; Cache leeren und `liveKpiStreamStore.reset()` laufen in einem Effekt, nachdem die Kiosk-Hülle ausgehängt ist (Kacheln haben ihre Abos freigegeben, `reset()` startet daher keine neuen Abos/Historienabrufe). Test prüft: beim `reset()` ist keine Kachel mehr im DOM.
+- **P2 Status bei eingeklappten Sektionen:** Live-Status/Datenstand werden über alle Kacheln berechnet, da der Kiosk alle Sektionen aufgeklappt zeigt. Neuer Test `KioskBodyStatus.ui.vitest.tsx`.
+- **Rot-Nachweis:** Die 4 neuen Tests gegen den Code von `d18b498c` → 4 rot, mit Nacharbeit grün.
+- **Verifikation:** `tsc` 0, `lint` 0, `format:check` grün, `npm test` 482 Dateien / 3.646 Tests grün, `verify` 25/25, `build` ok, `size-limit` Initial 172,09 kB, E2E `dashboard-kiosk.spec.ts` 18/18 grün. Schutzbereiche unverändert.

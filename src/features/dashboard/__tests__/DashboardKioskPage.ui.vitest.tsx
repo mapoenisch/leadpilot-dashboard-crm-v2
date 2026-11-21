@@ -164,6 +164,11 @@ describe('DashboardKioskPage (Auftrag 171)', () => {
     await screen.findByRole('heading', { name: 'Vertrieb Live' });
     const listCalls = access.list.mock.calls.length;
     const loadCalls = access.load.mock.calls.length;
+    // Codex-Befund (PR #212): reset() darf erst laufen, wenn keine Kachel mehr Abos hält.
+    let tilesAtReset = -1;
+    resetLive.mockImplementation(() => {
+      tilesAtReset = document.querySelectorAll('[data-testid="dashboard-tile"]').length;
+    });
 
     act(() => emitAuth?.('abgemeldet', null));
 
@@ -175,6 +180,7 @@ describe('DashboardKioskPage (Auftrag 171)', () => {
     expect(screen.queryByText('Vertrieb Live')).toBeNull();
     expect(client.getQueryCache().getAll()).toHaveLength(0);
     expect(resetLive).toHaveBeenCalledTimes(1);
+    expect(tilesAtReset).toBe(0);
 
     const callsAfter = dataCalls.count;
     await act(async () => {
