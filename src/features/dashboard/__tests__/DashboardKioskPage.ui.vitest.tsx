@@ -7,7 +7,12 @@ import type { TileData } from '../data/dashboardData';
 import type { SessionSourceEvent } from '../hooks/useSessionGuard';
 import { createPreviewThresholdsConfig } from '../preview/previewThresholds';
 
-const auth = { isAuthenticated: true, isHydrated: true, logout: vi.fn(async () => {}) };
+const auth = {
+  user: { id: 'user-1', email: 'a@e2e.local' } as { id: string; email: string } | null,
+  isAuthenticated: true,
+  isHydrated: true,
+  logout: vi.fn(async () => {}),
+};
 let orgSession: { role: string; organizationId: string; userId: string } | null = {
   role: 'viewer',
   organizationId: 'org-1',
@@ -103,6 +108,7 @@ function renderPage(client = new QueryClient()) {
 describe('DashboardKioskPage (Auftrag 171)', () => {
   beforeEach(() => {
     auth.isAuthenticated = true;
+    auth.user = { id: 'user-1', email: 'a@e2e.local' };
     orgSession = { role: 'viewer', organizationId: 'org-1', userId: 'user-1' };
     dataCalls.count = 0;
     resetLive.mockClear();
@@ -195,9 +201,25 @@ describe('DashboardKioskPage (Auftrag 171)', () => {
     renderPage();
     await screen.findByRole('heading', { name: 'Vertrieb Live' });
     auth.isAuthenticated = false;
+    auth.user = null;
     orgSession = null;
     act(() => emitAuth?.('angemeldet', Date.now() + 1000)); // Re-Render anstoßen
     expect(await screen.findByTestId('kiosk-session-expired')).toBeInTheDocument();
     expect(screen.queryByTestId('login-page')).toBeNull();
+  });
+
+  it('Benutzerwechsel ohne Abmeldung: alte Konfiguration verschwindet sofort (Codex PR #212)', async () => {
+    renderPage();
+    await screen.findByRole('heading', { name: 'Vertrieb Live' });
+    const loads = access.load.mock.calls.length;
+    auth.user = { id: 'user-2', email: 'b@e2e.local' }; // Org-Kontext gehört noch zu user-1
+    act(() => emitAuth?.('angemeldet', Date.now() + 3_600_000));
+    expect(screen.queryAllByTestId('dashboard-tile')).toHaveLength(0);
+    expect(screen.queryByText('Vertrieb Live')).toBeNull();
+
+    orgSession = { role: 'viewer', organizationId: 'org-1', userId: 'user-2' };
+    act(() => emitAuth?.('angemeldet', Date.now() + 3_600_000));
+    expect(await screen.findByRole('heading', { name: 'Vertrieb Live' })).toBeInTheDocument();
+    expect(access.load.mock.calls.length).toBeGreaterThan(loads); // frisch geladen, nicht übernommen
   });
 });

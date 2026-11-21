@@ -3,7 +3,7 @@
 // gekennzeichnet. Damit stufen Schwellenwerte ihn als `nicht_bewertet` ein (Regel aus Auftrag 166,
 // `evaluateThresholdV2`). Es werden keine Werte erfunden: der Zeitstempel bleibt der echte
 // Messzeitpunkt (Live) bzw. der echte Abrufzeitpunkt (CRM).
-import { createContext, useContext, useMemo } from 'react';
+import { createContext, useContext, useMemo, useRef } from 'react';
 import type { TileData } from '../../data/dashboardData';
 import type { TileDataHook } from '../LazyDashboardTile';
 import {
@@ -54,9 +54,15 @@ export function createKioskDataHook(base: TileDataHook): TileDataHook {
   return function useKioskTileData(tile, filters, options) {
     const { offlineSince } = useContext(KioskConnectivityContext);
     const data = base(tile, filters, options);
+    // Letzter vorzeigbarer Stand: Wechselt der Basis-Hook offline auf einen neuen Abschnitt ohne
+    // Cache (z. B. volle Stunde einer Zeitreihe), bleibt dieser Stand als `veraltet` sichtbar.
+    const lastGood = useRef<TileData | null>(null);
+    if (data.state === 'bereit' || data.state === 'veraltet') lastGood.current = data;
+    const kept = lastGood.current?.catalogId === tile.catalogId ? lastGood.current : null;
+    const shown = offlineSince && kept ? kept : data;
     return useMemo(
-      () => (offlineSince ? markTileDataOffline(data, offlineSince) : data),
-      [data, offlineSince],
+      () => (offlineSince ? markTileDataOffline(shown, offlineSince) : shown),
+      [shown, offlineSince],
     );
   };
 }

@@ -24,7 +24,7 @@ import { KioskAlarmIndicator } from '../components/kiosk/KioskAlarmIndicator';
 import { useKioskTheme } from '../components/kiosk/useKioskTheme';
 
 export function DashboardKioskPage() {
-  const { isAuthenticated, isHydrated, logout } = useAuth();
+  const { user, isAuthenticated, isHydrated, logout } = useAuth();
   const { session, isLoading: isOrgLoading } = useOrganization();
   const location = useLocation();
   const navigate = useNavigate();
@@ -100,9 +100,13 @@ export function DashboardKioskPage() {
     );
   }
 
+  // Benutzerwechsel ohne Abmeldung: Hülle ausblenden, bis der Organisationskontext zur aktuellen
+  // Auth-Identität gehört; der Schlüssel verwirft danach lokalen Zustand (Liste, Konfigurationen).
+  if (isOrgLoading || !user || session.userId !== user.id) return null;
+
   return (
     <KioskShell
-      key={session.organizationId}
+      key={`${session.organizationId}:${session.userId}`}
       requestedIds={params.ids}
       intervalSec={params.intervalSec}
       source={dashboardSource}

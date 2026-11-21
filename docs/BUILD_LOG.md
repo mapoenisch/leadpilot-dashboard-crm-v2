@@ -22781,3 +22781,9 @@ Alle Tasks T0–T6 erledigt, Pflicht-Verifikation grün (lokale Vorbefunde oben 
 - **P2 Status bei eingeklappten Sektionen:** Live-Status/Datenstand werden über alle Kacheln berechnet, da der Kiosk alle Sektionen aufgeklappt zeigt. Neuer Test `KioskBodyStatus.ui.vitest.tsx`.
 - **Rot-Nachweis:** Die 4 neuen Tests gegen den Code von `d18b498c` → 4 rot, mit Nacharbeit grün.
 - **Verifikation:** `tsc` 0, `lint` 0, `format:check` grün, `npm test` 482 Dateien / 3.646 Tests grün, `verify` 25/25, `build` ok, `size-limit` Initial 172,09 kB, E2E `dashboard-kiosk.spec.ts` 18/18 grün. Schutzbereiche unverändert.
+
+### 12. Nacharbeit Runde 2 (Codex-Review auf `2657247a`)
+- **P1 Benutzerwechsel ohne Abmeldung:** `DashboardKioskPage` blendet die Hülle aus, solange `isOrgLoading` gilt oder `session.userId` nicht zur Auth-Identität (`user.id`) passt. Der Schlüssel der Hülle ist jetzt `organizationId:userId`, damit verfällt lokaler Zustand (Liste, Konfigurationen) beim Wechsel. Test: Nach dem Wechsel sind sofort keine Kacheln und kein Titel des vorherigen Nutzers mehr zu sehen, danach wird frisch geladen.
+- **P2 Zeitreihe offline über Abschnittswechsel:** `createKioskDataHook` merkt sich je Kachel den letzten Stand `bereit`/`veraltet` (gleiche `catalogId`). Liefert der Basis-Hook offline `laden` (neuer Abschnitt ohne Cache), bleibt dieser Stand als `veraltet` sichtbar. Neuer Test `KioskDataHook.ui.vitest.tsx`.
+- **Rot-Nachweis:** Die 2 neuen Tests sind gegen `2657247a` rot und mit der Nacharbeit grün.
+- **Verifikation:** `tsc` 0, `lint` 0, `format:check` grün, `npm test` 483 Dateien / 3.648 Tests grün, `verify` 25/25, `build` ok, `size-limit` Initial 172,10 kB (+4 B ggü. Runde 1), E2E `dashboard-kiosk.spec.ts` 18/18 grün. Schutzbereiche unverändert.
