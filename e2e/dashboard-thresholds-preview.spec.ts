@@ -34,20 +34,24 @@ test.describe('Dashboard-Editor V2: Schwellenwerte Vorschau (P13a)', () => {
     // Initial-Kacheln und Badges prüfen
     const tileWarnung = page.getByTestId('canvas-tile-preview_tile_warnung');
     await expect(tileWarnung).toBeVisible();
+    await tileWarnung.scrollIntoViewIfNeeded(); // Auftrag 172: Kacheln laden erst sichtbar (Liste/Tablet-Layout)
     await expect(tileWarnung.getByTestId('tile-threshold-badge')).toContainText('Warnung');
 
     const tileKritisch = page.getByTestId('canvas-tile-preview_tile_kritisch');
     await expect(tileKritisch).toBeVisible();
+    await tileKritisch.scrollIntoViewIfNeeded(); // Auftrag 172: Kacheln laden erst sichtbar (Liste/Tablet-Layout)
     await expect(tileKritisch.getByTestId('tile-threshold-badge')).toContainText('Kritisch');
 
     const tileBetween = page.getByTestId('canvas-tile-preview_tile_alt_between');
     await expect(tileBetween).toBeVisible();
+    await tileBetween.scrollIntoViewIfNeeded(); // Auftrag 172: Kacheln laden erst sichtbar (Liste/Tablet-Layout)
     await expect(tileBetween.getByTestId('tile-threshold-badge')).toContainText(
       'Schwellenwert prüfen',
     );
 
     const tileNormal = page.getByTestId('canvas-tile-preview_tile_normal');
     await expect(tileNormal).toBeVisible();
+    await tileNormal.scrollIntoViewIfNeeded(); // Auftrag 172: Kacheln laden erst sichtbar (Liste/Tablet-Layout)
     await expect(tileNormal.getByTestId('tile-threshold-badge')).toHaveCount(0);
 
     // 2. Kachel auswählen und Inspector öffnen
@@ -101,6 +105,12 @@ test.describe('Dashboard-Editor V2: Schwellenwerte Vorschau (P13a)', () => {
     await critInput.fill('2500');
     await expect(applyBtn).toBeEnabled();
     await applyBtn.click();
+
+    // Auftrag 172: Auf dem Telefon ist der Inspector ein Vollbild-Blatt – vor dem Speichern schließen
+    if ((await page.getByTestId('editor-inspector').getAttribute('data-sheet')) === 'true') {
+      await page.getByTestId('close-inspector-button').click();
+      await expect(page.getByTestId('editor-inspector')).toHaveCount(0);
+    }
 
     // 5. Speichern und neu laden
     const saveBtn = page.getByTestId('save-button');

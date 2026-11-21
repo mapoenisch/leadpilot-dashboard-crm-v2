@@ -2,7 +2,7 @@
 
 **Stand:** 21.11.2026
 
-**Aktueller Auftrag:** Auftrag 171 – Dashboard-Editor: TV/Kiosk-Modus, Rotation, Sitzungs-/Token-Erneuerung, Offline-Erkennung (P15a; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_171_KIOSK_ROTATION_SITZUNG.md`; Branch `auftrag-171-kiosk-rotation`; Builder Claude Code; Status: FERTIGGESTELLT / PR ERSTELLT, wartet auf unabhängiges Review). Zuletzt: 170 Vergleich, Verknüpfung, Heatmap, Erwartungsbänder (P14b; PR #211 gemergt als `7c69aa8e`), 169 Transformationen je Kachel (P14a; PR #210 gemergt als `ac9da030`). Nächster Schritt P15b (Auftrag 172: Mobile Bedienung, Barrierefreiheits-Abnahme, Reportexport).
+**Aktueller Auftrag:** Auftrag 172 – Dashboard-Editor: Mobile Bedienung, Barrierefreiheits-Abnahme, Reportexport (P15b; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_172_MOBIL_BARRIEREFREIHEIT_REPORT.md`; Branch `auftrag-172-mobil-a11y-report`; Builder Claude Code; Status: FERTIGGESTELLT / PR ERSTELLT, wartet auf unabhängiges Review). Zuletzt: 171 Kiosk, Rotation, Sitzung, Offline (P15a; PR #212 gemergt als `a41e5fbe`), 170 Vergleich, Verknüpfung, Heatmap, Erwartungsbänder (P14b; PR #211). Nächster Schritt P16 (Gesamtabnahme und gestufte Umstellung).
 
 **Zielversion (festgelegt 18.11.2026, Marc):** `v3.2.0` – umfasst alles seit `v3.1.0` (10.11.2026) bis einschließlich P13 (Aufträge 151–168: Dashboard-Editor V2 mit Raster, Panel-Editor, Sektionen, Vorlagen, Zeitsteuerung, Server-Zeitreihen, Team-Freigaben, Versionen/Import/Export, Schwellenwerte, Server-Alarme). Neue Funktionen ohne Bruch bestehender Daten → Minor-Sprung. Release, Tag und Anheben von `package.json` macht Marc nach Merge von 168. Folgeplanung: P14–P15 → `v3.3.0`; P16 (neuer Editor wird Standard) → `v4.0.0`.
 

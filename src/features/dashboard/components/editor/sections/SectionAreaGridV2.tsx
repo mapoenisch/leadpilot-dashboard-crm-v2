@@ -12,6 +12,10 @@ import { getBreakpointLayout, GRID_CONFIGS } from '../grid/gridEngine';
 import { useGridDragAndDrop } from '../grid/useGridDragAndDrop';
 import { useGridKeyboard } from '../grid/useGridKeyboard';
 import { getGridPlacementClasses } from '../grid/gridTailwindClasses';
+import { useAreaListMode } from '../canvas/editorListMode';
+
+export const ARMED_ANNOUNCEMENT =
+  'Kachel aufgenommen. Zum Verschieben ziehen, zum Ablegen loslassen.';
 
 export interface SectionAreaGridV2Props {
   areaId: string | null;
@@ -48,7 +52,6 @@ export function SectionAreaGridV2({
   onRemoveTile,
   onDuplicateTile,
   onCommitLayout = () => {},
-  onMoveMobile,
   onShowDetails = () => {},
   onMoveTileToSection,
   availableSections = [],
@@ -63,7 +66,7 @@ export function SectionAreaGridV2({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // 1. Pointer Drag & Drop und Resizing innerhalb des Bereichs
-  const { activeGhost, previewPositions, handlePointerDown, handleResizeStart } =
+  const { activeGhost, previewPositions, armedTileId, handlePointerDown, handleResizeStart } =
     useGridDragAndDrop({
       tiles,
       breakpoint: activeBreakpoint,
@@ -95,69 +98,81 @@ export function SectionAreaGridV2({
 
   const gridLabel = areaTitle ? `Sektion ${areaTitle}` : 'Dashboard-Editor Arbeitsfläche';
 
+  // Auftrag 172: Smartphone-Ansicht = Bearbeiten per Liste (Reihenfolge des Smartphone-Layouts)
+  const list = useAreaListMode(tiles, activeBreakpoint, isPreviewMode, onCommitLayout);
+
   return (
-    <div
-      ref={containerRef}
-      role="grid"
-      aria-label={gridLabel}
-      aria-colcount={cols}
-      data-testid={areaId ? `section-grid-${areaId}` : 'canvas-grid'}
-      data-area-id={areaId ?? 'unsectioned'}
-      className={cn(
-        'w-full relative transition-all grid',
-        isMobile
-          ? 'grid-cols-1 auto-rows-auto gap-3'
-          : activeBreakpoint === 'tablet'
-            ? 'grid-cols-6 auto-rows-[72px] gap-3'
-            : 'grid-cols-12 auto-rows-[80px] gap-4',
-        className,
-      )}
-    >
-      {/* Screenreader Live-Region für Bereichsansagen */}
+    <>
+      {/* Screenreader Live-Region für Bereichsansagen (außerhalb des grid, Auftrag 172) */}
       <div role="status" aria-live="polite" className="sr-only">
-        {gridAnnouncement}
+        {armedTileId ? ARMED_ANNOUNCEMENT : gridAnnouncement}
       </div>
-
-      {/* Drag-Ghost / Platzhalter-Vorschau */}
-      {activeGhost && (
-        <div
-          data-testid="canvas-drag-ghost"
-          className={cn(
-            'pointer-events-none rounded-xl border-2 border-dashed border-primary bg-primary/15 shadow-xl z-20 min-h-[80px] transition-all duration-75',
-            getGridPlacementClasses(activeGhost.position, isMobile),
-          )}
-        />
-      )}
-
-      {tiles.map((tile) => {
-        const isSelected = selectedTileId === tile.id;
-        const pos = previewPositions?.get(tile.id) ?? layout.get(tile.id) ?? tile.layouts.desktop;
-
-        return (
-          <CanvasTileCard
-            key={tile.id}
-            tile={tile}
-            position={pos}
-            activeBreakpoint={activeBreakpoint}
-            isSelected={isSelected}
-            isPreviewMode={isPreviewMode}
-            onSelectTile={onSelectTile}
-            onRemoveTile={onRemoveTile}
-            onDuplicateTile={onDuplicateTile}
-            onShowDetails={onShowDetails}
-            onPointerDownHandle={handlePointerDown}
-            onResizeStart={handleResizeStart}
-            onMoveMobile={onMoveMobile}
-            useData={useData}
-            globalTimeframe={globalTimeframe}
-            globalPipeline={globalPipeline}
-            availableSections={availableSections}
-            currentSectionId={currentSectionId ?? areaId}
-            onMoveTileToSection={onMoveTileToSection}
-            alarm={alarmRules ? alarmRules[tile.id] : undefined}
+      <div
+        ref={containerRef}
+        role="grid"
+        aria-label={gridLabel}
+        aria-colcount={cols}
+        data-testid={areaId ? `section-grid-${areaId}` : 'canvas-grid'}
+        data-area-id={areaId ?? 'unsectioned'}
+        data-edit-mode={list.listMode ? 'liste' : 'raster'}
+        className={cn(
+          'w-full relative transition-all grid',
+          isMobile
+            ? 'grid-cols-1 auto-rows-auto gap-3'
+            : activeBreakpoint === 'tablet'
+              ? 'grid-cols-6 auto-rows-[72px] gap-3'
+              : 'grid-cols-12 auto-rows-[80px] gap-4',
+          className,
+        )}
+      >
+        {/* Drag-Ghost / Platzhalter-Vorschau */}
+        {activeGhost && (
+          <div
+            data-testid="canvas-drag-ghost"
+            className={cn(
+              'pointer-events-none rounded-xl border-2 border-dashed border-primary bg-primary/15 shadow-xl z-20 min-h-[80px] transition-all duration-75',
+              getGridPlacementClasses(activeGhost.position, isMobile),
+            )}
           />
-        );
-      })}
-    </div>
+        )}
+
+        {/* Auftrag 172: eine Zeile mit display:contents, damit gridcells eine row als Eltern haben */}
+        <div role="row" className="contents">
+          {list.orderedTiles.map((tile) => {
+            const isSelected = selectedTileId === tile.id;
+            const pos =
+              previewPositions?.get(tile.id) ?? layout.get(tile.id) ?? tile.layouts.desktop;
+
+            return (
+              <CanvasTileCard
+                key={tile.id}
+                tile={tile}
+                position={pos}
+                activeBreakpoint={activeBreakpoint}
+                isSelected={isSelected}
+                isPreviewMode={isPreviewMode}
+                onSelectTile={onSelectTile}
+                onRemoveTile={onRemoveTile}
+                onDuplicateTile={onDuplicateTile}
+                onShowDetails={onShowDetails}
+                onPointerDownHandle={handlePointerDown}
+                onResizeStart={handleResizeStart}
+                useData={useData}
+                globalTimeframe={globalTimeframe}
+                globalPipeline={globalPipeline}
+                availableSections={availableSections}
+                currentSectionId={currentSectionId ?? areaId}
+                onMoveTileToSection={onMoveTileToSection}
+                alarm={alarmRules ? alarmRules[tile.id] : undefined}
+                isDragArmed={armedTileId === tile.id}
+                listInfo={list.listMode ? list.infoFor(tile.id) : undefined}
+                onListMove={list.listMode ? list.moveTile : undefined}
+                onListResize={list.listMode ? list.resizeTile : undefined}
+              />
+            );
+          })}
+        </div>
+      </div>
+    </>
   );
 }

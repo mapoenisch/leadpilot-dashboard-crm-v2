@@ -1,45 +1,9 @@
 {
-  "_kommentar": "G35 Block D2: scrollable-region-focusable behoben (main mit tabIndex + aria-label). Liste leer, Ratsche greift.",
+  "_kommentar": "G35 Block D2: scrollable-region-focusable behoben. Auftrag 172 (P15b): V2-Einträge entfernt; V2-Ansichten dürfen hier nicht stehen (Wächtertest in a11y.spec.ts).",
   "/dashboard": [],
   "/company/data-basis": [],
   "/crm/leads": [],
   "/crm/live-simulation": [],
   "/finance/p-and-l": [],
-  "/market/overview": [],
-  "/dashboard-vorschau.html?bereich=editor_v2&scenario=sections": [
-    "aria-required-children",
-    "aria-required-parent",
-    "color-contrast",
-    "label-title-only"
-  ],
-  "editor_v2_switcher_menu": [
-    "aria-required-children",
-    "aria-required-parent",
-    "color-contrast",
-    "label-title-only"
-  ],
-  "editor_v2_new_dialog": [
-    "aria-required-children",
-    "aria-required-parent",
-    "color-contrast",
-    "label-title-only"
-  ],
-  "editor_v2_paused": [
-    "aria-required-children",
-    "aria-required-parent",
-    "color-contrast",
-    "label-title-only"
-  ],
-  "editor_v2_offline": [
-    "aria-required-children",
-    "aria-required-parent",
-    "color-contrast",
-    "label-title-only"
-  ],
-  "editor_v2_time_series": [
-    "aria-required-children",
-    "aria-required-parent",
-    "color-contrast",
-    "label-title-only"
-  ]
+  "/market/overview": []
 }

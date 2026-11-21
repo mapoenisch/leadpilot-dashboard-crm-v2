@@ -24,3 +24,19 @@
 .kiosk-canvas {
   zoom: var(--kiosk-zoom);
 }
+
+/* Auftrag 172 (P15b §2.3 Nr. 10): Druck aus dem Kiosk ist deaktiviert (auch über das Browsermenü).
+   Statt der Kacheln erscheint nur ein Hinweis; Reports entstehen im Editor. */
+@media print {
+  .kiosk-root > * {
+    display: none !important;
+  }
+
+  .kiosk-root::before {
+    content: 'Drucken ist im Kiosk-Modus deaktiviert. Reports bitte im Dashboard-Editor erstellen.';
+    display: block;
+    padding: 24px;
+    font-size: 14pt;
+    color: #000;
+  }
+}

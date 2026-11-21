@@ -1,6 +1,6 @@
 // Auftrag 171 (Codex PR #212): Live-Status des Kiosks zählt auch Kacheln aus Sektionen, die im
 // gespeicherten Dashboard eingeklappt sind — der Kiosk zeigt sie aufgeklappt.
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { DashboardTileConfigV2 } from '../model/dashboardConfigV2';
 import { createPreviewThresholdsConfig } from '../preview/previewThresholds';
@@ -65,5 +65,53 @@ describe('KioskBody Live-Status', () => {
       />,
     );
     expect(seen.tiles.map((t) => t.id)).toEqual(ids);
+  });
+
+  it('Auftrag 172 (§2.3 Nr. 10): Strg/Cmd+P druckt im Kiosk nicht', () => {
+    const base = createPreviewThresholdsConfig();
+    const config = base;
+    render(
+      <KioskBody
+        requestedIds={[]}
+        intervalSec={60}
+        source={{ list: vi.fn(), load: vi.fn() }}
+        useData={vi.fn() as never}
+        online={{ online: true, offlineSince: null }}
+        theme="dark"
+        onToggleTheme={() => {}}
+        exitHref="/dashboard"
+        onExit={() => {}}
+        listStatus="bereit"
+        onRetryList={() => {}}
+        loadFailed={false}
+        onRetryLoad={() => {}}
+        dashboard={{
+          id: 'd',
+          title: 'D',
+          scope: 'personal',
+          revision: 1,
+          config,
+          updatedAt: '2026-11-21T07:00:00Z',
+        }}
+        isLoadingCurrent={false}
+        position={1}
+        total={1}
+        skippedCount={0}
+        rotation={{
+          index: 0,
+          isPaused: false,
+          pauseReason: null,
+          togglePause: () => {},
+          noteInteraction: () => {},
+          next: () => {},
+          previous: () => {},
+        }}
+      />,
+    );
+    for (const init of [{ metaKey: true }, { ctrlKey: true }]) {
+      const event = new KeyboardEvent('keydown', { key: 'p', cancelable: true, ...init });
+      fireEvent(window, event);
+      expect(event.defaultPrevented).toBe(true);
+    }
   });
 });

@@ -22805,3 +22805,67 @@ Alle Tasks T0–T6 erledigt, Pflicht-Verifikation grün (lokale Vorbefunde oben 
 - Begonnen von OpenCode, das am Nutzungslimit abbrach; fertiggestellt und verifiziert von Claude Code.
 - **Rot-Nachweis:** Die 4 neuen Tests sind gegen `44420b90` rot und mit der Nacharbeit grün.
 - **Verifikation:** `tsc` 0, `lint` 0, `format:check` grün, `npm test` 483 Dateien / 3.657 Tests grün, `verify` 25/25, `build` ok, `size-limit` Initial 172,09 kB, E2E `dashboard-kiosk.spec.ts` 18/18 grün. Schutzbereiche unverändert.
+
+## 2026-11-21 — Auftrag 172: Dashboard-Editor: Mobile Bedienung, Barrierefreiheits-Abnahme, Reportexport (P15b)
+
+Builder: Claude Code (Auftrag „bau #213“). Baseline `a41e5fbe` (Merge PR #212). Branch `auftrag-172-mobil-a11y-report`.
+
+### 1. Ziel & Kontext
+
+V2-Editor und Leseansicht auf Telefon und Tablet sicher bedienbar, dokumentierte Barrierefreiheits-Abnahme aller V2-Ansichten, Druck/PDF-Report mit Schwellenwert-Status, Alarmen, Transformationen und Datenstand als Text (Auftrag 172 §2, Masterplan §3.3/§6 P15).
+
+### 2. T0 – Ist-Stand
+
+| Befund | Stelle |
+| --- | --- |
+| Editor-Layoutwahl rein manuell; auf 375 px wurde das Desktop-Raster (12 Spalten) gezeigt | `DashboardEditorShellV2` |
+| Smartphone-Ansicht: „Nach oben/unten“ änderte nur `y`, die Anzeige folgte der Konfigurationsreihenfolge (Reihenfolge änderte sich sichtbar nicht) | `EditorCanvasV2`, `SectionAreaGridV2` |
+| Ziehen per Touch sofort aktiv; Griffe 24 px, Bedienelemente 28–36 px | `useGridDragAndDrop`, Top-Bar |
+| axe (1440/375, alle V2-Ansichten): `aria-required-children/parent` (critical), `color-contrast` 9–26 Knoten (serious), `label-title-only`, `select-name` (Alarmfilter), moderate Überschriften/Landmarken | Raster-ARIA, fehlende Tailwind-Opazitätsklassen ohne Preflight |
+| Reportexport existierte nur im V1-Arbeitsbereich; im V2-Editor gab es keinen Report | `DashboardWorkspace` |
+| Panel-Editor: `onOpenPanelEditor` wird von keiner Seite angebunden, der Inspector übernimmt die Rolle | – |
+| `size-limit` Initial-JS 172,09 kB | – |
+
+### 3. Umsetzung
+
+- **Telefon (< 640 px):** Layoutwahl fest auf Smartphone (Hinweis „Bearbeiten per Liste“), Kacheln in Reihenfolge des Smartphone-Layouts mit immer sichtbarer Leiste: Nach oben/unten (am Rand gesperrt), Größe (Klein/Mittel/Groß), Sektion, Bearbeiten, Duplizieren, Entfernen. Planung je Rasterbereich, ändert nur das Smartphone-Layout. Inspector und Bibliothek als Vollbild-Blatt; Inspector: `role="dialog"`, Schließen oben, Escape, Browser-Zurück schließt (eigener Verlaufseintrag `lpSheet`, Entwurf bleibt). Bibliothek schließt nach dem Hinzufügen. (`useEditorTouchLayout`, `useEditorViewport`, `useSheetBackClose`, `canvas/editorListMode.ts`, `MobileTileListActions`, `TileSectionMenu`)
+- **Tablet:** beim Öffnen Tablet-Layout; Touch/Stift nehmen Kacheln erst nach 400 ms Halten auf (sichtbar umrandet, Live-Ansage), Bewegung > 10 px vorher = Scrollen, keine Verschiebung. Maus unverändert. (`useGridDragAndDrop`)
+- **Touch-Ziele / Grundwerte:** `editorScope.css` – Formularelemente im V2-Bereich mit Spezifität-0-Grundwerten (behebt die hellgrauen Browser-Schaltflächen und damit die Kontrastbefunde), bei `pointer: coarse` alle Bedienelemente ≥ 44 × 44 px in Editor, Alarmliste, Versionen.
+- **Barrierefreiheit:** `role="row"` (display: contents) im Raster, `aria-label` an Zeitraum/Pipeline/Alarmfilter, `h1` in der Top-Bar, `h2` „Kacheln“ im Canvas, Überschriftenebenen in Bibliothek/Inspector, Bibliothek benannt. Protokoll: `docs/dashboard/BARRIEREFREIHEIT_P15.md`.
+- **Report V2:** Schaltfläche „Report“ (auch Leseansicht) → bestehender Report-Dialog → `DashboardPrintViewV2`: Kopf (Dashboard, Organisation, Analysezeitpunkt, Datenstand je Quelle, Ersteller, Zeitraum), je Kachel „Warnung: ab 1.000 EUR“ usw., „Alarm aktiv/pausiert“, Vergleich/Verknüpfung/Erwartungsband, Umformung; Fuß „Vertraulich – nur für berechtigte Empfänger“ und Seitenzahl per `@page` (eigene benannte Seiten, V1-Druck unverändert). Daten ausschließlich über den Daten-Hook der Ansicht und den Alarm-Cache der Ansicht. Kiosk: Strg/Cmd+P gesperrt, Druck über Browsermenü zeigt nur einen Hinweis.
+
+### 4. Geänderte Dateien
+
+Neu: `hooks/useEditorViewport.ts`, `hooks/useSheetBackClose.ts`, `components/editor/useEditorTouchLayout.ts`, `components/editor/editorScope.css`, `components/editor/canvas/{editorListMode.ts,MobileTileListActions.tsx,TileSectionMenu.tsx}`, `components/export/{DashboardReportV2.tsx,DashboardPrintViewV2.tsx,printReportV2.css}`, `model/reportTileStatus.ts`, Tests `__tests__/{editorTouch,reportV2}.ui.vitest.tsx`, `e2e/{dashboard-mobile,dashboard-report}.spec.ts`, `e2e/helpers/touchTargets.ts`, `scripts/captureAuftrag172GateScreenshots.mjs`, `docs/dashboard/BARRIEREFREIHEIT_P15.md`, `docs/screenshots/auftrag-172/README.md`.
+Geändert: Editor-Hülle, Top-Bar(+Aktionen), Canvas/Sektionsraster, Kachelkarte, Drag-Hook, Inspector(+Leerzustand, Darstellung), Bibliothek, Sektions-Canvas, Versionsverlauf, Alarmliste/-filter, Kiosk (Body, CSS), `PrintTileCard`/`PrintAppendixTable` (nur optionale V2-Angaben), Vorschau-Banner, `e2e/a11y.spec.ts` + `a11y-baseline.json`, `e2e/dashboard-thresholds-preview.spec.ts`, `e2e/editor-time-series.spec.ts`, `__tests__/{gridInteraction,KioskBodyStatus}`, `ci.yml` und `runV23Acceptance.mjs` (neue Specs), Masterplan, BUILD_PLAN, Auftrag.
+
+### 5. Funktionale Prüfungen
+
+- Rot-Nachweise gegen `a41e5fbe` (neue Tests, nur Hilfsmodule übernommen): 8 Verhaltenstests rot (Langdruck ×3, Listenreihenfolge, Listenleiste, Nach unten, Größe, Druck-Statustext) + Kiosk-Strg+P rot. Touch-Ziele alt: 7 zu kleine Elemente in der Top-Bar (375 und 768), neu 0. a11y-Wächtertest gegen alte Baseline: 6 V2-Schlüssel → rot.
+- Im Bau gefundene Fehler: Report-Endlosschleife bei nicht stabilen Datenobjekten (inhaltlicher Vergleich), Druck zeigte „Keine Daten“ statt Ansichtswert (Abfrage im V2-Druck aktiviert), Listenleiste lag unter der Folgekachel (Flex-Layout), Sektion-Verschieben fehlte im Listenmodus (nachgerüstet).
+
+### 6. Schutzbereichs-Prüfung
+
+`git diff a41e5fbe -- src/simulation src/types src/context src/services/data src/features/resources supabase` → leer. Kein Server-Code, keine neuen Abhängigkeiten.
+
+### 7. Automatisierte Verifikation (lokal, 21.11.2026)
+
+- `npx tsc --noEmit` 0 Fehler · `npm run lint` 0 · `npm run format:check` grün · `npm test` 485 Dateien / 3685 Tests grün · `npm run verify` Suiten 001–025 grün · `npm run build` grün.
+- `npm run build:production`: lokal rot nur durch den Konfigurationswächter (lokale `VITE_SUPABASE_URL` ist http) – umgebungsbedingt, kein Codebefund.
+- `npx size-limit`: Initial-JS 172,13 kB (+0,04 kB, Toleranz 0,2 kB), größter Chunk 79,41 kB.
+- E2E (Vorschau-Build, 3 Viewports): `a11y`, `dashboard-mobile`, `dashboard-report`, alle `*-preview`-Specs, `dashboard-kiosk`, `editor-time-*`, `mobile-menu-touch` grün (a11y + Schwellenwerte zusätzlich 3× wiederholt grün). CI-Gruppe 3 (`personal-dashboard*`, `dashboard-config-states`, `editor-time-*`, `--workers=1`) grün.
+- Nicht lokal bestätigt: `team-dashboards`, `dashboard-alarms`, `dashboard-versions` scheitern lokal an `add-team-member-select` ohne Option `manager-a@e2e.local` – dieselbe lokale DB-Altlast wie in Auftrag 171 (dort auf sauberem Stand `7c69aa8e` reproduziert); `visual.spec` lokal mit darwin-Bildmaßabweichungen (bekannt). Maßgeblich ist die CI mit frischer Datenbank.
+
+### 8. Screenshot-Matrix
+
+`docs/screenshots/auftrag-172/README.md`: 34 Aufnahmen (9 Ansichten × 375/768 × hell/dunkel mit Touch-Emulation, Druck A4 hell/dunkel), 0 px Überlauf, Hashes je Viewport/Theme verschieden.
+
+### 9. Grenzen / offen
+
+- Manuelle VoiceOver-Stichprobe durch Marc (Anleitung in `BARRIEREFREIHEIT_P15.md` §5).
+- Moderat offen: Dialogtitel der gemeinsamen `Modal`-Komponente (`h3`, V1-geteilt, nicht Ziel-Datei).
+- Telefon: Die Top-Bar umbricht auf mehrere Zeilen und belegt viel Höhe; funktional bedienbar, Verdichtung wäre ein eigener Auftrag.
+
+### 10. Ergebnis & Freigabestatus
+
+Umgesetzt und lokal verifiziert. **Smoke für Marc:** Vorschau auf dem Telefon öffnen, eine Kachel per „Nach unten“ verschieben, „Bearbeiten“ → Zurück-Taste; im Editor „Report“ → „Drucken“ und Statuszeilen prüfen. Freigabe durch unabhängigen Prüfer (CLAUDE.md §4.1) ausstehend.

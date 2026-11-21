@@ -10,15 +10,18 @@ export interface PrintAppendixRowsProps {
   tile: DashboardTileConfig;
   filters?: DashboardFilters;
   useData?: TileDataHook;
+  /** Auftrag 172 (V2-Report): Abfrage ausdrücklich aktivieren; V1 ruft ohne Optionen auf. */
+  enableData?: boolean;
 }
 
 export const PrintAppendixRows: React.FC<PrintAppendixRowsProps> = ({
   tile,
   filters,
   useData = noopTileDataHook,
+  enableData = false,
 }) => {
   const { name, category, layer, unit, transformations } = resolveTileInfo(tile);
-  const rawData = useData(tile, filters);
+  const rawData = useData(tile, filters, enableData ? { enabled: true } : undefined);
   const data = React.useMemo(
     () => applyTransformations(rawData, transformations),
     [rawData, transformations],

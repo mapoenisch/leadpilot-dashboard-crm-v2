@@ -2,8 +2,8 @@
 // Kachelkarte auf dem Canvas mit WAI-ARIA gridcell-Semantik,
 // Drag-Handle, Resize-Handles, Schnellaktionen und Renderer-Anbindung.
 
-import { useState, type PointerEvent as ReactPointerEvent } from 'react';
-import { ArrowDown, ArrowUp, Copy, FolderInput, GripVertical, Sliders, Trash2 } from 'lucide-react';
+import type { PointerEvent as ReactPointerEvent } from 'react';
+import { Copy, GripVertical, Sliders, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type {
   BreakpointKey,
@@ -15,11 +15,20 @@ import type {
   DashboardPeriod,
   DashboardTileConfig,
 } from '../../../model/dashboardConfig';
-import type { DashboardView } from '../../../model/dashboardCatalog';
+import { getCatalogEntry, type DashboardView } from '../../../model/dashboardCatalog';
 import { normalizeTileQuery } from '../../../model/tileQuery';
 import { LazyDashboardTile, type TileDataHook } from '../../LazyDashboardTile';
 import { GridResizeHandle, type ResizeDirection } from '../grid/GridResizeHandle';
 import { getGridPlacementClasses } from '../grid/gridTailwindClasses';
+import {
+  MOBILE_SIZE_MIN_HEIGHT_CLASS,
+  mobileSizeFromHeight,
+  useEditorListModeContext,
+  type ListModeTileInfo,
+  type MobileTileSize,
+} from './editorListMode';
+import { MobileTileListActions } from './MobileTileListActions';
+import { TileSectionMenu } from './TileSectionMenu';
 
 export interface CanvasTileCardProps {
   tile: DashboardTileConfigV2;
@@ -33,6 +42,7 @@ export interface CanvasTileCardProps {
   onShowDetails?: (tileId: string) => void;
   onPointerDownHandle: (tileId: string, e: ReactPointerEvent) => void;
   onResizeStart: (tileId: string, dir: ResizeDirection, e: ReactPointerEvent) => void;
+  /** @deprecated Auftrag 172: ersetzt durch den Listenmodus (onListMove). */
   onMoveMobile?: (tileId: string, direction: 'up' | 'down') => void;
   useData: TileDataHook;
   globalTimeframe: string;
@@ -42,6 +52,12 @@ export interface CanvasTileCardProps {
   currentSectionId?: string | null;
   onMoveTileToSection?: (tileId: string, targetSectionId: string | null) => void;
   alarm?: { status?: string; reason?: string };
+  /** Auftrag 172: Listenmodus (Smartphone-Ansicht) – Position und Größe in der Liste. */
+  listInfo?: ListModeTileInfo;
+  onListMove?: (tileId: string, direction: 'up' | 'down') => void;
+  onListResize?: (tileId: string, size: MobileTileSize) => void;
+  /** Auftrag 172: Kachel per langem Drücken (Touch) aufgenommen. */
+  isDragArmed?: boolean;
 }
 
 export function parseTimeframeToPeriod(timeframe: string): DashboardPeriod | undefined {
@@ -96,7 +112,6 @@ export function CanvasTileCard({
   onShowDetails = () => {},
   onPointerDownHandle,
   onResizeStart,
-  onMoveMobile,
   useData,
   globalTimeframe,
   globalPipeline,
@@ -105,12 +120,18 @@ export function CanvasTileCard({
   currentSectionId,
   onMoveTileToSection,
   alarm,
+  listInfo,
+  onListMove,
+  onListResize,
+  isDragArmed = false,
 }: CanvasTileCardProps) {
-  const [showSectionMenu, setShowSectionMenu] = useState(false);
   const v1Tile = convertV2TileToV1(tile, globalTimeframe, globalPipeline);
   const filters: DashboardFilters = { pipeline: globalPipeline };
   const isMobile = activeBreakpoint === 'mobile';
   const placementClasses = getGridPlacementClasses(position, isMobile);
+  const listContext = useEditorListModeContext();
+  const listMode = !isPreviewMode && Boolean(listInfo && onListMove && onListResize);
+  const tileTitle = tile.title?.trim() || getCatalogEntry(tile.catalogId)?.name || tile.catalogId;
 
   return (
     <div
@@ -119,6 +140,7 @@ export function CanvasTileCard({
       data-testid={`canvas-tile-${tile.id}`}
       data-tile-id={tile.id}
       data-selected={String(isSelected)}
+      data-drag-armed={isDragArmed ? 'true' : undefined}
       aria-selected={isSelected}
       aria-colindex={position.x + 1}
       aria-rowindex={position.y + 1}
@@ -135,6 +157,10 @@ export function CanvasTileCard({
       className={cn(
         'group relative min-w-0 rounded-xl transition-all duration-150',
         placementClasses,
+        isMobile && MOBILE_SIZE_MIN_HEIGHT_CLASS[mobileSizeFromHeight(position.h)],
+        listMode && 'flex flex-col',
+        isDragArmed &&
+          'scale-[1.02] outline-dashed outline-2 outline-offset-4 outline-primary shadow-2xl',
         isSelected
           ? 'ring-2 ring-primary ring-offset-2 ring-offset-[var(--color-bg-deep,#051413)] shadow-xl z-10'
           : !isPreviewMode && 'hover:ring-1 hover:ring-primary/40',
@@ -148,14 +174,14 @@ export function CanvasTileCard({
           data-drag-handle="true"
           title="Kachel verschieben"
           onPointerDown={(e) => onPointerDownHandle(tile.id, e)}
-          className="absolute top-2 left-2 z-20 flex h-6 w-6 cursor-grab active:cursor-grabbing items-center justify-center rounded bg-[var(--color-bg-deep,#051413)]/80 text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 group-data-[selected=true]:opacity-100 hover:text-white transition-opacity"
+          className="absolute top-2 left-2 z-20 flex h-6 w-6 touch-none cursor-grab active:cursor-grabbing items-center justify-center rounded bg-[var(--color-bg-deep,#051413)]/80 text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 group-data-[selected=true]:opacity-100 hover:text-white transition-opacity"
         >
           <GripVertical className="h-3.5 w-3.5" />
         </div>
       )}
 
-      {/* Schnellaktions-Leiste im Bearbeitungsmodus */}
-      {!isPreviewMode && (
+      {/* Schnellaktions-Leiste im Bearbeitungsmodus (im Listenmodus ersetzt durch die Aktionsleiste) */}
+      {!isPreviewMode && !listMode && (
         <div
           data-testid={`tile-quick-actions-${tile.id}`}
           className={cn(
@@ -163,107 +189,13 @@ export function CanvasTileCard({
             isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
           )}
         >
-          {isMobile && onMoveMobile && (
-            <>
-              <button
-                type="button"
-                data-testid={`tile-move-up-btn-${tile.id}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onMoveMobile(tile.id, 'up');
-                }}
-                className="flex h-6 w-6 items-center justify-center rounded text-[var(--color-text-muted)] hover:bg-white/10 hover:text-white"
-                title="Nach oben"
-              >
-                <ArrowUp className="h-3 w-3" />
-              </button>
-              <button
-                type="button"
-                data-testid={`tile-move-down-btn-${tile.id}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onMoveMobile(tile.id, 'down');
-                }}
-                className="flex h-6 w-6 items-center justify-center rounded text-[var(--color-text-muted)] hover:bg-white/10 hover:text-white"
-                title="Nach unten"
-              >
-                <ArrowDown className="h-3 w-3" />
-              </button>
-            </>
-          )}
-
           {availableSections && availableSections.length > 0 && onMoveTileToSection && (
-            <div className="relative">
-              <button
-                type="button"
-                data-testid={`tile-move-section-btn-${tile.id}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowSectionMenu((prev) => !prev);
-                }}
-                className={cn(
-                  'flex h-6 w-6 items-center justify-center rounded transition-colors',
-                  showSectionMenu
-                    ? 'bg-primary/20 text-primary'
-                    : 'text-[var(--color-text-muted)] hover:bg-white/10 hover:text-white',
-                )}
-                title="In Sektion verschieben…"
-              >
-                <FolderInput className="h-3 w-3" />
-              </button>
-
-              {showSectionMenu && (
-                <div
-                  data-testid={`tile-move-section-menu-${tile.id}`}
-                  className="absolute top-7 right-0 z-50 min-w-[140px] rounded-md border border-[var(--color-border,#1b3d39)] bg-[var(--color-bg-deep,#051413)] p-1 shadow-xl text-xs space-y-0.5"
-                >
-                  <div className="px-2 py-1 text-[10px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">
-                    Bereich wählen
-                  </div>
-                  <button
-                    type="button"
-                    data-testid={`tile-move-section-option-unsectioned-${tile.id}`}
-                    onClick={() => {
-                      onMoveTileToSection(tile.id, null);
-                      setShowSectionMenu(false);
-                    }}
-                    className={cn(
-                      'flex w-full items-center justify-between rounded px-2 py-1 text-left text-xs transition-colors',
-                      currentSectionId === null || currentSectionId === undefined
-                        ? 'bg-primary/20 text-primary font-medium'
-                        : 'text-[var(--color-text-soft)] hover:bg-white/10 hover:text-white',
-                    )}
-                  >
-                    <span>Ohne Sektion</span>
-                    {(currentSectionId === null || currentSectionId === undefined) && (
-                      <span className="text-[10px] text-primary">✓</span>
-                    )}
-                  </button>
-                  {availableSections.map((sec) => (
-                    <button
-                      key={sec.id}
-                      type="button"
-                      data-testid={`tile-move-section-option-${sec.id}-${tile.id}`}
-                      onClick={() => {
-                        onMoveTileToSection(tile.id, sec.id);
-                        setShowSectionMenu(false);
-                      }}
-                      className={cn(
-                        'flex w-full items-center justify-between rounded px-2 py-1 text-left text-xs transition-colors',
-                        currentSectionId === sec.id
-                          ? 'bg-primary/20 text-primary font-medium'
-                          : 'text-[var(--color-text-soft)] hover:bg-white/10 hover:text-white',
-                      )}
-                    >
-                      <span className="truncate">{sec.title}</span>
-                      {currentSectionId === sec.id && (
-                        <span className="text-[10px] text-primary">✓</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <TileSectionMenu
+              tileId={tile.id}
+              availableSections={availableSections}
+              currentSectionId={currentSectionId}
+              onMoveTileToSection={onMoveTileToSection}
+            />
           )}
 
           <button
@@ -315,7 +247,7 @@ export function CanvasTileCard({
       )}
 
       {/* Eigentlicher Kachel-Renderer */}
-      <div className="h-full w-full">
+      <div className={listMode ? 'w-full flex-1' : 'h-full w-full'}>
         <LazyDashboardTile
           tile={v1Tile}
           filters={filters}
@@ -333,6 +265,31 @@ export function CanvasTileCard({
           })()}
         />
       </div>
+
+      {/* Auftrag 172: Bearbeiten per Liste (Smartphone-Ansicht) */}
+      {listMode && listInfo && onListMove && onListResize && (
+        <MobileTileListActions
+          tileId={tile.id}
+          title={tileTitle}
+          info={listInfo}
+          onMove={onListMove}
+          onResize={onListResize}
+          onEdit={listContext?.onEditTile ?? onSelectTile}
+          onDuplicate={onDuplicateTile}
+          onRemove={onRemoveTile}
+          sectionMenu={
+            availableSections.length > 0 && onMoveTileToSection ? (
+              <TileSectionMenu
+                tileId={tile.id}
+                availableSections={availableSections}
+                currentSectionId={currentSectionId}
+                onMoveTileToSection={onMoveTileToSection}
+                large
+              />
+            ) : null
+          }
+        />
+      )}
     </div>
   );
 }

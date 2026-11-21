@@ -67,6 +67,10 @@ export interface EditorTopBarV2Props {
   listError?: DashboardV2StorageError | null;
   onOpenVersions?: (context?: { isDirty: boolean; draftConfig: DashboardConfigV2 }) => void;
   onOpenImport?: () => void;
+  /** Auftrag 172: Telefon – Layoutwahl gesperrt (Bearbeiten per Liste) */
+  breakpointLocked?: boolean;
+  /** Auftrag 172: Reportexport öffnen */
+  onOpenReport?: () => void;
 }
 
 export const TIMEFRAME_OPTIONS = [
@@ -120,6 +124,8 @@ export function EditorTopBarV2({
   listError,
   onOpenVersions,
   onOpenImport,
+  breakpointLocked = false,
+  onOpenReport,
 }: EditorTopBarV2Props) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleInput, setTitleInput] = useState(config.title);
@@ -172,6 +178,8 @@ export function EditorTopBarV2({
         className,
       )}
     >
+      {/* Auftrag 172: Seitenüberschrift für Screenreader (der Titel selbst ist eine Schaltfläche) */}
+      <h1 className="sr-only">Dashboard-Editor: {config.title}</h1>
       {/* Linker Bereich: Navigation / Panels Toggle, Scope & Switcher & Titel */}
       <div className="flex items-center gap-3">
         {!readOnly && onToggleLibrary && (
@@ -279,10 +287,19 @@ export function EditorTopBarV2({
 
       {/* Mittlerer Bereich: Globale Filter & Breakpoints */}
       <div className="flex flex-wrap items-center gap-2">
-        <BreakpointSelector
-          activeBreakpoint={activeBreakpoint}
-          onBreakpointChange={onBreakpointChange}
-        />
+        {breakpointLocked ? (
+          <span
+            data-testid="list-mode-hint"
+            className="rounded border border-[var(--color-border,#1b3d39)] px-2 py-1 text-xs text-[var(--color-text-soft,#e6f3f1)]"
+          >
+            Smartphone-Ansicht · Bearbeiten per Liste
+          </span>
+        ) : (
+          <BreakpointSelector
+            activeBreakpoint={activeBreakpoint}
+            onBreakpointChange={onBreakpointChange}
+          />
+        )}
 
         {/* Globaler Zeitraum-Filter */}
         <select
@@ -291,6 +308,7 @@ export function EditorTopBarV2({
           onChange={(e) => onGlobalFilterChange({ timeframe: e.target.value })}
           className="h-8 rounded border border-[var(--color-border,#1b3d39)] bg-black/30 px-2 text-xs text-[var(--color-text-soft,#e6f3f1)] outline-none focus:border-primary"
           title="Globaler Standard-Zeitraum für alle Kacheln"
+          aria-label="Zeitraum für alle Kacheln"
         >
           {TIMEFRAME_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value} className="bg-[var(--color-bg-deep,#051413)]">
@@ -306,6 +324,7 @@ export function EditorTopBarV2({
           onChange={(e) => onGlobalFilterChange({ pipeline: e.target.value || undefined })}
           className="h-8 rounded border border-[var(--color-border,#1b3d39)] bg-black/30 px-2 text-xs text-[var(--color-text-soft,#e6f3f1)] outline-none focus:border-primary"
           title="Globale Pipeline für CRM-Kennzahlen"
+          aria-label="Pipeline für CRM-Kennzahlen"
         >
           {PIPELINE_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value} className="bg-[var(--color-bg-deep,#051413)]">
@@ -348,6 +367,7 @@ export function EditorTopBarV2({
         onSave={onSave}
         onCancel={onCancel}
         readOnly={readOnly}
+        onOpenReport={onOpenReport}
         onOpenVersions={
           onOpenVersions ? () => onOpenVersions({ isDirty, draftConfig: config }) : undefined
         }

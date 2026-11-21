@@ -161,6 +161,9 @@ export function SectionedCanvasV2({
         className,
       )}
     >
+      {/* Auftrag 172: Überschriftenfolge h1 → h2 → Sektion/Kachel h3 */}
+      <h2 className="sr-only">Kacheln</h2>
+
       {/* Screenreader Live-Region */}
       <div
         role="status"

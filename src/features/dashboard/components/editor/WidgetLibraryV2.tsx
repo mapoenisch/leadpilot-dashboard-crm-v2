@@ -162,6 +162,7 @@ export function WidgetLibraryV2({
   return (
     <aside
       data-testid="widget-library"
+      aria-label="Widget-Bibliothek"
       className={cn(
         'flex h-full w-[280px] shrink-0 flex-col border-r border-[var(--color-border,#1b3d39)] bg-[var(--color-bg-deep,#041110)] select-none',
         className,
@@ -171,9 +172,9 @@ export function WidgetLibraryV2({
       <div className="flex items-center justify-between border-b border-[var(--color-border,#1b3d39)] px-3 py-2.5">
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-primary" />
-          <h3 className="m-0 text-xs font-semibold tracking-wide text-white uppercase">
+          <h2 className="m-0 text-xs font-semibold tracking-wide text-white uppercase">
             Widget-Bibliothek
-          </h3>
+          </h2>
         </div>
         {onClose && (
           <button
@@ -268,9 +269,9 @@ export function WidgetLibraryV2({
               >
                 <div className="flex items-start justify-between gap-1.5">
                   <div className="min-w-0 flex-1">
-                    <h4 className="m-0 truncate text-xs font-semibold text-white group-hover:text-primary transition-colors">
+                    <h3 className="m-0 truncate text-xs font-semibold text-white group-hover:text-primary transition-colors">
                       {entry.name}
-                    </h4>
+                    </h3>
                     <p className="m-0 mt-0.5 line-clamp-2 text-[10.5px] leading-tight text-[var(--color-text-muted)]">
                       {entry.definition}
                     </p>
@@ -314,9 +315,7 @@ export function WidgetLibraryV2({
                           {getViewIcon(v)}
                         </span>
                       ))}
-                      {views.length > 3 && (
-                        <span className="text-[9px] opacity-50">+{views.length - 3}</span>
-                      )}
+                      {views.length > 3 && <span className="text-[10px]">+{views.length - 3}</span>}
                     </div>
                   </div>
 

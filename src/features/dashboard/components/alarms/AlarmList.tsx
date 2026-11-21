@@ -8,6 +8,7 @@ import { AlarmWorkerBanner } from './AlarmWorkerBanner';
 import { AlarmFilterBar } from './AlarmFilterBar';
 import { AlarmEventItemRow } from './AlarmEventItemRow';
 import { AlarmAcknowledgeDialog } from './AlarmAcknowledgeDialog';
+import '../editor/editorScope.css';
 import {
   fetchDashboardAlarmEventsV2,
   type DashboardAlarmEventItem,
@@ -256,7 +257,11 @@ export const AlarmList: React.FC = () => {
   };
 
   return (
-    <div data-testid="alarm-list-container" className="space-y-4 max-w-5xl mx-auto">
+    <div
+      data-testid="alarm-list-container"
+      data-touch-scope="alarme"
+      className="space-y-4 max-w-5xl mx-auto"
+    >
       {/* Ausfallhinweis-Banner (für alle Nutzer in der Alarmliste sichtbar) */}
       <AlarmWorkerBanner showAllUsers={true} />
 

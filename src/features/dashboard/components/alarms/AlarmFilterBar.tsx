@@ -42,6 +42,7 @@ export const AlarmFilterBar: React.FC<AlarmFilterBarProps> = ({
         {(dashboardOptions.length > 0 || Boolean(selectedDashboardId)) && (
           <select
             data-testid="alarm-filter-dashboard-select"
+            aria-label="Nach Dashboard filtern"
             value={selectedDashboardId}
             onChange={(e) => onChangeDashboardId(e.target.value)}
             className="rounded border border-border bg-surface px-2.5 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-primary"

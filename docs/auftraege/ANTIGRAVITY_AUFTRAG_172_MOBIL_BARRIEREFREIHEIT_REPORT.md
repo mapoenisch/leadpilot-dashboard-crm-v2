@@ -6,8 +6,8 @@
 **Vorgelagert:** 171 (P15a) ist gemergt.
 **Baseline:** aktueller `main` nach Merge von 171.
 **Branch:** `auftrag-172-mobil-a11y-report`.
-**Builder:** Antigravity (oder ein anderer von Marc benannter Agent). **Prüfer:** unabhängiger Agent nach `CLAUDE.md` §4.1. **Merge und Deploy:** Marc.
-**Status:** ENTWURF (Ist-Stand in T0 prüfen).
+**Builder:** Claude Code (von Marc mit „bau #213“ beauftragt). **Prüfer:** unabhängiger Agent nach `CLAUDE.md` §4.1. **Merge und Deploy:** Marc.
+**Status:** FERTIGGESTELLT / PR ERSTELLT, wartet auf unabhängiges Review (21.11.2026).
 
 ---
 
@@ -64,12 +64,12 @@ Schutzbereiche unverändert; kein Server-Code; keine neuen Abhängigkeiten; `max
 
 ## 5. Tasks
 
-- [ ] **T0** Ansichtenliste, Ist-Befunde (axe-Lauf je Ansicht), `size-limit`.
-- [ ] **T1** Rot-Nachweise.
-- [ ] **T2** Mobile Bedienung.
-- [ ] **T3** Barrierefreiheits-Befunde beheben, Baseline leeren.
-- [ ] **T4** Reportexport.
-- [ ] **T5** E2E, Screenshots, Doku, Pflicht-Verifikation, BUILD_LOG (Smoke für Marc: Dashboard auf dem Telefon bearbeiten, Report drucken), PR, Review.
+- [x] **T0** Ansichtenliste, Ist-Befunde (axe-Lauf je Ansicht), `size-limit`.
+- [x] **T1** Rot-Nachweise.
+- [x] **T2** Mobile Bedienung.
+- [x] **T3** Barrierefreiheits-Befunde beheben, Baseline leeren.
+- [x] **T4** Reportexport.
+- [x] **T5** E2E, Screenshots, Doku, Pflicht-Verifikation, BUILD_LOG (Smoke für Marc: Dashboard auf dem Telefon bearbeiten, Report drucken), PR, Review.
 
 ## 6. Abnahme
 

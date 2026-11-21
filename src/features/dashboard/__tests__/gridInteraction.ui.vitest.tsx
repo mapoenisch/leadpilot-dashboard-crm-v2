@@ -222,9 +222,9 @@ describe('EditorCanvasV2 Rasterengine & WAI-ARIA Grid (P06)', () => {
     expect(onAddTileAtPosition).not.toHaveBeenCalled();
   });
 
-  it('bietet auf Mobile Pfeil-Schaltflächen für vertikales Verschieben', () => {
+  it('bietet auf Mobile Pfeil-Schaltflächen für vertikales Verschieben (Listenmodus, Auftrag 172)', () => {
     const config = createTestConfig();
-    const onMoveMobile = vi.fn();
+    const onCommitLayout = vi.fn();
 
     render(
       <EditorCanvasV2
@@ -235,7 +235,7 @@ describe('EditorCanvasV2 Rasterengine & WAI-ARIA Grid (P06)', () => {
         onDeselect={vi.fn()}
         onRemoveTile={vi.fn()}
         onDuplicateTile={vi.fn()}
-        onMoveMobile={onMoveMobile}
+        onCommitLayout={onCommitLayout}
         useData={useEditorPreviewData}
       />,
     );
@@ -243,10 +243,10 @@ describe('EditorCanvasV2 Rasterengine & WAI-ARIA Grid (P06)', () => {
     // Auf Mobile keine Resize-Handles
     expect(screen.queryByTestId('resize-handle-se-tile_arr')).not.toBeInTheDocument();
 
-    // Aber vertikale Pfeil-Buttons
+    // Aber vertikale Pfeil-Buttons; Verschieben ändert nur das Smartphone-Layout
     const downBtn = screen.getByTestId('tile-move-down-btn-tile_arr');
-    expect(downBtn).toBeInTheDocument();
     fireEvent.click(downBtn);
-    expect(onMoveMobile).toHaveBeenCalledWith('tile_arr', 'down');
+    const moves = onCommitLayout.mock.calls[0]![0] as Array<{ tileId: string; to: { y: number } }>;
+    expect(moves.find((m) => m.tileId === 'tile_arr')?.to.y).toBe(4);
   });
 });

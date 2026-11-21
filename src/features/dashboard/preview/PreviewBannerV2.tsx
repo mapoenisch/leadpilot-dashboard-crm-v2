@@ -22,6 +22,8 @@ export const PreviewBannerV2: React.FC<PreviewBannerV2Props> = ({
   return (
     <div
       data-testid="editor-v2-preview-banner"
+      role="region"
+      aria-label="Hinweis zur Vorschau"
       className="flex min-h-7 flex-wrap items-center justify-between gap-2 border-b border-primary/20 bg-primary/10 px-4 py-1 text-[11px] text-primary select-none"
     >
       <div className="flex items-center gap-2 min-w-0">
@@ -44,10 +46,10 @@ export const PreviewBannerV2: React.FC<PreviewBannerV2Props> = ({
               type="button"
               data-testid="preview-tab-kacheln"
               onClick={() => onTabChange?.('editor')}
-              className={`rounded px-2 py-0.5 font-medium transition-colors ${
+              className={`rounded border-0 px-2 py-0.5 font-medium transition-colors ${
                 activeTab === 'editor'
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-primary hover:bg-primary/10'
+                  ? 'bg-primary text-text-inverse shadow-sm'
+                  : 'bg-transparent text-primary hover:bg-primary/10'
               }`}
             >
               Kacheln
@@ -56,10 +58,10 @@ export const PreviewBannerV2: React.FC<PreviewBannerV2Props> = ({
               type="button"
               data-testid="preview-tab-alarme"
               onClick={() => onTabChange?.('alarme')}
-              className={`rounded px-2 py-0.5 font-medium transition-colors ${
+              className={`rounded border-0 px-2 py-0.5 font-medium transition-colors ${
                 activeTab === 'alarme'
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-primary hover:bg-primary/10'
+                  ? 'bg-primary text-text-inverse shadow-sm'
+                  : 'bg-transparent text-primary hover:bg-primary/10'
               }`}
             >
               Alarme
@@ -68,10 +70,10 @@ export const PreviewBannerV2: React.FC<PreviewBannerV2Props> = ({
               type="button"
               data-testid="preview-tab-admin"
               onClick={() => onTabChange?.('admin')}
-              className={`rounded px-2 py-0.5 font-medium transition-colors ${
+              className={`rounded border-0 px-2 py-0.5 font-medium transition-colors ${
                 activeTab === 'admin'
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-primary hover:bg-primary/10'
+                  ? 'bg-primary text-text-inverse shadow-sm'
+                  : 'bg-transparent text-primary hover:bg-primary/10'
               }`}
             >
               Admin

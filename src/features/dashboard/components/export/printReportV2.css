@@ -1,0 +1,55 @@
+/**
+ * printReportV2.css — Auftrag 172 (P15b §2.3 Nr. 8): Druck/PDF des V2-Editors.
+ * Eigene benannte Seiten, damit der V1-Druck (printReport.css) unverändert bleibt.
+ * Fuß jeder Seite: Vertraulichkeitsvermerk und Seitenzahl (CSS-Seitenrandfelder).
+ */
+
+.dashboard-print-view-v2 {
+  page: lp-report-v2;
+}
+
+.dashboard-print-view-v2[data-orientation='landscape'] {
+  page: lp-report-v2-landscape;
+}
+
+@page lp-report-v2 {
+  size: A4 portrait;
+  margin: 15mm 15mm 20mm 15mm;
+  @bottom-left {
+    content: 'Vertraulich – nur für berechtigte Empfänger';
+    font-size: 8pt;
+    color: #334155;
+  }
+  @bottom-right {
+    content: 'Seite ' counter(page) ' von ' counter(pages);
+    font-size: 8pt;
+    color: #334155;
+  }
+}
+
+@page lp-report-v2-landscape {
+  size: A4 landscape;
+  margin: 15mm 15mm 20mm 15mm;
+  @bottom-left {
+    content: 'Vertraulich – nur für berechtigte Empfänger';
+    font-size: 8pt;
+    color: #334155;
+  }
+  @bottom-right {
+    content: 'Seite ' counter(page) ' von ' counter(pages);
+    font-size: 8pt;
+    color: #334155;
+  }
+}
+
+@media print {
+  /* Während ein V2-Report vorliegt, wird von der Editor-Hülle nur der Report gedruckt. */
+  [data-testid='dashboard-editor-shell-v2']:has([data-report-v2='true']) > :not([data-report-v2]) {
+    display: none !important;
+  }
+
+  [data-report-v2='true'] .dashboard-print-view-v2 {
+    display: block !important;
+    width: 100% !important;
+  }
+}

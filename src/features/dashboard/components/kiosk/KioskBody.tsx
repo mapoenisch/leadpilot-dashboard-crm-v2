@@ -66,6 +66,11 @@ function useKioskKeyboard(rotation: KioskRotation) {
   const { togglePause, next, previous, noteInteraction } = rotation;
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      // Auftrag 172 (P15b §2.3 Nr. 10): Druck aus dem Kiosk ist deaktiviert.
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'p') {
+        event.preventDefault();
+        return;
+      }
       if (event.key === ' ' || event.code === 'Space') {
         if (isInteractiveTarget(event.target)) return; // Schaltfläche löst selbst aus
         event.preventDefault();
