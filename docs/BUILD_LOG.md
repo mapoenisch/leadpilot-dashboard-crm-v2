@@ -22703,3 +22703,105 @@ Builder-Seite abgeschlossen, alle lokalen Pflichtprüfungen grün (Ausnahmen obe
 - **Verlauf:** 6 Review-Runden, 14 P2-Befunde, alle behoben (Abschnitte 11–14, 16); ein Codex-Lauf war technischer Fehlschlag („Unknown error"), Wiederholung erfolgreich.
 - **CI:** `test`-Check nach der Performancetest-Korrektur (Abschnitt 17) wieder grün; `e2e` zum Zeitpunkt des Eintrags noch laufend.
 - **Offen für Gate-Freigabe:** `e2e`-Check und gelöste Review-Konversationen; Merge durch Marc.
+
+## 2026-11-21 — Auftrag 171: Dashboard-Editor: TV/Kiosk-Modus, Rotation, Sitzungs-/Token-Erneuerung, Offline-Erkennung (P15a)
+
+**Rolle:** Builder **Claude Code** (Auftrag „bau #212“ von Marc). **Branch:** `auftrag-171-kiosk-rotation` · **Basis:** `7c69aa8e` (Merge PR #211, Auftrag 170). Prüfer: unabhängiger Agent nach `CLAUDE.md` §4.1 (Standard Codex-App auf GitHub).
+
+### 1. Ziel & Kontext
+Phase P15a: Ein Dashboard läuft dauerhaft auf einem Bürobildschirm — Vollbild ohne Menüs, größere Schrift, Rotation zwischen lesbaren Dashboards. Läuft die Sitzung ab oder fällt das Netz aus, ist das sofort sichtbar; bei Ablauf werden keine Daten mehr abgerufen oder gezeigt. Kein öffentlicher Zugang (Masterplan §4.E).
+
+### 2. T0 – Ist-Stand und Auth-Ablaufverhalten
+- Kein Kiosk im Dashboard (nur `features/resources`, eingefroren) — bestätigt.
+- supabase-js erneuert das Token selbst (autoRefreshToken). Ist das Refresh-Token ungültig, entfernt es die Sitzung und meldet `SIGNED_OUT`; `AuthContext` setzt `user = null` und `resetUserQueries()`, `ProtectedRoute` leitet **still** auf `/login` um. Ein Kiosk verschwände also ohne Hinweis. Folge: Kiosk-Route außerhalb von `ProtectedRoute` mit eigener Anmeldeprüfung und Sitzungswächter. `src/auth/**` blieb unverändert (alle Ereignisse vorhanden).
+- `size-limit` Basis `7c69aa8e`: Initial 172,05 kB, größter Chunk 79,41 kB.
+
+### 3. Umsetzung
+- **Route/Seite:** `/dashboard/kiosk?ids=…&intervall=…[&theme=hell|dunkel]`, `pages/DashboardKioskPage.tsx` (lazy, eigener Chunk 6,5 kB gz), außerhalb von `Layout`. Nicht angemeldet beim Öffnen → `/login` (Rücksprung inkl. Parameter).
+- **Hülle:** `components/kiosk/KioskShell.tsx` + `KioskBody.tsx` (Raster per `SectionedCanvasV2` im Lesemodus, Sektionen ausgeklappt), `KioskStatusBar.tsx` (Name, Position, Datenstand, Verbindung, Pause/Weiter, Blättern, Theme, Vollbild, Beenden; `aria-live`), `KioskNotices.tsx`, `KioskAlarmIndicator.tsx` (Zähler, kein Link/kein Quittieren), `kiosk.css` (Token-Skala „kiosk“, `zoom` 1,15/1,3 ab 1600/1900 px, keine neuen Farben).
+- **Rotation:** `hooks/useKioskRotation.ts` — ein Timer, Pause manuell (Leertaste/Schaltfläche), bei Interaktion (endet nach einem ruhigen Intervall) und solange das Dashboard lädt; Pfeiltasten blättern; ohne Animation. Konfiguration wird bei jeder Aktivierung frisch geladen (Änderungen über Stunden), offline bleibt der letzte Stand.
+- **Lesbarkeit:** `resolveKioskRotation` filtert `ids` gegen `fetchAccessibleDashboards` (RLS); fremde/fehlende IDs und Ladefehler `nicht_gefunden`/`nicht_berechtigt` werden übersprungen, Anzahl als Hinweis.
+- **Sitzungswächter:** `hooks/useSessionGuard.ts` (`aktiv | erneuert | abgelaufen`), Quelle `hooks/supabaseSessionSource.ts` (eigene Datei, damit die Vorschau ohne Supabase-Client auskommt). Ablauf bei `SIGNED_OUT`, fehlender Sitzung, Abmeldung im Auth-Kontext oder ausbleibender Erneuerung bis `expires_at` + 30 s. Bei Ablauf: `cancelQueries()` + `removeQueries()`, `liveKpiStreamStore.reset()`, Hülle ausgehängt; Vollbildhinweis „Sitzung abgelaufen – bitte neu anmelden“ mit letztem gültigem Datenstand. Erneut gemeldete gültige Sitzung → läuft weiter.
+- **Offline:** `hooks/useOnlineStatus.ts`; Kiosk-Datenhook (`kioskData.ts`) kennzeichnet abgerufene Werte (Live/CRM) als `veraltet` mit echtem Mess-/Abrufzeitpunkt; Stammdaten bleiben gültig. Schwellenwerte → `nicht_bewertet` (Regel 166). Nach Wiederverbindung einmal `invalidateQueries(['dashboard'])`, Live-Feed bleibt ein Kanal.
+- **Einstieg:** „Im Kiosk anzeigen“ in der V2-Kopfzeile (`KioskLaunchButton.tsx`, auch Leseansicht/Viewer) mit Auswahl der Rotations-Dashboards und Intervall; gesperrt bei ungespeicherten Änderungen.
+- **Vorschau:** `dashboard-vorschau.html?bereich=kiosk` (`preview/KioskPreview.tsx`; `ablauf=<s>` simuliert Token-Ablauf, `offline=1`).
+
+### 4. Geänderte Dateien
+Neu: `src/features/dashboard/{pages/DashboardKioskPage.tsx, components/kiosk/* (9), hooks/useSessionGuard.ts, hooks/supabaseSessionSource.ts, hooks/useKioskRotation.ts, hooks/useOnlineStatus.ts, model/kioskParams.ts, preview/KioskPreview.tsx}`, 5 Vitest-Suiten, `e2e/dashboard-kiosk.spec.ts`, `scripts/captureAuftrag171GateScreenshots.mjs`, `docs/dashboard/KIOSK_P15.md`, `docs/screenshots/auftrag-171/README.md`.
+Geändert: `src/app/App.tsx` (Route), `components/editor/EditorTopBarV2.tsx` (Einstieg), `preview/DashboardPreviewPage.tsx` (Szenario), `.github/workflows/ci.yml` (E2E-Liste), Doku (Masterplan §6, ADR C15, BUILD_PLAN, Auftrag).
+
+**Begründete Abweichungen von der Ziel-Dateien-Tabelle:**
+- `components/LazyDashboardTile.tsx` + `TileThresholdBadge.tsx`: Das Badge zeigte `nicht_bewertet` bisher nur bei > 24 h alten Werten; ohne die Ergänzung wäre „Schwellenwert-Badges zeigen `nicht_bewertet`“ (§2.1 Nr. 5) offline unsichtbar. Neu „Nicht bewertet (veraltet)“; zugleich neutrale Token-Farben für dieses und das 24-h-Badge, das im hellen Theme unlesbar war (dunkle Schrift auf dunklem Grund — Vorbefund).
+- Einstieg in der Kopfzeile statt im Umschaltmenü: `DashboardSwitcherMenuV2.tsx` hat 371 Zeilen und index-basierte Tastaturnavigation; die Kopfzeile ist auch für Viewer sichtbar.
+- Neue lucide-Icons vermieden (nur bereits gebündelte): `manualChunks` legt alle Bibliotheks-Icons in den Start-Chunk `vendor` (sonst +0,40 kB Initial).
+
+### 5. Funktionale Prüfungen
+- Nur lesbare Dashboards; fremde ID übersprungen mit Hinweis; ohne Anmeldung → `/login` (Vitest + E2E).
+- Rotation 30–600 s, Pause per Leertaste/Schaltfläche/Interaktion/Laden (Vitest Fake-Timer + E2E mit `page.clock`).
+- **Echte Sitzung (E2E Teil B, lokaler Supabase-Stack):** Kiosk aus dem Editor geöffnet; abgelaufenes Access-Token + gültiges Refresh-Token → Token erneuert, Anzeige bleibt; `context.setOffline` → Hinweis, wieder online → Hinweis weg; ungültiges Refresh-Token → Hinweis „Sitzung abgelaufen“, keine Kacheln, **0 Anfragen an Supabase in 6 s danach**.
+- Offline: letzter Stand sichtbar, Live-Werte `veraltet`, Stammdaten `bereit`, Schwellenwerte `nicht_bewertet`.
+- Dauerlauf 12 h (Fake-Timer, 720 Wechsel): Kachel-Abos, Fenster-Listener und Feed-Listener konstant.
+- Smoke für Marc: zwei Dashboards im Kiosk rotieren lassen, WLAN aus/an (Anleitung `KIOSK_P15.md` §1–3).
+
+### 6. Schutzbereichs-Prüfung
+`git diff 7c69aa8e -- src/simulation src/types src/context src/services/data src/features/resources src/auth` → **leer**. `git diff 7c69aa8e --stat -- supabase` → **leer** (kein Server-Code).
+
+### 7. Automatisierte Verifikation (lokal, 21.11.2026)
+- `npx tsc --noEmit` 0 Fehler · `npm run lint` 0 · `npm run format:check` grün.
+- `npm test`: 481 Dateien / 3.641 Tests grün (vor letzter Ergänzung; Kiosk-Suiten danach 31/31 grün).
+- `npm run verify`: 25/25 Integrity-Suiten grün · `npm run build` grün · `npx size-limit`: Initial **172,10 kB** (Basis 172,05 kB → **+0,05 kB**, Toleranz 0,1 kB), Chunk 79,41 kB; Kiosk-Chunk 18,3 kB (6,5 kB gz) + 0,35 kB CSS, komplett nachgeladen.
+- **Rot-Nachweise:** Die Tests entstanden nach der ersten Implementierung; Rot wurde deshalb per gezielter Mutation belegt (Verhalten entfernt → Test rot → zurückgesetzt → grün):
+  | Mutation | Rote Tests |
+  |---|---|
+  | M1 Ablauf-Erkennung entfernt (Sitzungsablauf stoppt Abrufe) | 4 (u. a. `DashboardKioskPage` „keine weiteren Abrufe“) |
+  | M2 Interaktionspause entfernt | 2 |
+  | M3 Offline-Hinweis entfernt | 1 |
+  | M4 Lesbarkeitsfilter entfernt (fremde ID) | 2 |
+  | M5 Frist nach erstem Lesen nicht gestellt | 1 |
+- **E2E:** `e2e/dashboard-kiosk.spec.ts` 18/18 grün (3 Viewports; Vorschau + echte Sitzung). `team-dashboards-preview`, `a11y` (inkl. Kiosk-Leiste hell/dunkel ohne critical/serious), `personal-dashboard*.spec.ts` grün.
+- **Lokale Vorbefunde, nicht durch 171:** `visual.spec.ts` 15/15 rot nur gegen veraltete **darwin**-Baselines (Höhe/Full-Page; betrifft auch unberührte Seiten wie `/finance/p-and-l`; CI vergleicht Linux-Baselines; die geänderte V2-Kopfzeile ist in keiner Visual-Route, da `/dashboard` ohne V2-Schalter V1 zeigt). `team-dashboards.spec.ts` 3/3 rot (Timeout `add-team-member-select` in `/admin/teams`) — **identisch auf unverändertem `7c69aa8e` reproduziert**, lokaler DB-Zustand; CI setzt die DB per `db reset` neu auf.
+- Während der E2E-Läufe gefunden und behoben: Nach dem ersten Lesen der Ablaufzeit stellte der Wächter die Frist nicht neu (Ablauf erst nach bis zu 60 s erkannt) → behoben, Regressionstest M5.
+
+### 8. Screenshot-Matrix
+`node scripts/captureAuftrag171GateScreenshots.mjs` (Vorschau-Build): 5 Szenarien (Rotation, pausiert, offline, Ablauf, Editor-Einstieg) × 1920/1440/768/375 × hell/dunkel = **40 Aufnahmen, 0 px Überlauf**, Hashes je Viewport/Theme paarweise verschieden. Neue Ansicht ohne Vorher-Zustand (Route existierte nicht). Matrix: `docs/screenshots/auftrag-171/README.md`.
+
+### 9. Grenzen
+- Einstieg nur im V2-Editor (V2 noch nicht Standard, P16); direkte Adresse funktioniert immer. Kiosk zeigt V2-Dashboards.
+- Kein eigenes Kiosk-Konto (§8, Entscheidung Marc offen; Viewer-Rolle genügt).
+- Der 12-h-Nachweis ist simuliert (Fake-Timer, Abo-/Listener-Zählung), kein realer 12-h-Browserlauf.
+
+### 10. Ergebnis & Freigabestatus
+Alle Tasks T0–T6 erledigt, Pflicht-Verifikation grün (lokale Vorbefunde oben benannt). **Status:** PR erstellt, wartet auf unabhängiges Review (Codex-App) und grüne Pflicht-Checks; Merge durch Marc.
+
+### 11. Nacharbeit Runde 1 (PR #212, Codex-Review auf `d18b498c`, CI `test`)
+- **CI `test` rot:** `scripts/__tests__/runV23Acceptance.vitest.ts` verlangt jede E2E-Datei auch im Orchestrator. `e2e/dashboard-kiosk.spec.ts` in `E2E_PARALLEL` von `scripts/runV23Acceptance.mjs` ergänzt (CI-Liste hatte sie schon).
+- **P2 Rotation offline:** `useKioskRotation` hat neuen Pausegrund `offline` („Rotation pausiert (offline)“); offline wechselt der Kiosk nicht mehr auf ein nicht geladenes Dashboard, der letzte Stand bleibt sichtbar. Test „pausiert die Rotation offline …“.
+- **P2 Ladefehler ohne Wiederholung:** Technische Fehler von `source.load()` (nicht Rechte/nicht gefunden) setzen `loadError`; Platzhalter „Das Dashboard konnte nicht geladen werden.“ mit „Erneut versuchen“ (`kiosk-retry`, neuer Ladeversuch). Test „bietet nach technischem Ladefehler …“.
+- **P2 Live-Abrufe beim Ablauf:** `handleExpired` bricht nur noch Abfragen ab; Cache leeren und `liveKpiStreamStore.reset()` laufen in einem Effekt, nachdem die Kiosk-Hülle ausgehängt ist (Kacheln haben ihre Abos freigegeben, `reset()` startet daher keine neuen Abos/Historienabrufe). Test prüft: beim `reset()` ist keine Kachel mehr im DOM.
+- **P2 Status bei eingeklappten Sektionen:** Live-Status/Datenstand werden über alle Kacheln berechnet, da der Kiosk alle Sektionen aufgeklappt zeigt. Neuer Test `KioskBodyStatus.ui.vitest.tsx`.
+- **Rot-Nachweis:** Die 4 neuen Tests gegen den Code von `d18b498c` → 4 rot, mit Nacharbeit grün.
+- **Verifikation:** `tsc` 0, `lint` 0, `format:check` grün, `npm test` 482 Dateien / 3.646 Tests grün, `verify` 25/25, `build` ok, `size-limit` Initial 172,09 kB, E2E `dashboard-kiosk.spec.ts` 18/18 grün. Schutzbereiche unverändert.
+
+### 12. Nacharbeit Runde 2 (Codex-Review auf `2657247a`)
+- **P1 Benutzerwechsel ohne Abmeldung:** `DashboardKioskPage` blendet die Hülle aus, solange `isOrgLoading` gilt oder `session.userId` nicht zur Auth-Identität (`user.id`) passt. Der Schlüssel der Hülle ist jetzt `organizationId:userId`, damit verfällt lokaler Zustand (Liste, Konfigurationen) beim Wechsel. Test: Nach dem Wechsel sind sofort keine Kacheln und kein Titel des vorherigen Nutzers mehr zu sehen, danach wird frisch geladen.
+- **P2 Zeitreihe offline über Abschnittswechsel:** `createKioskDataHook` merkt sich je Kachel den letzten Stand `bereit`/`veraltet` (gleiche `catalogId`). Liefert der Basis-Hook offline `laden` (neuer Abschnitt ohne Cache), bleibt dieser Stand als `veraltet` sichtbar. Neuer Test `KioskDataHook.ui.vitest.tsx`.
+- **Rot-Nachweis:** Die 2 neuen Tests sind gegen `2657247a` rot und mit der Nacharbeit grün.
+- **Verifikation:** `tsc` 0, `lint` 0, `format:check` grün, `npm test` 483 Dateien / 3.648 Tests grün, `verify` 25/25, `build` ok, `size-limit` Initial 172,10 kB (+4 B ggü. Runde 1), E2E `dashboard-kiosk.spec.ts` 18/18 grün. Schutzbereiche unverändert.
+
+### 13. Nacharbeit Runde 3 (Codex-Review auf `e6c896e3`)
+- **P2 Rotation bei Tastaturfokus:** `KioskBody` meldet `onFocusCapture` am Kiosk-Container als Bedienung; damit pausiert `useKioskRotation` beim Tabben auf Kacheln/Bedienelemente für ein ruhiges Intervall (Doku `KIOSK_P15.md`: „Maus-, Touch- oder Tastaturbedienung“). Test „pausiert bei Tastaturfokus auf ein Bedienelement“.
+- **P2 Rotationszustand bei Token-Erneuerung:** `DashboardKioskPage` behandelt `isOrgLoading` nicht mehr als Identitätswechsel. Die Hülle bleibt montiert, solange `session.userId === user.id`; nur ein echter Benutzerwechsel (`session.userId !== user.id`) blendet sie aus und setzt über den Schlüssel `organizationId:userId` den lokalen Zustand zurück. Eine normale Token-Erneuerung (neues `User`-Objekt, gleiche ID) setzt Rotation und manuelle Pause damit nicht mehr zurück. Test „Token-Erneuerung: Hülle bleibt samt Pause und Rotation montiert“.
+- **Rot-Nachweis:** Die 2 neuen Tests sind gegen `e6c896e3` rot (Hülle verschwindet bei `isOrgLoading`, Fokus ohne Pause) und mit der Nacharbeit grün.
+- **Verifikation:** `tsc` 0, `lint` 0, `format:check` grün, `npm test` 483 Dateien / 3.650 Tests grün, `verify` 25/25, `build` ok, `size-limit` Initial 172,09 kB (unverändert), E2E `dashboard-kiosk.spec.ts` 18/18 grün. Schutzbereiche unverändert.
+
+### 14. Nacharbeit Runde 4 (Codex-Review auf `19572d94`)
+- **P2 Konfigurationsabrufe beim Sitzungsablauf:** `KioskDashboardSource.load` nimmt jetzt ein `AbortSignal`; `KioskShell` erzeugt je Ladeeffekt einen `AbortController` und bricht ihn beim Aushängen ab. `fetchDashboardById(id, signal)` prüft vor dem Start und vor dem Team-Namensabruf; `loadDashboardV2` und `listDashboardTeamsV2` reichen das Signal per `.abortSignal()` an den RPC weiter und protokollieren einen Abbruch nicht als technischen Fehler. Damit startet eine bereits laufende Ladefolge nach dem Ablauf keine neuen Anfragen mehr. Tests: `KioskShell.ui.vitest.tsx` (Signal wird abgebrochen), `dashboardAccessAndFallback.vitest.ts` (kein `listDashboardTeamsV2` nach Abbruch, kein Laden bei bereits abgebrochenem Signal).
+- **Rot-Nachweis:** Die 2 Kern-Tests sind gegen `19572d94` rot (kein Signal, Team-Abruf läuft trotz Abbruch) und mit der Nacharbeit grün.
+- **Verifikation:** `tsc` 0, `lint` 0, `format:check` grün, `npm test` 483 Dateien / 3.653 Tests grün, `verify` 25/25, `build` ok, `size-limit` Initial 172,09 kB (unverändert), E2E `dashboard-kiosk.spec.ts` 18/18 grün. Schutzbereiche unverändert.
+
+### 15. Nacharbeit Runde 5 (Codex-Review auf `44420b90`)
+- **P2 Listenladefolge beim Ablauf abbrechen:** `KioskDashboardSource.list` bekommt ein `AbortSignal`. `KioskShell` bricht es beim Aushängen ab. `fetchAccessibleDashboards(signal)` prüft das Signal vor dem Start und vor dem persönlichen Rückfallabruf (`server_funktion_fehlt`). `listAccessibleDashboardsV2`/`listPersonalDashboardsV2` reichen es per `.abortSignal()` an den RPC weiter und werten einen Abbruch nicht als protokollierten technischen Fehler. Tests in `dashboardAccessAndFallback.vitest.ts` (kein Rückfall nach Abbruch, kein Listen-RPC bei bereits abgebrochenem Signal) und `KioskShell.ui.vitest.tsx` (Signal wird beim Aushängen abgebrochen).
+- **P2 Pfeiltasten in Diagrammen:** Der Kiosk-Tastaturhandler blättert nicht mehr, wenn das Ereignis schon behandelt ist (`defaultPrevented`, z. B. `DepthLineChart`/`HeatmapChart`) oder aus einem Eingabefeld bzw. Regler (`role="slider"`) kommt. Das zählt dann als Bedienung. Test „lässt Pfeiltasten der Diagrammsteuerung unangetastet“.
+- Begonnen von OpenCode, das am Nutzungslimit abbrach; fertiggestellt und verifiziert von Claude Code.
+- **Rot-Nachweis:** Die 4 neuen Tests sind gegen `44420b90` rot und mit der Nacharbeit grün.
+- **Verifikation:** `tsc` 0, `lint` 0, `format:check` grün, `npm test` 483 Dateien / 3.657 Tests grün, `verify` 25/25, `build` ok, `size-limit` Initial 172,09 kB, E2E `dashboard-kiosk.spec.ts` 18/18 grün. Schutzbereiche unverändert.

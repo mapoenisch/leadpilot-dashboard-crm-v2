@@ -38,24 +38,28 @@ export function mapPersonalToAccessible(
 /**
  * Listet alle zugänglichen Dashboards.
  * Fällt bei fehlender Serverfunktion (PGRST202/42883) transparent auf persönliche Dashboards zurück.
+ * `signal` bricht die Ladefolge ab: Nach dem Abbruch (z. B. Sitzungsablauf) startet auch der
+ * persönliche Rückfallabruf nicht mehr.
  */
-export async function fetchAccessibleDashboards(): Promise<
-  StorageResult<AccessibleDashboardListItemV2[]>
-> {
+export async function fetchAccessibleDashboards(
+  signal?: AbortSignal,
+): Promise<StorageResult<AccessibleDashboardListItemV2[]>> {
+  if (signal?.aborted) return { ok: false, error: { kind: 'technisch' } };
   if (!isSupabaseConfigured || !supabase) {
     const personal = await listPersonalDashboardsV2();
     if (!personal.ok) return personal;
     return { ok: true, value: mapPersonalToAccessible(personal.value) };
   }
 
-  const accessible = await listAccessibleDashboardsV2();
+  const accessible = await listAccessibleDashboardsV2(signal);
   if (accessible.ok) {
     return accessible;
   }
 
   // Rückfall bei fehlender Team-Sharing-Migration auf Hosted (Auftrag 163 §2.8)
   if (accessible.error.kind === 'server_funktion_fehlt') {
-    const personal = await listPersonalDashboardsV2();
+    if (signal?.aborted) return { ok: false, error: { kind: 'technisch' } };
+    const personal = await listPersonalDashboardsV2(signal);
     if (!personal.ok) return personal;
     return { ok: true, value: mapPersonalToAccessible(personal.value) };
   }
@@ -65,10 +69,14 @@ export async function fetchAccessibleDashboards(): Promise<
 
 /**
  * Lädt ein bestimmtes Dashboard (persönlich oder Team).
+ * `signal` bricht die Ladefolge ab (z. B. Sitzungsablauf oder Rotation): Nach dem Abbruch startet
+ * auch der Team-Namensabruf nicht mehr, der sonst erst nach der ersten Antwort liefe.
  */
 export async function fetchDashboardById(
   dashboardId: string,
+  signal?: AbortSignal,
 ): Promise<StorageResult<StoredDashboardV2Row>> {
+  if (signal?.aborted) return { ok: false, error: { kind: 'technisch' } };
   if (!isSupabaseConfigured || !supabase) {
     const res = await loadPersonalDashboardV2(dashboardId);
     if (!res.ok) return res;
@@ -84,12 +92,12 @@ export async function fetchDashboardById(
     };
   }
 
-  const res = await loadDashboardV2(dashboardId);
+  const res = await loadDashboardV2(dashboardId, signal);
   if (res.ok) {
     const loaded = res.value;
     let teamName: string | null = null;
-    if (loaded.teamId) {
-      const teamsRes = await listDashboardTeamsV2();
+    if (loaded.teamId && !signal?.aborted) {
+      const teamsRes = await listDashboardTeamsV2(signal);
       if (teamsRes.ok) {
         const found = teamsRes.value.find((t) => t.id === loaded.teamId);
         if (found) teamName = found.name;
@@ -112,6 +120,7 @@ export async function fetchDashboardById(
   }
 
   if (res.error.kind === 'server_funktion_fehlt') {
+    if (signal?.aborted) return { ok: false, error: { kind: 'technisch' } };
     const personalRes = await loadPersonalDashboardV2(dashboardId);
     if (!personalRes.ok) return personalRes;
     if (!personalRes.value) return { ok: false, error: { kind: 'nicht_gefunden' } };

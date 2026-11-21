@@ -22,6 +22,7 @@ import { BreakpointSelector } from './topbar/BreakpointSelector';
 import { EditorTopBarActionsV2 } from './topbar/EditorTopBarActionsV2';
 import { DashboardSwitcherV2 } from './selection/DashboardSwitcherV2';
 import { TimeControlMenuV2 } from './TimeControlMenuV2';
+import { KioskLaunchButton } from '../kiosk/KioskLaunchButton';
 
 export interface EditorTopBarV2Props {
   config: DashboardConfigV2;
@@ -320,6 +321,17 @@ export function EditorTopBarV2({
           onResume={onResume}
         />
       </div>
+
+      {/* Auftrag 171: Kiosk-Einstieg (auch Leseansicht), nur mit gespeichertem Dashboard */}
+      {currentStoredDashboard && dashboards && (
+        <KioskLaunchButton
+          currentDashboardId={currentStoredDashboard.id}
+          dashboards={dashboards}
+          disabledReason={
+            isDirty ? 'Erst speichern – der Kiosk zeigt den gespeicherten Stand' : null
+          }
+        />
+      )}
 
       {/* Rechter Bereich: Aktionen (Undo/Redo, Versionen, Vorschau, Inspector, Abbrechen, Speichern) */}
       <EditorTopBarActionsV2
