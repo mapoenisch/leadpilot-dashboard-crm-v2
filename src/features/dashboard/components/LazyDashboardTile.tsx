@@ -153,7 +153,7 @@ export function LazyDashboardTile({
       (evaluation.stufe === 'warnung' ||
         evaluation.stufe === 'kritisch' ||
         evaluation.stufe === 'regel_ungueltig' ||
-        (evaluation.stufe === 'nicht_bewertet' && isStaleData))) ||
+        (evaluation.stufe === 'nicht_bewertet' && (isStaleData || data?.state === 'veraltet')))) ||
     Boolean(alarmStatus);
 
   return (

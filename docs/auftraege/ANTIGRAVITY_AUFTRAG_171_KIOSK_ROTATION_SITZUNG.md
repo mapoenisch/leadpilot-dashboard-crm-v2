@@ -6,8 +6,8 @@
 **Vorgelagert:** 170 (P14b) ist gemergt. Fachlich nur von P05–P13 abhängig; Marc kann 171 auch vor 169/170 freigeben (dann Baseline anpassen).
 **Baseline:** aktueller `main` beim Start (Commit im BUILD_LOG).
 **Branch:** `auftrag-171-kiosk-rotation`.
-**Builder:** Antigravity (oder ein anderer von Marc benannter Agent). **Prüfer:** unabhängiger Agent nach `CLAUDE.md` §4.1. **Merge und Deploy:** Marc.
-**Status:** ENTWURF (Ist-Stand in T0 prüfen).
+**Builder:** Claude Code (Auftrag „bau #212“ von Marc, 21.11.2026; ursprünglich Antigravity vorgesehen). **Prüfer:** unabhängiger Agent nach `CLAUDE.md` §4.1. **Merge und Deploy:** Marc.
+**Status:** FERTIGGESTELLT / PR ERSTELLT (21.11.2026, Baseline `7c69aa8e`), wartet auf unabhängiges Review.
 
 ---
 
@@ -20,13 +20,13 @@
 
 ## 1. Ist-Stand (in T0 zu bestätigen)
 
-| Baustein    | Ist (Stand `c138ce2e`)                                                                                                                                        |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Kiosk       | Kein Kiosk-/Vollbildmodus im Dashboard (`grep -ri kiosk src` nur in `features/resources`, eingefroren).                                                       |
-| Sitzung     | Supabase-Auth über `src/auth/supabaseAuthAdapter.ts` und `AuthContext.tsx` (`onAuthStateChange`); Verhalten bei abgelaufenem Refresh-Token in T0 beschreiben. |
-| Leseansicht | Dashboards lassen sich lesend anzeigen (Viewer, Team-Leseansicht seit 163).                                                                                   |
-| Live-Status | Getrennte Anzeige „verbunden / neue Daten / fachlich aktuell“ (P09/P10).                                                                                      |
-| Druck       | `components/export/*` (Report-Modal, Druckansicht).                                                                                                           |
+| Baustein    | Ist (Stand `c138ce2e`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kiosk       | Kein Kiosk-/Vollbildmodus im Dashboard (`grep -ri kiosk src` nur in `features/resources`, eingefroren). **T0 bestätigt (21.11.2026, `7c69aa8e`).**                                                                                                                                                                                                                                                                                                                                                                            |
+| Sitzung     | Supabase-Auth über `src/auth/supabaseAuthAdapter.ts` und `AuthContext.tsx` (`onAuthStateChange`). **T0:** supabase-js erneuert selbst (autoRefreshToken, Prüfung alle 30 s und beim Sichtbarwerden). Bei ungültigem Refresh-Token entfernt es die Sitzung und meldet `SIGNED_OUT` → `AuthContext` setzt `user = null`, `resetUserQueries()`, `ProtectedRoute` leitet still auf `/login` um. Ein Kiosk würde also ohne Hinweis verschwinden; deshalb liegt die Kiosk-Route außerhalb von `ProtectedRoute` mit eigenem Wächter. |
+| Leseansicht | Dashboards lassen sich lesend anzeigen (Viewer, Team-Leseansicht seit 163).                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Live-Status | Getrennte Anzeige „verbunden / neue Daten / fachlich aktuell“ (P09/P10).                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Druck       | `components/export/*` (Report-Modal, Druckansicht).                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 
 ## 2. Soll
 
@@ -72,13 +72,13 @@ Schutzbereiche unverändert; kein Server-Code; keine öffentlichen Links oder To
 
 ## 5. Tasks
 
-- [ ] **T0** Baseline, Ist-Tabelle, Auth-Ablaufverhalten dokumentieren, `size-limit`.
-- [ ] **T1** Rot-Nachweise.
-- [ ] **T2** Sitzungswächter.
-- [ ] **T3** Kiosk-Seite, Statusleiste, Rotation.
-- [ ] **T4** Offline und Datenaktualität.
-- [ ] **T5** Dauer-/Leistungstest, E2E, Bundle, A11y, Screenshots.
-- [ ] **T6** Doku, Pflicht-Verifikation, BUILD_LOG (Smoke für Marc: zwei Dashboards im Kiosk rotieren lassen, WLAN aus/an), PR, Review.
+- [x] **T0** Baseline, Ist-Tabelle, Auth-Ablaufverhalten dokumentieren, `size-limit`.
+- [x] **T1** Rot-Nachweise.
+- [x] **T2** Sitzungswächter.
+- [x] **T3** Kiosk-Seite, Statusleiste, Rotation.
+- [x] **T4** Offline und Datenaktualität.
+- [x] **T5** Dauer-/Leistungstest, E2E, Bundle, A11y, Screenshots.
+- [x] **T6** Doku, Pflicht-Verifikation, BUILD_LOG (Smoke für Marc: zwei Dashboards im Kiosk rotieren lassen, WLAN aus/an), PR, Review.
 
 ## 6. Abnahme
 

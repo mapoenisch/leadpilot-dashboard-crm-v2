@@ -2272,6 +2272,14 @@ Artefakt-/Versionsabgleichs.
 - **Korrektur aus P14a:** `normalizeTileQuery` hat `query.transformations` beim Speichern verworfen (`prepareConfigForStorage`); jetzt bleiben Transformationen, Vergleich, Join und Band erhalten (Regressionstest).
 - **Erwartungsband:** Verfahren nach Entscheidung Marc 18.11.2026 (Auftrag 170 §8); keine Prognose, keine Alarme auf das Band.
 
+## C15. Dashboard V2 Kiosk-Modus, Rotation, Sitzungswächter, Offline (Auftrag 171 / P15a, 2026-11-21)
+
+- **Kiosk ist eine Ansicht, kein Zugang:** Route `/dashboard/kiosk` (lazy, eigener Chunk, außerhalb von `Layout`). Die Seite prüft die Anmeldung selbst: nicht angemeldet beim Öffnen → `/login`; Daten nur über `fetchAccessibleDashboards`/`fetchDashboardById` (RLS). Kein Link-Token, kein Server-Code, keine Migration.
+- **Sitzungswächter:** `useSessionGuard` liefert `aktiv | erneuert | abgelaufen` aus `supabase.auth.onAuthStateChange` (TOKEN_REFRESHED, SIGNED_OUT) und einer Ablauffrist (`expires_at` + 30 s Karenz). Bei `abgelaufen`: `queryClient.cancelQueries()` + `removeQueries()`, `liveKpiStreamStore.reset()`, Kiosk-Hülle ausgehängt (Kacheln, Alarmzähler, Abos). `src/auth/**` unverändert — alle nötigen Ereignisse liefert Supabase bereits.
+- **Offline:** `useOnlineStatus` (Browser-Ereignisse). Kiosk-Datenhook kennzeichnet abgerufene Werte (Live/CRM) als `veraltet` (Messzeitpunkt bleibt echt); Schwellenwerte bewerten sie nach der Regel aus 166 als `nicht_bewertet`. Das Kachel-Badge zeigt das jetzt sichtbar („Nicht bewertet (veraltet)“), auch außerhalb des Kiosks.
+- **Darstellung:** Token-Skala „kiosk“ (`kiosk.css`, nur vorhandene Schriftgrößen, Kacheln per `zoom` 1,15/1,3 ab 1600/1900 px), keine neuen Farbwerte.
+- **Bundle:** Initial-JS +0,05 kB (nur die Route); neue Icons vermieden, weil `manualChunks` alle Bibliotheks-Icons in den Start-Chunk `vendor` legt.
+
 ---
 
 ---

@@ -7,6 +7,7 @@ import { AlertCircle, AlertTriangle, Bell, BellOff, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { ThresholdEvaluationResult } from '../model/thresholdRuleV2';
 import { isDataOlderThanMaxAlarmAge } from '../model/alarmDataAge';
+import { THRESHOLD_MESSAGES } from '../model/thresholdMessages';
 
 export interface TileThresholdBadgeProps {
   evaluation: ThresholdEvaluationResult;
@@ -33,6 +34,11 @@ export const TileThresholdBadge: React.FC<TileThresholdBadgeProps> = React.memo(
 
     const { stufe, text } = effectiveEval;
     const isOverdueData = isStale || (stufe === 'nicht_bewertet' && text.includes('24 Stunden'));
+    // Auftrag 171: veraltete Werte (z. B. Kiosk offline) werden sichtbar nicht bewertet.
+    const isStaleState =
+      !isOverdueData &&
+      stufe === 'nicht_bewertet' &&
+      text === THRESHOLD_MESSAGES.nichtBewertetVeraltet;
 
     const isAlarmActive = alarmStatus === 'aktiv';
     const isAlarmPaused =
@@ -41,7 +47,11 @@ export const TileThresholdBadge: React.FC<TileThresholdBadgeProps> = React.memo(
       alarmStatus === 'regel_ungueltig';
 
     const showBadge =
-      isOverdueData || stufe === 'warnung' || stufe === 'kritisch' || stufe === 'regel_ungueltig';
+      isOverdueData ||
+      isStaleState ||
+      stufe === 'warnung' ||
+      stufe === 'kritisch' ||
+      stufe === 'regel_ungueltig';
 
     if (!showBadge && !isAlarmActive && !isAlarmPaused) {
       return null;
@@ -52,17 +62,21 @@ export const TileThresholdBadge: React.FC<TileThresholdBadgeProps> = React.memo(
 
     const badgeText = isOverdueData
       ? 'Letzter Wert älter als 24 Stunden'
-      : isKritisch
-        ? 'Kritisch'
-        : isWarnung
-          ? 'Warnung'
-          : 'Schwellenwert prüfen';
+      : isStaleState
+        ? 'Nicht bewertet (veraltet)'
+        : isKritisch
+          ? 'Kritisch'
+          : isWarnung
+            ? 'Warnung'
+            : 'Schwellenwert prüfen';
 
-    const colorClasses = isOverdueData
-      ? 'border-neutral-500/30 bg-neutral-800/80 text-[var(--color-text-muted)] dark:border-neutral-700/50 dark:bg-neutral-900/80'
-      : isKritisch
-        ? 'border-rose-300 bg-rose-100 text-rose-900 dark:border-rose-700/80 dark:bg-rose-950/70 dark:text-rose-200'
-        : 'border-amber-300 bg-amber-100 text-amber-900 dark:border-amber-700/80 dark:bg-amber-950/70 dark:text-amber-200';
+    // Auftrag 171: neutrale Tokens statt fester Dunkeltöne, damit der Hinweis auch hell lesbar ist.
+    const colorClasses =
+      isStaleState || isOverdueData
+        ? 'border-[var(--color-border)] bg-[var(--color-surface-raised)] text-[var(--color-text)]'
+        : isKritisch
+          ? 'border-rose-300 bg-rose-100 text-rose-900 dark:border-rose-700/80 dark:bg-rose-950/70 dark:text-rose-200'
+          : 'border-amber-300 bg-amber-100 text-amber-900 dark:border-amber-700/80 dark:bg-amber-950/70 dark:text-amber-200';
 
     return (
       <div className={cn('inline-flex items-center gap-1.5', className)}>
@@ -121,7 +135,7 @@ export const TileThresholdBadge: React.FC<TileThresholdBadgeProps> = React.memo(
               colorClasses,
             )}
           >
-            {isOverdueData ? (
+            {isOverdueData || isStaleState ? (
               <Clock className="h-3 w-3 shrink-0" aria-hidden="true" />
             ) : isKritisch ? (
               <AlertCircle className="h-3 w-3 shrink-0" aria-hidden="true" />

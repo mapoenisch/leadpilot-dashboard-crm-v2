@@ -34,6 +34,7 @@ export function readViewFilter(search: string): DashboardView | undefined {
 }
 
 import { DashboardEditorPreviewV2 } from './DashboardEditorPreviewV2';
+import { KioskPreview } from './KioskPreview';
 
 export function readEditorOnly(search: string): boolean {
   return new URLSearchParams(search).get('bereich') === 'editor';
@@ -67,6 +68,11 @@ export function DashboardPreviewPage({
 
   if (editorV2Only) {
     return <DashboardEditorPreviewV2 />;
+  }
+
+  // Auftrag 171 (P15a): Kiosk-Ansicht mit Beispieldaten
+  if (new URLSearchParams(search).get('bereich') === 'kiosk') {
+    return <KioskPreview />;
   }
 
   if (readPatternsOnly(search)) {
