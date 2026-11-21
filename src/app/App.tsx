@@ -33,6 +33,13 @@ const HeaderAlarmSlot = React.lazy(() =>
   })),
 );
 
+// Auftrag 171 (P15a): Kiosk-Ansicht außerhalb des Layouts, eigener Chunk; prüft die Anmeldung selbst.
+const DashboardKioskPage = React.lazy(() =>
+  import('@/features/dashboard/pages/DashboardKioskPage').then((m) => ({
+    default: m.DashboardKioskPage,
+  })),
+);
+
 const Layout = React.lazy(() =>
   import('@/components/layout/Layout').then((m) => ({
     default: m.Layout,
@@ -109,6 +116,17 @@ export function App() {
                         }
                       >
                         <LoginPage />
+                      </React.Suspense>
+                    </RouteErrorBoundary>
+                  }
+                />
+
+                <Route
+                  path="/dashboard/kiosk"
+                  element={
+                    <RouteErrorBoundary resetKey="dashboard-kiosk">
+                      <React.Suspense fallback={<RouteFallback />}>
+                        <DashboardKioskPage />
                       </React.Suspense>
                     </RouteErrorBoundary>
                   }

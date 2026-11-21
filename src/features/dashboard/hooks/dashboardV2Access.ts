@@ -65,10 +65,14 @@ export async function fetchAccessibleDashboards(): Promise<
 
 /**
  * Lädt ein bestimmtes Dashboard (persönlich oder Team).
+ * `signal` bricht die Ladefolge ab (z. B. Sitzungsablauf oder Rotation): Nach dem Abbruch startet
+ * auch der Team-Namensabruf nicht mehr, der sonst erst nach der ersten Antwort liefe.
  */
 export async function fetchDashboardById(
   dashboardId: string,
+  signal?: AbortSignal,
 ): Promise<StorageResult<StoredDashboardV2Row>> {
+  if (signal?.aborted) return { ok: false, error: { kind: 'technisch' } };
   if (!isSupabaseConfigured || !supabase) {
     const res = await loadPersonalDashboardV2(dashboardId);
     if (!res.ok) return res;
@@ -84,12 +88,12 @@ export async function fetchDashboardById(
     };
   }
 
-  const res = await loadDashboardV2(dashboardId);
+  const res = await loadDashboardV2(dashboardId, signal);
   if (res.ok) {
     const loaded = res.value;
     let teamName: string | null = null;
-    if (loaded.teamId) {
-      const teamsRes = await listDashboardTeamsV2();
+    if (loaded.teamId && !signal?.aborted) {
+      const teamsRes = await listDashboardTeamsV2(signal);
       if (teamsRes.ok) {
         const found = teamsRes.value.find((t) => t.id === loaded.teamId);
         if (found) teamName = found.name;
@@ -112,6 +116,7 @@ export async function fetchDashboardById(
   }
 
   if (res.error.kind === 'server_funktion_fehlt') {
+    if (signal?.aborted) return { ok: false, error: { kind: 'technisch' } };
     const personalRes = await loadPersonalDashboardV2(dashboardId);
     if (!personalRes.ok) return personalRes;
     if (!personalRes.value) return { ok: false, error: { kind: 'nicht_gefunden' } };

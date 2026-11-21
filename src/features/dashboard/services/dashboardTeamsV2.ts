@@ -34,14 +34,21 @@ function failTechnically<T>(cause: unknown): StorageResult<T> {
 /**
  * Listet alle Teams der Organisation des Nutzers auf.
  * Liefert für Admins alle Teams, für Mitglieder/Zuschauer nur zugeordnete Teams.
+ * `signal` bricht den Abruf ab (z. B. wenn der Kiosk beim Sitzungsablauf ausgehängt wird).
  */
-export async function listDashboardTeamsV2(): Promise<StorageResult<DashboardTeamV2[]>> {
+export async function listDashboardTeamsV2(
+  signal?: AbortSignal,
+): Promise<StorageResult<DashboardTeamV2[]>> {
   if (!isSupabaseConfigured || !supabase) {
     return unavailableResult();
   }
+  if (signal?.aborted) {
+    return { ok: false, error: { kind: 'technisch' } };
+  }
 
   try {
-    const { data, error, status } = await supabase.rpc('list_dashboard_teams_v2');
+    const request = supabase.rpc('list_dashboard_teams_v2');
+    const { data, error, status } = signal ? await request.abortSignal(signal) : await request;
     if (error) {
       const classified = classifyDashboardV2Error(error, status);
       return classified.kind === 'technisch'
@@ -71,6 +78,7 @@ export async function listDashboardTeamsV2(): Promise<StorageResult<DashboardTea
 
     return { ok: true, value: teams };
   } catch (cause) {
+    if (signal?.aborted) return { ok: false, error: { kind: 'technisch' } };
     return failTechnically(cause);
   }
 }

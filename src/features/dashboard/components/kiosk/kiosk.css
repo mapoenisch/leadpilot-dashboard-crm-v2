@@ -1,0 +1,26 @@
+/* Auftrag 171 (P15a §2.1 Nr. 2): Token-Skala "kiosk" — größere Mindestschrift für Ablesen aus
+   Entfernung. Nur Größen aus der vorhandenen Typografie-Skala, keine neuen Farbwerte. Die Kacheln
+   werden als Ganzes vergrößert (zoom), damit ihr Innenlayout unverändert bleibt. */
+.kiosk-root {
+  --kiosk-text-small: var(--text-small, 14px);
+  --kiosk-text-title: var(--text-h3, 19px);
+  --kiosk-zoom: 1;
+}
+
+@media (min-width: 1600px) {
+  .kiosk-root {
+    --kiosk-text-small: var(--text-body, 16px);
+    --kiosk-text-title: var(--text-h2, 26px);
+    --kiosk-zoom: 1.15;
+  }
+}
+
+@media (min-width: 1900px) {
+  .kiosk-root {
+    --kiosk-zoom: 1.3;
+  }
+}
+
+.kiosk-canvas {
+  zoom: var(--kiosk-zoom);
+}
