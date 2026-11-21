@@ -234,6 +234,24 @@ describe('KioskShell (Auftrag 171)', () => {
     expect(screen.getByTestId('kiosk-title')).toHaveTextContent('Team Nord');
   });
 
+  it('bricht laufende Konfigurationsabrufe beim Aushängen ab (Codex PR #212)', async () => {
+    const source = makeSource();
+    let release: (() => void) | null = null;
+    let signal: AbortSignal | undefined;
+    source.load.mockImplementation(async (id: string, s?: AbortSignal) => {
+      signal = s;
+      await new Promise<void>((r) => (release = r));
+      return { ok: true as const, value: DASHBOARDS.get(id) as StoredDashboardV2Row };
+    });
+    const { unmount } = renderShell({ ids: ['team'], source });
+    await flush();
+    expect(signal).toBeInstanceOf(AbortSignal);
+    expect(signal?.aborted).toBe(false);
+    unmount();
+    expect(signal?.aborted).toBe(true);
+    await act(async () => release?.());
+  });
+
   it('zeigt offline den letzten Stand als veraltet mit deutlichem Hinweis', async () => {
     const { rerenderWith, source } = renderShell();
     await flush();

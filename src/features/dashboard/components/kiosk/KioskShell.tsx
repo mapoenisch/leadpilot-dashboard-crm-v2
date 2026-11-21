@@ -19,7 +19,8 @@ import './kiosk.css';
 
 export interface KioskDashboardSource {
   list: () => Promise<StorageResult<AccessibleDashboardListItemV2[]>>;
-  load: (id: string) => Promise<StorageResult<StoredDashboardV2Row>>;
+  /** `signal` bricht die Ladefolge ab, wenn die Hülle ausgehängt wird (z. B. Sitzungsablauf). */
+  load: (id: string, signal?: AbortSignal) => Promise<StorageResult<StoredDashboardV2Row>>;
   /** Zuletzt aktives Dashboard, wenn die Adresse keine IDs nennt. */
   activeId?: () => string | null;
 }
@@ -106,8 +107,11 @@ export function KioskShell(props: KioskShellProps) {
   useEffect(() => {
     if (!currentId || !online.online) return;
     let cancelled = false;
+    // Beim Aushängen (Sitzungsablauf, Navigation) auch den RPC abbrechen: sonst startet eine
+    // bereits laufende Ladefolge (Dashboard → Team-Name) noch neue Anfragen (Codex PR #212).
+    const controller = new AbortController();
     setPendingId(currentId);
-    void source.load(currentId).then((res) => {
+    void source.load(currentId, controller.signal).then((res) => {
       if (cancelled) return;
       setPendingId(null);
       if (res.ok) {
@@ -122,6 +126,7 @@ export function KioskShell(props: KioskShellProps) {
     });
     return () => {
       cancelled = true;
+      controller.abort();
       setPendingId(null);
     };
   }, [currentId, online.online, source, loadAttempt]);
