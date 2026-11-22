@@ -38,7 +38,9 @@ export function DashboardReportV2({
     (session?.organizationId ? `Organisation ${session.organizationId}` : 'LeadPilot GmbH');
   // Angezeigter Datenstand der Ansicht (auch eingefroren), sonst die Quelle
   const reportUseData = useMemo(() => createReportTileDataHook(useData), [useData]);
-  const { rules } = useDashboardAlarms({ dashboardId: config.id }); // derselbe Cache wie der Canvas
+  // derselbe Cache wie der Canvas; Ladezustand und Fehler gehen in Druckfreigabe und Kopf ein
+  const { rules, isRulesLoading, isRulesError } = useDashboardAlarms({ dashboardId: config.id });
+  const alarmsState = isRulesError ? 'fehler' : isRulesLoading ? 'laden' : 'bereit';
 
   const v1Tiles = useMemo(
     () =>
@@ -80,6 +82,7 @@ export function DashboardReportV2({
             organizationName={orgName}
             createdBy={auth?.user?.email ?? 'Vorschau (ohne Anmeldung)'}
             alarmStatusByTile={alarmStatusByTile}
+            alarmsState={alarmsState}
           />
         </div>
       )}

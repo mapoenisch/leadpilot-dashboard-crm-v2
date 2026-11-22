@@ -34,6 +34,8 @@ export interface DashboardPrintViewV2Props {
   organizationName: string;
   createdBy: string;
   alarmStatusByTile: Record<string, string | undefined>;
+  /** Abruf der Alarmregeln: Druck wartet auf „bereit“; Fehler/Zeitablauf wird im Kopf vermerkt */
+  alarmsState?: 'laden' | 'fehler' | 'bereit';
   /** Vorschau: kein automatischer Druckdialog */
   isPreview?: boolean;
 }
@@ -53,6 +55,7 @@ export function DashboardPrintViewV2({
   organizationName,
   createdBy,
   alarmStatusByTile,
+  alarmsState = 'bereit',
   isPreview = false,
 }: DashboardPrintViewV2Props) {
   const [createdAt] = React.useState(() => dateTime.format(new Date()));
@@ -89,7 +92,8 @@ export function DashboardPrintViewV2({
 
   const allResolved =
     v2Tiles.every((t) => resolved[t.id] !== undefined) &&
-    !v2Tiles.some((t) => resolved[t.id]?.state === 'laden');
+    !v2Tiles.some((t) => resolved[t.id]?.state === 'laden') &&
+    alarmsState !== 'laden';
   const [timedOut, setTimedOut] = React.useState(false);
   React.useEffect(() => {
     if (isPreview) return;
@@ -121,6 +125,16 @@ export function DashboardPrintViewV2({
           <dd data-testid="print-report-analysed-at">{analyzedAt}</dd>
           <dt className="font-semibold">Erstellt am</dt>
           <dd data-testid="print-report-created-at">{createdAt}</dd>
+          {alarmsState !== 'bereit' && (
+            <>
+              <dt className="font-semibold">Alarme</dt>
+              <dd data-testid="print-report-alarms-note">
+                {alarmsState === 'fehler'
+                  ? 'Alarmregeln konnten nicht geladen werden – Alarmvermerke fehlen.'
+                  : 'Alarmregeln noch nicht geladen – Alarmvermerke können fehlen.'}
+              </dd>
+            </>
+          )}
           <dt className="font-semibold">Erstellt von</dt>
           <dd data-testid="print-report-creator">{createdBy}</dd>
           <dt className="font-semibold">Berichtszeitraum</dt>
