@@ -274,6 +274,7 @@ function DashboardEditorShellBody({
               tileCount={config.tiles.length}
               maxTiles={24}
               onClose={() => setIsLibraryOpen(false)}
+              asSheet={touch.asSheet}
               className={touch.asSheet ? SHEET_CLASS : undefined}
             />
           )}

@@ -15,6 +15,7 @@ import { convertV2TileToV1 } from '../editor/canvas/CanvasTileCard';
 import { PrintTileCard } from './PrintTileCard';
 import { PrintAppendixRows } from './PrintAppendixTable';
 import { reportCompareNote, reportDataStandBySource } from '../../model/reportTileStatus';
+import { useOptionalTimeControl } from '../../time/TimeControlProvider';
 import './printReport.css';
 import './printReportV2.css';
 
@@ -54,7 +55,15 @@ export function DashboardPrintViewV2({
   alarmStatusByTile,
   isPreview = false,
 }: DashboardPrintViewV2Props) {
-  const [analyzedAt] = React.useState(() => dateTime.format(new Date()));
+  const [createdAt] = React.useState(() => dateTime.format(new Date()));
+  // Analysezeitpunkt aus der gemeinsamen Zeitsteuerung (pausiert/historisch), sonst „jetzt“ (live)
+  const control = useOptionalTimeControl()?.state;
+  const analyzedAt =
+    control && control.mode !== 'live' && control.analysisAt
+      ? `${dateTime.format(new Date(control.analysisAt))} (${
+          control.mode === 'pausiert' ? 'pausierter Stand' : 'historischer Zeitpunkt'
+        })`
+      : createdAt;
   const v2Tiles = React.useMemo(
     () =>
       report.selectedTileIds.length > 0
@@ -110,6 +119,8 @@ export function DashboardPrintViewV2({
           <dd data-testid="print-report-organisation">{organizationName}</dd>
           <dt className="font-semibold">Analysezeitpunkt</dt>
           <dd data-testid="print-report-analysed-at">{analyzedAt}</dd>
+          <dt className="font-semibold">Erstellt am</dt>
+          <dd data-testid="print-report-created-at">{createdAt}</dd>
           <dt className="font-semibold">Erstellt von</dt>
           <dd data-testid="print-report-creator">{createdBy}</dd>
           <dt className="font-semibold">Berichtszeitraum</dt>

@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DashboardConfigV2, DashboardTileConfigV2 } from '../model/dashboardConfigV2';
 import { EditorCanvasV2 } from '../components/editor/EditorCanvasV2';
 import { EditorInspectorV2 } from '../components/editor/EditorInspectorV2';
+import { WidgetLibraryV2 } from '../components/editor/WidgetLibraryV2';
 import { LONG_PRESS_MS, useGridDragAndDrop } from '../components/editor/grid/useGridDragAndDrop';
 import { useSheetBackClose, SHEET_HISTORY_KEY } from '../hooks/useSheetBackClose';
 import { useEditorTouchLayout } from '../components/editor/useEditorTouchLayout';
@@ -299,6 +300,30 @@ describe('Vollbild-Blatt: Tastaturfokus (Codex-Befund PR #213)', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
 
     view.rerender(<Harness open={false} onClose={onClose} />);
+    expect(document.activeElement).toBe(screen.getByTestId('trigger'));
+  });
+
+  it('Bibliothek als Blatt: Dialog mit Fokus auf „Schließen“, Escape schließt, Fokus kehrt zurück', () => {
+    const onClose = vi.fn();
+    const lib = (open: boolean) => (
+      <>
+        <button type="button" data-testid="trigger">
+          Bibliothek
+        </button>
+        {open && <WidgetLibraryV2 onAddTile={vi.fn()} tileCount={0} onClose={onClose} asSheet />}
+      </>
+    );
+    const view = render(lib(false));
+    screen.getByTestId('trigger').focus();
+    view.rerender(lib(true));
+    act(() => vi.advanceTimersByTime(60));
+    const sheet = screen.getByTestId('widget-library');
+    expect(sheet).toHaveAttribute('role', 'dialog');
+    expect(document.activeElement).toBe(screen.getByTestId('close-library-button'));
+    expect(fireEvent.keyDown(window, { key: 'Tab' })).toBe(false);
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    view.rerender(lib(false));
     expect(document.activeElement).toBe(screen.getByTestId('trigger'));
   });
 });

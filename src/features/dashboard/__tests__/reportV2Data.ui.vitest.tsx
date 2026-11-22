@@ -8,6 +8,7 @@ import type { DashboardConfigV2 } from '../model/dashboardConfigV2';
 import type { ResolvedTileData, TileData } from '../data/dashboardData';
 import type { TileDataHook } from '../components/LazyDashboardTile';
 import { TimeControlProvider, useTimeControl } from '../time/TimeControlProvider';
+import type { TimeControlState } from '../time/timeControl';
 import { createReportTileDataHook } from '../components/export/reportTileData';
 import { DashboardReportV2 } from '../components/export/DashboardReportV2';
 
@@ -73,18 +74,26 @@ function ShownTile({ id, data }: { id: string; data: TileData }) {
   return null;
 }
 
-function Wrapper({ children, shown }: { children: ReactNode; shown?: TileData }) {
+function Wrapper({
+  children,
+  shown,
+  time,
+}: {
+  children: ReactNode;
+  shown?: TileData;
+  time?: TimeControlState;
+}) {
   return (
-    <TimeControlProvider>
+    <TimeControlProvider initialState={time}>
       {shown && <ShownTile id="t_warn" data={shown} />}
       {children}
     </TimeControlProvider>
   );
 }
 
-function openAndPrint(useData: TileDataHook, shown?: TileData) {
+function openAndPrint(useData: TileDataHook, shown?: TileData, time?: TimeControlState) {
   render(
-    <Wrapper shown={shown}>
+    <Wrapper shown={shown} time={time}>
       <DashboardReportV2 open onClose={vi.fn()} config={config} useData={useData} />
     </Wrapper>,
   );
@@ -140,5 +149,42 @@ describe('V2-Report: Organisation', () => {
   it('ohne Sitzung (Vorschau) bleibt „LeadPilot GmbH“', () => {
     openAndPrint(() => ready(1));
     expect(screen.getByTestId('print-report-organisation')).toHaveTextContent('LeadPilot GmbH');
+  });
+});
+
+describe('V2-Report: Analysezeitpunkt aus der Zeitsteuerung', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-22T09:00:00Z'));
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('historischer Zeitpunkt: Kopf nennt den gewählten Zeitpunkt, Erstellung separat', () => {
+    openAndPrint(() => ready(1), undefined, {
+      mode: 'zeitpunkt',
+      analysisAt: '2026-03-15T10:30:00Z',
+      resumeToken: 0,
+    });
+    const at = screen.getByTestId('print-report-analysed-at').textContent ?? '';
+    expect(at).toMatch(/^15\.03\.2026.*\(historischer Zeitpunkt\)$/);
+    expect(screen.getByTestId('print-report-created-at').textContent).toMatch(/^22\.11\.2026/);
+  });
+
+  it('pausiert: Kopf nennt den Pausenbeginn', () => {
+    openAndPrint(() => ready(1), undefined, {
+      mode: 'pausiert',
+      analysisAt: '2026-11-21T18:00:00Z',
+      resumeToken: 0,
+    });
+    expect(screen.getByTestId('print-report-analysed-at').textContent).toMatch(
+      /^21\.11\.2026.*\(pausierter Stand\)$/,
+    );
+  });
+
+  it('live: Analysezeitpunkt ist die Erstellung', () => {
+    openAndPrint(() => ready(1));
+    expect(screen.getByTestId('print-report-analysed-at').textContent).toBe(
+      screen.getByTestId('print-report-created-at').textContent,
+    );
   });
 });
