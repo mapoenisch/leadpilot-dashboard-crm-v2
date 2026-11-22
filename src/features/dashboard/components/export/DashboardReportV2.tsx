@@ -5,18 +5,21 @@
 
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { AuthContext } from '@/auth/AuthContext';
+import { useOrganization } from '@/auth/organizationContext';
 import type { DashboardConfigV2 } from '../../model/dashboardConfigV2';
 import type { TileDataHook } from '../LazyDashboardTile';
 import { useDashboardAlarms } from '../../hooks/useDashboardAlarms';
 import { convertV2TileToV1 } from '../editor/canvas/CanvasTileCard';
 import { DashboardReportModal, type ReportExportConfig } from './DashboardReportModal';
 import { DashboardPrintViewV2 } from './DashboardPrintViewV2';
+import { createReportTileDataHook } from './reportTileData';
 
 export interface DashboardReportV2Props {
   open: boolean;
   onClose: () => void;
   config: DashboardConfigV2;
   useData: TileDataHook;
+  /** Ohne Angabe: Organisation der Sitzung wie im V1-Report, sonst „LeadPilot GmbH“ (Vorschau) */
   organizationName?: string;
 }
 
@@ -25,10 +28,16 @@ export function DashboardReportV2({
   onClose,
   config,
   useData,
-  organizationName = 'LeadPilot GmbH',
+  organizationName,
 }: DashboardReportV2Props) {
   const [report, setReport] = useState<ReportExportConfig | null>(null);
   const auth = useContext(AuthContext);
+  const { session } = useOrganization();
+  const orgName =
+    organizationName ??
+    (session?.organizationId ? `Organisation ${session.organizationId}` : 'LeadPilot GmbH');
+  // Angezeigter Datenstand der Ansicht (auch eingefroren), sonst die Quelle
+  const reportUseData = useMemo(() => createReportTileDataHook(useData), [useData]);
   const { rules } = useDashboardAlarms({ dashboardId: config.id }); // derselbe Cache wie der Canvas
 
   const v1Tiles = useMemo(
@@ -67,8 +76,8 @@ export function DashboardReportV2({
           <DashboardPrintViewV2
             dashboard={config}
             report={report}
-            useData={useData}
-            organizationName={organizationName}
+            useData={reportUseData}
+            organizationName={orgName}
             createdBy={auth?.user?.email ?? 'Vorschau (ohne Anmeldung)'}
             alarmStatusByTile={alarmStatusByTile}
           />

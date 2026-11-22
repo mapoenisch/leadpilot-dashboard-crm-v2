@@ -201,6 +201,10 @@ export function useGridDragAndDrop({
     [breakpoint, containerRef, tiles],
   );
 
+  // Aktuelle Fassung für den Timer, der über ein Neurendern hinweg läuft
+  const stepAutoScrollRef = useRef(stepAutoScroll);
+  stepAutoScrollRef.current = stepAutoScroll;
+
   const clearLongPress = useCallback(() => {
     if (longPressTimerRef.current !== null) {
       clearTimeout(longPressTimerRef.current);
@@ -228,10 +232,10 @@ export function useGridDragAndDrop({
         setArmedTileId(tileId);
         setActiveGhost({ tileId, position: { ...state.initialPos } });
         stopAutoScroll();
-        autoScrollFrameRef.current = requestAnimationFrame(stepAutoScroll);
+        autoScrollFrameRef.current = requestAnimationFrame(stepAutoScrollRef.current);
       }, LONG_PRESS_MS);
     },
-    [beginInteraction, clearLongPress, stepAutoScroll, stopAutoScroll],
+    [beginInteraction, clearLongPress, stopAutoScroll],
   );
 
   // PointerDown auf Kachelkopf
@@ -338,9 +342,12 @@ export function useGridDragAndDrop({
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);
       stopAutoScroll();
-      clearLongPress();
     };
   }, [containerRef, onCommitLayout, stepAutoScroll, stopAutoScroll, updatePreview, clearLongPress]);
+
+  // Haltezeit nur beim Entfernen des Rasters verwerfen: Das Neuabonnieren der Listener (z. B. durch
+  // ein neues Kachel-Array nach der Auswahl in Sektionen) darf ein laufendes langes Drücken nicht abbrechen.
+  useEffect(() => clearLongPress, [clearLongPress]);
 
   // HTML5 Drag-and-Drop Unterstützung für WidgetLibrary -> Canvas
   const handleCanvasDragOver = useCallback(

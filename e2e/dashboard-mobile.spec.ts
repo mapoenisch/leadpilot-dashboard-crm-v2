@@ -15,8 +15,8 @@ async function openEditor(page: Page, query = '') {
 }
 
 test.describe('Telefon (375 px)', () => {
-  test.beforeEach((_fixtures, info) => {
-    test.skip(info.project.name !== 'mobile-375', 'nur Telefon-Viewport');
+  test.beforeEach(() => {
+    test.skip(test.info().project.name !== 'mobile-375', 'nur Telefon-Viewport');
   });
 
   test('Liste umsortieren ändert die sichtbare Reihenfolge, Desktop-Layout bleibt', async ({
@@ -83,8 +83,8 @@ test.describe('Telefon (375 px)', () => {
 });
 
 test.describe('Tablet (768 px)', () => {
-  test.beforeEach((_fixtures, info) => {
-    test.skip(info.project.name !== 'tablet-768', 'nur Tablet-Viewport');
+  test.beforeEach(() => {
+    test.skip(test.info().project.name !== 'tablet-768', 'nur Tablet-Viewport');
   });
 
   async function dragHandle(page: Page) {

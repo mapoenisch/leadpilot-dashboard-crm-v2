@@ -5,6 +5,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DashboardConfigV2, DashboardTileConfigV2 } from '../model/dashboardConfigV2';
 import { EditorCanvasV2 } from '../components/editor/EditorCanvasV2';
+import { EditorInspectorV2 } from '../components/editor/EditorInspectorV2';
 import { LONG_PRESS_MS, useGridDragAndDrop } from '../components/editor/grid/useGridDragAndDrop';
 import { useSheetBackClose, SHEET_HISTORY_KEY } from '../hooks/useSheetBackClose';
 import { useEditorTouchLayout } from '../components/editor/useEditorTouchLayout';
@@ -95,6 +96,21 @@ describe('Tablet: Ziehen per Touch erst nach langem Drücken (§2.1 Nr. 2)', () 
     pointer('pointerup', 100, 100 + 2 * (72 + 12));
     expect(onCommitLayout).toHaveBeenCalledTimes(1);
     expect(hook.result.current.armedTileId).toBeNull();
+  });
+
+  it('Neues Kachel-Array nach der Auswahl (Sektionen) bricht das lange Drücken nicht ab', () => {
+    const containerRef = { current: fakeContainer() };
+    const onCommitLayout = vi.fn();
+    const hook = renderHook(
+      ({ tiles }) =>
+        useGridDragAndDrop({ tiles, breakpoint: 'tablet', containerRef, onCommitLayout }),
+      { initialProps: { tiles: desktopTiles } },
+    );
+    act(() => hook.result.current.handlePointerDown('a', touchDown(100, 100)));
+    // Auswahl rendert neu, groupTilesBySection liefert ein neues Array mit denselben Kacheln
+    hook.rerender({ tiles: [...desktopTiles] });
+    act(() => vi.advanceTimersByTime(LONG_PRESS_MS + 100));
+    expect(hook.result.current.armedTileId).toBe('a');
   });
 
   it('Maus zieht weiterhin sofort (Desktop-Verhalten unverändert)', () => {
@@ -236,6 +252,54 @@ describe('Vollbild-Blatt: Browser-Zurück schließt den Inspector (§2.1 Nr. 4)'
     act(() => result.current());
     expect(backSpy).toHaveBeenCalledTimes(1);
     backSpy.mockRestore();
+  });
+});
+
+describe('Vollbild-Blatt: Tastaturfokus (Codex-Befund PR #213)', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  function Harness({ open, onClose }: { open: boolean; onClose: () => void }) {
+    return (
+      <>
+        <button type="button" data-testid="trigger">
+          Bearbeiten
+        </button>
+        {open && (
+          <EditorInspectorV2
+            selectedTile={null}
+            config={mobileConfig()}
+            onDeselect={vi.fn()}
+            onTileTitleChange={vi.fn()}
+            onTileViewChange={vi.fn()}
+            onTileOverrideChange={vi.fn()}
+            onTileThresholdChange={vi.fn()}
+            onClose={onClose}
+            asSheet
+          />
+        )}
+      </>
+    );
+  }
+
+  it('setzt den Fokus ins Blatt, hält Tab darin, Escape schließt, Fokus kehrt zurück', () => {
+    const onClose = vi.fn();
+    const view = render(<Harness open={false} onClose={onClose} />);
+    screen.getByTestId('trigger').focus();
+    view.rerender(<Harness open onClose={onClose} />);
+    act(() => vi.advanceTimersByTime(60));
+    const sheet = screen.getByTestId('editor-inspector');
+    expect(document.activeElement).toBe(screen.getByTestId('close-inspector-button'));
+
+    expect(sheet.contains(document.activeElement)).toBe(true);
+    // Tab wird vom Blatt abgefangen (Fokusbegrenzung); ohne sie liefe er auf verdeckte Canvas-Aktionen
+    expect(fireEvent.keyDown(window, { key: 'Tab' })).toBe(false);
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
+
+    view.rerender(<Harness open={false} onClose={onClose} />);
+    expect(document.activeElement).toBe(screen.getByTestId('trigger'));
   });
 });
 

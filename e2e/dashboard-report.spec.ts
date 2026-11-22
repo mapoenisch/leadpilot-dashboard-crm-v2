@@ -2,8 +2,8 @@
 import { expect, test } from '@playwright/test';
 
 test.describe('Reportexport V2', () => {
-  test.beforeEach((_fixtures, info) => {
-    test.skip(info.project.name !== 'desktop-1440', 'Druckansicht nur einmal prüfen');
+  test.beforeEach(() => {
+    test.skip(test.info().project.name !== 'desktop-1440', 'Druckansicht nur einmal prüfen');
   });
 
   test('Druckansicht zeigt Schwellenwert-Status, Alarm, Kopf und Fuß als Text', async ({

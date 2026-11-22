@@ -23,6 +23,7 @@ import { getSectionForTile } from '../../model/dashboardSections';
 import { useOptionalTimeControl } from '../../time/TimeControlProvider';
 import { convertV2TileToV1 } from './canvas/CanvasTileCard';
 import { InspectorEmptyState } from './inspector/InspectorEmptyState';
+import { useModalA11y } from './versions/useModalA11y';
 import {
   InspectorDataTab,
   InspectorInteractionTab,
@@ -52,6 +53,8 @@ export interface EditorInspectorV2Props {
   className?: string;
 }
 
+const noop = () => {};
+
 type InspectorTab = 'daten' | 'darstellung' | 'schwellenwerte' | 'interaktion';
 
 export function EditorInspectorV2(props: EditorInspectorV2Props) {
@@ -59,6 +62,12 @@ export function EditorInspectorV2(props: EditorInspectorV2Props) {
   const headingId = 'editor-inspector-heading';
   // Als Blatt ein Dialog (div), sonst ergänzende Seitenleiste (aside)
   const Root = asSheet ? 'div' : 'aside';
+  // Blatt: Initialfokus auf „Schließen“, Tab bleibt im Blatt, Escape schließt, Fokus kehrt zurück
+  const sheetRef = useModalA11y<HTMLDivElement>({
+    isOpen: asSheet,
+    onClose: onClose ?? noop,
+    initialFocusSelector: '[data-testid="close-inspector-button"]',
+  });
 
   return (
     <Root
@@ -67,16 +76,8 @@ export function EditorInspectorV2(props: EditorInspectorV2Props) {
       role={asSheet ? 'dialog' : undefined}
       aria-modal={asSheet ? true : undefined}
       aria-labelledby={headingId}
-      onKeyDown={
-        asSheet && onClose
-          ? (e) => {
-              if (e.key === 'Escape') {
-                e.stopPropagation();
-                onClose();
-              }
-            }
-          : undefined
-      }
+      ref={sheetRef}
+      tabIndex={asSheet ? -1 : undefined}
       className={cn(
         'flex h-full w-[320px] shrink-0 flex-col border-l border-[var(--color-border,#1b3d39)] bg-[var(--color-bg-deep,#041110)] select-none',
         className,
