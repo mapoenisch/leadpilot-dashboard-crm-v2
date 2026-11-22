@@ -8,6 +8,7 @@ import { EditorCanvasV2 } from '../components/editor/EditorCanvasV2';
 import { EditorInspectorV2 } from '../components/editor/EditorInspectorV2';
 import { WidgetLibraryV2 } from '../components/editor/WidgetLibraryV2';
 import { LONG_PRESS_MS, useGridDragAndDrop } from '../components/editor/grid/useGridDragAndDrop';
+import { useGridKeyboard } from '../components/editor/grid/useGridKeyboard';
 import { useSheetBackClose, SHEET_HISTORY_KEY } from '../hooks/useSheetBackClose';
 import { useEditorTouchLayout } from '../components/editor/useEditorTouchLayout';
 import { useEditorPreviewData } from '../preview/editorPreviewData';
@@ -165,6 +166,52 @@ function mobileConfig(): DashboardConfigV2 {
     ],
   };
 }
+
+describe('Rastertastatur respektiert Diagrammsteuerung (CI PR #213)', () => {
+  function setupKeyboard() {
+    const onSelectTile = vi.fn();
+    renderHook(() =>
+      useGridKeyboard({
+        tiles: desktopTiles,
+        breakpoint: 'desktop',
+        selectedTileId: 'a',
+        onSelectTile,
+        onDeselect: vi.fn(),
+        onCommitLayout: vi.fn(),
+      }),
+    );
+    return onSelectTile;
+  }
+
+  function pressOn(el: HTMLElement, key: string, handled: boolean) {
+    document.body.appendChild(el);
+    if (handled) el.addEventListener('keydown', (e) => e.preventDefault());
+    act(() => {
+      el.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+    });
+    el.remove();
+  }
+
+  it('Pfeiltaste am Diagramm-Regler wechselt nicht zur Nachbarkachel', () => {
+    const onSelectTile = setupKeyboard();
+    const slider = document.createElement('div');
+    slider.setAttribute('role', 'slider');
+    pressOn(slider, 'ArrowRight', false);
+    expect(onSelectTile).not.toHaveBeenCalled();
+  });
+
+  it('bereits behandelte Pfeiltaste (defaultPrevented) wird ignoriert', () => {
+    const onSelectTile = setupKeyboard();
+    pressOn(document.createElement('div'), 'ArrowRight', true);
+    expect(onSelectTile).not.toHaveBeenCalled();
+  });
+
+  it('Pfeiltaste ohne Diagramm wechselt weiterhin zur Nachbarkachel', () => {
+    const onSelectTile = setupKeyboard();
+    pressOn(document.createElement('div'), 'ArrowRight', false);
+    expect(onSelectTile).toHaveBeenCalledWith('b');
+  });
+});
 
 describe('Smartphone: Bearbeiten per Liste (§2.1 Nr. 1)', () => {
   function renderList(onCommitLayout = vi.fn()) {

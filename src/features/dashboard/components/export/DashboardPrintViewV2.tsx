@@ -14,7 +14,11 @@ import type { ReportExportConfig } from './DashboardReportModal';
 import { convertV2TileToV1 } from '../editor/canvas/CanvasTileCard';
 import { PrintTileCard } from './PrintTileCard';
 import { PrintAppendixRows } from './PrintAppendixTable';
-import { reportCompareNote, reportDataStandBySource } from '../../model/reportTileStatus';
+import {
+  reportCompareNote,
+  reportDataStandBySource,
+  reportPeriodText,
+} from '../../model/reportTileStatus';
 import { useOptionalTimeControl } from '../../time/TimeControlProvider';
 import './printReport.css';
 import './printReportV2.css';
@@ -89,6 +93,7 @@ export function DashboardPrintViewV2({
     );
   }, []);
   const stand = React.useMemo(() => reportDataStandBySource(Object.values(resolved)), [resolved]);
+  const periodText = React.useMemo(() => reportPeriodText(Object.values(resolved)), [resolved]);
 
   const allResolved =
     v2Tiles.every((t) => resolved[t.id] !== undefined) &&
@@ -138,7 +143,8 @@ export function DashboardPrintViewV2({
           <dt className="font-semibold">Erstellt von</dt>
           <dd data-testid="print-report-creator">{createdBy}</dd>
           <dt className="font-semibold">Berichtszeitraum</dt>
-          <dd>{report.periodText}</dd>
+          {/* Aus den Kachelabfragen statt des V1-Standardtexts (FY 2025) */}
+          <dd data-testid="print-report-period">{periodText}</dd>
           <dt className="font-semibold">Datenstand je Quelle</dt>
           <dd>
             <ul data-testid="print-report-stand" className="m-0 list-none p-0">

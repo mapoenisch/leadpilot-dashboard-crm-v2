@@ -241,11 +241,13 @@ export function SectionedCanvasV2({
                 e.stopPropagation();
                 handleDrop(e, null);
               }}
+              // Auftrag 172: Polster unabhängig vom aktiven Bereich. Sonst ändert die Auswahl einer
+              // Sektion die Kachelbreite, inhaltshohe Listenkacheln brechen neu um und der Inhalt
+              // springt zwischen Drücken und Loslassen (der Klick verfehlt sein Ziel).
               className={cn(
                 'rounded-lg transition-colors',
-                activeAreaId === null &&
-                  !isPreviewMode &&
-                  'ring-1 ring-primary/40 bg-primary/5 p-2',
+                !isPreviewMode && 'p-2',
+                activeAreaId === null && !isPreviewMode && 'ring-1 ring-primary/40 bg-primary/5',
               )}
             >
               <SectionAreaGridV2

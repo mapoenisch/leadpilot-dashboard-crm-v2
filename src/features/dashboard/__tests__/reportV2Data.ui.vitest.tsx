@@ -15,6 +15,7 @@ import {
 } from '../components/export/reportTileData';
 import { attachTileStand } from '../time/useTimeControlledData';
 import { DashboardReportV2 } from '../components/export/DashboardReportV2';
+import { reportPeriodText, reportTilePeriod } from '../model/reportTileStatus';
 
 const orgState = vi.hoisted(() => ({
   session: null as null | { userId: string; organizationId: string; role: string },
@@ -265,5 +266,42 @@ describe('V2-Report: Druck wartet auf die Alarmregeln', () => {
     expect(screen.getByTestId('print-report-alarms-note')).toHaveTextContent(
       'konnten nicht geladen werden',
     );
+  });
+});
+
+describe('V2-Report: Berichtszeitraum aus den Kachelabfragen', () => {
+  const series = (from: string, to: string) =>
+    ready(1, {
+      timeSeries: {
+        source: 'live_kpi_events',
+        resolution: 'tag',
+        from,
+        to,
+        historyStartAt: null,
+        points: [],
+      },
+    });
+
+  it('Zeitreihe: Fenster der Abfrage statt „FY 2025“', () => {
+    expect(reportTilePeriod(series('2026-10-23T00:00:00Z', '2026-11-22T00:00:00Z'))).toBe(
+      '23.10.2026 – 22.11.2026',
+    );
+  });
+
+  it('gleicher Zeitraum aller Kacheln: eine Angabe; verschiedene: ausdrücklich je Kachel', () => {
+    const a = series('2026-10-23T00:00:00Z', '2026-11-22T00:00:00Z');
+    expect(reportPeriodText([a, a])).toBe('23.10.2026 – 22.11.2026');
+    expect(reportPeriodText([a, ready(1)])).toBe(
+      'Je Kachel verschieden: 23.10.2026 – 22.11.2026; Stand 31.12.2025',
+    );
+  });
+
+  it('Kopf des Reports übernimmt nicht den V1-Standardtext', () => {
+    vi.useFakeTimers();
+    openAndPrint(() => series('2026-10-23T00:00:00Z', '2026-11-22T00:00:00Z'));
+    const period = screen.getByTestId('print-report-period');
+    expect(period).toHaveTextContent('23.10.2026 – 22.11.2026');
+    expect(period).not.toHaveTextContent('FY 2025');
+    vi.useRealTimers();
   });
 });
