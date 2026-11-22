@@ -48,15 +48,19 @@ export function useGridKeyboard({
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (disabled || isModalKeyboardLocked()) return;
+      // Auftrag 172: schon behandelte Tasten (z. B. Pfeile der Diagrammsteuerung) nicht zusätzlich
+      // als Kachelnavigation werten – sonst wandert Auswahl und Fokus und das Fadenkreuz erlischt.
+      if (e.defaultPrevented) return;
 
-      // Keine Tastatursteuerung wenn ein Eingabefeld aktiv ist
+      // Keine Tastatursteuerung wenn ein Eingabefeld oder ein Regler aktiv ist
       const target = e.target as HTMLElement | null;
       if (
         target &&
         (target.tagName === 'INPUT' ||
           target.tagName === 'TEXTAREA' ||
           target.tagName === 'SELECT' ||
-          target.isContentEditable)
+          target.isContentEditable ||
+          target.getAttribute?.('role') === 'slider')
       ) {
         return;
       }

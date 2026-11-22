@@ -12,6 +12,7 @@ import { RevisionDiffViewV2 } from './RevisionDiffViewV2';
 import { RestoreRevisionDialogV2 } from './RestoreRevisionDialogV2';
 import { RevisionItemRowV2 } from './RevisionItemRowV2';
 import { useModalA11y } from './useModalA11y';
+import '../editorScope.css';
 import { useDashboardAlarms } from '../../../hooks/useDashboardAlarms';
 
 export interface RevisionHistoryPanelV2Props {
@@ -189,6 +190,7 @@ export function RevisionHistoryPanelV2({
       aria-label="Versionshistorie"
       tabIndex={-1}
       data-testid="revision-history-panel"
+      data-touch-scope="versionen"
       className="fixed inset-0 z-40 flex justify-end bg-black/60 backdrop-blur-xs outline-none"
     >
       <div className="flex h-full w-full flex-col bg-[var(--color-bg-deep,#051413)] border-l border-[var(--color-border,#1b3d39)] p-4 shadow-2xl md:w-[480px]">

@@ -107,7 +107,7 @@ export function InspectorPresentationTab({
 
       {/* Visuelle Optionen */}
       <div className="space-y-2 pt-2 border-t border-[var(--color-border,#1b3d39)]">
-        <h5 className="m-0 text-xs font-medium text-[var(--color-text-muted)]">Anzeigeoptionen</h5>
+        <h3 className="m-0 text-xs font-medium text-[var(--color-text-muted)]">Anzeigeoptionen</h3>
         <label className="flex items-center gap-2 text-xs text-[var(--color-text-soft)] cursor-pointer">
           <input
             type="checkbox"

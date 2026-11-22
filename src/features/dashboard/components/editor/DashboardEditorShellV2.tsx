@@ -23,6 +23,10 @@ import { WidgetLibraryV2 } from './WidgetLibraryV2';
 import { useEditorShortcuts } from './useEditorShortcuts';
 import { useDashboardShellController } from './useDashboardShellController';
 import { ReadOnlyNoticeV2 } from './ReadOnlyNoticeV2';
+import { SHEET_CLASS, useEditorTouchLayout } from './useEditorTouchLayout';
+import { EditorListModeContext } from './canvas/editorListMode';
+import { DashboardReportV2 } from '../export/DashboardReportV2';
+import './editorScope.css';
 
 export interface DashboardEditorShellV2Props {
   initialConfig: DashboardConfigV2;
@@ -108,6 +112,7 @@ function DashboardEditorShellBody({
   const [isLibraryOpen, setIsLibraryOpen] = useState(!isReadOnly && isDesktop);
   const [isInspectorOpen, setIsInspectorOpen] = useState(!isReadOnly && isDesktop);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
   const timeControl = useTimeControl();
   const isLivePaused = timeControl.state.mode === 'pausiert';
 
@@ -129,6 +134,15 @@ function DashboardEditorShellBody({
   } = editor;
 
   const { config, isDirty, activeBreakpoint, selectedTileId } = state;
+
+  // Auftrag 172: Telefon = Bearbeiten per Liste + Vollbild-Blätter; Tablet = langes Drücken
+  const touch = useEditorTouchLayout({
+    activeBreakpoint,
+    setActiveBreakpoint,
+    isInspectorOpen,
+    setIsInspectorOpen,
+    setSelectedTileId,
+  });
 
   // Sektionsaktionen (Auftrag 157 / P09a; flüchtiges Einklappen auch im Lesemodus)
   const sectionActions = useSectionActions({
@@ -179,6 +193,8 @@ function DashboardEditorShellBody({
   return (
     <div
       data-testid="dashboard-editor-shell-v2"
+      data-touch-scope="editor"
+      data-viewport={touch.viewport}
       className={cn(
         'flex h-screen w-full flex-col overflow-hidden bg-[var(--color-bg-deep,#030c0b)] text-[var(--color-text-soft,#e6f3f1)]',
         className,
@@ -190,6 +206,8 @@ function DashboardEditorShellBody({
         isDirty={isDirty}
         activeBreakpoint={activeBreakpoint}
         onBreakpointChange={setActiveBreakpoint}
+        breakpointLocked={touch.breakpointLocked}
+        onOpenReport={() => setIsReportOpen(true)}
         onTitleChange={handleDashboardTitleChange}
         onGlobalFilterChange={handleGlobalFilterChange}
         isLivePaused={isLivePaused}
@@ -243,69 +261,79 @@ function DashboardEditorShellBody({
       )}
 
       {/* MITTLERER ARBEITSBEREICH: BIBLIOTHEK + CANVAS + INSPECTOR */}
-      <div className="relative flex flex-1 overflow-hidden">
-        {/* ZONE 2: WIDGET-BIBLIOTHEK (LINKS) */}
-        {!isReadOnly && !isPreviewMode && isLibraryOpen && (
-          <WidgetLibraryV2
-            onAddTile={placementActions.handleAddTile}
-            tileCount={config.tiles.length}
-            maxTiles={24}
-            onClose={() => setIsLibraryOpen(false)}
-          />
-        )}
+      <EditorListModeContext.Provider value={touch.listContext}>
+        <div className="relative flex flex-1 overflow-hidden">
+          {/* ZONE 2: WIDGET-BIBLIOTHEK (LINKS) */}
+          {!isReadOnly && !isPreviewMode && isLibraryOpen && (
+            <WidgetLibraryV2
+              onAddTile={(catalogId) => {
+                placementActions.handleAddTile(catalogId);
+                // Telefon: Vollbild-Bibliothek nach dem Hinzufügen schließen, Kachel erscheint in der Liste
+                if (touch.asSheet) setIsLibraryOpen(false);
+              }}
+              tileCount={config.tiles.length}
+              maxTiles={24}
+              onClose={() => setIsLibraryOpen(false)}
+              asSheet={touch.asSheet}
+              className={touch.asSheet ? SHEET_CLASS : undefined}
+            />
+          )}
 
-        {/* ZONE 3: SEKTIONEN-CANVAS (MITTE) */}
-        <SectionedCanvasV2
-          config={config}
-          activeBreakpoint={activeBreakpoint}
-          selectedTileId={selectedTileId}
-          onSelectTile={setSelectedTileId}
-          onDeselect={() => setSelectedTileId(null)}
-          onRemoveTile={placementActions.handleRemoveTile}
-          onDuplicateTile={placementActions.handleDuplicateTile}
-          onCommitLayout={placementActions.handleCommitLayout}
-          onAddTileAtPosition={placementActions.handleAddTileAtPosition}
-          onMoveMobile={placementActions.handleMoveMobile}
-          onShowDetails={onShowDetails}
-          onAddTileClick={() => setIsLibraryOpen(true)}
-          isPreviewMode={isPreviewMode || isReadOnly}
-          useData={useData}
-          activeAreaId={sectionActions.activeAreaId}
-          onSelectActiveArea={sectionActions.setActiveAreaId}
-          isSectionCollapsed={sectionActions.isSectionCollapsed}
-          onToggleCollapseSection={sectionActions.handleToggleCollapse}
-          onAddSection={sectionActions.handleAddSection}
-          onRenameSection={sectionActions.handleRenameSection}
-          onMoveSection={sectionActions.handleMoveSection}
-          onRemoveSection={sectionActions.handleRequestRemoveSection}
-          onMoveTileToSection={sectionActions.handleMoveTileToSection}
-          sectionToRemove={sectionActions.sectionToRemove}
-          onConfirmRemoveSection={sectionActions.handleConfirmRemoveSection}
-          onCancelRemoveSection={sectionActions.handleCancelRemoveSection}
-          announcement={sectionActions.announcement}
-        />
-
-        {/* ZONE 4: INSPECTOR (RECHTS) */}
-        {!isReadOnly && !isPreviewMode && isInspectorOpen && (
-          <EditorInspectorV2
-            selectedTile={selectedTile}
+          {/* ZONE 3: SEKTIONEN-CANVAS (MITTE) */}
+          <SectionedCanvasV2
             config={config}
+            activeBreakpoint={activeBreakpoint}
+            selectedTileId={selectedTileId}
+            onSelectTile={setSelectedTileId}
             onDeselect={() => setSelectedTileId(null)}
-            onTileTitleChange={inspectorActions.handleTileTitleChange}
-            onTileViewChange={inspectorActions.handleTileViewChange}
-            onTileOverrideChange={inspectorActions.handleTileOverrideChange}
-            onTileThresholdChange={inspectorActions.handleTileThresholdChange}
-            onTileDrilldownChange={inspectorActions.handleTileDrilldownChange}
-            onOpenPanelEditor={onOpenPanelEditor}
-            onClose={() => setIsInspectorOpen(false)}
-            onMoveTileToSection={sectionActions.handleMoveTileToSection}
-            onExpandSection={(secId) => sectionActions.handleToggleCollapse(secId)}
-            isSectionCollapsed={sectionActions.isSectionCollapsed}
+            onRemoveTile={placementActions.handleRemoveTile}
+            onDuplicateTile={placementActions.handleDuplicateTile}
+            onCommitLayout={placementActions.handleCommitLayout}
+            onAddTileAtPosition={placementActions.handleAddTileAtPosition}
+            onMoveMobile={placementActions.handleMoveMobile}
+            onShowDetails={onShowDetails}
+            onAddTileClick={() => setIsLibraryOpen(true)}
+            isPreviewMode={isPreviewMode || isReadOnly}
             useData={useData}
-            isDirty={isDirty}
+            activeAreaId={sectionActions.activeAreaId}
+            onSelectActiveArea={sectionActions.setActiveAreaId}
+            isSectionCollapsed={sectionActions.isSectionCollapsed}
+            onToggleCollapseSection={sectionActions.handleToggleCollapse}
+            onAddSection={sectionActions.handleAddSection}
+            onRenameSection={sectionActions.handleRenameSection}
+            onMoveSection={sectionActions.handleMoveSection}
+            onRemoveSection={sectionActions.handleRequestRemoveSection}
+            onMoveTileToSection={sectionActions.handleMoveTileToSection}
+            sectionToRemove={sectionActions.sectionToRemove}
+            onConfirmRemoveSection={sectionActions.handleConfirmRemoveSection}
+            onCancelRemoveSection={sectionActions.handleCancelRemoveSection}
+            announcement={sectionActions.announcement}
           />
-        )}
-      </div>
+
+          {/* ZONE 4: INSPECTOR (RECHTS) */}
+          {!isReadOnly && !isPreviewMode && isInspectorOpen && (
+            <EditorInspectorV2
+              selectedTile={selectedTile}
+              config={config}
+              onDeselect={() => setSelectedTileId(null)}
+              onTileTitleChange={inspectorActions.handleTileTitleChange}
+              onTileViewChange={inspectorActions.handleTileViewChange}
+              onTileOverrideChange={inspectorActions.handleTileOverrideChange}
+              onTileThresholdChange={inspectorActions.handleTileThresholdChange}
+              onTileDrilldownChange={inspectorActions.handleTileDrilldownChange}
+              onOpenPanelEditor={onOpenPanelEditor}
+              onClose={touch.requestCloseInspector}
+              asSheet={touch.asSheet}
+              className={touch.asSheet ? SHEET_CLASS : undefined}
+              onMoveTileToSection={sectionActions.handleMoveTileToSection}
+              onExpandSection={(secId) => sectionActions.handleToggleCollapse(secId)}
+              isSectionCollapsed={sectionActions.isSectionCollapsed}
+              useData={useData}
+              isDirty={isDirty}
+            />
+          )}
+        </div>
+      </EditorListModeContext.Provider>
 
       {/* ZONE 5: STATUSLEISTE (UNTEN) */}
       <EditorStatusBarV2
@@ -317,6 +345,14 @@ function DashboardEditorShellBody({
         redoCount={historyStats.redoCount}
         memoryBytes={historyStats.estimatedBytes}
         memoryWarning={Boolean(historyStats.warning)}
+      />
+
+      {/* Auftrag 172: Reportexport (Druck/PDF) mit Schwellenwert-Status, Alarmen und Datenstand */}
+      <DashboardReportV2
+        open={isReportOpen}
+        onClose={() => setIsReportOpen(false)}
+        config={config}
+        useData={useData}
       />
 
       {/* Bestätigungsdialog bei Verwerfen von ungespeicherten Änderungen */}

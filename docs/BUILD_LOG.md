@@ -22805,3 +22805,98 @@ Alle Tasks T0–T6 erledigt, Pflicht-Verifikation grün (lokale Vorbefunde oben 
 - Begonnen von OpenCode, das am Nutzungslimit abbrach; fertiggestellt und verifiziert von Claude Code.
 - **Rot-Nachweis:** Die 4 neuen Tests sind gegen `44420b90` rot und mit der Nacharbeit grün.
 - **Verifikation:** `tsc` 0, `lint` 0, `format:check` grün, `npm test` 483 Dateien / 3.657 Tests grün, `verify` 25/25, `build` ok, `size-limit` Initial 172,09 kB, E2E `dashboard-kiosk.spec.ts` 18/18 grün. Schutzbereiche unverändert.
+
+## 2026-11-21 — Auftrag 172: Dashboard-Editor: Mobile Bedienung, Barrierefreiheits-Abnahme, Reportexport (P15b)
+
+Builder: Claude Code (Auftrag „bau #213“). Baseline `a41e5fbe` (Merge PR #212). Branch `auftrag-172-mobil-a11y-report`.
+
+### 1. Ziel & Kontext
+
+V2-Editor und Leseansicht auf Telefon und Tablet sicher bedienbar, dokumentierte Barrierefreiheits-Abnahme aller V2-Ansichten, Druck/PDF-Report mit Schwellenwert-Status, Alarmen, Transformationen und Datenstand als Text (Auftrag 172 §2, Masterplan §3.3/§6 P15).
+
+### 2. T0 – Ist-Stand
+
+| Befund | Stelle |
+| --- | --- |
+| Editor-Layoutwahl rein manuell; auf 375 px wurde das Desktop-Raster (12 Spalten) gezeigt | `DashboardEditorShellV2` |
+| Smartphone-Ansicht: „Nach oben/unten“ änderte nur `y`, die Anzeige folgte der Konfigurationsreihenfolge (Reihenfolge änderte sich sichtbar nicht) | `EditorCanvasV2`, `SectionAreaGridV2` |
+| Ziehen per Touch sofort aktiv; Griffe 24 px, Bedienelemente 28–36 px | `useGridDragAndDrop`, Top-Bar |
+| axe (1440/375, alle V2-Ansichten): `aria-required-children/parent` (critical), `color-contrast` 9–26 Knoten (serious), `label-title-only`, `select-name` (Alarmfilter), moderate Überschriften/Landmarken | Raster-ARIA, fehlende Tailwind-Opazitätsklassen ohne Preflight |
+| Reportexport existierte nur im V1-Arbeitsbereich; im V2-Editor gab es keinen Report | `DashboardWorkspace` |
+| Panel-Editor: `onOpenPanelEditor` wird von keiner Seite angebunden, der Inspector übernimmt die Rolle | – |
+| `size-limit` Initial-JS 172,09 kB | – |
+
+### 3. Umsetzung
+
+- **Telefon (< 640 px):** Layoutwahl fest auf Smartphone (Hinweis „Bearbeiten per Liste“), Kacheln in Reihenfolge des Smartphone-Layouts mit immer sichtbarer Leiste: Nach oben/unten (am Rand gesperrt), Größe (Klein/Mittel/Groß), Sektion, Bearbeiten, Duplizieren, Entfernen. Planung je Rasterbereich, ändert nur das Smartphone-Layout. Inspector und Bibliothek als Vollbild-Blatt; Inspector: `role="dialog"`, Schließen oben, Escape, Browser-Zurück schließt (eigener Verlaufseintrag `lpSheet`, Entwurf bleibt). Bibliothek schließt nach dem Hinzufügen. (`useEditorTouchLayout`, `useEditorViewport`, `useSheetBackClose`, `canvas/editorListMode.ts`, `MobileTileListActions`, `TileSectionMenu`)
+- **Tablet:** beim Öffnen Tablet-Layout; Touch/Stift nehmen Kacheln erst nach 400 ms Halten auf (sichtbar umrandet, Live-Ansage), Bewegung > 10 px vorher = Scrollen, keine Verschiebung. Maus unverändert. (`useGridDragAndDrop`)
+- **Touch-Ziele / Grundwerte:** `editorScope.css` – Formularelemente im V2-Bereich mit Spezifität-0-Grundwerten (behebt die hellgrauen Browser-Schaltflächen und damit die Kontrastbefunde), bei `pointer: coarse` alle Bedienelemente ≥ 44 × 44 px in Editor, Alarmliste, Versionen.
+- **Barrierefreiheit:** `role="row"` (display: contents) im Raster, `aria-label` an Zeitraum/Pipeline/Alarmfilter, `h1` in der Top-Bar, `h2` „Kacheln“ im Canvas, Überschriftenebenen in Bibliothek/Inspector, Bibliothek benannt. Protokoll: `docs/dashboard/BARRIEREFREIHEIT_P15.md`.
+- **Report V2:** Schaltfläche „Report“ (auch Leseansicht) → bestehender Report-Dialog → `DashboardPrintViewV2`: Kopf (Dashboard, Organisation, Analysezeitpunkt, Datenstand je Quelle, Ersteller, Zeitraum), je Kachel „Warnung: ab 1.000 EUR“ usw., „Alarm aktiv/pausiert“, Vergleich/Verknüpfung/Erwartungsband, Umformung; Fuß „Vertraulich – nur für berechtigte Empfänger“ und Seitenzahl per `@page` (eigene benannte Seiten, V1-Druck unverändert). Daten ausschließlich über den Daten-Hook der Ansicht und den Alarm-Cache der Ansicht. Kiosk: Strg/Cmd+P gesperrt, Druck über Browsermenü zeigt nur einen Hinweis.
+
+### 4. Geänderte Dateien
+
+Neu: `hooks/useEditorViewport.ts`, `hooks/useSheetBackClose.ts`, `components/editor/useEditorTouchLayout.ts`, `components/editor/editorScope.css`, `components/editor/canvas/{editorListMode.ts,MobileTileListActions.tsx,TileSectionMenu.tsx}`, `components/export/{DashboardReportV2.tsx,DashboardPrintViewV2.tsx,printReportV2.css}`, `model/reportTileStatus.ts`, Tests `__tests__/{editorTouch,reportV2}.ui.vitest.tsx`, `e2e/{dashboard-mobile,dashboard-report}.spec.ts`, `e2e/helpers/touchTargets.ts`, `scripts/captureAuftrag172GateScreenshots.mjs`, `docs/dashboard/BARRIEREFREIHEIT_P15.md`, `docs/screenshots/auftrag-172/README.md`.
+Geändert: Editor-Hülle, Top-Bar(+Aktionen), Canvas/Sektionsraster, Kachelkarte, Drag-Hook, Inspector(+Leerzustand, Darstellung), Bibliothek, Sektions-Canvas, Versionsverlauf, Alarmliste/-filter, Kiosk (Body, CSS), `PrintTileCard`/`PrintAppendixTable` (nur optionale V2-Angaben), Vorschau-Banner, `e2e/a11y.spec.ts` + `a11y-baseline.json`, `e2e/dashboard-thresholds-preview.spec.ts`, `e2e/editor-time-series.spec.ts`, `__tests__/{gridInteraction,KioskBodyStatus}`, `ci.yml` und `runV23Acceptance.mjs` (neue Specs), Masterplan, BUILD_PLAN, Auftrag.
+
+### 5. Funktionale Prüfungen
+
+- Rot-Nachweise gegen `a41e5fbe` (neue Tests, nur Hilfsmodule übernommen): 8 Verhaltenstests rot (Langdruck ×3, Listenreihenfolge, Listenleiste, Nach unten, Größe, Druck-Statustext) + Kiosk-Strg+P rot. Touch-Ziele alt: 7 zu kleine Elemente in der Top-Bar (375 und 768), neu 0. a11y-Wächtertest gegen alte Baseline: 6 V2-Schlüssel → rot.
+- Im Bau gefundene Fehler: Report-Endlosschleife bei nicht stabilen Datenobjekten (inhaltlicher Vergleich), Druck zeigte „Keine Daten“ statt Ansichtswert (Abfrage im V2-Druck aktiviert), Listenleiste lag unter der Folgekachel (Flex-Layout), Sektion-Verschieben fehlte im Listenmodus (nachgerüstet).
+
+### 6. Schutzbereichs-Prüfung
+
+`git diff a41e5fbe -- src/simulation src/types src/context src/services/data src/features/resources supabase` → leer. Kein Server-Code, keine neuen Abhängigkeiten.
+
+### 7. Automatisierte Verifikation (lokal, 21.11.2026)
+
+- `npx tsc --noEmit` 0 Fehler · `npm run lint` 0 · `npm run format:check` grün · `npm test` 485 Dateien / 3685 Tests grün · `npm run verify` Suiten 001–025 grün · `npm run build` grün.
+- `npm run build:production`: lokal rot nur durch den Konfigurationswächter (lokale `VITE_SUPABASE_URL` ist http) – umgebungsbedingt, kein Codebefund.
+- `npx size-limit`: Initial-JS 172,13 kB (+0,04 kB, Toleranz 0,2 kB), größter Chunk 79,41 kB.
+- E2E (Vorschau-Build, 3 Viewports): `a11y`, `dashboard-mobile`, `dashboard-report`, alle `*-preview`-Specs, `dashboard-kiosk`, `editor-time-*`, `mobile-menu-touch` grün (a11y + Schwellenwerte zusätzlich 3× wiederholt grün). CI-Gruppe 3 (`personal-dashboard*`, `dashboard-config-states`, `editor-time-*`, `--workers=1`) grün.
+- Nicht lokal bestätigt: `team-dashboards`, `dashboard-alarms`, `dashboard-versions` scheitern lokal an `add-team-member-select` ohne Option `manager-a@e2e.local` – dieselbe lokale DB-Altlast wie in Auftrag 171 (dort auf sauberem Stand `7c69aa8e` reproduziert); `visual.spec` lokal mit darwin-Bildmaßabweichungen (bekannt). Maßgeblich ist die CI mit frischer Datenbank.
+
+### 8. Screenshot-Matrix
+
+`docs/screenshots/auftrag-172/README.md`: 34 Aufnahmen (9 Ansichten × 375/768 × hell/dunkel mit Touch-Emulation, Druck A4 hell/dunkel), 0 px Überlauf, Hashes je Viewport/Theme verschieden.
+
+### 9. Grenzen / offen
+
+- Manuelle VoiceOver-Stichprobe durch Marc (Anleitung in `BARRIEREFREIHEIT_P15.md` §5).
+- Moderat offen: Dialogtitel der gemeinsamen `Modal`-Komponente (`h3`, V1-geteilt, nicht Ziel-Datei).
+- Telefon: Die Top-Bar umbricht auf mehrere Zeilen und belegt viel Höhe; funktional bedienbar, Verdichtung wäre ein eigener Auftrag.
+
+### 10. Ergebnis & Freigabestatus
+
+Umgesetzt und lokal verifiziert. **Smoke für Marc:** Vorschau auf dem Telefon öffnen, eine Kachel per „Nach unten“ verschieben, „Bearbeiten“ → Zurück-Taste; im Editor „Report“ → „Drucken“ und Statuszeilen prüfen. Freigabe durch unabhängigen Prüfer (CLAUDE.md §4.1) ausstehend.
+
+### 11. Nacharbeit Runde 1 (Codex-Review auf `2d2747bc`, CI-Lauf 44946679737)
+- **CI e2e rot:** Playwright verlangt im ersten Argument von `beforeEach` eine Objekt-Destrukturierung; `(_fixtures, info)` aus der Lint-Korrektur brach das Laden von `dashboard-mobile.spec.ts` und `dashboard-report.spec.ts`. Jetzt `test.beforeEach(() => test.skip(test.info().project.name …))` wie in den übrigen Specs.
+- **P2 Report übernimmt eingefrorenen Datenstand:** Neues `export/reportTileData.ts` (`createReportTileDataHook`). Der V2-Report liest für bereits angezeigte Kacheln den Rohdatenstand aus dem geteilten `tileDataStore` (wie der Inspector seit Auftrag 166), auch im Druckanhang; die Quelle gilt nur, wenn die Ansicht noch nichts oder nur „laden“ hat. Bildschirm und Report zeigen damit nach dem Pausieren dieselben Werte und Schwellenwert-Status.
+- **P2 Long-Press in Sektionen:** In `useGridDragAndDrop` räumt der Listener-Effekt die Haltezeit nicht mehr ab; ein eigener Effekt verwirft sie nur beim Aushängen. Der Timer nutzt die aktuelle `stepAutoScroll`-Fassung über eine Ref. Ein neues Kachel-Array nach der Auswahl bricht das lange Drücken nicht mehr ab.
+- **P2 Fokus im Inspector-Blatt:** `EditorInspectorV2` bindet als Blatt `useModalA11y` ein: Initialfokus auf „Schließen“, Tab bleibt im Blatt, Escape schließt (global, auch bei Fokus außerhalb), Fokus kehrt zum Auslöser zurück. Der lokale Escape-Handler entfällt.
+- **P2 Organisation im Report:** `DashboardReportV2` nennt ohne ausdrückliche Angabe die Organisation der Sitzung (`useOrganization`, Format wie V1 `Organisation <id>`); „LeadPilot GmbH“ nur ohne Sitzung (Vorschau).
+- **Tests:** `editorTouch.ui.vitest.tsx` (+2: neues Kachel-Array während der Haltezeit; Fokusführung des Blatts), neu `reportV2Data.ui.vitest.tsx` (4: eingefrorener Stand, Quelle als Rückfall, Organisation der Sitzung, Vorschau-Rückfall).
+- **Rot-Nachweis:** Die 4 Kerntests (Long-Press, Fokus, eingefrorener Stand, Organisation) sind gegen `2d2747bc` rot und mit der Nacharbeit grün.
+- **Verifikation:** `tsc` 0, `lint` 0, Prettier grün, `npm test` 486 Dateien / 3.691 Tests grün, Vorschau-Build ok. E2E lokal: `dashboard-mobile`, `dashboard-report`, `a11y`, `dashboard-thresholds-preview`, `dashboard-kiosk` 90 grün / 18 übersprungen; Editor- und Vorschau-Gruppe (`personal-dashboard*`, `dashboard-config-states`, `editor-time-*`, `dashboard-*-preview`, `team-dashboards-preview`) 63 grün / 48 übersprungen. Schutzbereiche gegen `a41e5fbe` unverändert (leerer Diff).
+
+### 12. Nacharbeit Runde 2 (Codex-Review auf `68a5df4b`, CI-Lauf 45000100165)
+- **CI e2e rot (`dashboard-alarms.spec.ts`, mobile-375):** Auf dem Telefon verdeckte das Inspector-Blatt den Speichern-Knopf (gleiches Muster wie zuvor bei `dashboard-thresholds-preview`). Der Test schließt das Blatt vor dem Speichern und öffnet es danach über „Bearbeiten“ und den Tab „Schwellenwerte“ wieder. Lokal ist die Spec wegen der bekannten DB-Altlast (Auftrag 171: Manager fehlt in der Team-Auswahl) nicht lauffähig; der Nachweis kommt aus der CI.
+- **P2 Analysezeitpunkt aus der Zeitsteuerung:** `DashboardPrintViewV2` nennt im Modus „pausiert“ den Pausenbeginn, im Modus „zeitpunkt“ den gewählten historischen Zeitpunkt (jeweils mit Kennzeichnung), im Live-Modus die Erstellung. Der Erstellungszeitpunkt steht zusätzlich in einer eigenen Zeile („Erstellt am“, `print-report-created-at`).
+- **P2 Fokus im Bibliotheks-Blatt:** `WidgetLibraryV2` erhält `asSheet` (gesetzt vom Editor auf dem Telefon): Dialog-Semantik, `useModalA11y` mit Initialfokus auf „Schließen“, Fokusbegrenzung, Escape und Fokusrückgabe; die Schaltfläche trägt einen sprechenden Namen.
+- **Tests:** `reportV2Data.ui.vitest.tsx` (+3: historisch, pausiert, live), `editorTouch.ui.vitest.tsx` (+1: Bibliothek als Blatt). Die 4 neuen Tests sind gegen `68a5df4b` rot und mit der Nacharbeit grün.
+- **Verifikation:** `tsc` 0, `lint` 0, Prettier grün, `npm test` 486 Dateien / 3.695 Tests grün, Vorschau-Build ok. E2E lokal (Mobil, Report, a11y, Schwellenwerte, Kiosk, Editor- und Vorschau-Gruppe): 153 grün / 66 übersprungen. Schutzbereiche gegen `a41e5fbe` unverändert (leerer Diff).
+
+### 13. Nacharbeit Runde 3 (Codex-Review auf `116c5e73`)
+- **P2 Gespeicherter Stand nur bei passendem Kontext:** `reportTileData.ts` übernimmt den Store-Eintrag der Ansicht nur, wenn Kennzahl, Pipeline und Zeitraum des wirksamen Filters mit der aktuellen Quelle übereinstimmen und der Datenstand (`readTileStand`) zum aktuellen Zeitmodus bzw. Analysezeitpunkt passt (`matchesReportContext`). Sonst gilt die neu abgefragte Quelle, auch im Anhang. Damit liefert eine eingeklappte Sektion nach Filter- oder Zeitpunktwechsel keinen alten Stand mehr.
+- **P2 Druck wartet auf Alarmregeln:** `DashboardReportV2` reicht den Ladezustand von `useDashboardAlarms` (`isRulesLoading`, `isRulesError`) als `alarmsState` an `DashboardPrintViewV2` weiter. Die Druckfreigabe wartet auf geladene Regeln (der bestehende Zeitablauf von 3,5 s bleibt als Rückfall). Ein Fehler oder ein noch laufender Abruf steht ausdrücklich im Kopf (`print-report-alarms-note`) statt wie „keine Alarme“ zu wirken.
+- **Tests:** `reportV2Data.ui.vitest.tsx` (+6: Pipeline-, Zeitmodus- und Zeitpunktwechsel; Druck wartet beim Laden, druckt ohne Abfrage, Fehlervermerk). Rot-Nachweis gegen `116c5e73`: die Alarmtests (Laden, Fehler) sowie ein Hook-Test zum Filterwechsel (Store 250 „standard“, Quelle 900 „enterprise“) sind rot und mit der Nacharbeit grün.
+- **Verifikation:** `tsc` 0, `lint` 0, Prettier grün, `npm test` 486 Dateien / 3.701 Tests grün, Vorschau-Build ok, E2E `dashboard-report`, `a11y`, `dashboard-mobile`, `dashboard-alarms-preview` 72 grün. Schutzbereiche gegen `a41e5fbe` unverändert (leerer Diff).
+
+### 14. Nacharbeit Runde 4 (Codex-Review auf `3f9a838b`, CI-Lauf 45008272827)
+- **CI e2e rot, erstmals Gruppe „persönliches Dashboard“ erreicht** (die Läufe davor brachen in früheren Gruppen ab). Lokal auf macOS nicht nachstellbar; nachgestellt im Linux-Container `mcr.microsoft.com/playwright:v1.65.1-noble` gegen den CI-Build (Artefakt `dashboard-preview`) und gegen `a41e5fbe` als Vergleich.
+  - **`personal-dashboard-sections` (mobile-375):** Die Ohne-Sektion-Fläche hatte ihr Polster `p-2` nur als aktiver Bereich. Drücken auf eine Sektion nahm es weg, die Listenkacheln wurden 16 px breiter, brachen unter Linux-Schriften neu um (je −26 px) und der Inhalt sprang zwischen `pointerdown` und `pointerup` um 320 px. Der Klick traf den Sektionscontainer statt „Sektion entfernen“. Fix `SectionedCanvasV2`: Polster unabhängig vom aktiven Bereich, nur Rahmen/Hintergrund markieren. Das beseitigt auch den Sprung auf echten Telefonen.
+  - **`editor-time-point` (tablet-768):** `useGridKeyboard` wertete die Pfeiltasten des fokussierten Diagramm-Reglers zusätzlich als Kachelnavigation; die Auswahl wechselte zur Nachbarkachel, der Regler verlor den Fokus und das Fadenkreuz erlosch. Seit Auftrag 172 nutzt der Tablet-Viewport das Tablet-Layout, in dem eine Nachbarkachel rechts liegt (im Desktop-Layout auf `main` nicht). Container-Vergleich unter Last: Branch 3/12 rot, `a41e5fbe` 0/12. Fix: bereits behandelte Tasten (`defaultPrevented`) und `role="slider"` werden ignoriert (wie der Kiosk in PR #212).
+- **P2 Berichtszeitraum aus den Kachelabfragen:** `reportPeriodText`/`reportTilePeriod` (`model/reportTileStatus.ts`) leiten den Zeitraum aus Zeitreihenfenster, wirksamem Zeitraumfilter oder Zeitbasis der Quelle ab; mehrere Zeiträume erscheinen ausdrücklich als „Je Kachel verschieden: …“. `DashboardPrintViewV2` druckt das statt des V1-Standardtexts „FY 2025 …“ (`print-report-period`).
+- **Tests:** `editorTouch.ui.vitest.tsx` (+3 Rastertastatur: Regler, `defaultPrevented`, Navigation bleibt), `reportV2Data.ui.vitest.tsx` (+3 Berichtszeitraum). Rot-Nachweis gegen `3f9a838b`: Regler- und `defaultPrevented`-Test sowie Kopf-Test rot, mit der Nacharbeit grün; Sektionen und Fadenkreuz im Linux-Container vorher rot, nachher grün.
+- **Verifikation:** `tsc` 0, `lint` 0, Prettier grün, `npm test` 486 Dateien / 3.707 Tests grün, Vorschau-Build ok. E2E lokal 153 grün; im Linux-Container (Sektionen, Auswahl, Zeitsteuerung, Zeitpunkt, Zeitreihen, Mobil, Report, Schwellenwerte) 36 grün, 3 Ladeabbrüche des behelfsmäßigen Python-Servers (`page.goto`, auch ohne App-Bezug). Schutzbereiche gegen `a41e5fbe` unverändert (leerer Diff).

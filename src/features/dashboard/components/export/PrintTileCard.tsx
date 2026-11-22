@@ -11,6 +11,7 @@ import {
   getEffectiveTitle,
   getEffectiveUnit,
 } from '../../model/transformations';
+import { reportAlarmNote, reportThresholdStatus } from '../../model/reportTileStatus';
 
 export function resolveTileInfo(tile: DashboardTileConfig) {
   const entry = getCatalogEntry(tile.catalogId);
@@ -30,11 +31,19 @@ export const noopTileDataHook: TileDataHook = (t) => ({
   message: '',
 });
 
+/** Auftrag 172: nur V2-Report – Status als Text. Ohne diese Angaben bleibt der V1-Druck unverändert. */
+export interface PrintTileV2Extras {
+  threshold?: unknown;
+  alarmStatus?: string | null;
+  compareNote?: string | null;
+}
+
 export interface PrintTileCardProps {
   tile: DashboardTileConfig;
   filters?: DashboardFilters;
   useData?: TileDataHook;
   onTileResolved?: (tileId: string, data: TileData) => void;
+  v2?: PrintTileV2Extras;
 }
 
 export const PrintTileCard: React.FC<PrintTileCardProps> = ({
@@ -42,9 +51,11 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
   filters,
   useData = noopTileDataHook,
   onTileResolved,
+  v2,
 }) => {
   const { name, unit, category, layer, transformations } = resolveTileInfo(tile);
-  const rawData = useData(tile, filters);
+  // V2-Report: Druck braucht die Daten sofort (die Ansicht aktiviert Kacheln erst beim Sichtbarwerden)
+  const rawData = useData(tile, filters, v2 ? { enabled: true } : undefined);
   const data = React.useMemo(
     () => applyTransformations(rawData, transformations),
     [rawData, transformations],
@@ -53,6 +64,9 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
   React.useEffect(() => {
     onTileResolved?.(tile.tileId, data);
   }, [tile.tileId, data, onTileResolved]);
+
+  const thresholdStatus = v2 ? reportThresholdStatus(tile.catalogId, v2.threshold, data) : null;
+  const alarmNote = v2 ? reportAlarmNote(v2.alarmStatus) : null;
 
   let displayValue: string;
   let statusNote: string | undefined;
@@ -219,6 +233,32 @@ export const PrintTileCard: React.FC<PrintTileCardProps> = ({
         <span data-testid={`print-tile-filter-${tile.tileId}`}>{filterDisplay}</span>
         <span>ID: {tile.catalogId}</span>
       </div>
+
+      {(thresholdStatus || alarmNote) && (
+        <div
+          data-testid={`print-tile-status-${tile.tileId}`}
+          className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 border-t border-slate-100 pt-1 text-[11px] font-semibold text-slate-900"
+        >
+          {thresholdStatus && (
+            <span
+              data-testid={`print-tile-threshold-${tile.tileId}`}
+              data-stufe={thresholdStatus.stufe}
+            >
+              {thresholdStatus.text}
+            </span>
+          )}
+          {alarmNote && <span data-testid={`print-tile-alarm-${tile.tileId}`}>{alarmNote}</span>}
+        </div>
+      )}
+
+      {v2?.compareNote && (
+        <div
+          data-testid={`print-tile-compare-${tile.tileId}`}
+          className="mt-1 text-[10.5px] italic text-slate-600"
+        >
+          {v2.compareNote}
+        </div>
+      )}
 
       {transformations && transformations.length > 0 && (
         <div

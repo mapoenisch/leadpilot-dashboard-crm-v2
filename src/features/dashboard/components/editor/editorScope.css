@@ -1,0 +1,70 @@
+/**
+ * editorScope.css — Auftrag 172 (P15b §2.1 Nr. 3, §2.2):
+ *
+ * 1. Grundwerte für Formularelemente im V2-Bereich. Die App läuft ohne Tailwind-Preflight; Klassen
+ *    wie `bg-black/20` werden für die Farbvariablen nicht erzeugt, sodass Schaltflächen bisher die
+ *    hellgraue Browser-Standardoptik mit zu wenig Kontrast zeigten. Die Regeln haben Spezifität 0
+ *    (`:where`), jede erzeugte Tailwind-Klasse gewinnt also weiterhin.
+ *
+ * 2. Touch-Ziele (P15b §2.1 Nr. 3):
+ * Bei Fingerbedienung (pointer: coarse) sind alle Bedienelemente in Editor, Inspector, Alarmliste
+ * und Versionen mindestens 44 × 44 px groß. Mausbedienung behält das kompakte Desktop-Layout.
+ * Gilt in Bereichen mit `data-touch-scope` (Editor-Hülle, Alarmliste, Versionsverlauf).
+ */
+
+:where([data-touch-scope]) :where(button, select, input, textarea) {
+  background-color: transparent;
+  color: inherit;
+  font: inherit;
+  border-width: 0;
+  border-style: solid;
+  border-color: var(--color-border, #1b3d39);
+}
+
+:where([data-touch-scope]) :where(select) option {
+  background-color: var(--color-bg-deep, #051413);
+  color: var(--color-text, #ffffff);
+}
+
+@media (pointer: coarse) {
+  [data-touch-scope] :is(
+      button,
+      [role='button'],
+      [role='tab'],
+      [role='menuitem'],
+      [role='menuitemradio'],
+      [role='option'],
+      [role='switch'],
+      select,
+      summary,
+      a[href],
+      input:not([type='checkbox'], [type='radio'], [type='hidden'], [type='range'])
+    ) {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Kontrollkästchen: Ziel ist die umschließende Beschriftung */
+  [data-touch-scope] label:has(> input:is([type='checkbox'], [type='radio'])) {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  [data-touch-scope] input:is([type='checkbox'], [type='radio']) {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Resize per Finger nur an der Ecke (44 × 44 px); Rand-Griffe würden Tippflächen der Kachel
+     überdecken. Größe per Finger: Ecke nach langem Drücken, Inspector oder Listenmodus. */
+  [data-touch-scope] [data-direction='e'],
+  [data-touch-scope] [data-direction='s'] {
+    display: none;
+  }
+
+  [data-touch-scope] [data-drag-handle='true'] {
+    width: 44px;
+    height: 44px;
+  }
+}

@@ -83,7 +83,9 @@ test.describe('Dashboard-Editor V2: Zeitreihen-Kacheln (Auftrag 160 / P10b-1)', 
       /Verlauf (letzte|Letzte) 12 Wochen/,
     );
 
-    // 3. Live-Verlaufskachel hinzufügen
+    // 3. Live-Verlaufskachel hinzufügen (Auftrag 172: auf dem Telefon schließt die
+    // Vollbild-Bibliothek nach dem Hinzufügen und wird erneut geöffnet)
+    await ensureLibraryOpen(page);
     await page.getByTestId('library-tab-live').click();
     const liveAddBtn = page.getByTestId('add-tile-btn-live.arr.verlauf');
     await expect(liveAddBtn).toBeVisible();

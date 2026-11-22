@@ -23,6 +23,7 @@ import { getSectionForTile } from '../../model/dashboardSections';
 import { useOptionalTimeControl } from '../../time/TimeControlProvider';
 import { convertV2TileToV1 } from './canvas/CanvasTileCard';
 import { InspectorEmptyState } from './inspector/InspectorEmptyState';
+import { useModalA11y } from './versions/useModalA11y';
 import {
   InspectorDataTab,
   InspectorInteractionTab,
@@ -47,17 +48,36 @@ export interface EditorInspectorV2Props {
   useData?: import('../LazyDashboardTile').TileDataHook;
   currentValue?: number | null;
   isDirty?: boolean;
+  /** Auftrag 172: Vollbild-Blatt auf dem Telefon (Dialog-Semantik, großes Schließen oben) */
+  asSheet?: boolean;
   className?: string;
 }
+
+const noop = () => {};
 
 type InspectorTab = 'daten' | 'darstellung' | 'schwellenwerte' | 'interaktion';
 
 export function EditorInspectorV2(props: EditorInspectorV2Props) {
-  const { selectedTile, config, onDeselect, onClose, className } = props;
+  const { selectedTile, config, onDeselect, onClose, asSheet = false, className } = props;
+  const headingId = 'editor-inspector-heading';
+  // Als Blatt ein Dialog (div), sonst ergänzende Seitenleiste (aside)
+  const Root = asSheet ? 'div' : 'aside';
+  // Blatt: Initialfokus auf „Schließen“, Tab bleibt im Blatt, Escape schließt, Fokus kehrt zurück
+  const sheetRef = useModalA11y<HTMLDivElement>({
+    isOpen: asSheet,
+    onClose: onClose ?? noop,
+    initialFocusSelector: '[data-testid="close-inspector-button"]',
+  });
 
   return (
-    <aside
+    <Root
       data-testid="editor-inspector"
+      data-sheet={asSheet ? 'true' : undefined}
+      role={asSheet ? 'dialog' : undefined}
+      aria-modal={asSheet ? true : undefined}
+      aria-labelledby={headingId}
+      ref={sheetRef}
+      tabIndex={asSheet ? -1 : undefined}
       className={cn(
         'flex h-full w-[320px] shrink-0 flex-col border-l border-[var(--color-border,#1b3d39)] bg-[var(--color-bg-deep,#041110)] select-none',
         className,
@@ -67,9 +87,12 @@ export function EditorInspectorV2(props: EditorInspectorV2Props) {
       <div className="flex items-center justify-between border-b border-[var(--color-border,#1b3d39)] px-3 py-2.5">
         <div className="flex items-center gap-2">
           <Sliders className="h-4 w-4 text-primary" />
-          <h3 className="m-0 text-xs font-semibold tracking-wide text-white uppercase">
+          <h2
+            id={headingId}
+            className="m-0 text-xs font-semibold tracking-wide text-white uppercase"
+          >
             {selectedTile ? 'Kachel-Inspector' : 'Dashboard-Info'}
-          </h3>
+          </h2>
         </div>
         <div className="flex items-center gap-1">
           {selectedTile && (
@@ -88,10 +111,15 @@ export function EditorInspectorV2(props: EditorInspectorV2Props) {
               type="button"
               data-testid="close-inspector-button"
               onClick={onClose}
-              className="flex h-6 w-6 items-center justify-center rounded text-[var(--color-text-muted)] hover:bg-white/5 hover:text-white"
+              className={cn(
+                'flex items-center justify-center rounded text-[var(--color-text-muted)] hover:bg-white/5 hover:text-white',
+                asSheet ? 'h-11 gap-1 px-3 text-sm font-medium text-white' : 'h-6 w-6',
+              )}
               title="Inspector schließen"
+              aria-label="Inspector schließen"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" aria-hidden="true" />
+              {asSheet && <span>Schließen</span>}
             </button>
           )}
         </div>
@@ -103,7 +131,7 @@ export function EditorInspectorV2(props: EditorInspectorV2Props) {
       ) : (
         <TileInspectorContent key={selectedTile.id} {...props} selectedTile={selectedTile} />
       )}
-    </aside>
+    </Root>
   );
 }
 

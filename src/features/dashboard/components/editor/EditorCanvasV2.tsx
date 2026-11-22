@@ -17,6 +17,8 @@ import { useGridDragAndDrop } from './grid/useGridDragAndDrop';
 import { useGridKeyboard } from './grid/useGridKeyboard';
 import { getGridPlacementClasses } from './grid/gridTailwindClasses';
 import { useDashboardAlarms } from '../../hooks/useDashboardAlarms';
+import { useAreaListMode } from './canvas/editorListMode';
+import { ARMED_ANNOUNCEMENT } from './sections/SectionAreaGridV2';
 
 export { convertV2TileToV1, parseTimeframeToPeriod };
 
@@ -48,7 +50,6 @@ export function EditorCanvasV2({
   onDuplicateTile,
   onCommitLayout = () => {},
   onAddTileAtPosition,
-  onMoveMobile,
   onShowDetails = () => {},
   onAddTileClick,
   isPreviewMode = false,
@@ -71,6 +72,7 @@ export function EditorCanvasV2({
   const {
     activeGhost,
     previewPositions,
+    armedTileId,
     handlePointerDown,
     handleResizeStart,
     handleCanvasDragOver,
@@ -97,6 +99,7 @@ export function EditorCanvasV2({
 
   const { cols } = GRID_CONFIGS[activeBreakpoint];
   const isMobile = activeBreakpoint === 'mobile';
+  const list = useAreaListMode(config.tiles, activeBreakpoint, isPreviewMode, onCommitLayout);
 
   // Überlappungsfreies, abgeleitetes Layout des aktiven Breakpoints (Auftrag 151 / P06b)
   const layout = useMemo(
@@ -154,7 +157,7 @@ export function EditorCanvasV2({
         data-testid="grid-a11y-announcement"
         className="sr-only"
       >
-        {announcement}
+        {armedTileId ? ARMED_ANNOUNCEMENT : announcement}
       </div>
 
       {/* Leerzustand wenn keine Kacheln vorhanden sind */}
@@ -192,6 +195,7 @@ export function EditorCanvasV2({
           aria-label="Dashboard-Editor Arbeitsfläche"
           aria-colcount={cols}
           data-testid="canvas-grid"
+          data-edit-mode={list.listMode ? 'liste' : 'raster'}
           className={cn(
             'w-full relative transition-all grid',
             isMobile
@@ -212,33 +216,38 @@ export function EditorCanvasV2({
             />
           )}
 
-          {config.tiles.map((tile) => {
-            const isSelected = selectedTileId === tile.id;
-            const pos =
-              previewPositions?.get(tile.id) ?? layout.get(tile.id) ?? tile.layouts.desktop;
+          <div role="row" className="contents">
+            {list.orderedTiles.map((tile) => {
+              const isSelected = selectedTileId === tile.id;
+              const pos =
+                previewPositions?.get(tile.id) ?? layout.get(tile.id) ?? tile.layouts.desktop;
 
-            return (
-              <CanvasTileCard
-                key={tile.id}
-                tile={tile}
-                position={pos}
-                activeBreakpoint={activeBreakpoint}
-                isSelected={isSelected}
-                isPreviewMode={isPreviewMode}
-                onSelectTile={onSelectTile}
-                onRemoveTile={onRemoveTile}
-                onDuplicateTile={onDuplicateTile}
-                onShowDetails={onShowDetails}
-                onPointerDownHandle={handlePointerDown}
-                onResizeStart={handleResizeStart}
-                onMoveMobile={onMoveMobile}
-                useData={useData}
-                globalTimeframe={config.globalTimeframe}
-                globalPipeline={config.globalPipeline}
-                alarm={effectiveAlarmRules[tile.id]}
-              />
-            );
-          })}
+              return (
+                <CanvasTileCard
+                  key={tile.id}
+                  tile={tile}
+                  position={pos}
+                  activeBreakpoint={activeBreakpoint}
+                  isSelected={isSelected}
+                  isPreviewMode={isPreviewMode}
+                  onSelectTile={onSelectTile}
+                  onRemoveTile={onRemoveTile}
+                  onDuplicateTile={onDuplicateTile}
+                  onShowDetails={onShowDetails}
+                  onPointerDownHandle={handlePointerDown}
+                  onResizeStart={handleResizeStart}
+                  useData={useData}
+                  globalTimeframe={config.globalTimeframe}
+                  globalPipeline={config.globalPipeline}
+                  alarm={effectiveAlarmRules[tile.id]}
+                  isDragArmed={armedTileId === tile.id}
+                  listInfo={list.listMode ? list.infoFor(tile.id) : undefined}
+                  onListMove={list.listMode ? list.moveTile : undefined}
+                  onListResize={list.listMode ? list.resizeTile : undefined}
+                />
+              );
+            })}
+          </div>
         </div>
       )}
     </main>

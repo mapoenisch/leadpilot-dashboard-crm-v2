@@ -80,10 +80,7 @@ test.describe('Dashboard-Editor V2: Alarme Integration Supabase (P13c)', () => {
           .from('dashboard_alarm_rules')
           .delete()
           .in('dashboard_id', createdDashboardIds);
-        await supabaseAdmin
-          .from('dashboards')
-          .delete()
-          .in('id', createdDashboardIds);
+        await supabaseAdmin.from('dashboards').delete().in('id', createdDashboardIds);
       }
       if (createdTeamId) {
         const { error: delTeamErr } = await supabaseAdmin
@@ -218,9 +215,22 @@ test.describe('Dashboard-Editor V2: Alarme Integration Supabase (P13c)', () => {
     await expect(applyBtn).toBeEnabled();
     await applyBtn.click();
 
+    // Auftrag 172: Auf dem Telefon ist der Inspector ein Vollbild-Blatt – vor dem Speichern schließen
+    const asSheet =
+      (await page.getByTestId('editor-inspector').getAttribute('data-sheet')) === 'true';
+    if (asSheet) {
+      await page.getByTestId('close-inspector-button').click();
+      await expect(page.getByTestId('editor-inspector')).toHaveCount(0);
+    }
+
     // Dashboard speichern
     await page.getByTestId('save-button').click();
     await expect(page.getByTestId('dirty-indicator')).not.toBeVisible();
+
+    if (asSheet) {
+      await page.getByTestId(`tile-edit-btn-${tileId}`).click();
+      await page.getByTestId('inspector-tab-schwellenwerte').click();
+    }
 
     // Jetzt Alarm aktivieren
     const alarmCheckbox = page.getByTestId('alarm-toggle-checkbox');
@@ -251,16 +261,14 @@ test.describe('Dashboard-Editor V2: Alarme Integration Supabase (P13c)', () => {
       .update({ mindestdauer_laeufe: 1 })
       .eq('id', rule.id);
 
-    await supabaseAdmin
-      .from('dashboard_alarm_state')
-      .upsert({
-        rule_id: rule.id,
-        organization_id: rule.organization_id,
-        bestaetigte_stufe: 'normal',
-        beobachtete_stufe: 'warnung',
-        beobachtete_laeufe: 1,
-        letzte_auswertung: new Date().toISOString(),
-      });
+    await supabaseAdmin.from('dashboard_alarm_state').upsert({
+      rule_id: rule.id,
+      organization_id: rule.organization_id,
+      bestaetigte_stufe: 'normal',
+      beobachtete_stufe: 'warnung',
+      beobachtete_laeufe: 1,
+      letzte_auswertung: new Date().toISOString(),
+    });
 
     // evaluate_dashboard_alarms aufrufen
     const { data: evalRes, error: evalErr } = await supabaseAdmin.rpc('evaluate_dashboard_alarms');
@@ -299,7 +307,9 @@ test.describe('Dashboard-Editor V2: Alarme Integration Supabase (P13c)', () => {
     const alarmListContainer = page.getByTestId('alarm-list-container');
     await expect(alarmListContainer).toBeVisible();
 
-    const eventItem = page.locator(`[data-testid="alarm-event-item"][data-event-id="${createdEventId}"]`);
+    const eventItem = page.locator(
+      `[data-testid="alarm-event-item"][data-event-id="${createdEventId}"]`,
+    );
     await expect(eventItem).toBeVisible();
     await expect(eventItem).toContainText('warnung');
 
@@ -330,7 +340,9 @@ test.describe('Dashboard-Editor V2: Alarme Integration Supabase (P13c)', () => {
     await loginAs(page, MANAGER_EMAIL);
     await page.goto('/dashboard/alarme');
 
-    const managerEventItem = page.locator(`[data-testid="alarm-event-item"][data-event-id="${createdEventId}"]`);
+    const managerEventItem = page.locator(
+      `[data-testid="alarm-event-item"][data-event-id="${createdEventId}"]`,
+    );
     await expect(managerEventItem).toBeVisible();
     await expect(managerEventItem).toContainText(VIEWER_EMAIL);
     await expect(managerEventItem).toContainText('Viewer kümmert sich um Deals');

@@ -1,6 +1,8 @@
 // Executive Dashboard V2 (Auftrag 149 / P06):
 // Hook für Pointer-basiertes Drag & Drop, Resizing, Auto-Scroll (Scroll-Delta seit Auftrag 151)
 // und visuelle Vorschau (Ghost / Reflow) im 12-Spalten-CSS-Grid.
+// Auftrag 172 (P15b §2.1 Nr. 2): Touch/Stift nehmen eine Kachel erst nach langem Drücken (≥ 400 ms)
+// auf; bewegt sich der Finger vorher (Scrollen), wird nichts verschoben.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
@@ -38,7 +40,9 @@ export interface DragGhostState {
 }
 
 interface InteractionState {
-  mode: 'none' | 'pending_drag' | 'dragging' | 'resizing';
+  mode: 'none' | 'pending_longpress' | 'pending_drag' | 'dragging' | 'resizing';
+  /** Ziel nach langem Drücken (nur Touch/Stift) */
+  armMode?: 'dragging' | 'resizing';
   tileId: string;
   resizeDir?: ResizeDirection;
   startX: number;
@@ -65,6 +69,13 @@ const IDLE_INTERACTION: InteractionState = {
 const DRAG_THRESHOLD = 5; // Pixel-Mindestbewegung vor Drag-Aktivierung
 const AUTO_SCROLL_EDGE_PX = 60;
 const AUTO_SCROLL_SPEED = 12;
+export const LONG_PRESS_MS = 400;
+/** Bewegung, ab der ein Drücken als Scrollen gilt und die Aufnahme abbricht */
+export const LONG_PRESS_TOLERANCE_PX = 10;
+
+function isTouchLike(e: { pointerType?: string }): boolean {
+  return e.pointerType === 'touch' || e.pointerType === 'pen';
+}
 
 export function useGridDragAndDrop({
   tiles,
@@ -76,6 +87,8 @@ export function useGridDragAndDrop({
 }: UseGridDragAndDropOptions) {
   const [activeGhost, setActiveGhost] = useState<DragGhostState | null>(null);
   const [previewPositions, setPreviewPositions] = useState<Map<string, GridPosition> | null>(null);
+  const [armedTileId, setArmedTileId] = useState<string | null>(null);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Drag-/Resize-Interaktionsstatus
   const interactionRef = useRef<InteractionState>(IDLE_INTERACTION);
@@ -188,15 +201,56 @@ export function useGridDragAndDrop({
     [breakpoint, containerRef, tiles],
   );
 
+  // Aktuelle Fassung für den Timer, der über ein Neurendern hinweg läuft
+  const stepAutoScrollRef = useRef(stepAutoScroll);
+  stepAutoScrollRef.current = stepAutoScroll;
+
+  const clearLongPress = useCallback(() => {
+    if (longPressTimerRef.current !== null) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
+  /** Touch/Stift: Aufnahme erst nach LONG_PRESS_MS ohne nennenswerte Bewegung */
+  const startLongPress = useCallback(
+    (
+      tileId: string,
+      e: ReactPointerEvent,
+      armMode: 'dragging' | 'resizing',
+      resizeDir?: ResizeDirection,
+    ) => {
+      const pos = beginInteraction('pending_longpress', tileId, e, resizeDir);
+      if (!pos) return;
+      interactionRef.current.armMode = armMode;
+      clearLongPress();
+      longPressTimerRef.current = setTimeout(() => {
+        longPressTimerRef.current = null;
+        const state = interactionRef.current;
+        if (state.mode !== 'pending_longpress' || state.tileId !== tileId) return;
+        state.mode = armMode;
+        setArmedTileId(tileId);
+        setActiveGhost({ tileId, position: { ...state.initialPos } });
+        stopAutoScroll();
+        autoScrollFrameRef.current = requestAnimationFrame(stepAutoScrollRef.current);
+      }, LONG_PRESS_MS);
+    },
+    [beginInteraction, clearLongPress, stopAutoScroll],
+  );
+
   // PointerDown auf Kachelkopf
   const handlePointerDown = useCallback(
     (tileId: string, e: ReactPointerEvent) => {
       if (disabled || e.button !== 0 || breakpoint === 'mobile') return;
       if (!tiles.some((t) => t.id === tileId)) return;
       onSelectTile?.(tileId);
+      if (isTouchLike(e)) {
+        startLongPress(tileId, e, 'dragging');
+        return;
+      }
       beginInteraction('pending_drag', tileId, e);
     },
-    [disabled, breakpoint, tiles, onSelectTile, beginInteraction],
+    [disabled, breakpoint, tiles, onSelectTile, beginInteraction, startLongPress],
   );
 
   // Start Resizing
@@ -207,6 +261,10 @@ export function useGridDragAndDrop({
 
       e.stopPropagation();
       onSelectTile?.(tileId);
+      if (isTouchLike(e)) {
+        startLongPress(tileId, e, 'resizing', direction);
+        return;
+      }
       const pos = beginInteraction('resizing', tileId, e, direction);
       if (!pos) return;
 
@@ -214,7 +272,16 @@ export function useGridDragAndDrop({
       stopAutoScroll();
       autoScrollFrameRef.current = requestAnimationFrame(stepAutoScroll);
     },
-    [disabled, breakpoint, tiles, onSelectTile, beginInteraction, stepAutoScroll, stopAutoScroll],
+    [
+      disabled,
+      breakpoint,
+      tiles,
+      onSelectTile,
+      beginInteraction,
+      startLongPress,
+      stepAutoScroll,
+      stopAutoScroll,
+    ],
   );
 
   // Global PointerMove
@@ -226,6 +293,16 @@ export function useGridDragAndDrop({
       state.currentPointerX = e.clientX;
       state.currentPointerY = e.clientY;
       if (!containerRef.current) return;
+
+      // Touch: Bewegung vor Ablauf der Haltezeit ist Scrollen und bricht die Aufnahme ab
+      if (state.mode === 'pending_longpress') {
+        const dist = Math.hypot(e.clientX - state.startX, e.clientY - state.startY);
+        if (dist > LONG_PRESS_TOLERANCE_PX) {
+          clearLongPress();
+          interactionRef.current = IDLE_INTERACTION;
+        }
+        return;
+      }
 
       // Aktivierung von Pending -> Dragging
       if (state.mode === 'pending_drag') {
@@ -242,6 +319,7 @@ export function useGridDragAndDrop({
     const onPointerUp = () => {
       const state = interactionRef.current;
       stopAutoScroll();
+      clearLongPress();
 
       if (state.mode === 'dragging' || state.mode === 'resizing') {
         const moves = pendingMovesRef.current;
@@ -252,6 +330,7 @@ export function useGridDragAndDrop({
       pendingMovesRef.current = [];
       setActiveGhost(null);
       setPreviewPositions(null);
+      setArmedTileId(null);
     };
 
     window.addEventListener('pointermove', onPointerMove);
@@ -264,7 +343,11 @@ export function useGridDragAndDrop({
       window.removeEventListener('pointercancel', onPointerUp);
       stopAutoScroll();
     };
-  }, [containerRef, onCommitLayout, stepAutoScroll, stopAutoScroll, updatePreview]);
+  }, [containerRef, onCommitLayout, stepAutoScroll, stopAutoScroll, updatePreview, clearLongPress]);
+
+  // Haltezeit nur beim Entfernen des Rasters verwerfen: Das Neuabonnieren der Listener (z. B. durch
+  // ein neues Kachel-Array nach der Auswahl in Sektionen) darf ein laufendes langes Drücken nicht abbrechen.
+  useEffect(() => clearLongPress, [clearLongPress]);
 
   // HTML5 Drag-and-Drop Unterstützung für WidgetLibrary -> Canvas
   const handleCanvasDragOver = useCallback(
@@ -311,6 +394,7 @@ export function useGridDragAndDrop({
   return {
     activeGhost,
     previewPositions,
+    armedTileId,
     isInteracting: interactionRef.current.mode !== 'none',
     handlePointerDown,
     handleResizeStart,

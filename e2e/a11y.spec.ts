@@ -93,6 +93,11 @@ test('a11y editor_v2 mit geöffnetem Neu-Dialog — keine neuen critical/serious
   await btn.click();
   await page.getByTestId('new-dashboard-menu-item').click();
   await page.waitForSelector('[data-testid="new-dashboard-dialog"]');
+  // Auftrag 172: Ende der Einblendung abwarten (unter Last sonst Kontrast mitten in der Animation)
+  await page.waitForFunction(() =>
+    document.getAnimations().every((an) => an.playState !== 'running'),
+  );
+  await page.waitForTimeout(300);
 
   const results = await new AxeBuilder({ page }).analyze();
   const blocking = results.violations.filter(
@@ -102,7 +107,10 @@ test('a11y editor_v2 mit geöffnetem Neu-Dialog — keine neuen critical/serious
   const fresh = blocking.filter((v) => !accepted.includes(v.id));
   if (fresh.length > 0) {
     const summary = fresh
-      .map((v) => `- [${v.impact}] ${v.id}: ${v.help} (${v.nodes.length} Knoten)`)
+      .map(
+        (v) =>
+          `- [${v.impact}] ${v.id}: ${v.help} (${v.nodes.length} Knoten) ${v.nodes.map((n) => n.target.join(' ') + ' ' + n.html.slice(0, 140) + ' ' + (n.any[0]?.message ?? '')).join(' | ')}`,
+      )
       .join('\n');
     expect(fresh.length, `editor_v2_new_dialog: NEUE Axe-Verstöße:\n${summary}`).toBe(0);
   }
@@ -192,3 +200,87 @@ test('a11y editor_v2 mit Zeitreihen-Kachel — keine neuen critical/serious-Vers
   await expectNoFreshViolations(page, 'editor_v2_time_series', 'editor_v2_time_series');
 });
 
+// Auftrag 172 (P15b §2.2 Nr. 6): Barrierefreiheits-Abnahme aller V2-Ansichten.
+// Für V2-Ansichten gibt es keine Baseline mehr: jeder critical/serious-Verstoß ist ein Fehler.
+const V2 = '/dashboard-vorschau.html?bereich=editor_v2';
+const V2_VIEWS: Array<{
+  key: string;
+  url: string;
+  act?: (page: import('@playwright/test').Page) => Promise<void>;
+}> = [
+  {
+    key: 'editor_v2_inspector_schwellenwerte',
+    url: `${V2}&schwellenwerte=1`,
+    act: async (page) => {
+      const listEdit = page.locator(
+        '[data-testid^="tile-list-actions-"] [data-testid^="tile-edit-btn-"]',
+      );
+      if (await listEdit.first().isVisible()) {
+        await listEdit.first().click(); // Telefon: Bearbeiten per Liste öffnet das Blatt
+      } else {
+        await page.locator('[data-testid^="canvas-tile-"]').first().click();
+        if (!(await page.getByTestId('editor-inspector').isVisible())) {
+          await page.getByTestId('toggle-inspector-button').click();
+        }
+      }
+      await page.getByTestId('inspector-tab-schwellenwerte').click();
+    },
+  },
+  {
+    key: 'editor_v2_versionen',
+    url: `${V2}&versionen=1`,
+    act: async (page) => {
+      await page.getByTestId('editor-open-versions').click();
+      await page.getByTestId('revision-history-panel').waitFor();
+    },
+  },
+  {
+    key: 'editor_v2_teams',
+    url: `${V2}&teams=1`,
+    act: async (page) => {
+      await page.getByTestId('dashboard-switcher-button').click();
+    },
+  },
+  {
+    key: 'editor_v2_alarme',
+    url: `${V2}&alarme=1`,
+    act: async (page) => {
+      await page.getByTestId('preview-tab-alarme').click();
+      await page.getByTestId('alarm-list-container').waitFor();
+    },
+  },
+  { key: 'editor_v2_vergleich', url: `${V2}&vergleich=1` },
+  {
+    key: 'editor_v2_report_dialog',
+    url: V2,
+    act: async (page) => {
+      await page.getByTestId('editor-open-report').click();
+      await page.getByRole('dialog').first().waitFor();
+    },
+  },
+  {
+    key: 'kiosk_v2',
+    url: '/dashboard-vorschau.html?bereich=kiosk&ids=preview_v2_dashboard',
+  },
+];
+
+for (const view of V2_VIEWS) {
+  test(`a11y ${view.key} — keine critical/serious-Verstöße (Auftrag 172)`, async ({ page }) => {
+    await page.goto(view.url, { waitUntil: 'networkidle' });
+    await page.evaluate(() => document.fonts.ready);
+    await page.waitForTimeout(500);
+    if (view.act) await view.act(page);
+    await page.waitForTimeout(400);
+    await expectNoFreshViolations(page, view.key, view.key);
+  });
+}
+
+test('a11y-Baseline enthält keine V2-Ansichten (Auftrag 172 §2.2 Nr. 6)', () => {
+  const v2Keys = Object.entries(baseline).filter(
+    ([key, ids]) => Array.isArray(ids) && /editor_v2|vorschau|kiosk/i.test(key) && ids.length >= 0,
+  );
+  expect(
+    v2Keys.map(([key]) => key),
+    'V2-Ansichten dürfen nicht in e2e/a11y-baseline.json stehen; Verstöße beheben statt eintragen.',
+  ).toEqual([]);
+});

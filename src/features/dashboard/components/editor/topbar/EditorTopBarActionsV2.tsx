@@ -1,7 +1,7 @@
 // Executive Dashboard V2 (Auftrag 165 / P12):
 // Ausgelagerte Aktionsleiste der Top-Bar (Undo/Redo, Versionen, Vorschau, Inspector, Abbrechen, Speichern).
 
-import { Eye, EyeOff, History, PanelRight, Save, X } from 'lucide-react';
+import { Eye, EyeOff, History, PanelRight, Printer, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { UndoRedoGroup } from './UndoRedoGroup';
@@ -21,6 +21,8 @@ export interface EditorTopBarActionsV2Props {
   onCancel: () => void;
   readOnly?: boolean;
   onOpenVersions?: () => void;
+  /** Auftrag 172: Report drucken/PDF (auch Leseansicht) */
+  onOpenReport?: () => void;
 }
 
 export function EditorTopBarActionsV2({
@@ -38,6 +40,7 @@ export function EditorTopBarActionsV2({
   onCancel,
   readOnly = false,
   onOpenVersions,
+  onOpenReport,
 }: EditorTopBarActionsV2Props) {
   return (
     <div className="flex items-center gap-2">
@@ -56,6 +59,20 @@ export function EditorTopBarActionsV2({
         >
           <History className="h-3.5 w-3.5" />
           <span>Versionen</span>
+        </button>
+      )}
+
+      {/* Auftrag 172: Reportexport (auch in Leseansicht) */}
+      {onOpenReport && (
+        <button
+          type="button"
+          data-testid="editor-open-report"
+          onClick={onOpenReport}
+          className="flex h-8 items-center gap-1.5 rounded border border-[var(--color-border,#1b3d39)] bg-black/20 px-2.5 text-xs font-medium text-[var(--color-text-soft,#e6f3f1)] hover:text-white transition-colors"
+          title="Report drucken oder als PDF speichern"
+        >
+          <Printer className="h-3.5 w-3.5" aria-hidden="true" />
+          <span>Report</span>
         </button>
       )}
 
