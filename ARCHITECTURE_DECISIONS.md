@@ -2280,6 +2280,16 @@ Artefakt-/Versionsabgleichs.
 - **Darstellung:** Token-Skala „kiosk“ (`kiosk.css`, nur vorhandene Schriftgrößen, Kacheln per `zoom` 1,15/1,3 ab 1600/1900 px), keine neuen Farbwerte.
 - **Bundle:** Initial-JS +0,05 kB (nur die Route); neue Icons vermieden, weil `manualChunks` alle Bibliotheks-Icons in den Start-Chunk `vendor` legt.
 
+## C16. Dashboard V2 Gesamtabnahme und Abgleich V1 ↔ V2 (Auftrag 173 / P16a, 2026-11-22)
+
+- **Abgleich serverseitig, Entscheidung ausdrücklich:** Migration `20261128_dashboard_rollout_reconciliation.sql`. `dashboard_v1_v2_reconciliation()` (nur Admin, eigene Organisation) liefert je Nutzer V1-/V2-Revision, Quellrevision und Klasse (`gleich`, `v1_geaendert`, `beide_geaendert`, `keine_kopie`, `nur_v2`). Die Klassifizierung ist eine reine Funktion (`dashboard_rollout_classify`), im Client gespiegelt (`classifyRollout`). V1 wird nur gelesen.
+- **V2-Kopie und „bearbeitet“:** Kopie = ältestes persönliches V2-Dashboard mit `metadata.migrated_from_v1`. Bearbeitet = Revision über `metadata.migrated_v2_revision` (Erstkopie 1, nach Übernahme die Übernahmerevision). Bewusste Abweichung von „Revision > 1“, damit eine Übernahme nicht sofort als Bearbeitung zählt. Fehlende Quellrevision gilt als „geändert“ (nie stille Gleichheit).
+- **Übernahme als neue Revision:** `dashboard_rollout_adopt_v1` schreibt die von der App per `migrateV1ToV2` übersetzte Konfiguration als neue Revision. Der Server bindet Identität, Titel, Organisation und Herkunft und validiert das Schema. Die alte Fassung bleibt in `dashboard_revisions`, Audit `dashboard.rollout_v1_adopted`. „Pilot behalten“/„Später“ über `dashboard_rollout_decide` (Audit `dashboard.rollout_decided`).
+- **Revisionsbindung:** `dashboard_rollout_decisions` (eine aktuelle Entscheidung je Nutzer und Organisation, kein Client-Direktzugriff) speichert V1- und V2-Revision. Abweichung → „verfallen“; Aktionen mit veralteten erwarteten Revisionen → `LP_ROLLOUT_STALE`. `umgestellt_at` folgt in 174.
+- **Quellrevision der Kopiermigration korrigiert:** `useDashboardV2Storage` übergibt die echte V1-Revision (nur bei gültig gespeichertem V1-Stand, sonst 0). Vorher stand immer 1.
+- **Oberfläche:** `/admin/umstellung` (`RolloutPrepPage`, Dienst-Schnittstelle `RolloutPrepService` mit Supabase- und In-Memory-Variante für Vorschau/Tests), Vorschau `?bereich=umstellung`. Rollout-Schalter unverändert.
+- **Gesamtabnahme:** `docs/dashboard/GESAMTABNAHME_P16.md` (Matrix §7, Last, Rechte, Betrieb, Rückweg). Befund B-1 (Alarm-RPCs ohne Dashboard-Rechteprüfung) als pgTAP-TODO belegt, Behebung als Zwischenauftrag 173a vorgeschlagen.
+
 ---
 
 ---

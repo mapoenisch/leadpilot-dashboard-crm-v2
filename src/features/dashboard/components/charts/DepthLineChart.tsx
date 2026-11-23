@@ -2,7 +2,7 @@
 // Klare Linie mit dezentem Schatten; die Datenpunkte liegen exakt auf dem Wert (keine Tiefenverschiebung).
 // Die Fläche (filled) ergänzt einen ruhigen Verlauf. Zugang für Tastatur und Touch: Bereichsregler.
 // Auftrag 170: Vergleichslinie, zweite Reihe (eigene Achse) und Erwartungsband als Zusatzebenen.
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { MANAGEMENT_CHART_THEME } from '@/components/ui/charts/managementChartTheme';
 import {
   ChartReadout,
@@ -89,6 +89,8 @@ export function DepthLineChart({
     return Math.max(0, (lastP.x + nextP.x) / 2 - AREA.left);
   }, [historyStartPrefixCount, points]);
 
+  const isSliderFocusedRef = useRef(false);
+
   return (
     <div
       className="flex flex-col gap-[10px]"
@@ -102,7 +104,11 @@ export function DepthLineChart({
           aria-label={`${title}: ${filled ? 'Fläche' : 'Linie'}`}
           aria-describedby={summaryId}
           className="block h-auto w-full min-w-[560px]"
-          onMouseLeave={handleClear}
+          onMouseLeave={() => {
+            if (!isSliderFocusedRef.current) {
+              handleClear();
+            }
+          }}
         >
           <defs>
             <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
@@ -294,10 +300,17 @@ export function DepthLineChart({
           value={active ?? 0}
           // Ohne Auswahl steht der Regler sichtbar auf dem ersten Zeitpunkt: mit Fokus wird er auch
           // tatsächlich gewählt, damit der erste Pfeiltastendruck nicht einen Monat überspringt.
-          onFocus={() => handleSelect(active ?? 0, true)}
-          onBlur={handleClear}
+          onFocus={() => {
+            isSliderFocusedRef.current = true;
+            handleSelect(active ?? 0, true);
+          }}
+          onBlur={() => {
+            isSliderFocusedRef.current = false;
+            handleClear();
+          }}
           onKeyDown={(event) => {
             if (event.key === 'Escape') {
+              isSliderFocusedRef.current = false;
               handleClear();
             } else if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
               event.preventDefault();

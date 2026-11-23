@@ -136,6 +136,7 @@ test.describe('Dashboard-Editor V2: Zeitpunkt, Zeitfenster und Fadenkreuz (Auftr
     // 6. Tastatur-Steuerung: Fokus, Pfeiltasten, Escape (auf Desktop und Tablet)
     const isMobileViewport = (page.viewportSize()?.width ?? 1440) < 768;
     if (!isMobileViewport) {
+      await page.mouse.move(0, 0);
       const slider = liveTile.getByRole('slider');
       await slider.scrollIntoViewIfNeeded();
       await slider.focus();

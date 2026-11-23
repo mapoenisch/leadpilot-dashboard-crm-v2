@@ -6,8 +6,8 @@
 **Vorgelagert:** P01–P15 abgeschlossen (bis 172 gemergt). Fehlt ein Paket, nennt der Builder es im BUILD_LOG und Marc entscheidet, ob die Abnahme mit dokumentierter Einschränkung läuft (Masterplan §6.1: „Fähigkeiten dürfen datenabhängig deaktiviert bleiben, die Abnahme muss diese Einschränkung dokumentieren“).
 **Baseline:** aktueller `main` beim Start.
 **Branch:** `auftrag-173-gesamtabnahme`.
-**Builder:** Antigravity (oder ein anderer von Marc benannter Agent). **Prüfer:** unabhängiger Agent nach `CLAUDE.md` §4.1, **zusätzlich** eine zweite unabhängige Prüfung der Abnahmematrix (anderer Agent als der erste Prüfer). **Merge:** Marc.
-**Status:** ENTWURF.
+**Builder:** Claude Code (von Marc am 22.11.2026 beauftragt; ursprünglich Antigravity oder ein anderer benannter Agent). **Prüfer:** unabhängiger Agent nach `CLAUDE.md` §4.1 (Codex). Die frühere Zusatzforderung einer zweiten Prüfung ist gestrichen (Klarstellung Marc 23.11.2026). **Merge:** Marc.
+**Status:** FERTIGGESTELLT / PR ERSTELLT (22.11.2026), Baseline `c48ac8b1`. Ergebnis und Befunde: `docs/dashboard/GESAMTABNAHME_P16.md`.
 
 ---
 
@@ -58,20 +58,20 @@ Schutzbereiche unverändert; eine neue Migration (`dashboard_rollout_decisions`,
 | Pfad                                                                                                                     | Änderung       |
 | ------------------------------------------------------------------------------------------------------------------------ | -------------- |
 | `docs/auftraege/ANTIGRAVITY_AUFTRAG_173_GESAMTABNAHME_ABGLEICH.md`                                                       | Dieser Auftrag |
-| neu Migration `2026112X_dashboard_rollout_reconciliation.sql`, neu `supabase/tests/dashboard_rollout_reconciliation.sql` | Server         |
+| neu Migration `20261128_dashboard_rollout_reconciliation.sql`, neu `supabase/tests/dashboard_rollout_reconciliation.sql` | Server         |
 | neu Admin-Ansicht „Umstellung vorbereiten“ (Muster Admin-Bereich), Service/Hook                                          | Oberfläche     |
 | ergänzende Tests für Matrix-Lücken, neu `scripts/loadTestDashboardV2.mjs`, E2E, Screenshots                              | Nachweise      |
 | neu `docs/dashboard/GESAMTABNAHME_P16.md`, Masterplan, `ARCHITECTURE_DECISIONS.md`, `BUILD_PLAN.md`, `docs/BUILD_LOG.md` | Doku           |
 
 ## 5. Tasks
 
-- [ ] **T0** Baseline, Paketstand P01–P15 je Paket mit Auftrag/PR, Hosted-Migrationsliste.
-- [ ] **T1** Rot-Nachweise (Klassen, Übernahme).
-- [ ] **T2** RPC, Entscheidungstabelle, pgTAP.
-- [ ] **T3** Admin-Ansicht und Vergleich.
-- [ ] **T4** Abnahmematrix mit fehlenden Tests, Rechte-Gesamtprüfung.
-- [ ] **T5** Lasttest, Betrieb, Rückweg-Probe.
-- [ ] **T6** Doku, Pflicht-Verifikation, BUILD_LOG, PR, Review durch zwei unabhängige Prüfer.
+- [x] **T0** Baseline, Paketstand P01–P15 je Paket mit Auftrag/PR, Hosted-Migrationsliste.
+- [x] **T1** Rot-Nachweise (Klassen, Übernahme).
+- [x] **T2** RPC, Entscheidungstabelle, pgTAP.
+- [x] **T3** Admin-Ansicht und Vergleich.
+- [x] **T4** Abnahmematrix mit fehlenden Tests, Rechte-Gesamtprüfung.
+- [x] **T5** Lasttest, Betrieb, Rückweg-Probe.
+- [x] **T6** Doku, Pflicht-Verifikation, BUILD_LOG, PR. Review durch Codex steht aus.
 
 ## 6. Abnahme
 

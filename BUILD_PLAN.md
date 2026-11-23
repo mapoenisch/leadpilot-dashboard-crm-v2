@@ -1,8 +1,8 @@
 # LeadPilot Dashboard-CRM — Bauplan
 
-**Stand:** 21.11.2026
+**Stand:** 22.11.2026
 
-**Aktueller Auftrag:** Auftrag 172 – Dashboard-Editor: Mobile Bedienung, Barrierefreiheits-Abnahme, Reportexport (P15b; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_172_MOBIL_BARRIEREFREIHEIT_REPORT.md`; Branch `auftrag-172-mobil-a11y-report`; Builder Claude Code; Status: FERTIGGESTELLT / PR ERSTELLT, wartet auf unabhängiges Review). Zuletzt: 171 Kiosk, Rotation, Sitzung, Offline (P15a; PR #212 gemergt als `a41e5fbe`), 170 Vergleich, Verknüpfung, Heatmap, Erwartungsbänder (P14b; PR #211). Nächster Schritt P16 (Gesamtabnahme und gestufte Umstellung).
+**Aktueller Auftrag:** Auftrag 173 – Dashboard-Editor: Gesamtabnahme und Abgleich V1 ↔ V2 (P16a; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_173_GESAMTABNAHME_ABGLEICH.md`; Branch `auftrag-173-gesamtabnahme`; Builder Claude Code; Status: FERTIGGESTELLT / PR ERSTELLT, wartet auf Codex-Review). Ergebnis: `docs/dashboard/GESAMTABNAHME_P16.md`; offener Befund B-1 (Alarm-RPCs prüfen kein Dashboard-Recht) → Vorschlag Zwischenauftrag 173a vor 174 (Entscheidung Marc). Zuletzt: 172 Mobile Bedienung, Barrierefreiheit, Report (P15b; PR #213 gemergt als `c48ac8b1`), 171 Kiosk (P15a; PR #212). Nächster Schritt: 173a, dann P16b (Auftrag 174, gestufte Umstellung).
 
 **Zielversion (festgelegt 18.11.2026, Marc):** `v3.2.0` – umfasst alles seit `v3.1.0` (10.11.2026) bis einschließlich P13 (Aufträge 151–168: Dashboard-Editor V2 mit Raster, Panel-Editor, Sektionen, Vorlagen, Zeitsteuerung, Server-Zeitreihen, Team-Freigaben, Versionen/Import/Export, Schwellenwerte, Server-Alarme). Neue Funktionen ohne Bruch bestehender Daten → Minor-Sprung. Release, Tag und Anheben von `package.json` macht Marc nach Merge von 168. Folgeplanung: P14–P15 → `v3.3.0`; P16 (neuer Editor wird Standard) → `v4.0.0`.
 

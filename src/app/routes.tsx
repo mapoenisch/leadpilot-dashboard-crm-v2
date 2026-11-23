@@ -287,6 +287,12 @@ export const APP_ROUTES = [
     categoryLabel: 'Administration',
   },
   {
+    id: 's-admin-rollout',
+    path: '/admin/umstellung',
+    title: 'Umstellung vorbereiten',
+    categoryLabel: 'Administration',
+  },
+  {
     id: 's-dashboard-alarme',
     path: '/dashboard/alarme',
     title: 'Dashboard-Alarme',

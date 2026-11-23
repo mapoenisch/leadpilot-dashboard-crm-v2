@@ -285,6 +285,17 @@ export function Sidebar({
                 onClick={handleLinkClick}
               />
             )}
+            {/* Auftrag 173: wie „Alarme“ nur im Admin-Bereich, damit die Seitenleiste der
+                übrigen Seiten (Visual-Baselines) unverändert bleibt. */}
+            {currentRoute.id.startsWith('s-admin') && (
+              <NavItem
+                to="/admin/umstellung"
+                dataTestId="nav-item-admin-rollout"
+                label="Umstellung vorbereiten"
+                active={currentRoute.id === 's-admin-rollout'}
+                onClick={handleLinkClick}
+              />
+            )}
           </div>
         )}
       </nav>
