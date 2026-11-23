@@ -33,6 +33,8 @@ export interface RolloutReconciliationRow {
   entschiedenVonEmail: string | null;
   /** null = keine Entscheidung; false = Revision hat sich seitdem geändert (verfallen). */
   entscheidungGueltig: boolean | null;
+  /** Nur In-Memory-Dienst: Pilotkopie, für die entschieden wurde (Server prüft selbst). */
+  entscheidungDashboardId?: string | null;
 }
 
 export const ROLLOUT_CLASS_LABEL: Record<RolloutClass, string> = {
@@ -62,8 +64,18 @@ export const ROLLOUT_DECISION_LABEL: Record<RolloutDecision, string> = {
 
 /** Klassen, für die eine Entscheidung nötig ist, bevor umgestellt werden darf. */
 export function needsDecision(row: RolloutReconciliationRow): boolean {
+  // Verfallene Entscheidung zählt unabhängig von der Klasse als offen (Codex PR #219): z. B.
+  // nach „Alten Stand übernehmen“ und anschließender Bearbeitung im Pilot (Klasse „gleich“).
+  if (row.klasse === 'gleich')
+    return row.entscheidung !== null && row.entscheidungGueltig === false;
   if (row.klasse !== 'v1_geaendert' && row.klasse !== 'beide_geaendert') return false;
   return row.entscheidung === null || row.entscheidung === 'spaeter' || !row.entscheidungGueltig;
+}
+
+/** Klassen, für die die Ansicht Entscheidungen anbietet (inkl. verfallener Entscheidung bei „gleich“). */
+export function isDecidable(row: RolloutReconciliationRow): boolean {
+  if (row.klasse === 'v1_geaendert' || row.klasse === 'beide_geaendert') return true;
+  return row.klasse === 'gleich' && row.entscheidung !== null && row.entscheidungGueltig === false;
 }
 
 /** Spiegel der Server-Klassifizierung (dashboard_rollout_classify) für Tests und Vorschau. */

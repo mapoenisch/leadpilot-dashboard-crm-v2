@@ -4,7 +4,7 @@
 
 BEGIN;
 
-SELECT plan(41);
+SELECT plan(46);
 SET CONSTRAINTS ALL IMMEDIATE;
 
 -- ---------------------------------------------------------------- Setup --
@@ -100,7 +100,7 @@ SELECT throws_ok($$ SELECT * FROM public.dashboard_v1_v2_reconciliation() $$, '4
 SELECT set_config('request.jwt.claims', '{"sub":"9f730000-0000-0000-0000-000000000003","role":"authenticated"}', true);
 SELECT throws_ok($$ SELECT * FROM public.dashboard_v1_v2_reconciliation() $$, '42501', 'LP_FORBIDDEN', 'Viewer darf den Abgleich nicht sehen');
 SELECT throws_ok(
-  $$ SELECT * FROM public.dashboard_rollout_decide('9f730000-0000-0000-0000-000000000012', 'spaeter', 5, 1) $$,
+  $$ SELECT * FROM public.dashboard_rollout_decide('9f730000-0000-0000-0000-000000000012', 'spaeter', 5, 1, 'd7730000-0000-0000-0000-000000000012') $$,
   '42501', 'LP_FORBIDDEN', 'Viewer darf nicht entscheiden'
 );
 
@@ -126,27 +126,27 @@ SELECT set_config('request.jwt.claims', '{"sub":"9f730000-0000-0000-0000-0000000
 SELECT is((SELECT count(*)::int FROM public.dashboard_v1_v2_reconciliation()), 0, 'Admin B sieht keine Nutzer aus Org A');
 -- 19 Admin B kann für Nutzer aus Org A nicht entscheiden (Nutzer gilt in Org B als unbekannt)
 SELECT throws_ok(
-  $$ SELECT * FROM public.dashboard_rollout_decide('9f730000-0000-0000-0000-000000000012', 'spaeter', 5, 1) $$,
+  $$ SELECT * FROM public.dashboard_rollout_decide('9f730000-0000-0000-0000-000000000012', 'spaeter', 5, 1, 'd7730000-0000-0000-0000-000000000012') $$,
   'P0002', 'LP_ROLLOUT_NOT_FOUND', 'Entscheidung über fremde Organisation abgewiesen'
 );
 -- 20 Admin B kann nicht übernehmen
 SELECT throws_ok(
-  $$ SELECT * FROM public.dashboard_rollout_adopt_v1('9f730000-0000-0000-0000-000000000012', 5, 1, '{}'::jsonb) $$,
+  $$ SELECT * FROM public.dashboard_rollout_adopt_v1('9f730000-0000-0000-0000-000000000012', 5, 1, 'd7730000-0000-0000-0000-000000000012', '{}'::jsonb) $$,
   'P0002', NULL, 'Übernahme über fremde Organisation abgewiesen'
 );
 
 -- ======================================================== 21..25 Entscheidung mit Revisionsbindung
 SELECT set_config('request.jwt.claims', '{"sub":"9f730000-0000-0000-0000-000000000001","role":"authenticated"}', true);
 SELECT throws_ok(
-  $$ SELECT * FROM public.dashboard_rollout_decide('9f730000-0000-0000-0000-000000000013', 'v2_behalten', 3, 3) $$,
+  $$ SELECT * FROM public.dashboard_rollout_decide('9f730000-0000-0000-0000-000000000013', 'v2_behalten', 3, 3, 'd7730000-0000-0000-0000-000000000013') $$,
   'P0001', 'LP_ROLLOUT_STALE', 'Veraltete erwartete Revision wird abgewiesen'
 );
 SELECT throws_ok(
-  $$ SELECT * FROM public.dashboard_rollout_decide('9f730000-0000-0000-0000-000000000013', 'v1_uebernehmen', 4, 3) $$,
+  $$ SELECT * FROM public.dashboard_rollout_decide('9f730000-0000-0000-0000-000000000013', 'v1_uebernehmen', 4, 3, 'd7730000-0000-0000-0000-000000000013') $$,
   '22023', 'LP_ROLLOUT_INVALID: Entscheidung nicht erlaubt', 'Übernahme nur über die Übernahme-RPC'
 );
 SELECT is(
-  (SELECT entscheidung FROM public.dashboard_rollout_decide('9f730000-0000-0000-0000-000000000013', 'v2_behalten', 4, 3)),
+  (SELECT entscheidung FROM public.dashboard_rollout_decide('9f730000-0000-0000-0000-000000000013', 'v2_behalten', 4, 3, 'd7730000-0000-0000-0000-000000000013')),
   'v2_behalten', 'Admin entscheidet V2-Pilot behalten'
 );
 SELECT is(
@@ -166,21 +166,21 @@ SELECT is(
 
 -- ======================================================== 26..35 Übernahme als neue Revision
 SELECT throws_ok(
-  $$ SELECT * FROM public.dashboard_rollout_adopt_v1('9f730000-0000-0000-0000-000000000012', 4, 1, pg_temp.v2cfg('x', 1)) $$,
+  $$ SELECT * FROM public.dashboard_rollout_adopt_v1('9f730000-0000-0000-0000-000000000012', 4, 1, 'd7730000-0000-0000-0000-000000000012', pg_temp.v2cfg('x', 1)) $$,
   'P0001', 'LP_ROLLOUT_STALE', 'Übernahme mit veralteter V1-Revision abgewiesen'
 );
 SELECT throws_ok(
-  $$ SELECT * FROM public.dashboard_rollout_adopt_v1('9f730000-0000-0000-0000-000000000014', 2, NULL, pg_temp.v2cfg('x', 1)) $$,
+  $$ SELECT * FROM public.dashboard_rollout_adopt_v1('9f730000-0000-0000-0000-000000000014', 2, NULL, NULL, pg_temp.v2cfg('x', 1)) $$,
   'P0002', 'LP_ROLLOUT_NO_COPY', 'Ohne V2-Kopie keine Übernahme'
 );
 SELECT throws_ok(
-  $$ SELECT * FROM public.dashboard_rollout_adopt_v1('9f730000-0000-0000-0000-000000000012', 5, 1, '{"version":1}'::jsonb) $$,
+  $$ SELECT * FROM public.dashboard_rollout_adopt_v1('9f730000-0000-0000-0000-000000000012', 5, 1, 'd7730000-0000-0000-0000-000000000012', '{"version":1}'::jsonb) $$,
   '22023', NULL, 'Ungültige Konfiguration wird serverseitig abgewiesen'
 );
 
 CREATE TEMP TABLE adopt1 AS
 SELECT * FROM public.dashboard_rollout_adopt_v1(
-  '9f730000-0000-0000-0000-000000000012', 5, 1,
+  '9f730000-0000-0000-0000-000000000012', 5, 1, 'd7730000-0000-0000-0000-000000000012',
   pg_temp.v2cfg('fremd', 99) || '{"title":"Manipuliert","organizationId":"af730000-0000-0000-0000-00000000000b"}'::jsonb
 );
 SELECT is((SELECT revision FROM adopt1), 2, 'Übernahme erzeugt die nächste Revision');
@@ -251,6 +251,41 @@ SELECT is(
   (SELECT revision || '/' || (config->'metadata'->>'last_migrated_revision') FROM public.dashboards WHERE id = 'd7730000-0000-0000-0000-000000000013'),
   '3/1', 'Bearbeiteter V2-Stand und Quellrevision bleiben unverändert'
 );
+
+-- 42..46 Codex PR #219: Dashboard-ID-Bindung und robuste Metadaten
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims', '{"sub":"9f730000-0000-0000-0000-000000000001","role":"authenticated"}', true);
+SELECT throws_ok(
+  $$ SELECT * FROM public.dashboard_rollout_decide('9f730000-0000-0000-0000-000000000011', 'spaeter', 3, 4, 'd7730000-0000-0000-0000-000000000111') $$,
+  'P0001', 'LP_ROLLOUT_STALE', 'Entscheidung mit abweichender erwarteter Dashboard-ID wird abgewiesen'
+);
+SELECT is(
+  (SELECT entscheidung FROM public.dashboard_rollout_decide('9f730000-0000-0000-0000-000000000011', 'spaeter', 3, 4, 'd7730000-0000-0000-0000-000000000011')),
+  'spaeter', 'Entscheidung mit passender Dashboard-ID wird gespeichert'
+);
+-- Pilotkopie gelöscht, ein Duplikat mit derselben Revision bleibt: Entscheidung verfällt
+RESET ROLE;
+DELETE FROM public.dashboards WHERE id = 'd7730000-0000-0000-0000-000000000011';
+UPDATE public.dashboards SET revision = 4 WHERE id = 'd7730000-0000-0000-0000-000000000111';
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims', '{"sub":"9f730000-0000-0000-0000-000000000001","role":"authenticated"}', true);
+SELECT is(
+  (SELECT v2_dashboard_id::text || '/' || entscheidung_gueltig::text FROM public.dashboard_v1_v2_reconciliation() WHERE user_id = '9f730000-0000-0000-0000-000000000011'),
+  'd7730000-0000-0000-0000-000000000111/false', 'Ausgetauschte Pilotkopie bei gleicher Revision: Entscheidung verfallen'
+);
+-- Metadaten außerhalb des Ganzzahlbereichs brechen den Abgleich nicht ab
+RESET ROLE;
+UPDATE public.dashboards
+SET config = jsonb_set(config, '{metadata,last_migrated_revision}', '2147483648'::jsonb)
+WHERE id = 'd7730000-0000-0000-0000-000000000015';
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claims', '{"sub":"9f730000-0000-0000-0000-000000000001","role":"authenticated"}', true);
+SELECT is((SELECT count(*)::int FROM public.dashboard_v1_v2_reconciliation()), 5, 'Überlaufender Metadatenwert lässt den Abgleich laufen');
+SELECT is(
+  (SELECT coalesce(last_migrated_revision::text, 'leer') FROM public.dashboard_v1_v2_reconciliation() WHERE user_id = '9f730000-0000-0000-0000-000000000015'),
+  'leer', 'Ungültiger Metadatenwert gilt als fehlende Herkunft'
+);
+RESET ROLE;
 
 SELECT * FROM finish();
 ROLLBACK;

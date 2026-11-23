@@ -6,6 +6,7 @@ import { useId, useMemo, useState } from 'react';
 import { AlertTriangle, ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
 import {
   compareV1WithV2,
+  isDecidable,
   needsDecision,
   ROLLOUT_CLASS_HINT,
   ROLLOUT_CLASS_LABEL,
@@ -54,7 +55,7 @@ export function RolloutUserCard({
 }: RolloutUserCardProps) {
   const [open, setOpen] = useState(false);
   const listId = useId();
-  const decidable = row.klasse === 'v1_geaendert' || row.klasse === 'beide_geaendert';
+  const decidable = isDecidable(row);
   const comparison = useMemo(() => (decidable ? compareV1WithV2(row) : null), [decidable, row]);
   const pending = needsDecision(row);
   const name = row.email ?? 'Unbekannter Nutzer';

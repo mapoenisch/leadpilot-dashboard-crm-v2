@@ -152,6 +152,7 @@ export const supabaseRolloutService: RolloutPrepService = {
       p_entscheidung: decision,
       p_expected_v1_revision: row.v1Revision,
       p_expected_v2_revision: row.v2Revision,
+      p_expected_dashboard_id: row.v2DashboardId,
     });
     return res.ok ? { ok: true, value: undefined } : res;
   },
@@ -160,6 +161,7 @@ export const supabaseRolloutService: RolloutPrepService = {
       p_user_id: row.userId,
       p_expected_v1_revision: row.v1Revision,
       p_expected_v2_revision: row.v2Revision,
+      p_expected_dashboard_id: row.v2DashboardId,
       p_config: config,
     });
     if (!res.ok) return res;
@@ -179,6 +181,8 @@ export function createInMemoryRolloutService(
   rows: () => RolloutReconciliationRow[];
   /** Simuliert eine weitere Bearbeitung im alten Editor (für Verfalls-Tests). */
   bumpV1: (userId: string) => void;
+  /** Simuliert eine Bearbeitung im Pilot bzw. den Austausch der Pilotkopie (Verfalls-Tests). */
+  bumpV2: (userId: string, dashboardId?: string) => void;
 } {
   let rows = initial.map((r) => ({ ...r }));
   const recompute = (r: RolloutReconciliationRow): RolloutReconciliationRow => {
@@ -192,16 +196,31 @@ export function createInMemoryRolloutService(
     const gueltig =
       r.entscheidung === null
         ? null
-        : r.entscheidungV1Revision === r.v1Revision && r.entscheidungV2Revision === r.v2Revision;
+        : r.entscheidungV1Revision === r.v1Revision &&
+          r.entscheidungV2Revision === r.v2Revision &&
+          (r.entscheidungDashboardId ?? null) === r.v2DashboardId;
     return { ...r, klasse, entscheidungGueltig: gueltig };
   };
   const find = (row: RolloutReconciliationRow) => rows.find((r) => r.userId === row.userId);
   const stale = (current: RolloutReconciliationRow, row: RolloutReconciliationRow) =>
-    current.v1Revision !== row.v1Revision || current.v2Revision !== row.v2Revision;
+    current.v1Revision !== row.v1Revision ||
+    current.v2Revision !== row.v2Revision ||
+    current.v2DashboardId !== row.v2DashboardId;
   const now = () => new Date().toISOString();
 
   return {
     rows: () => rows,
+    bumpV2(userId, dashboardId) {
+      rows = rows.map((r) =>
+        r.userId === userId && r.v2Revision !== null
+          ? recompute({
+              ...r,
+              v2Revision: dashboardId ? r.v2Revision : r.v2Revision + 1,
+              v2DashboardId: dashboardId ?? r.v2DashboardId,
+            })
+          : r,
+      );
+    },
     bumpV1(userId) {
       rows = rows.map((r) =>
         r.userId === userId && r.v1Revision !== null
@@ -223,6 +242,7 @@ export function createInMemoryRolloutService(
               entscheidung: decision,
               entscheidungV1Revision: r.v1Revision,
               entscheidungV2Revision: r.v2Revision,
+              entscheidungDashboardId: r.v2DashboardId,
               entschiedenAt: now(),
               entschiedenVonEmail: 'admin@vorschau.local',
             })
@@ -256,6 +276,7 @@ export function createInMemoryRolloutService(
               entscheidung: 'v1_uebernehmen',
               entscheidungV1Revision: r.v1Revision,
               entscheidungV2Revision: revision,
+              entscheidungDashboardId: r.v2DashboardId,
               entschiedenAt: now(),
               entschiedenVonEmail: 'admin@vorschau.local',
             })

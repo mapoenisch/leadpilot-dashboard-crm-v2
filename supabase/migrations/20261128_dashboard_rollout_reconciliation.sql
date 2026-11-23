@@ -115,7 +115,14 @@ LANGUAGE sql
 IMMUTABLE
 SET search_path = public, pg_temp
 AS $$
-  SELECT CASE WHEN jsonb_typeof(p_value) = 'number' THEN (p_value #>> '{}')::NUMERIC::INTEGER END
+  -- Nur ganze Zahlen im INTEGER-Bereich; alles andere gilt als fehlende Herkunft (NULL),
+  -- damit ein einzelner manipulierter Wert den Abgleich nicht abbricht (Codex PR #219).
+  SELECT CASE
+    WHEN jsonb_typeof(p_value) = 'number'
+      AND (p_value #>> '{}')::NUMERIC BETWEEN 0 AND 2147483647
+      AND (p_value #>> '{}')::NUMERIC = trunc((p_value #>> '{}')::NUMERIC)
+    THEN (p_value #>> '{}')::NUMERIC::INTEGER
+  END
 $$;
 
 -- 5. Abgleich je Nutzer der eigenen Organisation (nur Admin).
@@ -205,6 +212,7 @@ BEGIN
       WHEN dec.entscheidung IS NULL THEN NULL
       ELSE dec.v1_revision IS NOT DISTINCT FROM r.v1_rev
         AND dec.v2_revision IS NOT DISTINCT FROM r.v2_rev
+        AND dec.dashboard_id IS NOT DISTINCT FROM r.v2_id
     END
   FROM rows AS r
   LEFT JOIN auth.users AS u ON u.id = r.user_id
@@ -218,12 +226,14 @@ END;
 $$;
 
 -- 6. Entscheidung "V2-Pilot behalten" oder "später entscheiden" (nur Admin).
---    Die erwarteten Revisionen müssen dem aktuellen Stand entsprechen, sonst LP_ROLLOUT_STALE.
+--    Erwartete Revisionen und erwartete Pilotkopie (Dashboard-ID) müssen dem aktuellen Stand
+--    entsprechen, sonst LP_ROLLOUT_STALE (ein Austausch der Kopie bleibt nicht unbemerkt).
 CREATE OR REPLACE FUNCTION public.dashboard_rollout_decide(
   p_user_id UUID,
   p_entscheidung TEXT,
   p_expected_v1_revision INTEGER,
-  p_expected_v2_revision INTEGER
+  p_expected_v2_revision INTEGER,
+  p_expected_dashboard_id UUID
 )
 RETURNS TABLE (ergebnis_klasse TEXT, entscheidung TEXT, entschieden_at TIMESTAMPTZ)
 LANGUAGE plpgsql
@@ -265,7 +275,8 @@ BEGIN
   END IF;
 
   IF v_v1_rev IS DISTINCT FROM p_expected_v1_revision
-     OR v_v2_rev IS DISTINCT FROM p_expected_v2_revision THEN
+     OR v_v2_rev IS DISTINCT FROM p_expected_v2_revision
+     OR v_copy IS DISTINCT FROM p_expected_dashboard_id THEN
     RAISE EXCEPTION 'LP_ROLLOUT_STALE' USING ERRCODE = 'P0001';
   END IF;
 
@@ -308,6 +319,7 @@ CREATE OR REPLACE FUNCTION public.dashboard_rollout_adopt_v1(
   p_user_id UUID,
   p_expected_v1_revision INTEGER,
   p_expected_v2_revision INTEGER,
+  p_expected_dashboard_id UUID,
   p_config JSONB
 )
 RETURNS TABLE (dashboard_id UUID, revision INTEGER, updated_at TIMESTAMPTZ)
@@ -346,7 +358,8 @@ BEGIN
   FROM public.dashboards AS d WHERE d.id = v_copy FOR UPDATE;
 
   IF v_v1_rev IS DISTINCT FROM p_expected_v1_revision
-     OR v_v2_rev IS DISTINCT FROM p_expected_v2_revision THEN
+     OR v_v2_rev IS DISTINCT FROM p_expected_v2_revision
+     OR v_copy IS DISTINCT FROM p_expected_dashboard_id THEN
     RAISE EXCEPTION 'LP_ROLLOUT_STALE' USING ERRCODE = 'P0001';
   END IF;
 
@@ -434,7 +447,7 @@ GRANT EXECUTE ON FUNCTION public.dashboard_rollout_classify(BOOLEAN, INTEGER, BO
 
 REVOKE ALL ON FUNCTION public.dashboard_v1_v2_reconciliation() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.dashboard_v1_v2_reconciliation() TO authenticated;
-REVOKE ALL ON FUNCTION public.dashboard_rollout_decide(UUID, TEXT, INTEGER, INTEGER) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.dashboard_rollout_decide(UUID, TEXT, INTEGER, INTEGER) TO authenticated;
-REVOKE ALL ON FUNCTION public.dashboard_rollout_adopt_v1(UUID, INTEGER, INTEGER, JSONB) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.dashboard_rollout_adopt_v1(UUID, INTEGER, INTEGER, JSONB) TO authenticated;
+REVOKE ALL ON FUNCTION public.dashboard_rollout_decide(UUID, TEXT, INTEGER, INTEGER, UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.dashboard_rollout_decide(UUID, TEXT, INTEGER, INTEGER, UUID) TO authenticated;
+REVOKE ALL ON FUNCTION public.dashboard_rollout_adopt_v1(UUID, INTEGER, INTEGER, UUID, JSONB) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.dashboard_rollout_adopt_v1(UUID, INTEGER, INTEGER, UUID, JSONB) TO authenticated;
