@@ -23002,3 +23002,52 @@ Umgesetzt und lokal verifiziert. Laut Auftrag sind **zwei unabhängige Prüfunge
 - **Korrektur:** Der Menüpunkt erscheint wie „Alarme“ (Auftrag 168) nur innerhalb des Admin-Bereichs. Die Seitenleiste der übrigen Seiten bleibt unverändert, keine neuen Baselines nötig.
 - **Nachweis:** Die Linux-Baseline (CI) ist 1440 × 1519 px; die Aufnahme nach der Korrektur ebenfalls 1519 px, mit dem dauerhaften Menüpunkt waren es 1558 px. Lokal auf macOS bleibt `visual.spec.ts` rot, weil die darwin-Baselines seit 12.09.2026 nicht gepflegt sind (900 px); das betrifft `main` gleichermaßen und ist kein Befund dieses Auftrags. Die CI-Prüfung unter Linux ist maßgeblich.
 
+
+## 2026-11-23 — Zwischenauftrag 173a: Alarm-Rechte an das Dashboard-Recht binden (Befunde B-1, B-4, B-5)
+
+Builder: Claude Code (Entscheidung Marc 23.11.2026: „ja machen wir genau so“). Baseline `e2766119` (Head von 173). Branch `auftrag-173a-alarm-rechte`, gestapelt auf PR #219.
+
+### 1. Ziel & Kontext
+
+Die offenen Befunde aus der Gesamtabnahme 173 schließen, damit 174 auf einer Abnahmematrix ohne offene Befunde aufsetzt. Gleichzeitig festgehalten (BUILD_PLAN): Rollout-Stufen wie 174 §0; `beide_geaendert` ohne Entscheidung → Pilot behalten, V1 bleibt als Sicherung lesbar.
+
+### 2. Umsetzung
+
+- **Migration `20261129_dashboard_alarm_rule_rights.sql`:** Hilfsfunktionen `dashboard_alarm_dashboard_access` (`schreiben`/`lesen`/`keins`), `dashboard_alarm_caller_role`, `dashboard_alarm_require_manage`, `dashboard_alarm_rule_dashboard` (nicht öffentlich). Neu definiert: `create/update/pause/resume/delete_dashboard_alarm_rule`, `list_dashboard_alarm_rules`, `list_dashboard_alarm_events` (alt, ungenutzt), `alarm_worker_status`.
+- **Regeln:** Verwalten nur mit Rolle Admin/Manager **und** Schreibrecht am Dashboard. Lesen nur mit Leserecht. Pausieren/Löschen zusätzlich durch den Admin der Organisation (Admin-Ansicht „Alarme“). Ohne Leserecht `LP_DASHBOARD_NOT_FOUND`, sonst `LP_AUTH_INSUFFICIENT_PERMISSIONS`. Anlegen auf belegter Kachel übernimmt keine Verantwortung. Prüfung in `current_organization_id()`.
+- **B-4:** `alarm_worker_status().aktiveRegeln` nur für die eigene Organisation.
+- **B-5:** `e2e/team-dashboards.spec.ts` räumt mit `dashboards`/`dashboard_teams` auf, entfernt auch die persönlichen „(Kopie)“-Dashboards und meldet Fehler sichtbar. Nach dem Lauf: 0 Rückstände in der lokalen DB.
+- Keine Client-Änderung nötig: Der Alarmdienst reicht Fehlertexte durch, die Fehlerarten sind dieselben wie bisher.
+
+### 3. Rot-Nachweis
+
+`dashboard_rights_matrix_p16.sql`: TODO-Block aus 173 in reguläre Tests überführt und um Admin-/Positivfälle ergänzt (47 Tests). Vor der Migration **13 rot**, danach 47 grün. Eine Erwartung angepasst: Admin einer fremden Organisation erhält beim Anlegen jetzt `LP_DASHBOARD_NOT_FOUND` statt `LP_AUTH_INSUFFICIENT_PERMISSIONS` (verrät keine Existenz, wie `load_dashboard_v2`).
+
+### 4. Schutzbereiche
+
+`git diff e2766119 -- src/simulation src/types src/context src/services/data src/features/resources` → leer.
+
+### 5. Automatisierte Verifikation
+
+| Prüfung | Ergebnis |
+| --- | --- |
+| `npx tsc --noEmit`, `npm run lint`, `npm run format:check` | grün |
+| `npm test` | 489 Dateien, 3.750 Tests grün |
+| `npm run verify` | 25/25 grün |
+| `npm run build`; `build:production` (https-Platzhalter) | grün |
+| `npx size-limit` | 172,29 kB / 180 kB |
+| `supabase test db` | 30 Dateien, 797 Tests grün, **0 TODO** |
+| `npm run verify:migrations`, `verify:realtime -- --fail-if-offline` | grün |
+| Playwright seriell (CI-Zeile 232) | 65 bestanden, 10 übersprungen, 0 rot |
+| Playwright `dashboard-alarms-preview` | 3 bestanden |
+| Playwright parallel (CI-Zeile 230) | 745 bestanden; 15 rot nur `visual.spec.ts` auf macOS (veraltete darwin-Baselines, auch auf `main`), siehe 173 §11 |
+
+Dabei aufgefallen und auf 173 korrigiert (`e2766119`): Der Menüpunkt „Umstellung vorbereiten“ verlängerte die Seitenleiste auf allen Seiten (Linux-Baselines wären rot gewesen); der Eintrag erscheint jetzt nur im Admin-Bereich.
+
+### 6. Dokumentation
+
+`GESAMTABNAHME_P16.md` (Matrixzeile 6 ✅, Rechtetabelle, Befunde B-1/B-4/B-5 behoben, §9 Entscheidungen Marc, Hosted-Liste um `20261129` ergänzt), `ARCHITECTURE_DECISIONS.md` C17, `BUILD_PLAN.md`, Detailauftrag `ANTIGRAVITY_AUFTRAG_173A_ALARM_RECHTE.md`.
+
+### 7. Ergebnis & Freigabestatus
+
+Umgesetzt und lokal verifiziert. Unabhängiges Review ausstehend (CLAUDE.md §4.1). Merge nach 173 (#219).
