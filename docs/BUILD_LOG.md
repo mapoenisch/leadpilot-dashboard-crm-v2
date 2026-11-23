@@ -23010,3 +23010,11 @@ Umgesetzt und lokal verifiziert. Prüfer ist Codex (CLAUDE.md §4.1; Klarstellun
 - **P2 Wertebereich der Migrationsmetadaten:** `dashboard_rollout_int` akzeptiert nur ganze Zahlen von 0 bis 2.147.483.647; andere Werte gelten als fehlende Herkunft, statt den ganzen Abgleich abzubrechen.
 - **Tests:** pgTAP `dashboard_rollout_reconciliation.sql` +5 (falsche Dashboard-ID abgewiesen, passende gespeichert, ausgetauschte Kopie → verfallen, Überlauf bricht nicht ab, ungültiger Wert = leer; jetzt 46). Neu `rolloutReconciliationCodex.vitest.ts` (4), `RolloutPrepPage.ui.vitest.tsx` +1. **Rot-Nachweis:** pgTAP gegen die alte Migration rot (Signatur fehlt), die 5 neuen Vitest-Fälle gegen den alten Client rot, mit der Nacharbeit grün.
 - **Verifikation:** `tsc` 0, `lint` 0, Prettier grün, `npm test` 490 Dateien / 3.755 Tests grün, `verify` 25/25, Build und size-limit (172,34 kB) grün, `supabase test db` 30 Dateien grün (5 TODO = B-1, Behebung in 173a), `verify:migrations` grün, E2E `dashboard-rollout-prep` und `dashboard-rueckweg-probe` 6 grün. Schutzbereiche gegen `c48ac8b1` unverändert (leerer Diff).
+
+
+### 13. Nacharbeit Runde 2 (Codex-Review auf `739ea6197f`, 23.11.2026)
+
+- **P2 Zurückgestellte Entscheidungen bei Klasse „gleich“ weiterhin offen und entscheidbar:** Wenn nach „Alten Stand übernehmen“ im Pilot weitergearbeitet und anschließend „Später entscheiden“ gewählt wird, bleibt die Klasse `gleich`, während die Entscheidung wieder gültig ist. `needsDecision` und `isDecidable` berücksichtigen nun `entscheidung === 'spaeter'` auch bei Klasse `gleich`. Damit zählt der Eintrag als offene Entscheidung und bietet weiterhin die Aktionen zur endgültigen Entscheidung an.
+- **Tests:** `rolloutReconciliationCodex.vitest.ts` +1 Fall (Replikation des genauen Ablaufs: Übernahme → Weiterbearbeitung im Pilot → „Später entscheiden“ bleibt offen/entscheidbar → endgültige Entscheidung schließt ab); `rolloutReconciliation.vitest.ts` +1 Fall; `RolloutPrepPage.ui.vitest.tsx` +1 UI-Test.
+- **Verifikation:** `tsc` 0, `lint` 0, Prettier (`format:check`) grün, `npm test` 490 Dateien / 3.757 Tests grün, `verify` 25/25 Integrity-Suiten grün, Build und `size-limit` (172,35 kB) grün. Schutzbereichs-Diff gegen `c48ac8b1` unverändert leer.
+

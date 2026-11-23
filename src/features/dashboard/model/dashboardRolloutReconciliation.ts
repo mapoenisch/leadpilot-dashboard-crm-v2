@@ -64,18 +64,28 @@ export const ROLLOUT_DECISION_LABEL: Record<RolloutDecision, string> = {
 
 /** Klassen, für die eine Entscheidung nötig ist, bevor umgestellt werden darf. */
 export function needsDecision(row: RolloutReconciliationRow): boolean {
-  // Verfallene Entscheidung zählt unabhängig von der Klasse als offen (Codex PR #219): z. B.
-  // nach „Alten Stand übernehmen“ und anschließender Bearbeitung im Pilot (Klasse „gleich“).
-  if (row.klasse === 'gleich')
-    return row.entscheidung !== null && row.entscheidungGueltig === false;
+  // Zurückgestellte oder verfallene Entscheidung zählt auch bei „gleich“ als offen (Codex PR #219):
+  // z. B. nach „Alten Stand übernehmen“, Weiterbearbeitung im Pilot und anschließend „Später entscheiden“.
+  if (row.klasse === 'gleich') {
+    return (
+      row.entscheidung === 'spaeter' ||
+      (row.entscheidung !== null && row.entscheidungGueltig === false)
+    );
+  }
   if (row.klasse !== 'v1_geaendert' && row.klasse !== 'beide_geaendert') return false;
   return row.entscheidung === null || row.entscheidung === 'spaeter' || !row.entscheidungGueltig;
 }
 
-/** Klassen, für die die Ansicht Entscheidungen anbietet (inkl. verfallener Entscheidung bei „gleich“). */
+/** Klassen, für die die Ansicht Entscheidungen anbietet (inkl. verfallener oder zurückgestellter Entscheidung bei „gleich“). */
 export function isDecidable(row: RolloutReconciliationRow): boolean {
   if (row.klasse === 'v1_geaendert' || row.klasse === 'beide_geaendert') return true;
-  return row.klasse === 'gleich' && row.entscheidung !== null && row.entscheidungGueltig === false;
+  if (row.klasse === 'gleich') {
+    return (
+      row.entscheidung === 'spaeter' ||
+      (row.entscheidung !== null && row.entscheidungGueltig === false)
+    );
+  }
+  return false;
 }
 
 /** Spiegel der Server-Klassifizierung (dashboard_rollout_classify) für Tests und Vorschau. */

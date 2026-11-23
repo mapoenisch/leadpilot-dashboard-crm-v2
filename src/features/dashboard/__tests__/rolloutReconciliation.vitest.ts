@@ -105,6 +105,9 @@ describe('needsDecision', () => {
       needsDecision({ ...byId('u-v1'), entscheidung: 'v2_behalten', entscheidungGueltig: true }),
     ).toBe(false);
     expect(needsDecision(byId('u-gleich'))).toBe(false);
+    expect(
+      needsDecision({ ...byId('u-gleich'), entscheidung: 'spaeter', entscheidungGueltig: true }),
+    ).toBe(true);
     expect(needsDecision(byId('u-ohne'))).toBe(false);
   });
 });

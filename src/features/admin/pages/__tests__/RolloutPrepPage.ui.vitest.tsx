@@ -145,4 +145,27 @@ describe('RolloutPrepPage – Codex PR #219', () => {
     expect(screen.getByTestId('rollout-keep-u-v1')).toBeInTheDocument();
     expect(screen.getByTestId('rollout-open-count')).toHaveTextContent('1 Entscheidung offen.');
   });
+
+  it('bleibt offen und entscheidbar, wenn bei Klasse „gleich“ „spaeter“ gewählt wird (Codex Runde 2)', async () => {
+    const service = createInMemoryRolloutService(buildRolloutPreviewRows());
+    render(<RolloutPrepPage service={service} />);
+    fireEvent.click(await screen.findByTestId('rollout-adopt-u-v1'));
+    fireEvent.click(screen.getByTestId('rollout-adopt-confirm'));
+    await waitFor(() =>
+      expect(screen.getByTestId('rollout-class-u-v1')).toHaveTextContent('Gleich'),
+    );
+    service.bumpV2('u-v1');
+    fireEvent.click(screen.getByTestId('rollout-keep-u-beide'));
+    await waitFor(() =>
+      expect(screen.getByTestId('rollout-decision-stale-u-v1')).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByTestId('rollout-later-u-v1'));
+    await waitFor(() =>
+      expect(screen.getByTestId('rollout-decision-u-v1')).toHaveTextContent('Später entscheiden'),
+    );
+    expect(screen.queryByTestId('rollout-decision-stale-u-v1')).toBeNull();
+    expect(screen.getByTestId('rollout-keep-u-v1')).toBeInTheDocument();
+    expect(screen.getByTestId('rollout-later-u-v1')).toBeInTheDocument();
+    expect(screen.getByTestId('rollout-open-count')).toHaveTextContent('1 Entscheidung offen.');
+  });
 });
