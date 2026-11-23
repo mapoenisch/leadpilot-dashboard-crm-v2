@@ -36,6 +36,11 @@ export function readViewFilter(search: string): DashboardView | undefined {
 import { DashboardEditorPreviewV2 } from './DashboardEditorPreviewV2';
 import { KioskPreview } from './KioskPreview';
 
+// Auftrag 173 (P16a): Admin-Ansicht „Umstellung vorbereiten“ nur bei Bedarf laden.
+const RolloutPrepPreview = lazy(() =>
+  import('./RolloutPrepPreview').then((module) => ({ default: module.RolloutPrepPreview })),
+);
+
 export function readEditorOnly(search: string): boolean {
   return new URLSearchParams(search).get('bereich') === 'editor';
 }
@@ -73,6 +78,14 @@ export function DashboardPreviewPage({
   // Auftrag 171 (P15a): Kiosk-Ansicht mit Beispieldaten
   if (new URLSearchParams(search).get('bereich') === 'kiosk') {
     return <KioskPreview />;
+  }
+
+  if (new URLSearchParams(search).get('bereich') === 'umstellung') {
+    return (
+      <Suspense fallback={<p className="m-0 p-4 text-[13px]">Vorschau wird geladen …</p>}>
+        <RolloutPrepPreview />
+      </Suspense>
+    );
   }
 
   if (readPatternsOnly(search)) {

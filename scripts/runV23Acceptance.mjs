@@ -45,6 +45,7 @@ export const E2E_PARALLEL = [
   'e2e/dashboard-kiosk.spec.ts',
   'e2e/dashboard-mobile.spec.ts',
   'e2e/dashboard-report.spec.ts',
+  'e2e/dashboard-rollout-prep.spec.ts',
   'e2e/tenant-isolation.spec.ts',
   'e2e/visual.spec.ts',
 ];
@@ -70,6 +71,7 @@ export const E2E_SEQUENTIAL = [
   'e2e/crm-deals-persistence.spec.ts',
   'e2e/crm-lead-qualification.spec.ts',
   'e2e/dashboard-alarms.spec.ts',
+  'e2e/dashboard-rueckweg-probe.spec.ts',
 ];
 
 /** Reihenfolge = Ausführungsreihenfolge; `needs` blockiert bei rotem Vorgänger. */

@@ -85,6 +85,11 @@ export function useDashboardV2Storage(options?: {
         title: 'Executive Dashboard',
         ownerUserId: userId,
         organizationId: orgId,
+        // Auftrag 173: tatsächliche V1-Quellrevision festhalten. 0 = Kopie vom Standardstand
+        // (alter Stand noch nicht geladen, nicht vorhanden oder nicht lesbar); der Abgleich
+        // zeigt solche Kopien dann als „alter Editor geändert“ zur Entscheidung an.
+        lastMigratedRevision:
+          v1Preferences.state?.kind === 'gespeichert' ? v1Preferences.state.revision : 0,
       });
 
       const res = await resolveInitialOrActiveDashboard({
@@ -107,7 +112,15 @@ export function useDashboardV2Storage(options?: {
 
       await refreshList();
     },
-    [options?.preferredDashboardId, orgId, refreshList, userId, v1Preferences.state?.config],
+    [
+      options?.preferredDashboardId,
+      orgId,
+      refreshList,
+      userId,
+      v1Preferences.state?.config,
+      v1Preferences.state?.kind,
+      v1Preferences.state?.revision,
+    ],
   );
 
   useEffect(() => {

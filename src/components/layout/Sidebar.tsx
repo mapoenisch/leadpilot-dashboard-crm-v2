@@ -275,6 +275,13 @@ export function Sidebar({
               active={currentRoute.id === 's-admin-health'}
               onClick={handleLinkClick}
             />
+            <NavItem
+              to="/admin/umstellung"
+              dataTestId="nav-item-admin-rollout"
+              label="Umstellung vorbereiten"
+              active={currentRoute.id === 's-admin-rollout'}
+              onClick={handleLinkClick}
+            />
             {(currentRoute.id.startsWith('s-admin') ||
               currentRoute.id === 's-dashboard-alarme') && (
               <NavItem

@@ -22900,3 +22900,97 @@ Umgesetzt und lokal verifiziert. **Smoke für Marc:** Vorschau auf dem Telefon �
 - **P2 Berichtszeitraum aus den Kachelabfragen:** `reportPeriodText`/`reportTilePeriod` (`model/reportTileStatus.ts`) leiten den Zeitraum aus Zeitreihenfenster, wirksamem Zeitraumfilter oder Zeitbasis der Quelle ab; mehrere Zeiträume erscheinen ausdrücklich als „Je Kachel verschieden: …“. `DashboardPrintViewV2` druckt das statt des V1-Standardtexts „FY 2025 …“ (`print-report-period`).
 - **Tests:** `editorTouch.ui.vitest.tsx` (+3 Rastertastatur: Regler, `defaultPrevented`, Navigation bleibt), `reportV2Data.ui.vitest.tsx` (+3 Berichtszeitraum). Rot-Nachweis gegen `3f9a838b`: Regler- und `defaultPrevented`-Test sowie Kopf-Test rot, mit der Nacharbeit grün; Sektionen und Fadenkreuz im Linux-Container vorher rot, nachher grün.
 - **Verifikation:** `tsc` 0, `lint` 0, Prettier grün, `npm test` 486 Dateien / 3.707 Tests grün, Vorschau-Build ok. E2E lokal 153 grün; im Linux-Container (Sektionen, Auswahl, Zeitsteuerung, Zeitpunkt, Zeitreihen, Mobil, Report, Schwellenwerte) 36 grün, 3 Ladeabbrüche des behelfsmäßigen Python-Servers (`page.goto`, auch ohne App-Bezug). Schutzbereiche gegen `a41e5fbe` unverändert (leerer Diff).
+
+### 15. Prüfnachweis Codex-Review Runde 5 (Head `e9a1f13d`, 22.11.2026) – Nachtrag aus PR zu Auftrag 173
+
+- **Prüfer:** Codex-App auf GitHub (unabhängig, Builder war Claude Code). Geprüfter Commit `e9a1f13d2a`.
+- **Ergebnis:** „Didn't find any major issues“ (👍, 22.11.2026 11:50 UTC). Alle Pflicht-Checks grün (`lint`, `typecheck`, `test`, `build`, `livekpi-verifiers`, `size-limit`, `e2e`, CodeQL), alle Konversationen gelöst.
+- **Behobene Befunde insgesamt:** Runden 1–4 (Abschnitte 11–14). Merge durch Marc als `c48ac8b1` (PR #213). Der Nachtrag steht hier, weil PR #213 vor dem Doku-Commit gemergt wurde.
+
+## 2026-11-22 — Auftrag 173: Dashboard-Editor: Gesamtabnahme und Abgleich V1 ↔ V2 (P16a)
+
+Builder: Claude Code (Auftrag Marc „bau den nächsten teil- oder zwischenauftrag“). Baseline `c48ac8b1` (Merge PR #213). Branch `auftrag-173-gesamtabnahme`.
+
+### 1. Ziel & Kontext
+
+Vor jeder Umstellung den Gesamtstand P01–P15 abnehmen (Funktion, Rechte, Last, Betrieb, Rückweg) und je Nutzer zeigen, ob der alte Stand (V1) und die Pilotkopie (V2) auseinanderlaufen. Übernahme nur nach ausdrücklicher Entscheidung. Niemand wird umgestellt, der Rollout-Schalter bleibt unverändert (174). Ergebnisdokument: `docs/dashboard/GESAMTABNAHME_P16.md`.
+
+### 2. T0 – Ist-Stand
+
+| Befund | Stelle |
+| --- | --- |
+| Paketstand P01–P15 vollständig gemergt (Tabelle in `GESAMTABNAHME_P16.md` §1) | Git-Historie |
+| **Kopiermigration speicherte immer `last_migrated_revision = 1`**, weil `useDashboardV2Storage` die V1-Revision nicht übergab (Befund B-3) | `hooks/useDashboardV2Storage.ts` |
+| Vorlagen-Dashboards tragen ebenfalls `migrated_from_v1 = true` → V2-Kopie = ältestes migriertes persönliches Dashboard | `model/dashboardTemplatesV2.ts` |
+| Hosted-Stand bis `20261122`; es fehlen `20261123`–`20261128` | Supabase-Verwaltung (lesend) |
+| Alarm-pgTAP aus 167 prüfte überwiegend nur die Existenz von Funktionen; Betriebsverhalten ohne Nachweis | `supabase/tests/dashboard_alarms.sql`, `dashboard_alarm_rules_rights.sql` |
+
+### 3. Umsetzung
+
+- **Server** `supabase/migrations/20261128_dashboard_rollout_reconciliation.sql`: Tabelle `dashboard_rollout_decisions` (kein Client-Direktzugriff), reine Klassifizierung `dashboard_rollout_classify`, `dashboard_v1_v2_reconciliation()`, `dashboard_rollout_decide(...)`, `dashboard_rollout_adopt_v1(...)`. Alle nur für Admins der eigenen Organisation, mit Revisionsbindung (`LP_ROLLOUT_STALE`) und Audit. V1 wird nur gelesen.
+- **Client:** `model/dashboardRolloutReconciliation.ts` (Klassen-Spiegel, Übersetzung per `migrateV1ToV2`, inhaltlicher Vergleich mit dem Diff aus 165; reine Positionsänderungen werden zusammengefasst), `services/dashboardRolloutService.ts` (Supabase- und In-Memory-Dienst), `hooks/useRolloutPreparation.ts`, `admin/pages/RolloutPrepPage.tsx` + `admin/components/RolloutUserCard.tsx` (Route `/admin/umstellung`, Navigation „Umstellung vorbereiten“), Vorschau `?bereich=umstellung` (`preview/RolloutPrepPreview.tsx`, lazy).
+- **Korrektur B-3:** `useDashboardV2Storage` übergibt die echte V1-Revision (nur bei Zustand `gespeichert`, sonst 0 = Kopie vom Standardstand).
+- **Nachweise:** neu `supabase/tests/dashboard_rollout_reconciliation.sql` (41), `dashboard_operations_p16.sql` (22), `dashboard_rights_matrix_p16.sql` (35, davon 5 TODO für B-1); `e2e/dashboard-rollout-prep.spec.ts` (Vorschau, 3 Viewports, Axe hell/dunkel), `e2e/dashboard-rueckweg-probe.spec.ts` (lokales Supabase); `scripts/loadTestDashboardV2.mjs`; `scripts/captureAuftrag173GateScreenshots.mjs`. Beide Specs in `ci.yml` und `scripts/runV23Acceptance.mjs` eingetragen.
+- **Doku:** `GESAMTABNAHME_P16.md`, `ARCHITECTURE_DECISIONS.md` C16, Masterplan-Nachtrag, `BUILD_PLAN.md`, Auftragsdatei (Status, Checkboxen).
+
+**Begründete Abweichungen vom Auftrag:** „V2 bearbeitet“ = Revision > `metadata.migrated_v2_revision` statt > 1, sonst gälte eine übernommene Kopie sofort als bearbeitet. Bei `keine_kopie` gibt es keine Übernahme; die Kopie entsteht beim ersten Öffnen mit der dann aktuellen V1-Revision.
+
+### 4. Rot-Nachweise (T1)
+
+- pgTAP Abgleich vor Einspielen der Migration: 0/38 (Funktionen fehlen), danach 38/38.
+- Mutation In-Memory-Übernahme ohne neue Revision: 2 Vitest-Fälle rot. Fehlende Quellrevision als „gleich“ gewertet: zunächst nicht erkannt → Testfall ergänzt.
+- `useDashboardV2StorageSourceRevision.ui.vitest.tsx`: alle 3 Fälle gegen den alten Hook rot, mit Korrektur grün.
+
+### 5. Abnahme, Last, Rechte, Betrieb, Rückweg
+
+Vollständig in `docs/dashboard/GESAMTABNAHME_P16.md`. Kurzfassung:
+
+- Matrix Masterplan §7: 21 Zeilen mit Nachweis; Zeile 6 ⚠️ (B-1), Zeile 14 ⚠️ (Hinweis im alten Editor folgt in 174).
+- Server-Last 2 × 50 Leser: 4.000 Aufrufe, 0 Fehler, p95 255–287 ms (Ziel < 1.000 ms) ✅.
+- Client-Last 10 min / 1.234 Zyklen: 1 Datenabfrage je Öffnen, 0 offene Abos, Ziehen p95 16,7 ms ✅; Speicher 12,6 → 24,7 MB ❌ Zielwert, Verlauf mit Plateau ab Minute 5 (zweite Hälfte +0,3 %), Bewertung: begrenzter Cache-Aufbau, kein Leck.
+- Betrieb: Not-Aus, Wiederanlauf, Lebenszeichen, Aufräumjob ✅. Hosted-Migrationsliste für Marc in §6.
+- Rückweg-Probe ✅ (Datenseite).
+
+### 6. Befunde
+
+| Nr. | Schwere | Kurz | Umgang |
+| --- | --- | --- | --- |
+| B-1 | hoch | Alarm-RPCs prüfen kein Dashboard-Recht; `create` übernimmt fremde Regel per `ON CONFLICT` | pgTAP-TODO; Zwischenauftrag 173a vor 174 vorgeschlagen |
+| B-2 | mittel | Rückkehr-Hinweis im alten Editor fehlt | 174 T4 |
+| B-3 | mittel | Kopiermigration ohne echte Quellrevision | in 173 behoben |
+| B-4 | niedrig | `alarm_worker_status().aktiveRegeln` über alle Organisationen | 173a |
+| B-5 | niedrig | `team-dashboards.spec.ts` räumt mit falschen Tabellennamen auf | 173a |
+
+### 7. Schutzbereiche
+
+`git diff c48ac8b1 -- src/simulation src/types src/context src/services/data src/features/resources` → leer.
+
+### 8. Automatisierte Verifikation
+
+| Prüfung | Ergebnis |
+| --- | --- |
+| `npx tsc --noEmit` | 0 Fehler |
+| `npm run lint` | 0 Warnungen |
+| `npm run format:check` | grün |
+| `npm test` | 489 Dateien, 3.750 Tests grün (nach Umbenennung der Rückweg-Spec; vorher 1 rot, siehe unten) |
+| `npm run verify` | 25/25 Integrity-Suiten grün |
+| `npm run build` | grün |
+| `npm run build:production` | mit lokaler http-URL rot durch den Konfigurationswächter (erwartet); mit https-Platzhalter-URL grün |
+| `npx size-limit` | Initial-JS 172,34 kB / 180 kB, Vendor 79,41 kB / 250 kB |
+| `supabase db reset` + `supabase test db` | 30 Dateien, 785 Tests grün, 5 TODO (B-1) |
+| `npm run verify:migrations` | grün (Schema nach Upgrade = Schema aus leerer DB) |
+| `npm run verify:realtime -- --fail-if-offline` | grün |
+| Playwright, CI-Block parallel (Zeile 230 `ci.yml`) | 745 bestanden, 26 übersprungen, 0 fehlgeschlagen |
+| Playwright, CI-Block seriell (Zeile 232 `ci.yml`, `--workers=1`) | 65 bestanden, 10 übersprungen, 0 fehlgeschlagen |
+
+Hinweis Playwright: Der erste Komplettlauf (`npx playwright test`) zeigte Ausfälle in CRM-, Mitglieder- und Mandanten-Specs. Ursache: Der lokale Edge-Runtime-Container war gestoppt (CRM-Liste und Einladungen laufen über Edge Functions). Nach Neustart wie in der CI (`supabase start -x studio,imgproxy,storage-api,logflare,vector,supavisor,postgres-meta`) sind beide CI-Blöcke grün. Die Rückweg-Probe öffnete auf Tablet/Telefon zunächst ein anderes persönliches Dashboard aus früheren Specs; sie bindet den Editor jetzt ausdrücklich an die V1-Kopie.
+
+Hinweis `npm test`: `runV23Acceptance.vitest.ts` (Auftrag 141) verbietet jede Spec mit „dashboard-rollback“ im Namen (entfernte Rückschalt-Spec). Die Rückweg-Probe heißt deshalb `dashboard-rueckweg-probe.spec.ts`.
+
+### 9. Screenshot-Matrix
+
+`docs/screenshots/auftrag-173/README.md`: 24 Aufnahmen (4 Zustände × 1440/768/375 × hell/dunkel), 0 px Überlauf, Hashes je Viewport/Theme paarweise verschieden. Neue Ansicht ohne Vorher-Zustand; die Paare sind Zustandswechsel. Sichtprüfung führte zu zwei Korrekturen: Statusfarben auf Theme-Tokens (helles Theme vorher kaum lesbar) und Zusammenfassen reiner Positionsänderungen.
+
+### 10. Ergebnis & Freigabestatus
+
+Umgesetzt und lokal verifiziert. Laut Auftrag sind **zwei unabhängige Prüfungen** nötig (Codex + ein weiterer Agent über `/<agent> review`). Offene Entscheidungen für Marc stehen in `GESAMTABNAHME_P16.md` §9 (173a, Rollout-Stufen, Umgang mit `beide_geaendert`, Hosted-Migrationen). **Smoke für Marc:** Vorschau `dashboard-vorschau.html?bereich=umstellung` öffnen, bei „ben.altereditor“ „Unterschiede“ aufklappen, „Alten Stand übernehmen“ → Dialog → „Übernehmen“: Die Karte zeigt danach „Gleich“.
