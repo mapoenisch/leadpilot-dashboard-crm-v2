@@ -444,4 +444,25 @@ describe('Fadenkreuz-Kopplung (Rot-Nachweise)', () => {
     expect(tileB.querySelectorAll('line[stroke-dasharray="2 3"]').length).toBe(1);
     expect(tileA.querySelectorAll('line[stroke-dasharray="2 3"]').length).toBe(1);
   });
+
+  it('Mausverlassen der Kachel leert nicht das Fadenkreuz, wenn der Slider den Fokus hat', () => {
+    renderTwoTiles();
+    const tileA = screen.getByTestId('tile-a');
+    const sliderA = tileA.querySelector('input[type="range"]')!;
+    const svgA = tileA.querySelector('svg')!;
+
+    // 1. Slider fokussieren
+    fireEvent.focus(sliderA);
+    expect(tileA.querySelectorAll('line[stroke-dasharray="2 3"]').length).toBe(1);
+
+    // 2. Maus verlässt das SVG (z. B. durch Scrollen oder Zeigerbewegung)
+    fireEvent.mouseLeave(svgA);
+
+    // Fadenkreuz muss aktiv bleiben, da der Slider weiterhin fokussiert ist
+    expect(tileA.querySelectorAll('line[stroke-dasharray="2 3"]').length).toBe(1);
+
+    // Erst Blur leert das Fadenkreuz
+    fireEvent.blur(sliderA);
+    expect(tileA.querySelectorAll('line[stroke-dasharray="2 3"]').length).toBe(0);
+  });
 });
