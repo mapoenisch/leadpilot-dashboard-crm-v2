@@ -2,11 +2,11 @@
 
 **Ziel:** Die offenen Befunde aus der Gesamtabnahme (Auftrag 173, `docs/dashboard/GESAMTABNAHME_P16.md` §5) schließen, damit Auftrag 174 auf einer Abnahmematrix ohne offene Befunde aufsetzt (174 „Vorgelagert“).
 **Entscheidung Marc:** 23.11.2026 („ja machen wir genau so“): 173a vor 174; Rollout-Stufen nach Vorschlag 174 §0; Nutzer der Klasse `beide_geaendert` ohne Entscheidung: „Pilot behalten, V1 bleibt als Sicherung lesbar“.
-**Vorgelagert:** 173 (PR #219). Dieser Auftrag setzt auf dem Branch von 173 auf (gestapelter PR), weil die Lücken-Tests dort liegen.
-**Baseline:** `e2766119` (Head von 173); Nacharbeit aus Codex-Runde 1 von 173 (`57a5eea5`) per Merge übernommen.
+**Vorgelagert:** 173 (PR #219, gemergt nach `main`). Dieser Auftrag setzt auf `main` auf (PR #220).
+**Baseline:** `9f8fc827` (Merge PR #219 auf `main`).
 **Branch:** `auftrag-173a-alarm-rechte`.
-**Builder:** Claude Code. **Prüfer:** unabhängiger Agent nach `CLAUDE.md` §4.1. **Merge:** Marc (nach 173).
-**Status:** FERTIGGESTELLT / PR ERSTELLT.
+**Builder:** Claude Code. **Prüfer:** Codex (CLAUDE.md §4.1, Review ohne Befunde). **Merge:** Marc.
+**Status:** FERTIGGESTELLT / PR #220 AKTUALISIERT (bereit für Merge).
 
 ---
 

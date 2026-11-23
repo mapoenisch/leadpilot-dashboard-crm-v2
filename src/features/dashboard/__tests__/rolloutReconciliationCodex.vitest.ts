@@ -51,7 +51,7 @@ describe('Entscheidung an die Pilotkopie gebunden', () => {
   });
 });
 
-describe('Verfallene Entscheidung bei Klasse „gleich“', () => {
+describe('Verfallene oder zurückgestellte Entscheidung bei Klasse „gleich“', () => {
   it('ist offen und entscheidbar, nachdem nach einer Übernahme im Pilot weitergearbeitet wurde', async () => {
     const service = createInMemoryRolloutService(buildRolloutPreviewRows());
     const r = row('u-v1');
@@ -69,6 +69,29 @@ describe('Verfallene Entscheidung bei Klasse „gleich“', () => {
     expect(isDecidable(current)).toBe(true);
     expect(await service.decide(current, 'v2_behalten')).toEqual({ ok: true, value: undefined });
     expect(needsDecision(service.rows().find((x) => x.userId === 'u-v1')!)).toBe(false);
+  });
+
+  it('bleibt offen und entscheidbar, wenn bei Klasse „gleich“ „spaeter“ gewählt wird (Codex Runde 2)', async () => {
+    const service = createInMemoryRolloutService(buildRolloutPreviewRows());
+    const r = row('u-v1');
+    const t = translateV1ForRow(r);
+    if (!t.ok) throw new Error('Übersetzung erwartet');
+    await service.adoptV1(r, t.config);
+    service.bumpV2('u-v1');
+    let current = service.rows().find((x) => x.userId === 'u-v1')!;
+    expect(current.klasse).toBe('gleich');
+    expect(current.entscheidungGueltig).toBe(false);
+    expect(await service.decide(current, 'spaeter')).toEqual({ ok: true, value: undefined });
+    current = service.rows().find((x) => x.userId === 'u-v1')!;
+    expect(current.klasse).toBe('gleich');
+    expect(current.entscheidung).toBe('spaeter');
+    expect(current.entscheidungGueltig).toBe(true);
+    expect(needsDecision(current)).toBe(true);
+    expect(isDecidable(current)).toBe(true);
+    expect(await service.decide(current, 'v2_behalten')).toEqual({ ok: true, value: undefined });
+    const finalized = service.rows().find((x) => x.userId === 'u-v1')!;
+    expect(needsDecision(finalized)).toBe(false);
+    expect(isDecidable(finalized)).toBe(false);
   });
 
   it('„gleich“ ohne Entscheidung bleibt ohne Aktionen', () => {

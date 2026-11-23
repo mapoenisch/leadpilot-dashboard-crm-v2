@@ -23010,9 +23010,19 @@ Umgesetzt und lokal verifiziert. Prüfer ist Codex (CLAUDE.md §4.1; Klarstellun
 - **P2 Wertebereich der Migrationsmetadaten:** `dashboard_rollout_int` akzeptiert nur ganze Zahlen von 0 bis 2.147.483.647; andere Werte gelten als fehlende Herkunft, statt den ganzen Abgleich abzubrechen.
 - **Tests:** pgTAP `dashboard_rollout_reconciliation.sql` +5 (falsche Dashboard-ID abgewiesen, passende gespeichert, ausgetauschte Kopie → verfallen, Überlauf bricht nicht ab, ungültiger Wert = leer; jetzt 46). Neu `rolloutReconciliationCodex.vitest.ts` (4), `RolloutPrepPage.ui.vitest.tsx` +1. **Rot-Nachweis:** pgTAP gegen die alte Migration rot (Signatur fehlt), die 5 neuen Vitest-Fälle gegen den alten Client rot, mit der Nacharbeit grün.
 - **Verifikation:** `tsc` 0, `lint` 0, Prettier grün, `npm test` 490 Dateien / 3.755 Tests grün, `verify` 25/25, Build und size-limit (172,34 kB) grün, `supabase test db` 30 Dateien grün (5 TODO = B-1, Behebung in 173a), `verify:migrations` grün, E2E `dashboard-rollout-prep` und `dashboard-rueckweg-probe` 6 grün. Schutzbereiche gegen `c48ac8b1` unverändert (leerer Diff).
+### 13. Nacharbeit Runde 2 (Codex-Review auf `739ea6197f`, 23.11.2026)
+
+- **P2 Zurückgestellte Entscheidungen bei Klasse „gleich“ weiterhin offen und entscheidbar:** Wenn nach „Alten Stand übernehmen“ im Pilot weitergearbeitet und anschließend „Später entscheiden“ gewählt wird, bleibt die Klasse `gleich`, während die Entscheidung wieder gültig ist. `needsDecision` und `isDecidable` berücksichtigen nun `entscheidung === 'spaeter'` auch bei Klasse `gleich`. Damit zählt der Eintrag als offene Entscheidung und bietet weiterhin die Aktionen zur endgültigen Entscheidung an.
+- **Tests:** `rolloutReconciliationCodex.vitest.ts` +1 Fall (Replikation des genauen Ablaufs: Übernahme → Weiterbearbeitung im Pilot → „Später entscheiden“ bleibt offen/entscheidbar → endgültige Entscheidung schließt ab); `rolloutReconciliation.vitest.ts` +1 Fall; `RolloutPrepPage.ui.vitest.tsx` +1 UI-Test.
+- **Prüfnachweis Codex:** Review auf Commit `16fdf45d` durch Codex ohne Befunde („Didn't find any major issues. Chef's kiss.“). Alle Review-Threads gelöst.
+- **Flaky E2E-Korrektur (`editor-time-point.spec.ts` / `DepthLineChart.tsx`):** `onMouseLeave` auf dem SVG-Element leert das Fadenkreuz nicht mehr, wenn der Tastatur-Slider fokussiert ist (`isSliderFocusedRef`). Zudem bewegt die Test-Spec vor der Tastatursteuerung die Maus aus dem SVG-Bereich (`mouse.move(0, 0)`), um asynchrone Leave-Events bei Scroll-Verschiebungen unter Linux zu verhindern. Neuer Unittest in `crosshairCoupling.ui.vitest.tsx` (10/10 grün).
+- **Verifikation:** `tsc` 0, `lint` 0, Prettier (`format:check`) grün, `npm test` 490 Dateien / 3.758 Tests grün, `verify` 25/25 Integrity-Suiten grün, Build und `size-limit` (172,35 kB) grün. Schutzbereichs-Diff gegen `c48ac8b1` unverändert leer.
+
+---
+
 ## 2026-11-23 — Zwischenauftrag 173a: Alarm-Rechte an das Dashboard-Recht binden (Befunde B-1, B-4, B-5)
 
-Builder: Claude Code (Entscheidung Marc 23.11.2026: „ja machen wir genau so“). Baseline `e2766119` (Head von 173). Branch `auftrag-173a-alarm-rechte`, gestapelt auf PR #219.
+Builder: Claude Code (Entscheidung Marc 23.11.2026: „ja machen wir genau so“). Baseline `e2766119` (Head von 173) / rebased auf `main` (`9f8fc827`). Branch `auftrag-173a-alarm-rechte` (PR #220).
 
 ### 1. Ziel & Kontext
 
@@ -23032,17 +23042,17 @@ Die offenen Befunde aus der Gesamtabnahme 173 schließen, damit 174 auf einer Ab
 
 ### 4. Schutzbereiche
 
-`git diff e2766119 -- src/simulation src/types src/context src/services/data src/features/resources` → leer.
+`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` → leer.
 
 ### 5. Automatisierte Verifikation
 
 | Prüfung | Ergebnis |
 | --- | --- |
 | `npx tsc --noEmit`, `npm run lint`, `npm run format:check` | grün |
-| `npm test` | 489 Dateien, 3.750 Tests grün |
+| `npm test` | 490 Dateien, 3.758 Tests grün |
 | `npm run verify` | 25/25 grün |
 | `npm run build`; `build:production` (https-Platzhalter) | grün |
-| `npx size-limit` | 172,29 kB / 180 kB |
+| `npx size-limit` | 172,35 kB / 180 kB |
 | `supabase test db` | 30 Dateien, 797 Tests grün, **0 TODO** |
 | `npm run verify:migrations`, `verify:realtime -- --fail-if-offline` | grün |
 | Playwright seriell (CI-Zeile 232) | 65 bestanden, 10 übersprungen, 0 rot |
@@ -23057,4 +23067,4 @@ Dabei aufgefallen und auf 173 korrigiert (`e2766119`): Der Menüpunkt „Umstell
 
 ### 7. Ergebnis & Freigabestatus
 
-Umgesetzt und lokal verifiziert. Unabhängiges Review ausstehend (CLAUDE.md §4.1). Merge nach 173 (#219).
+Umgesetzt und lokal verifiziert. Codex-Review auf Commits `9629fecd50` und `b5989dc5c4` ohne Befunde („Didn't find any major issues. Keep it up!“). Stand mit `main` zusammengeführt (PR #219 integriert). Alle Prüfungen grün, Schutzbereiche unangetastet. Merge durch Marc.
