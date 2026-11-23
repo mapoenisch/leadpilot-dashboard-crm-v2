@@ -22980,7 +22980,7 @@ Vollständig in `docs/dashboard/GESAMTABNAHME_P16.md`. Kurzfassung:
 | `supabase db reset` + `supabase test db` | 30 Dateien, 785 Tests grün, 5 TODO (B-1) |
 | `npm run verify:migrations` | grün (Schema nach Upgrade = Schema aus leerer DB) |
 | `npm run verify:realtime -- --fail-if-offline` | grün |
-| Playwright, CI-Block parallel (Zeile 230 `ci.yml`) | 745 bestanden, 26 übersprungen, 0 fehlgeschlagen |
+| Playwright, CI-Block parallel (Zeile 230 `ci.yml`) | 745 bestanden, 26 übersprungen, 15 rot: nur `visual.spec.ts` auf macOS (veraltete darwin-Baselines vom 12.09.2026, auch auf `main` rot); maßgeblich ist Linux, siehe Nachtrag §11 |
 | Playwright, CI-Block seriell (Zeile 232 `ci.yml`, `--workers=1`) | 65 bestanden, 10 übersprungen, 0 fehlgeschlagen |
 
 Hinweis Playwright: Der erste Komplettlauf (`npx playwright test`) zeigte Ausfälle in CRM-, Mitglieder- und Mandanten-Specs. Ursache: Der lokale Edge-Runtime-Container war gestoppt (CRM-Liste und Einladungen laufen über Edge Functions). Nach Neustart wie in der CI (`supabase start -x studio,imgproxy,storage-api,logflare,vector,supavisor,postgres-meta`) sind beide CI-Blöcke grün. Die Rückweg-Probe öffnete auf Tablet/Telefon zunächst ein anderes persönliches Dashboard aus früheren Specs; sie bindet den Editor jetzt ausdrücklich an die V1-Kopie.
@@ -22994,3 +22994,11 @@ Hinweis `npm test`: `runV23Acceptance.vitest.ts` (Auftrag 141) verbietet jede Sp
 ### 10. Ergebnis & Freigabestatus
 
 Umgesetzt und lokal verifiziert. Laut Auftrag sind **zwei unabhängige Prüfungen** nötig (Codex + ein weiterer Agent über `/<agent> review`). Offene Entscheidungen für Marc stehen in `GESAMTABNAHME_P16.md` §9 (173a, Rollout-Stufen, Umgang mit `beide_geaendert`, Hosted-Migrationen). **Smoke für Marc:** Vorschau `dashboard-vorschau.html?bereich=umstellung` öffnen, bei „ben.altereditor“ „Unterschiede“ aufklappen, „Alten Stand übernehmen“ → Dialog → „Übernehmen“: Die Karte zeigt danach „Gleich“.
+
+### 11. Nachtrag 23.11.2026: Seitenleiste und Visual-Baselines
+
+- **Fehler im ersten Bericht:** Für den parallelen E2E-Block stand „745 bestanden, 0 fehlgeschlagen“. Die Kopfzeile der Ausgabe war abgeschnitten; tatsächlich waren alle 15 Fälle von `e2e/visual.spec.ts` rot. Erkannt beim Bau von 173a.
+- **Ursache:** Der neue Menüpunkt „Umstellung vorbereiten“ stand dauerhaft in der Admin-Navigation. Die Seitenleiste wurde dadurch auf allen Seiten länger (Aufnahme 1440 × 1558 statt 1440 × 900). Die CI unter Linux wäre ebenso rot gewesen.
+- **Korrektur:** Der Menüpunkt erscheint wie „Alarme“ (Auftrag 168) nur innerhalb des Admin-Bereichs. Die Seitenleiste der übrigen Seiten bleibt unverändert, keine neuen Baselines nötig.
+- **Nachweis:** Die Linux-Baseline (CI) ist 1440 × 1519 px; die Aufnahme nach der Korrektur ebenfalls 1519 px, mit dem dauerhaften Menüpunkt waren es 1558 px. Lokal auf macOS bleibt `visual.spec.ts` rot, weil die darwin-Baselines seit 12.09.2026 nicht gepflegt sind (900 px); das betrifft `main` gleichermaßen und ist kein Befund dieses Auftrags. Die CI-Prüfung unter Linux ist maßgeblich.
+

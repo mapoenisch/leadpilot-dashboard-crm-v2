@@ -275,13 +275,6 @@ export function Sidebar({
               active={currentRoute.id === 's-admin-health'}
               onClick={handleLinkClick}
             />
-            <NavItem
-              to="/admin/umstellung"
-              dataTestId="nav-item-admin-rollout"
-              label="Umstellung vorbereiten"
-              active={currentRoute.id === 's-admin-rollout'}
-              onClick={handleLinkClick}
-            />
             {(currentRoute.id.startsWith('s-admin') ||
               currentRoute.id === 's-dashboard-alarme') && (
               <NavItem
@@ -289,6 +282,17 @@ export function Sidebar({
                 dataTestId="nav-item-admin-alarms"
                 label="Alarme"
                 active={currentRoute.id === 's-admin-alarms'}
+                onClick={handleLinkClick}
+              />
+            )}
+            {/* Auftrag 173: wie „Alarme“ nur im Admin-Bereich, damit die Seitenleiste der
+                übrigen Seiten (Visual-Baselines) unverändert bleibt. */}
+            {currentRoute.id.startsWith('s-admin') && (
+              <NavItem
+                to="/admin/umstellung"
+                dataTestId="nav-item-admin-rollout"
+                label="Umstellung vorbereiten"
+                active={currentRoute.id === 's-admin-rollout'}
                 onClick={handleLinkClick}
               />
             )}
