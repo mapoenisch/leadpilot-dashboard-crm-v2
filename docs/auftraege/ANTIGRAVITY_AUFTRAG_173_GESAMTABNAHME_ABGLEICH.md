@@ -6,7 +6,7 @@
 **Vorgelagert:** P01–P15 abgeschlossen (bis 172 gemergt). Fehlt ein Paket, nennt der Builder es im BUILD_LOG und Marc entscheidet, ob die Abnahme mit dokumentierter Einschränkung läuft (Masterplan §6.1: „Fähigkeiten dürfen datenabhängig deaktiviert bleiben, die Abnahme muss diese Einschränkung dokumentieren“).
 **Baseline:** aktueller `main` beim Start.
 **Branch:** `auftrag-173-gesamtabnahme`.
-**Builder:** Claude Code (von Marc am 22.11.2026 beauftragt; ursprünglich Antigravity oder ein anderer benannter Agent). **Prüfer:** unabhängiger Agent nach `CLAUDE.md` §4.1, **zusätzlich** eine zweite unabhängige Prüfung der Abnahmematrix (anderer Agent als der erste Prüfer). **Merge:** Marc.
+**Builder:** Claude Code (von Marc am 22.11.2026 beauftragt; ursprünglich Antigravity oder ein anderer benannter Agent). **Prüfer:** unabhängiger Agent nach `CLAUDE.md` §4.1 (Codex). Die frühere Zusatzforderung einer zweiten Prüfung ist gestrichen (Klarstellung Marc 23.11.2026). **Merge:** Marc.
 **Status:** FERTIGGESTELLT / PR ERSTELLT (22.11.2026), Baseline `c48ac8b1`. Ergebnis und Befunde: `docs/dashboard/GESAMTABNAHME_P16.md`.
 
 ---
@@ -71,7 +71,7 @@ Schutzbereiche unverändert; eine neue Migration (`dashboard_rollout_decisions`,
 - [x] **T3** Admin-Ansicht und Vergleich.
 - [x] **T4** Abnahmematrix mit fehlenden Tests, Rechte-Gesamtprüfung.
 - [x] **T5** Lasttest, Betrieb, Rückweg-Probe.
-- [x] **T6** Doku, Pflicht-Verifikation, BUILD_LOG, PR. Review durch zwei unabhängige Prüfer steht aus.
+- [x] **T6** Doku, Pflicht-Verifikation, BUILD_LOG, PR. Review durch Codex steht aus.
 
 ## 6. Abnahme
 
