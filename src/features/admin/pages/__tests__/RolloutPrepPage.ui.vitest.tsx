@@ -124,3 +124,25 @@ describe('RolloutPrepPage', () => {
     expect(await screen.findByTestId('rollout-empty')).toBeInTheDocument();
   });
 });
+
+describe('RolloutPrepPage – Codex PR #219', () => {
+  beforeEach(() => asRole('admin'));
+
+  it('zeigt bei verfallener Entscheidung in Klasse „gleich“ wieder Aktionen und zählt sie als offen', async () => {
+    const service = createInMemoryRolloutService(buildRolloutPreviewRows());
+    render(<RolloutPrepPage service={service} />);
+    fireEvent.click(await screen.findByTestId('rollout-adopt-u-v1'));
+    fireEvent.click(screen.getByTestId('rollout-adopt-confirm'));
+    await waitFor(() =>
+      expect(screen.getByTestId('rollout-class-u-v1')).toHaveTextContent('Gleich'),
+    );
+    expect(screen.queryByTestId('rollout-keep-u-v1')).toBeNull();
+    service.bumpV2('u-v1');
+    fireEvent.click(screen.getByTestId('rollout-keep-u-beide'));
+    await waitFor(() =>
+      expect(screen.getByTestId('rollout-decision-stale-u-v1')).toBeInTheDocument(),
+    );
+    expect(screen.getByTestId('rollout-keep-u-v1')).toBeInTheDocument();
+    expect(screen.getByTestId('rollout-open-count')).toHaveTextContent('1 Entscheidung offen.');
+  });
+});
