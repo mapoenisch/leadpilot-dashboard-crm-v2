@@ -22993,7 +22993,7 @@ Hinweis `npm test`: `runV23Acceptance.vitest.ts` (Auftrag 141) verbietet jede Sp
 
 ### 10. Ergebnis & Freigabestatus
 
-Umgesetzt und lokal verifiziert. Laut Auftrag sind **zwei unabhängige Prüfungen** nötig (Codex + ein weiterer Agent über `/<agent> review`). Offene Entscheidungen für Marc stehen in `GESAMTABNAHME_P16.md` §9 (173a, Rollout-Stufen, Umgang mit `beide_geaendert`, Hosted-Migrationen). **Smoke für Marc:** Vorschau `dashboard-vorschau.html?bereich=umstellung` öffnen, bei „ben.altereditor“ „Unterschiede“ aufklappen, „Alten Stand übernehmen“ → Dialog → „Übernehmen“: Die Karte zeigt danach „Gleich“.
+Umgesetzt und lokal verifiziert. Prüfer ist Codex (CLAUDE.md §4.1; Klarstellung Marc 23.11.2026: kein zweiter Prüfer, die Forderung im Auftragstext ist gestrichen). Offene Entscheidungen für Marc stehen in `GESAMTABNAHME_P16.md` §9 (173a, Rollout-Stufen, Umgang mit `beide_geaendert`, Hosted-Migrationen). **Smoke für Marc:** Vorschau `dashboard-vorschau.html?bereich=umstellung` öffnen, bei „ben.altereditor“ „Unterschiede“ aufklappen, „Alten Stand übernehmen“ → Dialog → „Übernehmen“: Die Karte zeigt danach „Gleich“.
 
 ### 11. Nachtrag 23.11.2026: Seitenleiste und Visual-Baselines
 

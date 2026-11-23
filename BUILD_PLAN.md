@@ -2,7 +2,7 @@
 
 **Stand:** 23.11.2026
 
-**Aktueller Auftrag:** Zwischenauftrag 173a – Alarm-Rechte an das Dashboard-Recht binden (Befunde B-1, B-4, B-5 aus 173; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_173A_ALARM_RECHTE.md`; Branch `auftrag-173a-alarm-rechte`, gestapelt auf 173; Builder Claude Code; Status: FERTIGGESTELLT / PR ERSTELLT, wartet auf unabhängiges Review). Davor: 173 Gesamtabnahme und Abgleich V1 ↔ V2 (P16a; PR #219, wartet auf zwei unabhängige Prüfungen). Merge-Reihenfolge: erst 173, dann 173a. Nächster Schritt: P16b (Auftrag 174, gestufte Umstellung).
+**Aktueller Auftrag:** Zwischenauftrag 173a – Alarm-Rechte an das Dashboard-Recht binden (Befunde B-1, B-4, B-5 aus 173; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_173A_ALARM_RECHTE.md`; Branch `auftrag-173a-alarm-rechte`, gestapelt auf 173; Builder Claude Code; Status: FERTIGGESTELLT / PR ERSTELLT, wartet auf unabhängiges Review). Davor: 173 Gesamtabnahme und Abgleich V1 ↔ V2 (P16a; PR #219, wartet auf Codex-Review). Merge-Reihenfolge: erst 173, dann 173a. Nächster Schritt: P16b (Auftrag 174, gestufte Umstellung).
 
 **Entscheidungen Marc 23.11.2026 (Empfehlungen aus 173 angenommen):** Zwischenauftrag 173a vor 174; Rollout-Stufen wie 174 §0 (Test-Organisation → ausgewählte Organisationen → alle); Nutzer der Klasse `beide_geaendert` ohne Entscheidung: Pilot behalten, V1 bleibt als Sicherung lesbar.
 
