@@ -1,13 +1,15 @@
 // Executive Dashboard V2 (Auftrag 173 / P16a §2.1 Nr. 3):
 // Admin-Ansicht „Umstellung vorbereiten“. Zeigt je Nutzer, ob alter Editor (V1) und
 // Pilotkopie (V2) auseinanderlaufen, und nimmt die Entscheidung entgegen.
-// Diese Seite stellt niemanden um und ändert den Rollout-Schalter nicht (das ist Auftrag 174).
+// Diese Seite stellt niemanden um und ändert den Rollout-Schalter nicht. Auftrag 174 ergänzt
+// oben den Stand der Umstellung (Stufe, Nutzer je Editor, offene Entscheidungen).
 
 import { useMemo, useState } from 'react';
 import { ArrowLeftRight, Loader2 } from 'lucide-react';
 import { useOrganization } from '@/auth/organizationContext';
 import { ForbiddenView } from '../components/InvitationForm';
 import { RolloutUserCard } from '../components/RolloutUserCard';
+import { EditorRolloutOverview } from '../components/EditorRolloutOverview';
 import { useModalA11y } from '@/features/dashboard/components/editor/versions/useModalA11y';
 import { useRolloutPreparation } from '@/features/dashboard/hooks/useRolloutPreparation';
 import {
@@ -21,6 +23,10 @@ import {
   supabaseRolloutService,
   type RolloutPrepService,
 } from '@/features/dashboard/services/dashboardRolloutService';
+import {
+  supabaseEditorRolloutService,
+  type DashboardEditorRolloutService,
+} from '@/features/dashboard/services/dashboardEditorRolloutService';
 
 const CLASS_ORDER: RolloutClass[] = [
   'beide_geaendert',
@@ -32,12 +38,15 @@ const CLASS_ORDER: RolloutClass[] = [
 
 export interface RolloutPrepPageProps {
   service?: RolloutPrepService;
+  /** Auftrag 174: Stand der Umstellung (Stufe, Nutzer je Editor). */
+  editorRolloutService?: DashboardEditorRolloutService;
   /** Nur für Vorschau und Tests: Admin-Prüfung über die Sitzung überspringen. */
   previewAsAdmin?: boolean;
 }
 
 export function RolloutPrepPage({
   service = supabaseRolloutService,
+  editorRolloutService = supabaseEditorRolloutService,
   previewAsAdmin = false,
 }: RolloutPrepPageProps) {
   const { session, isLoading } = useOrganization();
@@ -101,6 +110,8 @@ export function RolloutPrepPage({
           um.
         </p>
       </header>
+
+      <EditorRolloutOverview service={editorRolloutService} reloadToken={state.rows} />
 
       <p className="sr-only" role="status" aria-live="polite" data-testid="rollout-announcement">
         {state.announcement}

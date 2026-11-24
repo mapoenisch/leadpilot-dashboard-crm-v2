@@ -23068,3 +23068,57 @@ Dabei aufgefallen und auf 173 korrigiert (`e2766119`): Der Menüpunkt „Umstell
 ### 7. Ergebnis & Freigabestatus
 
 Umgesetzt und lokal verifiziert. Codex-Review auf Commits `9629fecd50` und `b5989dc5c4` ohne Befunde („Didn't find any major issues. Keep it up!“). Stand mit `main` zusammengeführt (PR #219 integriert). Alle Prüfungen grün, Schutzbereiche unangetastet. Merge durch Marc.
+
+## 2026-11-24 — Auftrag 174: Dashboard-Editor: Gestufte Umstellung mit Schalter je Organisation und Rückweg (P16b)
+
+Builder: Claude Code (von Marc am 24.11.2026 benannt). Baseline `11592aa1` (`main` nach Merge von #219 und #220). Branch `auftrag-174-gestufte-umstellung`.
+
+### 1. Ziel & Kontext
+
+Der neue Editor wird je Organisation in Stufen zum Standard (0 → 1 Test-Organisation → 2 ausgewählte → 3 alle). Jede Stufe setzt Marc per SQL, mit Rückweg und ohne Datenverlust. Entscheidungen Marc 23.11.2026 umgesetzt: Stufen wie §0; `beide_geaendert` ohne Entscheidung → Pilot behalten. Der erwogene Zwischenauftrag 173b (Fadenkreuz-Flake) entfällt: Der Fix ist mit #219 in `main` (`c4d4a68d`).
+
+### 2. Umsetzung
+
+- **Migration `20261130_dashboard_editor_rollout.sql`:** Tabelle `dashboard_editor_rollout` (Stufe 0–3 je Organisation; Mitglieder lesen nur die eigene Organisation, keine Schreibrechte für angemeldete Nutzer; Trigger setzt `aktiviert_at` und schreibt `audit_log`). Tabelle `dashboard_editor_switches` (fixierte Umstellung je Nutzer, kein Client-Zugriff). `dashboard_editor_rollout_status(p_vollziehen)` entscheidet beim Öffnen nach den Klassen aus 173 und stellt ggf. um, `p_vollziehen = false` fragt nur ab. `dashboard_editor_rollout_overview()` nur für Admins.
+- **Client:** `resolveDashboardEditorV2` (Override > Server > Build-Variable), Hook `useDashboardEditorChoice` (Laden beim Öffnen, Stand für die Ansicht festgehalten, Beobachtung ohne Umstellung, Hinweis bei Wechsel), Ladezustand statt Aufblitzen, Rückweg-Hinweis über dem alten Editor (`PersonalExecutiveDashboard.tsx`), Detailseite übernimmt den festgehaltenen Stand.
+- **Admin:** „Stand der Umstellung“ oben in „Umstellung vorbereiten“ (Stufe, seit wann, Nutzer je Editor, offene Entscheidungen), ohne Bedienelement für die Stufe.
+- **Builder-Festlegungen** (kein Plattform-Admin → nur SQL; Stufensemantik; Umstellungsregel; Beobachtung ohne Umstellung): Detailauftrag §10.
+- **Außerhalb der Ziel-Dateien (begründet in §10 Nr. 7):** `.github/workflows/ci.yml`, `scripts/runV23Acceptance.mjs` (neue E2E-Datei in der seriellen Gruppe), `RolloutPrepPreview.tsx` (Vorschaudaten).
+
+### 3. Rot-Nachweis
+
+`supabase/tests/dashboard_editor_rollout.sql` vor der Migration rot (Tabellen fehlen, Plan 40/0 ausgeführt), danach 43/43 grün (inkl. 3 Tests zum Probelauf). Vitest `dashboardEditorRollout.ui.vitest.tsx` (16 Tests) und Erweiterung `RolloutPrepPage.ui.vitest.tsx` (2 Tests) mit dem Client-Code geschrieben; sie importieren die neuen Module und waren vor deren Anlage nicht lauffähig.
+
+### 4. Schutzbereiche
+
+`git diff 11592aa1 -- src/simulation src/types src/context src/services/data src/features/resources` → leer. Organisationskontext liegt in `src/auth/organizationContext.tsx` (kein Schutzbereich), nur gelesen. V1-Code und V1-Speicherpfad unverändert.
+
+### 5. Automatisierte Verifikation
+
+| Prüfung | Ergebnis |
+| --- | --- |
+| `npx tsc --noEmit`, `npm run lint`, `npm run format:check` | grün |
+| `npm test` | 491 Dateien, 3.777 Tests grün |
+| `npm run verify` | 25/25 grün |
+| `npm run build`; `build:production` (https-Platzhalter) | grün |
+| `npx size-limit` | 172,47 kB / 180 kB |
+| `supabase db reset` + `supabase test db` | 31 Dateien, 845 Tests grün |
+| `npm run verify:migrations` | grün |
+| `e2e/dashboard-rollout.spec.ts` | 9/9 grün (3 Viewports × 3 Wiederholungen) |
+| Playwright parallel (CI-Zeile 230) | 745 bestanden; 15 rot nur `visual.spec.ts` auf macOS (veraltete darwin-Baselines, wie 173/173a) |
+| Playwright seriell (CI-Zeile 232, inkl. neuer Spec) | 68 bestanden, 10 übersprungen, 0 rot |
+| Playwright Dashboard (CI-Zeile 237, `E2E_DASHBOARD_SERIAL`) | 75/75 grün |
+
+Hinweis lokal: Ein erster Lauf war rot, weil ohne `VITE_DASHBOARD_PREVIEW=true` gebaut wurde und die Edge-Runtime nach `supabase db reset` gestoppt war (wie in 173 beschrieben). Nach Build wie in der CI und `docker start supabase_edge_runtime_…` grün.
+
+### 6. Screenshot-Matrix
+
+`node scripts/captureAuftrag174GateScreenshots.mjs` gegen die App mit lokalem Supabase: 5 Zustände (Stufe 0 vorher, Stufe 1 nachher, Rückweg mit Hinweis, Wechsel bei offener Ansicht, Admin-Übersicht) × 1440/768/375 × hell/dunkel = 30 Aufnahmen, 0 px Überlauf, Hashes paarweise verschieden. Matrix: `docs/screenshots/auftrag-174/README.md`. Der Rückweg-Hinweis erscheint dort ohne Datum, weil der Seed-Nutzer keinen V1-Stand hat; der Text mit Datum ist per Vitest belegt.
+
+### 7. Dokumentation
+
+Neu `docs/dashboard/UMSTELLUNG_P16.md` (SQL-Anleitung für Marc, Umstellungsregeln, Stufenprotokoll). Masterplan-Nachtrag, `GESAMTABNAHME_P16.md` (Hosted-Liste Nr. 8, Nachtrag B-2), `BUILD_PLAN.md`, Detailauftrag §10.
+
+### 8. Ergebnis & Freigabestatus
+
+Umgesetzt und lokal verifiziert. Review durch Codex ausstehend. Nach Merge (T6): Migration `20261130` auf Hosted anwenden, Stufe 1 für die Test-Organisation per SQL, Smoke durch Marc, Eintrag im Stufenprotokoll. Merge durch Marc.

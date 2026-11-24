@@ -168,4 +168,44 @@ describe('RolloutPrepPage – Codex PR #219', () => {
     expect(screen.getByTestId('rollout-later-u-v1')).toBeInTheDocument();
     expect(screen.getByTestId('rollout-open-count')).toHaveTextContent('1 Entscheidung offen.');
   });
+
+  it('Auftrag 174: zeigt den Stand der Umstellung und lädt ihn nach Entscheidungen neu', async () => {
+    const overview = vi.fn(async () => ({
+      ok: true as const,
+      value: {
+        stufe: 1,
+        aktiviertAt: '2026-11-25T08:00:00Z',
+        notiz: 'Test-Organisation',
+        nutzerAktiv: 6,
+        nutzerV2: 3,
+        offeneEntscheidungen: 2,
+      },
+    }));
+    const editorRolloutService = { status: vi.fn(), overview };
+    render(
+      <RolloutPrepPage
+        service={createInMemoryRolloutService(buildRolloutPreviewRows())}
+        editorRolloutService={editorRolloutService}
+      />,
+    );
+    expect(await screen.findByTestId('editor-rollout-stufe')).toHaveTextContent(
+      'Stufe 1 – Test-Organisation im neuen Editor (seit 25.11.2026)',
+    );
+    expect(screen.getByTestId('editor-rollout-v2')).toHaveTextContent('3 von 6');
+    expect(screen.getByTestId('editor-rollout-v1')).toHaveTextContent('3');
+    expect(screen.getByTestId('editor-rollout-open')).toHaveTextContent('2');
+    const before = overview.mock.calls.length;
+    fireEvent.click(await screen.findByTestId('rollout-later-u-v1'));
+    await waitFor(() => expect(overview.mock.calls.length).toBeGreaterThan(before));
+    // Die Seite bietet keinen Schalter: Stufen setzt nur Marc per SQL.
+    expect(screen.queryByRole('button', { name: /stufe/i })).toBeNull();
+  });
+
+  it('Auftrag 174: ohne Server bleibt die Seite nutzbar und nennt den fehlenden Stand', async () => {
+    render(<RolloutPrepPage service={createInMemoryRolloutService(buildRolloutPreviewRows())} />);
+    expect(await screen.findByTestId('editor-rollout-overview-error')).toHaveTextContent(
+      'Umstellungsstand nicht verfügbar',
+    );
+    expect(await screen.findByTestId('rollout-list')).toBeInTheDocument();
+  });
 });

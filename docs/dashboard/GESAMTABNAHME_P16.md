@@ -157,12 +157,13 @@ Rechteentzug während offener Sitzung: Entfernen aus dem Team → nächstes Spei
 5. `20261127_dashboard_time_series_compare.sql` (170)
 6. `20261128_dashboard_rollout_reconciliation.sql` (173)
 7. `20261129_dashboard_alarm_rule_rights.sql` (173a)
+8. `20261130_dashboard_editor_rollout.sql` (174; legt nur Tabellen und Funktionen an, schaltet niemanden um)
 
 Nach Schritt 2: einmal `SELECT public.cleanup_dashboard_revisions();` von Hand prüfen und erst dann `dashboard-daily-cleanup` aktivieren (Vorgabe 167).
 
 ## 7. Rückweg-Probe (§2.2 Nr. 9)
 
-`e2e/dashboard-rueckweg-probe.spec.ts` (lokales Supabase, Konto Manager A): Der alte Editor zeigt seinen Stand (2 Kacheln). Dann wird der neue Editor aktiviert und die Pilotkopie umbenannt (neue Revision). Nach dem Zurückschalten zeigt der alte Editor unverändert 2 Kacheln, ohne den neuen Titel, und die V1-Zeile ist bytegleich. Die V2-Revision mit der Änderung bleibt erhalten, und erneutes Aktivieren zeigt die Änderung. Der sichtbare Hinweis auf den Datenstand im alten Editor kommt mit 174 (B-2).
+`e2e/dashboard-rueckweg-probe.spec.ts` (lokales Supabase, Konto Manager A): Der alte Editor zeigt seinen Stand (2 Kacheln). Dann wird der neue Editor aktiviert und die Pilotkopie umbenannt (neue Revision). Nach dem Zurückschalten zeigt der alte Editor unverändert 2 Kacheln, ohne den neuen Titel, und die V1-Zeile ist bytegleich. Die V2-Revision mit der Änderung bleibt erhalten, und erneutes Aktivieren zeigt die Änderung. Der sichtbare Hinweis auf den Datenstand im alten Editor kommt mit 174 (B-2). **Nachtrag 174:** umgesetzt (`dashboard-rueckweg-notice`, belegt in `e2e/dashboard-rollout.spec.ts` und `dashboardEditorRollout.ui.vitest.tsx`).
 
 ## 8. Abgleich V1 ↔ V2
 

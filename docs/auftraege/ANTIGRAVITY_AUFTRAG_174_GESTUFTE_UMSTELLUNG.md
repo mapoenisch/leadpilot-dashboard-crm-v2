@@ -6,8 +6,8 @@
 **Vorgelagert:** 173 (P16a) gemergt; Abnahmematrix ohne offene Befunde; Entscheidungen aus 173 §8 liegen vor.
 **Baseline:** aktueller `main` nach Merge von 173.
 **Branch:** `auftrag-174-gestufte-umstellung`.
-**Builder:** Antigravity (oder ein anderer von Marc benannter Agent). **Prüfer:** unabhängiger Agent nach `CLAUDE.md` §4.1. **Merge, Release und jede Stufenfreigabe:** Marc.
-**Status:** ENTWURF.
+**Builder:** Claude Code (von Marc am 24.11.2026 benannt). **Prüfer:** unabhängiger Agent nach `CLAUDE.md` §4.1. **Merge, Release und jede Stufenfreigabe:** Marc.
+**Status:** FERTIGGESTELLT / PR ERSTELLT (T6 nach Merge).
 
 ---
 
@@ -56,12 +56,12 @@ Schutzbereiche unverändert; eine neue Migration; V1-Code und V1-Speicherpfad **
 
 ## 6. Tasks
 
-- [ ] **T0** Baseline, Fundstelle Organisationskontext, Prüfung ob `src/context/**` berührt werden müsste (dann Stopp).
-- [ ] **T1** Rot-Nachweise.
-- [ ] **T2** Server-Schalter.
-- [ ] **T3** Client-Reihenfolge, offene Entwürfe, Nutzer ohne Entscheidung.
-- [ ] **T4** Rückweg-Hinweis, Admin-Übersicht.
-- [ ] **T5** Tests, E2E, Screenshots, Doku, Pflicht-Verifikation, BUILD_LOG, PR, Review.
+- [x] **T0** Baseline, Fundstelle Organisationskontext, Prüfung ob `src/context/**` berührt werden müsste (dann Stopp).
+- [x] **T1** Rot-Nachweise.
+- [x] **T2** Server-Schalter.
+- [x] **T3** Client-Reihenfolge, offene Entwürfe, Nutzer ohne Entscheidung.
+- [x] **T4** Rückweg-Hinweis, Admin-Übersicht.
+- [x] **T5** Tests, E2E, Screenshots, Doku, Pflicht-Verifikation, BUILD_LOG, PR, Review.
 - [ ] **T6** Nach Merge: Stufe 1 durch Marc (SQL aus der Doku), Smoke, Eintrag im Stufenprotokoll.
 
 ## 7. Abnahme
@@ -83,3 +83,17 @@ git diff <baseline> -- src/simulation src/types src/context src/services/data sr
 
 - **Entfernen des alten Editors** als eigener Abschlussauftrag mit Verwendungsnachweis, frühestens nach Stufe 3 und Marcs Entscheidung zum Ende des V1-Rückwegs (Masterplan §8, §9.2).
 - **Aufbewahrung der V1-Sicherungen** ist vorher von Marc festzulegen (Masterplan §9.2).
+
+## 10. Builder-Festlegungen (Claude Code, 24.11.2026)
+
+Festlegungen, die der Auftrag offen ließ; alle im Rahmen von §2 und §4.
+
+1. **Kein Plattform-Admin:** Im Schema gibt es keine solche Rolle (`auth.users.is_super_admin` ist ein GoTrue-Feld, keine App-Rolle). Die Stufe ist deshalb **nur per SQL** änderbar: angemeldete Nutzer haben nur `SELECT` (eigene Organisation), keine Schreibrechte. Anleitung: `docs/dashboard/UMSTELLUNG_P16.md`.
+2. **Stufensemantik:** Stufe 0 (oder keine Zeile) = alter Editor, Stufe 1–3 = neuer Editor; die Nummer dokumentiert die Welle. Stufe 3 setzt Marc per SQL für alle aktiven Organisationen (Beispiel in der Doku). Jeder Stufenwechsel setzt `aktiviert_at` und schreibt `audit_log` (`dashboard.editor_rollout_stufe`).
+3. **Umstellungsregel (§2 Nr. 4) mit Marcs Entscheidung 23.11.2026:** `gleich`, `nur_v2`, `keine_kopie` und Nutzer ohne Stand werden umgestellt; `v1_geaendert` nur mit gültiger Entscheidung („Pilot behalten“ oder „Übernehmen“); `beide_geaendert` ohne Entscheidung wird umgestellt (Pilot behalten), mit „Später“ oder verfallener Entscheidung nicht. Vollzogene Umstellungen stehen in `dashboard_editor_switches` (`umgestellt_at`, Revisionen zum Zeitpunkt) und sind fixiert.
+4. **Offene Ansicht (§2 Nr. 3):** Der Client lädt den Serverstand beim Öffnen (`dashboard_editor_rollout_status(true)`, vollzieht ggf. die Umstellung) und hält ihn für die Ansicht fest. Die Beobachtung (Fokus, Sichtbarkeit, alle 60 s) ruft `dashboard_editor_rollout_status(false)` auf, stellt also niemanden um, und zeigt bei Abweichung nur den Hinweis „… ab dem nächsten Öffnen …“. Bis der Stand geladen ist, zeigt die Seite einen Ladezustand statt kurz einen Editor aufblitzen zu lassen; ohne Server/Fehler gilt die Build-Variable (Standard alter Editor). Die Detailseite übernimmt den festgehaltenen Stand.
+5. **Rückweg-Hinweis (§2 Nr. 5):** erscheint nur bei Nutzern, die schon umgestellt waren (`grund = rueckweg`); Datum = letzte Speicherung im alten Editor. Eingriff außerhalb des alten Editors: eine Zeile über `DashboardWorkspace` in `PersonalExecutiveDashboard.tsx`.
+6. **Admin-Übersicht (§2 Nr. 7):** Abschnitt „Stand der Umstellung“ oben in „Umstellung vorbereiten“ (`dashboard_editor_rollout_overview()`, nur Admin der eigenen Organisation): Stufe, seit wann, Nutzer im neuen/alten Editor, offene Entscheidungen (dieselbe Regel wie die Umstellung). Ohne Bedienelement für die Stufe.
+7. **Zusätzlich berührt (nicht in §5, für die Nachweise nötig):** `.github/workflows/ci.yml` und `scripts/runV23Acceptance.mjs` – neue E2E-Datei in der seriellen Gruppe (die Stufe von Organisation A betrifft alle ihre Nutzer, deshalb nicht parallel zu anderen Specs); `src/features/dashboard/preview/RolloutPrepPreview.tsx` – Vorschaudaten für die Übersicht.
+8. **Kein Zwischenauftrag 173b:** Der Fadenkreuz-Flake ist mit #219 behoben (`c4d4a68d`).
+

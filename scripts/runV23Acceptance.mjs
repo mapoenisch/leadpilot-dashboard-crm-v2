@@ -72,6 +72,7 @@ export const E2E_SEQUENTIAL = [
   'e2e/crm-lead-qualification.spec.ts',
   'e2e/dashboard-alarms.spec.ts',
   'e2e/dashboard-rueckweg-probe.spec.ts',
+  'e2e/dashboard-rollout.spec.ts',
 ];
 
 /** Reihenfolge = Ausführungsreihenfolge; `needs` blockiert bei rotem Vorgänger. */
