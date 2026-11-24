@@ -181,7 +181,7 @@ export function EditorTopBarV2({
       {/* Auftrag 172: Seitenüberschrift für Screenreader (der Titel selbst ist eine Schaltfläche) */}
       <h1 className="sr-only">Dashboard-Editor: {config.title}</h1>
       {/* Linker Bereich: Navigation / Panels Toggle, Scope & Switcher & Titel */}
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 max-w-full flex-wrap items-center gap-3">
         {!readOnly && onToggleLibrary && (
           <button
             type="button"
@@ -286,7 +286,7 @@ export function EditorTopBarV2({
       </div>
 
       {/* Mittlerer Bereich: Globale Filter & Breakpoints */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">
         {breakpointLocked ? (
           <span
             data-testid="list-mode-hint"
