@@ -9,6 +9,37 @@ import { migrateV1ToV2 } from '../model/dashboardMigrationV1V2';
 import type { DashboardConfig } from '../model/dashboardConfig';
 import type { RolloutReconciliationRow } from '../model/dashboardRolloutReconciliation';
 import { createInMemoryRolloutService } from '../services/dashboardRolloutService';
+import type { DashboardEditorRolloutService } from '../services/dashboardEditorRolloutService';
+
+/** Vorschau-Stand der Umstellung (Auftrag 174): Test-Organisation auf Stufe 1. */
+const PREVIEW_EDITOR_ROLLOUT: DashboardEditorRolloutService = {
+  async status() {
+    return {
+      ok: true,
+      value: {
+        editor: 'v2',
+        grund: 'umgestellt',
+        stufe: 1,
+        aktiviertAt: new Date(Date.UTC(2026, 10, 25, 8, 0)).toISOString(),
+        umgestelltAt: null,
+        v1UpdatedAt: null,
+      },
+    };
+  },
+  async overview() {
+    return {
+      ok: true,
+      value: {
+        stufe: 1,
+        aktiviertAt: new Date(Date.UTC(2026, 10, 25, 8, 0)).toISOString(),
+        notiz: 'Test-Organisation',
+        nutzerAktiv: 6,
+        nutzerV2: 3,
+        offeneEntscheidungen: 2,
+      },
+    };
+  },
+};
 
 const ORG = 'preview-org';
 const DAY = 86_400_000;
@@ -141,7 +172,11 @@ export function RolloutPrepPreview() {
   return (
     <main className="min-h-screen bg-[var(--color-bg)] px-4 py-8 text-[var(--color-text)] sm:px-8">
       <h1 className="sr-only">Vorschau Umstellung vorbereiten</h1>
-      <RolloutPrepPage service={service} previewAsAdmin />
+      <RolloutPrepPage
+        service={service}
+        editorRolloutService={PREVIEW_EDITOR_ROLLOUT}
+        previewAsAdmin
+      />
     </main>
   );
 }

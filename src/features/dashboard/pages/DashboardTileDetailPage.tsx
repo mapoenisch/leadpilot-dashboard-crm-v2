@@ -11,7 +11,9 @@ import { useDashboardNavigation, type SessionFilters } from '../hooks/useDashboa
 import { useDashboardPreferences } from '../hooks/useDashboardPreferences';
 import type { DashboardConfig, DashboardTileConfig } from '../model/dashboardConfig';
 import { TileDetailContent } from '../components/detail/TileDetailContent';
-import { DASHBOARD_PATH, isDashboardEditorV2Enabled } from '../model/dashboardRollout';
+import { DASHBOARD_PATH } from '../model/dashboardRollout';
+import { useDashboardEditorChoice } from '../hooks/useDashboardEditorChoice';
+import { DashboardEditorChoiceLoading } from '../components/DashboardEditorRolloutNotices';
 import { DetailMissingTile, DetailStatus } from '../components/detail/DetailNotices';
 import { useDashboardV2Storage } from '../hooks/useDashboardV2Storage';
 import { convertV2TileToV1, parseTimeframeToPeriod } from '../components/editor/EditorCanvasV2';
@@ -166,13 +168,17 @@ export function DashboardTileDetailPage() {
   // Wie die Ansicht: der mitgereiste Kontext gilt für diesen Besuch der Seite.
   const arrival = useRef(nav.incoming);
   const session = arrival.current?.session ?? null;
+  // Auftrag 174: Editor-Wahl nach aktuellem Serverstand beim Öffnen der Detailseite.
+  const editorChoice = useDashboardEditorChoice();
 
   return (
     <div
       className="flex w-full min-w-0 flex-col gap-[var(--space-6,24px)]"
       data-testid="tile-detail-page"
     >
-      {isDashboardEditorV2Enabled() ? (
+      {editorChoice.v2 === 'laden' ? (
+        <DashboardEditorChoiceLoading />
+      ) : editorChoice.v2 ? (
         <DashboardTileDetailPageV2Content
           tileId={tileId}
           session={session}

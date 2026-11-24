@@ -13,10 +13,12 @@ import { useDashboardNavigation } from '../hooks/useDashboardNavigation';
 import { useDashboardPreferences } from '../hooks/useDashboardPreferences';
 import { useDashboardV2Storage } from '../hooks/useDashboardV2Storage';
 import type { DashboardConfigV2 } from '../model/dashboardConfigV2';
+import { setDashboardEditorV2Override } from '../model/dashboardRollout';
+import { useDashboardEditorChoice } from '../hooks/useDashboardEditorChoice';
 import {
-  isDashboardEditorV2Enabled,
-  setDashboardEditorV2Override,
-} from '../model/dashboardRollout';
+  DashboardEditorChoiceLoading,
+  DashboardEditorRolloutNotices,
+} from '../components/DashboardEditorRolloutNotices';
 import { TimeControlProvider } from '../time/TimeControlProvider';
 import { invalidateCrmOverviewQueries } from '../time/resumeCrmRefresh';
 import { useTimeControlledData } from '../time/useTimeControlledData';
@@ -338,14 +340,26 @@ export function PersonalExecutiveDashboard() {
   // (beim Öffnen der Details) dürfen den Arbeitsbereich nicht erneut steuern.
   const [arrival] = useState(nav.incoming);
   const [announcement, setAnnouncement] = useState('');
+  // Auftrag 174 / P16b: Override > Server-Schalter der Organisation > Build-Variable;
+  // die Wahl gilt für diese Ansicht, ein Wechsel wirkt erst beim nächsten Öffnen.
+  const editorChoice = useDashboardEditorChoice();
+
+  if (editorChoice.v2 === 'laden') return <DashboardEditorChoiceLoading />;
 
   // Auftrag 150 / P07: Neuer persistenter V2-Editor hinter Rollout-Schalter
-  if (isDashboardEditorV2Enabled()) {
+  if (editorChoice.v2) {
     return (
-      <PersonalExecutiveDashboardV2Container
-        preferredDashboardId={arrival?.dashboardId ?? undefined}
-        onShowDetails={(tileId, dashboardId) => nav.openDetails(tileId, null, dashboardId)}
-      />
+      <>
+        <DashboardEditorRolloutNotices
+          server={editorChoice.server}
+          pendingEditor={editorChoice.pendingEditor}
+          showRueckweg={false}
+        />
+        <PersonalExecutiveDashboardV2Container
+          preferredDashboardId={arrival?.dashboardId ?? undefined}
+          onShowDetails={(tileId, dashboardId) => nav.openDetails(tileId, null, dashboardId)}
+        />
+      </>
     );
   }
 
@@ -369,6 +383,11 @@ export function PersonalExecutiveDashboard() {
       <p role="status" className="sr-only" data-testid="dashboard-nav-status">
         {announcement}
       </p>
+      <DashboardEditorRolloutNotices
+        server={editorChoice.server}
+        pendingEditor={editorChoice.pendingEditor}
+        showRueckweg
+      />
       <DashboardWorkspace
         preferences={preferences}
         dashboardId={arrival?.dashboardId ?? 'personal'}

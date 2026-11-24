@@ -1,8 +1,8 @@
 # LeadPilot Dashboard-CRM — Bauplan
 
-**Stand:** 23.11.2026
+**Stand:** 24.11.2026
 
-**Aktueller Auftrag:** Zwischenauftrag 173a – Alarm-Rechte an das Dashboard-Recht binden (Befunde B-1, B-4, B-5 aus 173; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_173A_ALARM_RECHTE.md`; Branch `auftrag-173a-alarm-rechte`, PR #220; Builder Claude Code; Status: FERTIGGESTELLT / PR ERSTELLT, Codex-Review ohne Befunde). Davor: 173 Gesamtabnahme und Abgleich V1 ↔ V2 (P16a; PR #219, nach Codex-Review gemergt nach `main`). Zwischenauftrag 173a mit aktuellem `main` zusammengeführt. Nächster Schritt: Merge 173a durch Marc, danach P16b (Auftrag 174, gestufte Umstellung).
+**Aktueller Auftrag:** 174 – gestufte Umstellung auf den neuen Editor mit Schalter je Organisation und Rückweg (P16b; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_174_GESTUFTE_UMSTELLUNG.md`; Branch `auftrag-174-gestufte-umstellung`; Builder Claude Code; Prüfer Codex; Status: FERTIGGESTELLT / PR ERSTELLT, Review ausstehend). Davor: 173a Alarm-Rechte (PR #220) und 173 Gesamtabnahme (PR #219), beide gemergt. Der zunächst erwogene Zwischenauftrag 173b (Fadenkreuz-Flake unter Linux) entfällt: Der Fix ist bereits mit #219 in `main` (`c4d4a68d`), die CI ist seither grün. Nächster Schritt: Review und Merge 174, danach Stufe 1 durch Marc per SQL (`docs/dashboard/UMSTELLUNG_P16.md`) und Smoke.
 
 **Entscheidungen Marc 23.11.2026 (Empfehlungen aus 173 angenommen):** Zwischenauftrag 173a vor 174; Rollout-Stufen wie 174 §0 (Test-Organisation → ausgewählte Organisationen → alle); Nutzer der Klasse `beide_geaendert` ohne Entscheidung: Pilot behalten, V1 bleibt als Sicherung lesbar.
 
