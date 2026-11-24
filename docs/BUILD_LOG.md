@@ -23122,3 +23122,14 @@ Neu `docs/dashboard/UMSTELLUNG_P16.md` (SQL-Anleitung für Marc, Umstellungsrege
 ### 8. Ergebnis & Freigabestatus
 
 Umgesetzt und lokal verifiziert. Review durch Codex ausstehend. Nach Merge (T6): Migration `20261130` auf Hosted anwenden, Stufe 1 für die Test-Organisation per SQL, Smoke durch Marc, Eintrag im Stufenprotokoll. Merge durch Marc.
+
+### 9. Nacharbeit Codex-Runde 1 (Review auf `13a9c3f9`, 4 × P2)
+
+| Befund | Behebung | Nachweis |
+| --- | --- | --- |
+| Revisionsprüfung nicht bis zur Fixierung abgesichert (gleichzeitiges Speichern) | `dashboard_editor_rollout_status` sperrt vor der Prüfung V1-Zeile, Pilotkopie und Entscheidung (`FOR SHARE`); ein gleichzeitiges Speichern wartet und zählt als Bearbeitung nach der Umstellung | Lokal mit zwei Sitzungen: Update wartete bis zum Commit der Umstellung, Umstellung hält V1-Revision 1 fest |
+| Detailseite übernahm modulweit festgehaltenen Stand | Wiederverwendung entfernt; jede Seite lädt beim Öffnen den aktuellen Serverstand | Vitest „Detailseite lädt den aktuellen Stand …“ |
+| `gleich` mit „Später“/verfallener Entscheidung wurde umgestellt | Regel wie `needsDecision` (173), Ausnahme nur `beide_geaendert` ohne Entscheidung | pgTAP 3 neue Tests (Nutzer 31, 32), Übersicht zählt sie |
+| Audit-Eintrag bei `INSERT … ON CONFLICT` doppelt/fälschlich | BEFORE-Trigger setzt nur Felder, AFTER-Trigger protokolliert nur echtes Anlegen/Stufenwechsel; gleiche Stufe lässt `aktiviert_at` stehen | pgTAP 5 neue Tests |
+
+Übersicht: Feld heißt jetzt „Warten auf Entscheidung“ (zählt nur tatsächlich blockierte Umstellungen). Nachprüfung: `tsc`, `lint`, `format:check` grün; `npm test` 3.777 grün; `supabase test db` 853 grün; `verify:migrations` grün; `e2e/dashboard-rollout.spec.ts` 3/3; Playwright-Block 3 (`E2E_DASHBOARD_SERIAL`) 75/75.

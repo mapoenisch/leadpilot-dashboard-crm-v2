@@ -33,7 +33,9 @@ CREATE POLICY dashboard_editor_rollout_select_own ON public.dashboard_editor_rol
   FOR SELECT TO authenticated
   USING (organization_id = public.current_organization_id());
 
--- Zeitpunkt und Protokoll jeder Stufenänderung (auch bei Änderung per SQL).
+-- Zeitpunkt jeder Stufenänderung (auch bei Änderung per SQL). Das Protokoll schreibt erst der
+-- AFTER-Trigger: Bei INSERT ... ON CONFLICT DO UPDATE läuft der BEFORE-INSERT-Trigger auch für
+-- den verworfenen Insert-Versuch (Codex PR #221).
 CREATE OR REPLACE FUNCTION public.dashboard_editor_rollout_touch()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -44,17 +46,34 @@ BEGIN
   IF TG_OP = 'INSERT' OR NEW.stufe IS DISTINCT FROM OLD.stufe THEN
     NEW.aktiviert_at := now();
     NEW.aktiviert_von := COALESCE(NEW.aktiviert_von, current_user::TEXT);
+  ELSE
+    NEW.aktiviert_at := OLD.aktiviert_at;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.dashboard_editor_rollout_audit()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+  -- Nur tatsächlich angelegte Zeilen und tatsächliche Stufenwechsel.
+  IF TG_OP = 'INSERT' OR NEW.stufe IS DISTINCT FROM OLD.stufe THEN
     INSERT INTO public.audit_log (organization_id, actor_id, action, details)
     VALUES (
       NEW.organization_id, auth.uid(), 'dashboard.editor_rollout_stufe',
       jsonb_build_object(
         'stufe', NEW.stufe,
         'vorher', CASE WHEN TG_OP = 'UPDATE' THEN OLD.stufe END,
+        'aktiviert_von', NEW.aktiviert_von,
         'notiz', NEW.notiz
       )
     );
   END IF;
-  RETURN NEW;
+  RETURN NULL;
 END;
 $$;
 
@@ -62,6 +81,11 @@ DROP TRIGGER IF EXISTS dashboard_editor_rollout_touch ON public.dashboard_editor
 CREATE TRIGGER dashboard_editor_rollout_touch
   BEFORE INSERT OR UPDATE ON public.dashboard_editor_rollout
   FOR EACH ROW EXECUTE FUNCTION public.dashboard_editor_rollout_touch();
+
+DROP TRIGGER IF EXISTS dashboard_editor_rollout_audit ON public.dashboard_editor_rollout;
+CREATE TRIGGER dashboard_editor_rollout_audit
+  AFTER INSERT OR UPDATE ON public.dashboard_editor_rollout
+  FOR EACH ROW EXECUTE FUNCTION public.dashboard_editor_rollout_audit();
 
 -- 2. Vollzogene Umstellungen je Nutzer (fixiert den Übergang).
 CREATE TABLE IF NOT EXISTS public.dashboard_editor_switches (
@@ -90,12 +114,20 @@ LANGUAGE sql
 IMMUTABLE
 SET search_path = public, pg_temp
 AS $$
+  -- Dieselbe Regel wie „offen“ in der Admin-Ansicht (needsDecision, 173), mit Marcs Ausnahme:
+  -- beide_geaendert ohne Entscheidung -> Pilot behalten (23.11.2026). Zurückgestellte oder
+  -- verfallene Entscheidungen blockieren auch bei „gleich“ (Codex PR #221).
   SELECT CASE
-    WHEN p_klasse IS NULL OR p_klasse IN ('gleich', 'nur_v2', 'keine_kopie') THEN true
-    WHEN p_entscheidung IN ('v1_uebernehmen', 'v2_behalten') THEN COALESCE(p_gueltig, false)
-    -- Entscheidung Marc 23.11.2026: beide_geaendert ohne Entscheidung -> Pilot behalten.
-    WHEN p_klasse = 'beide_geaendert' AND p_entscheidung IS NULL THEN true
-    ELSE false
+    WHEN p_klasse = 'gleich' THEN
+      NOT (p_entscheidung = 'spaeter' OR (p_entscheidung IS NOT NULL AND p_gueltig IS FALSE))
+    WHEN p_klasse IN ('v1_geaendert', 'beide_geaendert') THEN
+      CASE
+        WHEN p_entscheidung IS NULL THEN p_klasse = 'beide_geaendert'
+        WHEN p_entscheidung = 'spaeter' THEN false
+        ELSE COALESCE(p_gueltig, false)
+      END
+    -- nur_v2, keine_kopie, ohne Stand: nichts zu entscheiden
+    ELSE true
   END
 $$;
 
@@ -189,6 +221,18 @@ BEGIN
   SELECT sw.umgestellt_at INTO v_switched
   FROM public.dashboard_editor_switches AS sw
   WHERE sw.organization_id = v_org AND sw.user_id = v_user;
+
+  IF v_stufe <> 0 AND v_switched IS NULL AND COALESCE(p_vollziehen, true) THEN
+    -- Prüfung und Fixierung serialisieren (Codex PR #221): Die geprüften Zeilen (V1-Stand,
+    -- Pilotkopie, Entscheidung) sind bis zum Ende der Transaktion gegen Änderungen gesperrt.
+    -- Ein gleichzeitiges Speichern wartet und gilt damit als Bearbeitung nach der Umstellung.
+    PERFORM 1 FROM public.executive_dashboard_preferences AS p
+    WHERE p.organization_id = v_org AND p.user_id = v_user FOR SHARE;
+    PERFORM 1 FROM public.dashboards AS d
+    WHERE d.id = public.dashboard_rollout_copy_id(v_org, v_user) FOR SHARE;
+    PERFORM 1 FROM public.dashboard_rollout_decisions AS dec
+    WHERE dec.organization_id = v_org AND dec.user_id = v_user FOR SHARE;
+  END IF;
 
   SELECT * INTO s FROM public.dashboard_editor_user_state(v_org, v_user);
 
@@ -297,6 +341,7 @@ $$;
 
 -- Rechte: Hilfsfunktionen nicht öffentlich, RPCs nur für angemeldete Nutzer.
 REVOKE ALL ON FUNCTION public.dashboard_editor_rollout_touch() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.dashboard_editor_rollout_audit() FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.dashboard_editor_switch_allowed(TEXT, TEXT, BOOLEAN) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.dashboard_editor_user_state(UUID, UUID) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.dashboard_editor_rollout_status(BOOLEAN) FROM PUBLIC, anon;

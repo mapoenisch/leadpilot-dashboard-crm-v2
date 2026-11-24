@@ -1,8 +1,8 @@
 // Executive Dashboard V2 (Auftrag 174 / P16b §2 Nr. 2–3): Welcher Editor gilt für diese Ansicht?
 //
 // - Reihenfolge: Override (Tests/Pilot) > Server-Schalter der aktiven Organisation > Build-Variable.
-// - Der Serverstand wird beim Öffnen geladen (und dabei ggf. die Umstellung vollzogen) und dann
-//   für die laufende Ansicht festgehalten. Ändert sich der Schalter, während die Ansicht offen
+// - Der Serverstand wird bei jedem Öffnen einer Seite frisch geladen (und dabei ggf. die Umstellung
+//   vollzogen) und dann für die laufende Ansicht festgehalten. Ändert sich der Schalter, während die Ansicht offen
 //   ist, verwirft das nichts: Es erscheint nur ein Hinweis, der Wechsel wirkt beim nächsten Öffnen.
 // - Die Beobachtung während der offenen Ansicht fragt nur ab (vollziehen = false).
 
@@ -10,7 +10,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useOrganization } from '@/auth/organizationContext';
 import { isSupabaseConfigured } from '@/services/db/supabaseClient';
 import {
-  getLatchedDashboardEditorServerChoice,
   latchDashboardEditorServerChoice,
   readDashboardEditorBuildFlag,
   readDashboardEditorOverride,
@@ -41,8 +40,6 @@ export interface DashboardEditorChoice {
 
 export interface UseDashboardEditorChoiceOptions {
   service?: DashboardEditorRolloutService;
-  /** Detailseite: festgehaltenen Stand der Dashboard-Ansicht übernehmen statt neu umzustellen. */
-  reuseLatched?: boolean;
   /** Für Tests: Supabase als verfügbar behandeln. */
   configured?: boolean;
   pollMs?: number;
@@ -53,7 +50,6 @@ export function useDashboardEditorChoice(
 ): DashboardEditorChoice {
   const {
     service = supabaseEditorRolloutService,
-    reuseLatched = false,
     configured = isSupabaseConfigured,
     pollMs = EDITOR_ROLLOUT_POLL_MS,
   } = options;
@@ -66,12 +62,12 @@ export function useDashboardEditorChoice(
 
   const [server, setServer] = useState<DashboardEditorServerState>(() => {
     if (waitingForSession) return 'laden';
-    if (!serverNeeded) return 'nicht_verfuegbar';
-    const latched = reuseLatched && key ? getLatchedDashboardEditorServerChoice(key) : null;
-    return latched ?? 'laden';
+    // Jede Seite (Dashboard wie Detailseite) lädt beim Öffnen den aktuellen Serverstand; ein
+    // früher festgehaltener Stand wird nicht übernommen (Codex PR #221).
+    return serverNeeded ? 'laden' : 'nicht_verfuegbar';
   });
   const [pendingEditor, setPendingEditor] = useState<'v1' | 'v2' | null>(null);
-  const openedWith = useRef<'v1' | 'v2' | null>(typeof server === 'object' ? server.editor : null);
+  const openedWith = useRef<'v1' | 'v2' | null>(null);
 
   // Laden beim Öffnen (einmal je Organisation/Nutzer und Ansicht).
   useEffect(() => {

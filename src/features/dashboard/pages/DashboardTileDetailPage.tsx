@@ -168,8 +168,8 @@ export function DashboardTileDetailPage() {
   // Wie die Ansicht: der mitgereiste Kontext gilt für diesen Besuch der Seite.
   const arrival = useRef(nav.incoming);
   const session = arrival.current?.session ?? null;
-  // Auftrag 174: dieselbe Editor-Wahl wie die Dashboard-Ansicht (festgehaltener Stand).
-  const editorChoice = useDashboardEditorChoice({ reuseLatched: true });
+  // Auftrag 174: Editor-Wahl nach aktuellem Serverstand beim Öffnen der Detailseite.
+  const editorChoice = useDashboardEditorChoice();
 
   return (
     <div

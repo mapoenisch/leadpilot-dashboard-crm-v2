@@ -19,13 +19,16 @@ Ist die Organisation auf Stufe 1–3, wird ein Nutzer beim nächsten Öffnen des
 
 | Ergebnisklasse aus 173            | Umstellung                                                                   |
 | --------------------------------- | ---------------------------------------------------------------------------- |
-| `gleich`, `nur_v2`, `keine_kopie` | ja                                                                           |
+| `nur_v2`, `keine_kopie`           | ja                                                                           |
+| `gleich`                          | ja, außer bei „Später entscheiden“ oder verfallener Entscheidung             |
 | ohne jeden Stand                  | ja (neuer Editor mit Standard-Dashboard)                                     |
 | `v1_geaendert`                    | nur mit gültiger Entscheidung „Pilot behalten“ oder „Alten Stand übernehmen“ |
 | `beide_geaendert`                 | ohne Entscheidung ja (Pilot behalten, Entscheidung Marc 23.11.2026); mit gültiger Entscheidung ja |
 | „Später entscheiden“ oder verfallene Entscheidung | nein, bleibt im alten Editor                                 |
 
-„Gültig“ heißt: V1-Revision, V2-Revision und Pilotkopie sind seit der Entscheidung unverändert. Nach der Umstellung ist der Übergang fixiert (`dashboard_editor_switches.umgestellt_at`); spätere Bearbeitungen führen nicht zurück in den alten Editor.
+„Gültig“ heißt: V1-Revision, V2-Revision und Pilotkopie sind seit der Entscheidung unverändert. Nach der Umstellung ist der Übergang fixiert (`dashboard_editor_switches.umgestellt_at`); spätere Bearbeitungen führen nicht zurück in den alten Editor. Prüfung und Fixierung sind gegen gleichzeitiges Speichern gesperrt: Ein Speichern während der Umstellung wartet und zählt als Bearbeitung danach.
+
+Die Regel entspricht „offen“ in der Admin-Ansicht, mit einer Ausnahme: `beide_geaendert` ohne Entscheidung zählt dort als offen, wird aber umgestellt (Pilot behalten). Die Übersicht „Stand der Umstellung“ zählt unter „Warten auf Entscheidung“ nur Nutzer, deren Umstellung tatsächlich blockiert ist.
 
 Ändert sich die Stufe, während jemand das Dashboard offen hat, geht nichts verloren: Es erscheint nur der Hinweis „… ab dem nächsten Öffnen …“, der Wechsel wirkt beim nächsten Laden.
 

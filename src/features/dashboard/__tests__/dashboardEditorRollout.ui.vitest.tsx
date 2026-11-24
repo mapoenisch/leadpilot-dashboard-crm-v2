@@ -169,14 +169,16 @@ describe('Editor-Wahl beim Öffnen', () => {
     expect(fake.service.status).not.toHaveBeenCalled();
   });
 
-  it('Detailseite übernimmt den festgehaltenen Stand ohne neue Umstellung', () => {
+  it('Detailseite lädt den aktuellen Stand statt eines früher festgehaltenen (Codex PR #221)', async () => {
+    // Früher festgehaltener Stand (z. B. vor einem Rückweg) darf nicht übernommen werden.
     latchDashboardEditorServerChoice('org-a:u1', choice({ editor: 'v2', grund: 'umgestellt' }));
-    const fake = fakeService(choice({}));
+    const fake = fakeService(choice({ editor: 'v1', grund: 'rueckweg' }));
     const { result } = renderHook(() =>
-      useDashboardEditorChoice({ service: fake.service, configured: true, reuseLatched: true }),
+      useDashboardEditorChoice({ service: fake.service, configured: true }),
     );
-    expect(result.current.v2).toBe(true);
-    expect(fake.service.status).not.toHaveBeenCalled();
+    expect(result.current.v2).toBe('laden');
+    await waitFor(() => expect(result.current.v2).toBe(false));
+    expect(fake.calls).toEqual([true]);
   });
 });
 

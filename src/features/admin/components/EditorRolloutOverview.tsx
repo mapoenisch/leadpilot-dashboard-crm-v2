@@ -96,7 +96,7 @@ export function EditorRolloutOverview({
           </dd>
         </div>
         <div className="rounded-lg border border-border-soft p-2">
-          <dt className="text-[var(--color-text-muted)]">Offene Entscheidungen</dt>
+          <dt className="text-[var(--color-text-muted)]">Warten auf Entscheidung</dt>
           <dd
             className="m-0 font-semibold text-[var(--color-text)]"
             data-testid="editor-rollout-open"

@@ -98,12 +98,6 @@ export function latchDashboardEditorServerChoice(
   latchedServerChoice = choice ? { key, choice } : null;
 }
 
-export function getLatchedDashboardEditorServerChoice(
-  key: string,
-): DashboardEditorServerChoice | null {
-  return latchedServerChoice?.key === key ? latchedServerChoice.choice : null;
-}
-
 /**
  * Prüft, ob der neue visuelle Dashboard-Editor (V2) aktiv ist.
  * Standard ist strikt false (alter V1-Editor aktiv).

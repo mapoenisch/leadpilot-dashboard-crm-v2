@@ -5,7 +5,7 @@
 
 BEGIN;
 
-SELECT plan(43);
+SELECT plan(51);
 SET CONSTRAINTS ALL IMMEDIATE;
 
 -- ---------------------------------------------------------------- Setup --
@@ -33,6 +33,8 @@ VALUES
   ('9f740000-0000-0000-0000-000000000017', 'authenticated', 'authenticated', 'u17@umstellung.local', 'x', now()),
   ('9f740000-0000-0000-0000-000000000018', 'authenticated', 'authenticated', 'u18@umstellung.local', 'x', now()),
   ('9f740000-0000-0000-0000-000000000019', 'authenticated', 'authenticated', 'u19@umstellung.local', 'x', now()),
+  ('9f740000-0000-0000-0000-000000000031', 'authenticated', 'authenticated', 'u31@umstellung.local', 'x', now()),
+  ('9f740000-0000-0000-0000-000000000032', 'authenticated', 'authenticated', 'u32@umstellung.local', 'x', now()),
   ('9f740000-0000-0000-0000-000000000021', 'authenticated', 'authenticated', 'admin-b@umstellung.local', 'x', now()),
   ('9f740000-0000-0000-0000-000000000022', 'authenticated', 'authenticated', 'view-b@umstellung.local', 'x', now());
 
@@ -49,7 +51,9 @@ FROM (VALUES
   ('9f740000-0000-0000-0000-000000000016', 'viewer'),
   ('9f740000-0000-0000-0000-000000000017', 'viewer'),
   ('9f740000-0000-0000-0000-000000000018', 'viewer'),
-  ('9f740000-0000-0000-0000-000000000019', 'viewer')
+  ('9f740000-0000-0000-0000-000000000019', 'viewer'),
+  ('9f740000-0000-0000-0000-000000000031', 'viewer'),
+  ('9f740000-0000-0000-0000-000000000032', 'viewer')
 ) AS r(uid, role)
 JOIN auth.users AS u ON u.id = r.uid::uuid;
 
@@ -80,7 +84,9 @@ FROM (VALUES
   ('9f740000-0000-0000-0000-000000000014', 2),
   ('9f740000-0000-0000-0000-000000000016', 5),
   ('9f740000-0000-0000-0000-000000000017', 5),
-  ('9f740000-0000-0000-0000-000000000018', 4)
+  ('9f740000-0000-0000-0000-000000000018', 4),
+  ('9f740000-0000-0000-0000-000000000031', 3),
+  ('9f740000-0000-0000-0000-000000000032', 3)
 ) AS v(uid, rev);
 
 -- V2-Kopien (ID-Endung = Nutzer): Revision, kopiert bei V1-Revision
@@ -96,7 +102,9 @@ FROM (VALUES
   ('15', 1, 1),  -- nur_v2
   ('16', 1, 2),  -- v1_geaendert
   ('17', 1, 2),  -- v1_geaendert
-  ('18', 2, 1)   -- beide_geaendert
+  ('18', 2, 1),  -- beide_geaendert
+  ('31', 5, 3),  -- gleich (nach Übernahme weiter im Pilot gearbeitet)
+  ('32', 5, 3)   -- gleich
 ) AS v(n, rev, last);
 
 -- Entscheidungen: 16 gültig (passt zu V1 5 / V2 1), 17 verfallen (V1 war 4), 18 "spaeter"
@@ -104,7 +112,10 @@ INSERT INTO public.dashboard_rollout_decisions (organization_id, user_id, ergebn
 VALUES
   ('af740000-0000-0000-0000-00000000000a', '9f740000-0000-0000-0000-000000000016', 'v1_geaendert', 'v2_behalten', 5, 1, 'd7740000-0000-0000-0000-000000000016'),
   ('af740000-0000-0000-0000-00000000000a', '9f740000-0000-0000-0000-000000000017', 'v1_geaendert', 'v2_behalten', 4, 1, 'd7740000-0000-0000-0000-000000000017'),
-  ('af740000-0000-0000-0000-00000000000a', '9f740000-0000-0000-0000-000000000018', 'beide_geaendert', 'spaeter', 4, 2, 'd7740000-0000-0000-0000-000000000018');
+  ('af740000-0000-0000-0000-00000000000a', '9f740000-0000-0000-0000-000000000018', 'beide_geaendert', 'spaeter', 4, 2, 'd7740000-0000-0000-0000-000000000018'),
+  -- 31: Klasse gleich, aber "Später entscheiden" (gültig); 32: Klasse gleich, Übernahme verfallen (V2 war 4)
+  ('af740000-0000-0000-0000-00000000000a', '9f740000-0000-0000-0000-000000000031', 'gleich', 'spaeter', 3, 5, 'd7740000-0000-0000-0000-000000000031'),
+  ('af740000-0000-0000-0000-00000000000a', '9f740000-0000-0000-0000-000000000032', 'gleich', 'v1_uebernehmen', 3, 4, 'd7740000-0000-0000-0000-000000000032');
 
 CREATE FUNCTION pg_temp.as_user(p_user TEXT) RETURNS VOID LANGUAGE sql AS $$
   SELECT set_config('request.jwt.claims', json_build_object('sub', p_user, 'role', 'authenticated')::text, true);
@@ -141,6 +152,34 @@ INSERT INTO public.dashboard_editor_rollout (organization_id, stufe, notiz)
 VALUES ('af740000-0000-0000-0000-00000000000a', 1, 'Test-Organisation');
 
 SELECT isnt((SELECT aktiviert_at FROM public.dashboard_editor_rollout WHERE organization_id = 'af740000-0000-0000-0000-00000000000a'), NULL, 'aktiviert_at wird gesetzt');
+
+-- Protokoll nur bei tatsächlicher Änderung (Codex PR #221): Upsert wie in UMSTELLUNG_P16.md
+CREATE FUNCTION pg_temp.audits() RETURNS INTEGER LANGUAGE sql AS $$
+  SELECT count(*)::int FROM public.audit_log
+  WHERE action = 'dashboard.editor_rollout_stufe' AND organization_id = 'af740000-0000-0000-0000-00000000000a'
+$$;
+SELECT is(pg_temp.audits(), 1, 'Anlegen schreibt genau einen Protokolleintrag');
+CREATE TEMP TABLE akt_before AS SELECT aktiviert_at FROM public.dashboard_editor_rollout
+WHERE organization_id = 'af740000-0000-0000-0000-00000000000a';
+INSERT INTO public.dashboard_editor_rollout (organization_id, stufe, aktiviert_von, notiz)
+VALUES ('af740000-0000-0000-0000-00000000000a', 1, 'Marc', 'gleiche Stufe')
+ON CONFLICT (organization_id) DO UPDATE
+SET stufe = EXCLUDED.stufe, aktiviert_von = EXCLUDED.aktiviert_von, notiz = EXCLUDED.notiz;
+SELECT is(pg_temp.audits(), 1, 'Upsert mit gleicher Stufe protokolliert keinen Wechsel');
+SELECT is((SELECT aktiviert_at FROM public.dashboard_editor_rollout WHERE organization_id = 'af740000-0000-0000-0000-00000000000a'),
+  (SELECT aktiviert_at FROM akt_before), 'Gleiche Stufe lässt aktiviert_at unverändert');
+INSERT INTO public.dashboard_editor_rollout (organization_id, stufe, aktiviert_von, notiz)
+VALUES ('af740000-0000-0000-0000-00000000000a', 2, 'Marc', 'Wechsel')
+ON CONFLICT (organization_id) DO UPDATE
+SET stufe = EXCLUDED.stufe, aktiviert_von = EXCLUDED.aktiviert_von, notiz = EXCLUDED.notiz;
+SELECT is(pg_temp.audits(), 2, 'Upsert mit Stufenwechsel protokolliert genau einen Eintrag');
+SELECT is(
+  (SELECT count(*)::int FROM public.audit_log
+   WHERE action = 'dashboard.editor_rollout_stufe' AND organization_id = 'af740000-0000-0000-0000-00000000000a'
+     AND details->>'vorher' = '1' AND details->>'stufe' = '2'),
+  1, 'Protokoll nennt vorherige und neue Stufe'
+);
+UPDATE public.dashboard_editor_rollout SET stufe = 1 WHERE organization_id = 'af740000-0000-0000-0000-00000000000a';
 
 SET ROLE authenticated;
 SELECT pg_temp.as_user('9f740000-0000-0000-0000-000000000001');
@@ -192,6 +231,9 @@ SELECT is((SELECT grund FROM public.dashboard_editor_rollout_status()), 'entsche
 -- ======================================================== 25..26
 SELECT is(pg_temp.editor_of('9f740000-0000-0000-0000-000000000018'), 'v1', 'beide_geaendert mit "später" -> alter Editor');
 SELECT is(pg_temp.editor_of('9f740000-0000-0000-0000-000000000019'), 'v2', 'ohne jeden Stand -> neuer Editor');
+SELECT is(pg_temp.editor_of('9f740000-0000-0000-0000-000000000031'), 'v1', 'gleich mit "später" -> alter Editor (Codex PR #221)');
+SELECT is(pg_temp.editor_of('9f740000-0000-0000-0000-000000000032'), 'v1', 'gleich mit verfallener Entscheidung -> alter Editor');
+SELECT is((SELECT grund FROM public.dashboard_editor_rollout_status()), 'entscheidung_verfallen', 'Grund bei gleich: Entscheidung verfallen');
 
 -- ======================================================== 27..30 Fixierung nach Umstellung
 SELECT pg_temp.as_user('9f740000-0000-0000-0000-000000000016');
@@ -236,11 +278,11 @@ SELECT throws_ok($$ SELECT * FROM public.dashboard_editor_rollout_overview() $$,
 SELECT pg_temp.as_user('9f740000-0000-0000-0000-000000000001');
 SELECT is(
   (SELECT stufe || '/' || nutzer_v2 || '/' || offene_entscheidungen FROM public.dashboard_editor_rollout_overview()),
-  '1/6/3',
-  'Übersicht: Stufe 1, 6 umgestellt, 3 offene Entscheidungen (12, 17, 18)'
+  '1/6/5',
+  'Übersicht: Stufe 1, 6 umgestellt, 5 offene Entscheidungen (12, 17, 18, 31, 32)'
 );
 SELECT is(
-  (SELECT nutzer_aktiv FROM public.dashboard_editor_rollout_overview()), 11,
+  (SELECT nutzer_aktiv FROM public.dashboard_editor_rollout_overview()), 13,
   'Übersicht zählt alle aktiven Mitglieder'
 );
 
