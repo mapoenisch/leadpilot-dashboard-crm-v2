@@ -2290,6 +2290,13 @@ Artefakt-/Versionsabgleichs.
 - **Oberfläche:** `/admin/umstellung` (`RolloutPrepPage`, Dienst-Schnittstelle `RolloutPrepService` mit Supabase- und In-Memory-Variante für Vorschau/Tests), Vorschau `?bereich=umstellung`. Rollout-Schalter unverändert.
 - **Gesamtabnahme:** `docs/dashboard/GESAMTABNAHME_P16.md` (Matrix §7, Last, Rechte, Betrieb, Rückweg). Befund B-1 (Alarm-RPCs ohne Dashboard-Rechteprüfung) als pgTAP-TODO belegt, Behebung als Zwischenauftrag 173a vorgeschlagen.
 
+## C17. Alarm-Rechte am Dashboard-Recht (Auftrag 173a, 2026-11-23)
+
+- **Regel:** Alarmregeln verwalten (anlegen, ändern, pausieren, fortsetzen) setzt Rolle Admin/Manager **und** Schreibrecht am Dashboard voraus (persönlich: Besitz; Team: `dashboard_team_can_write`). Lesen (Regel- und alte Ereignisliste) setzt Leserecht voraus. Pausieren und Löschen darf zusätzlich der Admin der Organisation (Admin-Ansicht „Alarme“). Prüfung immer in `current_organization_id()`.
+- **Fehlerbild:** ohne Leserecht `LP_DASHBOARD_NOT_FOUND` (verrät keine Existenz, wie `load_dashboard_v2`); mit Lese-, ohne Schreibrecht `LP_AUTH_INSUFFICIENT_PERMISSIONS`.
+- **Keine stille Verantwortungsübernahme:** `create_dashboard_alarm_rule` auf belegter Kachel ändert die Regel, lässt `responsible_user_id` aber stehen; Wechsel nur über `takeover_dashboard_alarm_rule` (Admin-only seit 168).
+- **Bausteine:** `dashboard_alarm_dashboard_access` (`schreiben`/`lesen`/`keins`), `dashboard_alarm_require_manage`, `dashboard_alarm_rule_dashboard` (nicht öffentlich). `alarm_worker_status().aktiveRegeln` zählt nur die eigene Organisation. Migration `20261129_dashboard_alarm_rule_rights.sql`.
+
 ---
 
 ---

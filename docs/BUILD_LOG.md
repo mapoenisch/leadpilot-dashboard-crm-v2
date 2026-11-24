@@ -23010,8 +23010,6 @@ Umgesetzt und lokal verifiziert. Prüfer ist Codex (CLAUDE.md §4.1; Klarstellun
 - **P2 Wertebereich der Migrationsmetadaten:** `dashboard_rollout_int` akzeptiert nur ganze Zahlen von 0 bis 2.147.483.647; andere Werte gelten als fehlende Herkunft, statt den ganzen Abgleich abzubrechen.
 - **Tests:** pgTAP `dashboard_rollout_reconciliation.sql` +5 (falsche Dashboard-ID abgewiesen, passende gespeichert, ausgetauschte Kopie → verfallen, Überlauf bricht nicht ab, ungültiger Wert = leer; jetzt 46). Neu `rolloutReconciliationCodex.vitest.ts` (4), `RolloutPrepPage.ui.vitest.tsx` +1. **Rot-Nachweis:** pgTAP gegen die alte Migration rot (Signatur fehlt), die 5 neuen Vitest-Fälle gegen den alten Client rot, mit der Nacharbeit grün.
 - **Verifikation:** `tsc` 0, `lint` 0, Prettier grün, `npm test` 490 Dateien / 3.755 Tests grün, `verify` 25/25, Build und size-limit (172,34 kB) grün, `supabase test db` 30 Dateien grün (5 TODO = B-1, Behebung in 173a), `verify:migrations` grün, E2E `dashboard-rollout-prep` und `dashboard-rueckweg-probe` 6 grün. Schutzbereiche gegen `c48ac8b1` unverändert (leerer Diff).
-
-
 ### 13. Nacharbeit Runde 2 (Codex-Review auf `739ea6197f`, 23.11.2026)
 
 - **P2 Zurückgestellte Entscheidungen bei Klasse „gleich“ weiterhin offen und entscheidbar:** Wenn nach „Alten Stand übernehmen“ im Pilot weitergearbeitet und anschließend „Später entscheiden“ gewählt wird, bleibt die Klasse `gleich`, während die Entscheidung wieder gültig ist. `needsDecision` und `isDecidable` berücksichtigen nun `entscheidung === 'spaeter'` auch bei Klasse `gleich`. Damit zählt der Eintrag als offene Entscheidung und bietet weiterhin die Aktionen zur endgültigen Entscheidung an.
@@ -23020,3 +23018,53 @@ Umgesetzt und lokal verifiziert. Prüfer ist Codex (CLAUDE.md §4.1; Klarstellun
 - **Flaky E2E-Korrektur (`editor-time-point.spec.ts` / `DepthLineChart.tsx`):** `onMouseLeave` auf dem SVG-Element leert das Fadenkreuz nicht mehr, wenn der Tastatur-Slider fokussiert ist (`isSliderFocusedRef`). Zudem bewegt die Test-Spec vor der Tastatursteuerung die Maus aus dem SVG-Bereich (`mouse.move(0, 0)`), um asynchrone Leave-Events bei Scroll-Verschiebungen unter Linux zu verhindern. Neuer Unittest in `crosshairCoupling.ui.vitest.tsx` (10/10 grün).
 - **Verifikation:** `tsc` 0, `lint` 0, Prettier (`format:check`) grün, `npm test` 490 Dateien / 3.758 Tests grün, `verify` 25/25 Integrity-Suiten grün, Build und `size-limit` (172,35 kB) grün. Schutzbereichs-Diff gegen `c48ac8b1` unverändert leer.
 
+---
+
+## 2026-11-23 — Zwischenauftrag 173a: Alarm-Rechte an das Dashboard-Recht binden (Befunde B-1, B-4, B-5)
+
+Builder: Claude Code (Entscheidung Marc 23.11.2026: „ja machen wir genau so“). Baseline `e2766119` (Head von 173) / rebased auf `main` (`9f8fc827`). Branch `auftrag-173a-alarm-rechte` (PR #220).
+
+### 1. Ziel & Kontext
+
+Die offenen Befunde aus der Gesamtabnahme 173 schließen, damit 174 auf einer Abnahmematrix ohne offene Befunde aufsetzt. Gleichzeitig festgehalten (BUILD_PLAN): Rollout-Stufen wie 174 §0; `beide_geaendert` ohne Entscheidung → Pilot behalten, V1 bleibt als Sicherung lesbar.
+
+### 2. Umsetzung
+
+- **Migration `20261129_dashboard_alarm_rule_rights.sql`:** Hilfsfunktionen `dashboard_alarm_dashboard_access` (`schreiben`/`lesen`/`keins`), `dashboard_alarm_caller_role`, `dashboard_alarm_require_manage`, `dashboard_alarm_rule_dashboard` (nicht öffentlich). Neu definiert: `create/update/pause/resume/delete_dashboard_alarm_rule`, `list_dashboard_alarm_rules`, `list_dashboard_alarm_events` (alt, ungenutzt), `alarm_worker_status`.
+- **Regeln:** Verwalten nur mit Rolle Admin/Manager **und** Schreibrecht am Dashboard. Lesen nur mit Leserecht. Pausieren/Löschen zusätzlich durch den Admin der Organisation (Admin-Ansicht „Alarme“). Ohne Leserecht `LP_DASHBOARD_NOT_FOUND`, sonst `LP_AUTH_INSUFFICIENT_PERMISSIONS`. Anlegen auf belegter Kachel übernimmt keine Verantwortung. Prüfung in `current_organization_id()`.
+- **B-4:** `alarm_worker_status().aktiveRegeln` nur für die eigene Organisation.
+- **B-5:** `e2e/team-dashboards.spec.ts` räumt mit `dashboards`/`dashboard_teams` auf, entfernt auch die persönlichen „(Kopie)“-Dashboards und meldet Fehler sichtbar. Nach dem Lauf: 0 Rückstände in der lokalen DB.
+- Keine Client-Änderung nötig: Der Alarmdienst reicht Fehlertexte durch, die Fehlerarten sind dieselben wie bisher.
+
+### 3. Rot-Nachweis
+
+`dashboard_rights_matrix_p16.sql`: TODO-Block aus 173 in reguläre Tests überführt und um Admin-/Positivfälle ergänzt (47 Tests). Vor der Migration **13 rot**, danach 47 grün. Eine Erwartung angepasst: Admin einer fremden Organisation erhält beim Anlegen jetzt `LP_DASHBOARD_NOT_FOUND` statt `LP_AUTH_INSUFFICIENT_PERMISSIONS` (verrät keine Existenz, wie `load_dashboard_v2`).
+
+### 4. Schutzbereiche
+
+`git diff origin/main -- src/simulation src/types src/context src/services/data src/features/resources` → leer.
+
+### 5. Automatisierte Verifikation
+
+| Prüfung | Ergebnis |
+| --- | --- |
+| `npx tsc --noEmit`, `npm run lint`, `npm run format:check` | grün |
+| `npm test` | 490 Dateien, 3.758 Tests grün |
+| `npm run verify` | 25/25 grün |
+| `npm run build`; `build:production` (https-Platzhalter) | grün |
+| `npx size-limit` | 172,35 kB / 180 kB |
+| `supabase test db` | 30 Dateien, 797 Tests grün, **0 TODO** |
+| `npm run verify:migrations`, `verify:realtime -- --fail-if-offline` | grün |
+| Playwright seriell (CI-Zeile 232) | 65 bestanden, 10 übersprungen, 0 rot |
+| Playwright `dashboard-alarms-preview` | 3 bestanden |
+| Playwright parallel (CI-Zeile 230) | 745 bestanden; 15 rot nur `visual.spec.ts` auf macOS (veraltete darwin-Baselines, auch auf `main`), siehe 173 §11 |
+
+Dabei aufgefallen und auf 173 korrigiert (`e2766119`): Der Menüpunkt „Umstellung vorbereiten“ verlängerte die Seitenleiste auf allen Seiten (Linux-Baselines wären rot gewesen); der Eintrag erscheint jetzt nur im Admin-Bereich.
+
+### 6. Dokumentation
+
+`GESAMTABNAHME_P16.md` (Matrixzeile 6 ✅, Rechtetabelle, Befunde B-1/B-4/B-5 behoben, §9 Entscheidungen Marc, Hosted-Liste um `20261129` ergänzt), `ARCHITECTURE_DECISIONS.md` C17, `BUILD_PLAN.md`, Detailauftrag `ANTIGRAVITY_AUFTRAG_173A_ALARM_RECHTE.md`.
+
+### 7. Ergebnis & Freigabestatus
+
+Umgesetzt und lokal verifiziert. Codex-Review auf Commits `9629fecd50` und `b5989dc5c4` ohne Befunde („Didn't find any major issues. Keep it up!“). Stand mit `main` zusammengeführt (PR #219 integriert). Alle Prüfungen grün, Schutzbereiche unangetastet. Merge durch Marc.

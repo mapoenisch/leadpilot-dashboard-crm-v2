@@ -51,6 +51,7 @@ async function logout(page: Page): Promise<void> {
 test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', () => {
   const testRunId = Date.now();
   const teamName = `E2E Team ${testRunId}`;
+  const dashboardTitle = `Team Sales ${testRunId}`;
   let createdTeamId: string | null = null;
   let managerUserId: string | null = null;
   const createdDashboardIds: string[] = [];
@@ -61,30 +62,38 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
     });
   });
 
+  // Auftrag 173a (Befund B-5): richtige Tabellennamen und sichtbare Fehler statt Verschlucken.
+  // Entfernt auch die persönlichen Kopien („… (Kopie)“), die sonst spätere Specs beeinflussen.
   test.afterAll(async () => {
-    try {
-      const supabaseAdmin = createClient(getBaseUrl(), getServiceKey());
-      if (createdDashboardIds.length > 0) {
-        await supabaseAdmin
-          .from('dashboards_v2')
-          .delete()
-          .in('id', createdDashboardIds);
-      }
-      if (createdTeamId) {
-        await supabaseAdmin
-          .from('dashboard_teams_v2')
-          .delete()
-          .eq('id', createdTeamId);
-      }
-      if (managerUserId) {
-        await supabaseAdmin
-          .from('organization_members')
-          .update({ role: 'manager' })
-          .eq('user_id', managerUserId);
-      }
-    } catch {
-      // Ignoriere Fehler beim Aufräumen
+    const supabaseAdmin = createClient(getBaseUrl(), getServiceKey());
+    const problems: string[] = [];
+    const { error: copiesError } = await supabaseAdmin
+      .from('dashboards')
+      .delete()
+      .like('title', `${dashboardTitle}%`);
+    if (copiesError) problems.push(`Dashboards: ${copiesError.message}`);
+    if (createdDashboardIds.length > 0) {
+      const { error } = await supabaseAdmin
+        .from('dashboards')
+        .delete()
+        .in('id', createdDashboardIds);
+      if (error) problems.push(`Team-Dashboard: ${error.message}`);
     }
+    if (createdTeamId) {
+      const { error } = await supabaseAdmin
+        .from('dashboard_teams')
+        .delete()
+        .eq('id', createdTeamId);
+      if (error) problems.push(`Team: ${error.message}`);
+    }
+    if (managerUserId) {
+      const { error } = await supabaseAdmin
+        .from('organization_members')
+        .update({ role: 'manager' })
+        .eq('user_id', managerUserId);
+      if (error) problems.push(`Rolle: ${error.message}`);
+    }
+    if (problems.length > 0) throw new Error(`Aufräumen unvollständig: ${problems.join('; ')}`);
   });
 
   test('Vollständiger Team-Sharing-Lebenszyklus: Anlegen, Berechtigung, Leseansicht, Rechteentzug', async ({
@@ -96,7 +105,9 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
     // -------------------------------------------------------------
     await loginAs(page, ADMIN_EMAIL);
     await page.goto('/admin/teams');
-    await expect(page.getByRole('main').getByRole('heading', { name: 'Dashboard-Teams' })).toBeVisible();
+    await expect(
+      page.getByRole('main').getByRole('heading', { name: 'Dashboard-Teams' }),
+    ).toBeVisible();
 
     await page.getByTestId('create-team-button').click();
     await page.getByTestId('team-name-input').fill(teamName);
@@ -136,7 +147,7 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
     // Merke teamId für Aufräumarbeiten
     const supabaseAdmin = createClient(getBaseUrl(), getServiceKey());
     const { data: teamData } = await supabaseAdmin
-      .from('dashboard_teams_v2')
+      .from('dashboard_teams')
       .select('id')
       .eq('name', teamName)
       .maybeSingle();
@@ -166,7 +177,6 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
 
     // Vorlage und Titel
     await page.getByTestId('template-card-sales').click();
-    const dashboardTitle = `Team Sales ${testRunId}`;
     await page.getByTestId('new-dashboard-title-input').fill(dashboardTitle);
     await page.getByTestId('create-dashboard-submit-button').click();
 
@@ -185,7 +195,7 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
 
     // Merke Dashboard-ID
     const { data: dashData } = await supabaseAdmin
-      .from('dashboards_v2')
+      .from('dashboards')
       .select('id')
       .eq('title', dashboardTitle)
       .maybeSingle();
@@ -205,7 +215,9 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
     await viewerSwitcher.click();
 
     // Team-Dashboard auswählen
-    const teamDashItem = page.locator('[data-testid^="dashboard-item-"]', { hasText: dashboardTitle });
+    const teamDashItem = page.locator('[data-testid^="dashboard-item-"]', {
+      hasText: dashboardTitle,
+    });
     await expect(teamDashItem).toBeVisible();
     await teamDashItem.click();
 
@@ -236,7 +248,9 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
     // Manager öffnet das Team-Dashboard im Editor
     const managerSwitcher = page.getByTestId('dashboard-switcher-button');
     await managerSwitcher.click();
-    const teamDashItemManager = page.locator('[data-testid^="dashboard-item-"]', { hasText: dashboardTitle });
+    const teamDashItemManager = page.locator('[data-testid^="dashboard-item-"]', {
+      hasText: dashboardTitle,
+    });
     await expect(teamDashItemManager).toBeVisible();
     await teamDashItemManager.click();
     await expect(managerSwitcher).toContainText(dashboardTitle);
@@ -278,13 +292,17 @@ test.describe('Dashboard-Editor V2: Team-Freigaben Supabase Lifecycle (P11b)', (
     // -------------------------------------------------------------
     await loginAs(page, ADMIN_EMAIL);
     await page.goto('/admin/teams');
-    const manageBtn2 = page.locator('tr', { hasText: teamName }).getByRole('button', { name: 'Mitglieder' });
+    const manageBtn2 = page
+      .locator('tr', { hasText: teamName })
+      .getByRole('button', { name: 'Mitglieder' });
     await manageBtn2.click();
 
     if (managerUserId) {
       const removeBtn = page.getByTestId(`remove-member-button-${managerUserId}`);
       await removeBtn.click();
-      await expect(page.getByText('verliert sofort den Zugriff auf alle Dashboards dieses Teams')).toBeVisible();
+      await expect(
+        page.getByText('verliert sofort den Zugriff auf alle Dashboards dieses Teams'),
+      ).toBeVisible();
       await page.getByTestId('confirm-remove-member-button').click();
       await expect(page.locator('tr', { hasText: MANAGER_EMAIL })).not.toBeVisible();
     }
