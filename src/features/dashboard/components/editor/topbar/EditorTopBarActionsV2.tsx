@@ -43,7 +43,11 @@ export function EditorTopBarActionsV2({
   onOpenReport,
 }: EditorTopBarActionsV2Props) {
   return (
-    <div className="flex items-center gap-2">
+    // Auftrag 174a (L6): umbrechen statt abschneiden; auf Telefonbreite nur Symbole für Nebenaktionen
+    <div
+      data-testid="editor-top-bar-actions"
+      className="flex min-w-0 max-w-full flex-wrap items-center justify-end gap-2"
+    >
       {!readOnly && (
         <UndoRedoGroup canUndo={canUndo} canRedo={canRedo} onUndo={onUndo} onRedo={onRedo} />
       )}
@@ -56,9 +60,10 @@ export function EditorTopBarActionsV2({
           onClick={onOpenVersions}
           className="flex h-8 items-center gap-1.5 rounded border border-[var(--color-border,#1b3d39)] bg-black/20 px-2.5 text-xs font-medium text-[var(--color-text-muted)] hover:text-white transition-colors"
           title="Versionshistorie anzeigen"
+          aria-label="Versionen"
         >
-          <History className="h-3.5 w-3.5" />
-          <span>Versionen</span>
+          <History className="h-3.5 w-3.5" aria-hidden="true" />
+          <span className="hidden sm:inline">Versionen</span>
         </button>
       )}
 
@@ -70,9 +75,10 @@ export function EditorTopBarActionsV2({
           onClick={onOpenReport}
           className="flex h-8 items-center gap-1.5 rounded border border-[var(--color-border,#1b3d39)] bg-black/20 px-2.5 text-xs font-medium text-[var(--color-text-soft,#e6f3f1)] hover:text-white transition-colors"
           title="Report drucken oder als PDF speichern"
+          aria-label="Report"
         >
           <Printer className="h-3.5 w-3.5" aria-hidden="true" />
-          <span>Report</span>
+          <span className="hidden sm:inline">Report</span>
         </button>
       )}
 
@@ -88,9 +94,14 @@ export function EditorTopBarActionsV2({
             : 'border-[var(--color-border,#1b3d39)] bg-black/20 text-[var(--color-text-muted)] hover:text-white',
         )}
         title="Reine Dashboard-Vorschau ohne Hilfselemente umschalten"
+        aria-label={isPreviewMode ? 'Editor' : 'Vorschau'}
       >
-        {isPreviewMode ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-        <span>{isPreviewMode ? 'Editor' : 'Vorschau'}</span>
+        {isPreviewMode ? (
+          <EyeOff className="h-3.5 w-3.5" aria-hidden="true" />
+        ) : (
+          <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+        )}
+        <span className="hidden sm:inline">{isPreviewMode ? 'Editor' : 'Vorschau'}</span>
       </button>
 
       {/* Inspector Toggle Button */}

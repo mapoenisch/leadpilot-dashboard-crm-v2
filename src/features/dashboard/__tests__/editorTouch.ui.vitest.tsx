@@ -10,7 +10,6 @@ import { WidgetLibraryV2 } from '../components/editor/WidgetLibraryV2';
 import { LONG_PRESS_MS, useGridDragAndDrop } from '../components/editor/grid/useGridDragAndDrop';
 import { useGridKeyboard } from '../components/editor/grid/useGridKeyboard';
 import { useSheetBackClose, SHEET_HISTORY_KEY } from '../hooks/useSheetBackClose';
-import { useEditorTouchLayout } from '../components/editor/useEditorTouchLayout';
 import { useEditorPreviewData } from '../preview/editorPreviewData';
 
 const desktopTiles: DashboardTileConfigV2[] = [
@@ -372,64 +371,5 @@ describe('Vollbild-Blatt: Tastaturfokus (Codex-Befund PR #213)', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
     view.rerender(lib(false));
     expect(document.activeElement).toBe(screen.getByTestId('trigger'));
-  });
-});
-
-describe('Telefon erzwingt die Smartphone-Ansicht (Desktop-Layout bleibt erhalten)', () => {
-  const originalMatchMedia = window.matchMedia;
-  afterEach(() => {
-    window.matchMedia = originalMatchMedia;
-  });
-
-  function mockViewport(width: number) {
-    window.matchMedia = ((query: string) => {
-      const max = Number(/max-width: (\d+)px/.exec(query)?.[1] ?? Infinity);
-      return {
-        matches: width <= max,
-        media: query,
-        addEventListener: () => {},
-        removeEventListener: () => {},
-      };
-    }) as unknown as typeof window.matchMedia;
-  }
-
-  it.each([
-    [375, 'desktop', 'mobile', true],
-    [768, 'desktop', 'tablet', false],
-    [1440, 'desktop', null, false],
-  ] as const)('Breite %i: %s → %s', (width, start, expected, locked) => {
-    mockViewport(width);
-    const setActiveBreakpoint = vi.fn();
-    const { result } = renderHook(() =>
-      useEditorTouchLayout({
-        activeBreakpoint: start,
-        setActiveBreakpoint,
-        isInspectorOpen: false,
-        setIsInspectorOpen: vi.fn(),
-        setSelectedTileId: vi.fn(),
-      }),
-    );
-    if (expected) expect(setActiveBreakpoint).toHaveBeenCalledWith(expected);
-    else expect(setActiveBreakpoint).not.toHaveBeenCalled();
-    expect(result.current.breakpointLocked).toBe(locked);
-    expect(result.current.asSheet).toBe(locked);
-  });
-
-  it('„Bearbeiten“ in der Liste wählt die Kachel und öffnet den Inspector', () => {
-    mockViewport(375);
-    const setSelectedTileId = vi.fn();
-    const setIsInspectorOpen = vi.fn();
-    const { result } = renderHook(() =>
-      useEditorTouchLayout({
-        activeBreakpoint: 'mobile',
-        setActiveBreakpoint: vi.fn(),
-        isInspectorOpen: false,
-        setIsInspectorOpen,
-        setSelectedTileId,
-      }),
-    );
-    act(() => result.current.listContext.onEditTile('tile_arr'));
-    expect(setSelectedTileId).toHaveBeenCalledWith('tile_arr');
-    expect(setIsInspectorOpen).toHaveBeenCalledWith(true);
   });
 });

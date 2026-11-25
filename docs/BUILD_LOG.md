@@ -23133,3 +23133,70 @@ Umgesetzt und lokal verifiziert. Review durch Codex ausstehend. Nach Merge (T6):
 | Audit-Eintrag bei `INSERT … ON CONFLICT` doppelt/fälschlich | BEFORE-Trigger setzt nur Felder, AFTER-Trigger protokolliert nur echtes Anlegen/Stufenwechsel; gleiche Stufe lässt `aktiviert_at` stehen | pgTAP 5 neue Tests |
 
 Übersicht: Feld heißt jetzt „Warten auf Entscheidung“ (zählt nur tatsächlich blockierte Umstellungen). Nachprüfung: `tsc`, `lint`, `format:check` grün; `npm test` 3.777 grün; `supabase test db` 853 grün; `verify:migrations` grün; `e2e/dashboard-rollout.spec.ts` 3/3; Playwright-Block 3 (`E2E_DASHBOARD_SERIAL`) 75/75.
+
+## 2026-11-24 — Auftrag 174a: Dashboard-Editor V2 nach dem Smoke-Test stabilisieren (L1–L7, F1, F2)
+
+Builder: Claude Code (Umsetzung von Marc am 24.11.2026 bestätigt). Baseline `8b481c63` (`main` nach Merge von #221). Branch `auftrag-174a-editor-smoke-nacharbeit`. Detailauftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_174A_DASHBOARD_EDITOR_SMOKE_NACHARBEIT.md`.
+
+### 1. Ziel & Kontext
+
+Der Hosted-Smoke-Test nach Stufe 1 und der lokale Browser-Audit vom 24.11.2026 ergaben Layoutfehler beim Verkleinern (L1–L7) und zwei Funktionsfehler. F1: „Im Panel-Editor öffnen“ ohne Handler. F2: „Abbrechen“ setzt einen V1-Override. Ziel: Der Editor bleibt auf jeder Breite bedienbar, Kacheln überdecken einander nicht, „Abbrechen“ bleibt in V2. Der vollständige Panel-Editor aus Auftrag 155 gehört nicht dazu.
+
+### 2. Umsetzung
+
+- **L1/L3/L7:** Neuer Hook `useEditorPanelLayout.ts`. Die Seitenbereiche richten sich nach der gemessenen Editorbreite: ab 1200 px beide, ab 920 px einer, darunter überlagert, auf Telefonbreite als Blatt. Jeder Moduswechsel setzt die Grundstellung wie beim Direktaufruf; dadurch erscheint auf Telefonbreite keine ungefragte Info mehr. `SectionedCanvasV2`: `min-w-0`, breite Inhalte schieben den Inspector nicht mehr aus der Hülle. `useEditorTouchLayout`: Automatisch gewählte Smartphone- und Tablet-Ansichten werden beim Zurückkehren auf Desktop-Breite zurückgenommen (Zusatzbefund aus T0).
+- **L2/L4/L5:** `CanvasTileCard`: Kachelinhalt in der belegten Rasterfläche eingefasst und dort scrollend, als Container für die KPI-Schrift. `TileValue`: KPI-Zahl 20–32 px je nach Kachelbreite. Diagramme scrollen weiterhin bewusst horizontal (fokussierbare Region), jetzt innerhalb der Karte.
+- **L6:** Aktionsleiste und Top-Bar brechen um statt abzuschneiden. Unter 640 px zeigen Versionen, Report und Vorschau nur ihr Symbol, mit `aria-label`.
+- **F1:** Button nur mit übergebenem Handler. **F2:** `onCancel` baut den Editor mit dem zuletzt gespeicherten Stand neu auf, ohne Override und ohne Neuladen.
+- **Außerhalb der Einstiegspunkte (begründet, Detailauftrag §4 Nr. 6):** `.github/workflows/ci.yml`, `scripts/runV23Acceptance.mjs` (neue E2E-Datei in der seriellen Gruppe), `TileValue.tsx` (Renderer).
+
+### 3. Vorher/Nachher (Harness `scripts/captureAuftrag174aGateScreenshots.mjs`, vollständige App-Hülle, lokales Supabase, Stufe 1, ohne Override)
+
+| Messung | Vorher | Nachher |
+| --- | --- | --- |
+| Arbeitsfläche 1440 / 1059 px (Direktaufruf) | 516 / 135 px | 796 / 735 px |
+| Resize mit Entwurf 1440 → … → 375 → 1440: kleinste Arbeitsfläche | 100 px (bei 1024) | 636 px (bei 1280) |
+| Info bzw. Bibliothek nach Resize auf 375 px | beide als Vollbild-Blatt | zu |
+| „Speichern“/„Abbrechen“ bei 375 px | abgeschnitten (x = 613/488) | sichtbar und klickbar |
+| Überstehende Kacheln (1440 px) | 16 von 17, bis 407 px | 0 |
+| ARR-Verlauf: letzter Punkt „Q3 25“ | erreichbar, Karte nicht eingefasst | erreichbar, in der Karte eingefasst |
+| Layoutansicht nach Rückkehr auf 1440 px | blieb Smartphone | Desktop |
+| F1 Panel-Editor-Buttons ohne Handler | 1 | 0 |
+| F2 nach „Abbrechen“ + Neuladen | V1 (Override `false`) | V2 (kein Override) |
+| Dokument-Überlauf | 0 px (Fehler trotzdem vorhanden) | 0 px |
+
+Vollständige Matrix mit 14 Paaren (alle Hashes verschieden): `docs/screenshots/auftrag-174a/README.md`. Gespeicherte Layouts und Revisionen blieben in beiden Läufen unverändert. Die Bilder bleiben lokal.
+
+### 4. Schutzbereiche
+
+`git diff 8b481c63 -- src/simulation src/types src/context src/services/data src/features/resources` → leer.
+
+### 5. Automatisierte Verifikation
+
+| Prüfung | Ergebnis |
+| --- | --- |
+| `npx tsc --noEmit`, `npm run lint`, `npm run format:check` | grün |
+| `npm test` | 492 Dateien, 3.782 Tests grün (neu: `editorSmokeNacharbeit.ui.vitest.tsx`, 4 Tests) |
+| `npm run verify` | 25/25 grün |
+| `npm run build` | grün |
+| `npx size-limit` | 172,34 kB / 180 kB |
+| `e2e/dashboard-editor-smoke.spec.ts` (neu, 2 Tests) | grün, zweifach wiederholt. 375 px: Speichern per Touch, Neuladen, Abbrechen per Tastatur, V2 bleibt. Desktop: Kachel-Einfassung in Bearbeitung und Vorschau, F1, Resize 1440 → 1059 → 375 → 1440 mit Entwurf, F2 mit und ohne Änderung, Revision unverändert. |
+| Playwright parallel (Dashboard-/Mobile-/A11y-Auswahl aus CI-Zeile 230) | 132 bestanden; 15 rot nur in `visual.spec.ts` auf macOS. Umgebungshindernis: Die darwin-Baselines zeigen einen veralteten Seitenstand (ganze Seite verschieden, auch Routen ohne Dashboard), wie bei 173/174. Die CI vergleicht gegen linux. |
+| Playwright seriell (Dashboard-Auswahl aus CI-Zeile 232, inkl. neuer Spec) | 17 bestanden, 0 rot |
+| Playwright Dashboard (CI-Zeile 237, `E2E_DASHBOARD_SERIAL`) | 75/75 grün |
+
+Lokale Testdaten: nur Seed-Nutzer `manager-a`. Der Test stellt Größe und Stand nach dem Speichern wieder her. Rollout- und Umstellungszeilen sind danach entfernt (geprüft: 0/0).
+
+### 6. Ergebnis & Freigabestatus
+
+Umgesetzt und lokal verifiziert. Review durch Codex auf GitHub ausstehend. Nicht enthalten: Panel-Editor (Auftrag 155, Entscheidung Marc vor Release), Release-Doku, Hosted-DB, Netlify, Stufen, Tag. Nach Merge: neuer Produktionsbuild, Hosted-Smoke mit der Demo-Organisation, Eintrag im Stufenprotokoll. Merge durch Marc.
+
+### 7. Nacharbeit Codex-Runde 1 (geprüfter Head `daa06696`)
+
+| Befund | Behebung |
+| --- | --- |
+| P2 `useEditorTouchLayout.ts`: Nach 1440 → 768 → 1440 px blieb die Tablet-Sperre gesetzt, beim zweiten Verkleinern auf 768 px blieb das Desktop-Layout aktiv. | Nimmt der Hook die automatische Auswahl auf Desktop-Breite zurück, setzt er auch die Tablet-Sperre zurück. Eine Auswahl von Hand bleibt erhalten, weil dann nichts zurückgenommen wird. |
+
+Tests: zwei neue Hook-Tests mit veränderlicher Fensterbreite (Folge 1440 → 768 → 1440 → 768 → 1440 ergibt Desktop, Tablet, Desktop, Tablet, Desktop; eine Wahl von Hand auf Tabletbreite bleibt beim erneuten Verkleinern). Der Test schlug vor dem Fix fehl. Der Viewport-Block wurde dafür aus `editorTouch.ui.vitest.tsx` in die neue Datei `editorTouchViewport.ui.vitest.tsx` verschoben (Lint-Grenze 400 Zeilen).
+
+Verifikation: `npx tsc --noEmit`, `npm run lint` grün; `npm test` 493 Dateien, 3.784 Tests grün; `npm run verify` 25/25 grün; `npm run build` grün. Schutzbereiche: `git diff 8b481c63 -- src/simulation src/types src/context src/services/data src/features/resources` → leer. Erneutes Review per `@codex review` angefordert.

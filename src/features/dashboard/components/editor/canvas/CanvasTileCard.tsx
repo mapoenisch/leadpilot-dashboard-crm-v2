@@ -246,8 +246,17 @@ export function CanvasTileCard({
         </>
       )}
 
-      {/* Eigentlicher Kachel-Renderer */}
-      <div className={listMode ? 'w-full flex-1' : 'h-full w-full'}>
+      {/* Eigentlicher Kachel-Renderer. Auftrag 174a (L2/L4): im Raster in der belegten Fläche
+          eingefasst; längere Inhalte (Zeitwahl, Wertetabelle, Details) scrollen in der Kachel,
+          statt Nachbarkacheln zu überdecken. Container für die KPI-Schriftgröße (L2). */}
+      <div
+        data-testid={`tile-body-${tile.id}`}
+        className={
+          listMode
+            ? 'w-full flex-1'
+            : 'h-full w-full overflow-auto overscroll-contain rounded-xl [container-type:inline-size]'
+        }
+      >
         <LazyDashboardTile
           tile={v1Tile}
           filters={filters}

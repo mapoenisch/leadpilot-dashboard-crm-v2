@@ -13,7 +13,6 @@ import { useDashboardNavigation } from '../hooks/useDashboardNavigation';
 import { useDashboardPreferences } from '../hooks/useDashboardPreferences';
 import { useDashboardV2Storage } from '../hooks/useDashboardV2Storage';
 import type { DashboardConfigV2 } from '../model/dashboardConfigV2';
-import { setDashboardEditorV2Override } from '../model/dashboardRollout';
 import { useDashboardEditorChoice } from '../hooks/useDashboardEditorChoice';
 import {
   DashboardEditorChoiceLoading,
@@ -256,10 +255,9 @@ function PersonalExecutiveDashboardV2Container({
           useData={useTimeControlledData}
           onSave={handleSave}
           onResume={handleResume}
-          onCancel={() => {
-            setDashboardEditorV2Override(false);
-            window.location.reload();
-          }}
+          // Auftrag 174a (F2): „Abbrechen“ verwirft nur den Entwurf und zeigt den zuletzt
+          // gespeicherten Stand im selben Editor; die Editor-Wahl (Server-Stufe) bleibt unberührt.
+          onCancel={() => setReloadKey((k) => k + 1)}
           onShowDetails={(tileId) => onShowDetails(tileId, v2Storage.dashboard?.id)}
           dashboards={v2Storage.dashboards}
           currentStoredDashboard={v2Storage.dashboard}
