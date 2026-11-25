@@ -23286,3 +23286,9 @@ Tests: 3 neue Tests in `tileFitReview.ui.vitest.tsx` (insgesamt 11 Tests: endgü
 | P2 `DashboardChart.tsx` / `TileBody.tsx`: `LazyChart` und `reserveFor` übergaben auch im Einpass-Modus `stableLegend`, sodass Legende (`h-[62px] overflow-y-auto`) und Ablesezeile (`h-[60px] overflow-y-auto`) weiter scrollten und `TileFitBox` nicht die volle Höhe maß. | `reserveFor` nimmt `stableLegend = true` entgegen; `LazyChart` und `TileBody` übergeben `!fit` für `reserveFor` und `stableLegend={!fit}` an das Diagramm. |
 
 Tests: 2 neue Tests in `tileFitHeader.ui.vitest.tsx` (Enter/Space auf dem Erläuterungsschalter in `CanvasTileCard`; keine `LEGEND_RESERVE_CLASS`/`READOUT_STABLE_CLASS`/`overflow-y-auto` im Einpass-Modus). E2E K3 öffnet die Erläuterung jetzt per Enter, und `overflowReport` prüft zusätzlich `chart-readout` und die Legende auf Scrollüberlauf. Verifikation nach letztem Edit: `tsc`, `lint`, `format:check` grün; `npm test` 497 Dateien, 3.822 Tests grün; `verify` 25/25; `build` grün; `size-limit` 172,51 kB; Qualitätsbudget unverändert; `dashboard-tile-fit-preview.spec.ts` dreifach wiederholt 21/21 grün. Schutzbereichs-Diff gegen `5e5d17ac` leer.
+
+### 11. Prüfnachweis Codex-Review Runde 4 (Head `ed511020`, 25.11.2026)
+
+- **Prüfer:** Codex-App auf GitHub (unabhängig; Builder war Claude Code, Nacharbeit Runden 2–3 durch Antigravity/Gemini 4 Hydrogen). Geprüfter Commit: `ed51102021a43b0810ecb6429de08f59845ff7ef`.
+- **Ergebnis:** „Codex Review: Didn't find any major issues. 🚀“ (25.11.2026 14:46 UTC). Alle 6 Review-Konversationen (Runden 1–3) gelöst (`has_unresolved_findings: false`).
+- **Behobene Befunde insgesamt:** Runden 1–3 (Abschnitte 8–10). Reiner Doku-Commit ohne Codeänderung nach `CLAUDE.md` §4.1 Nr. 5 (kein erneutes Review erforderlich).
