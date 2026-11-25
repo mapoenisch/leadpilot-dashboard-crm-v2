@@ -155,7 +155,8 @@ export function SectionedCanvasV2({
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => handleDrop(e)}
       className={cn(
-        'relative flex-1 overflow-y-auto p-4 transition-colors space-y-6',
+        // Auftrag 174a (L3): min-w-0, damit breite Kachelinhalte die Seitenbereiche nicht aus der Hülle schieben
+        'relative min-w-0 flex-1 overflow-y-auto p-4 transition-colors space-y-6',
         !isPreviewMode &&
           'bg-[radial-gradient(#1b3d39_1px,transparent_1px)] [background-size:16px_16px]',
         className,

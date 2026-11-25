@@ -376,19 +376,21 @@ function TileInspectorContent({
         )}
       </div>
 
-      {/* Footer Action: Panel-Editor */}
-      <div className="border-t border-[var(--color-border,#1b3d39)] p-3">
-        <Button
-          type="button"
-          variant="secondary"
-          data-testid="open-panel-editor-btn"
-          onClick={() => onOpenPanelEditor?.(selectedTile.id)}
-          className="w-full justify-between text-xs border-primary/30 text-primary hover:bg-primary hover:text-black"
-        >
-          <span>Im Panel-Editor öffnen</span>
-          <ChevronRight className="h-3.5 w-3.5" />
-        </Button>
-      </div>
+      {/* Footer Action: Panel-Editor – Auftrag 174a (F1): nur mit tatsächlich verfügbarem Handler */}
+      {onOpenPanelEditor && (
+        <div className="border-t border-[var(--color-border,#1b3d39)] p-3">
+          <Button
+            type="button"
+            variant="secondary"
+            data-testid="open-panel-editor-btn"
+            onClick={() => onOpenPanelEditor(selectedTile.id)}
+            className="w-full justify-between text-xs border-primary/30 text-primary hover:bg-primary hover:text-black"
+          >
+            <span>Im Panel-Editor öffnen</span>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

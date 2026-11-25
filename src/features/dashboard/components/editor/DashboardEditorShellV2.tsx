@@ -1,7 +1,7 @@
 // Executive Dashboard V2 (Auftrag 148 & 157 / P05 & P09a): Vier-Zonen-Shell des neuen Dashboard-Editors.
 // Koordiniert Top-Bar, Widget-Bibliothek, Sektions-Canvas, Inspector und Statusleiste.
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { useDashboardEditorV2 } from '../../hooks/useDashboardEditorV2';
 import type { DashboardConfigV2 } from '../../model/dashboardConfigV2';
@@ -25,6 +25,11 @@ import { useDashboardShellController } from './useDashboardShellController';
 import { ReadOnlyNoticeV2 } from './ReadOnlyNoticeV2';
 import { SHEET_CLASS, useEditorTouchLayout } from './useEditorTouchLayout';
 import { EditorListModeContext } from './canvas/editorListMode';
+import {
+  OVERLAY_INSPECTOR_CLASS,
+  OVERLAY_LIBRARY_CLASS,
+  useEditorPanelLayout,
+} from './useEditorPanelLayout';
 import { DashboardReportV2 } from '../export/DashboardReportV2';
 import './editorScope.css';
 
@@ -108,9 +113,16 @@ function DashboardEditorShellBody({
   onOpenImport,
 }: DashboardEditorShellV2Props) {
   const isReadOnly = explicitReadOnly ?? currentStoredDashboard?.canWrite === false;
-  const isDesktop = typeof window === 'undefined' || window.innerWidth >= 1024;
-  const [isLibraryOpen, setIsLibraryOpen] = useState(!isReadOnly && isDesktop);
-  const [isInspectorOpen, setIsInspectorOpen] = useState(!isReadOnly && isDesktop);
+  // Auftrag 174a (L1/L3/L7): Seitenbereiche nach verfügbarer Editorbreite, auch beim Resize
+  const shellRef = useRef<HTMLDivElement>(null);
+  const panels = useEditorPanelLayout({ shellRef, readOnly: isReadOnly });
+  const {
+    isLibraryOpen,
+    isInspectorOpen,
+    setLibraryOpen: setIsLibraryOpen,
+    setInspectorOpen: setIsInspectorOpen,
+  } = panels;
+  const panelOverlay = panels.mode === 'ueberlagert';
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const timeControl = useTimeControl();
@@ -192,9 +204,11 @@ function DashboardEditorShellBody({
 
   return (
     <div
+      ref={shellRef}
       data-testid="dashboard-editor-shell-v2"
       data-touch-scope="editor"
       data-viewport={touch.viewport}
+      data-panel-mode={panels.mode}
       className={cn(
         'flex h-screen w-full flex-col overflow-hidden bg-[var(--color-bg-deep,#030c0b)] text-[var(--color-text-soft,#e6f3f1)]',
         className,
@@ -227,9 +241,9 @@ function DashboardEditorShellBody({
         onCancel={handleCancelClick}
         readOnly={isReadOnly}
         isLibraryOpen={isLibraryOpen}
-        onToggleLibrary={() => setIsLibraryOpen((prev) => !prev)}
+        onToggleLibrary={panels.toggleLibrary}
         isInspectorOpen={isInspectorOpen}
-        onToggleInspector={() => setIsInspectorOpen((prev) => !prev)}
+        onToggleInspector={panels.toggleInspector}
         dashboards={dashboards}
         currentStoredDashboard={currentStoredDashboard}
         onOpenDashboard={onOpenDashboard}
@@ -268,14 +282,16 @@ function DashboardEditorShellBody({
             <WidgetLibraryV2
               onAddTile={(catalogId) => {
                 placementActions.handleAddTile(catalogId);
-                // Telefon: Vollbild-Bibliothek nach dem Hinzufügen schließen, Kachel erscheint in der Liste
-                if (touch.asSheet) setIsLibraryOpen(false);
+                // Telefon/überlagert: Bibliothek nach dem Hinzufügen schließen, die Kachel bleibt sichtbar
+                if (touch.asSheet || panelOverlay) setIsLibraryOpen(false);
               }}
               tileCount={config.tiles.length}
               maxTiles={24}
               onClose={() => setIsLibraryOpen(false)}
               asSheet={touch.asSheet}
-              className={touch.asSheet ? SHEET_CLASS : undefined}
+              className={
+                touch.asSheet ? SHEET_CLASS : panelOverlay ? OVERLAY_LIBRARY_CLASS : undefined
+              }
             />
           )}
 
@@ -324,7 +340,9 @@ function DashboardEditorShellBody({
               onOpenPanelEditor={onOpenPanelEditor}
               onClose={touch.requestCloseInspector}
               asSheet={touch.asSheet}
-              className={touch.asSheet ? SHEET_CLASS : undefined}
+              className={
+                touch.asSheet ? SHEET_CLASS : panelOverlay ? OVERLAY_INSPECTOR_CLASS : undefined
+              }
               onMoveTileToSection={sectionActions.handleMoveTileToSection}
               onExpandSection={(secId) => sectionActions.handleToggleCollapse(secId)}
               isSectionCollapsed={sectionActions.isSectionCollapsed}

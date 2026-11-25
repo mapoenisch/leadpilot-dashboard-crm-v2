@@ -29,14 +29,33 @@ let runtimeEditorV2Override: boolean | null = null;
 export const DASHBOARD_EDITOR_V2_STORAGE_KEY = 'lp_dashboard_editor_v2';
 
 /**
- * Prüft, ob der neue visuelle Dashboard-Editor (V2) aktiv ist.
- * Standard ist strikt false (alter V1-Editor aktiv).
- * Lässt sich über VITE_DASHBOARD_EDITOR_V2=true oder für Pilot-Tests über SessionStorage/Override aktivieren.
+ * Auftrag 174 / P16b: Server-Schalter je Organisation. Der Stand wird beim Öffnen des
+ * Dashboards geladen und für die laufende Ansicht festgehalten (siehe useDashboardEditorChoice).
  */
-export function isDashboardEditorV2Enabled(): boolean {
-  if (runtimeEditorV2Override !== null) {
-    return runtimeEditorV2Override;
-  }
+export type DashboardEditorRolloutReason =
+  | 'stufe_0'
+  | 'rueckweg'
+  | 'umgestellt'
+  | 'umstellbar'
+  | 'entscheidung_fehlt'
+  | 'entscheidung_verfallen'
+  | 'entscheidung_spaeter';
+
+export interface DashboardEditorServerChoice {
+  editor: 'v1' | 'v2';
+  grund: DashboardEditorRolloutReason;
+  stufe: number;
+  aktiviertAt: string | null;
+  umgestelltAt: string | null;
+  v1UpdatedAt: string | null;
+}
+
+/** Serverstand: noch nicht geladen, nicht verfügbar (ohne Supabase/Sitzung) oder geladen. */
+export type DashboardEditorServerState = 'laden' | 'nicht_verfuegbar' | DashboardEditorServerChoice;
+
+/** Override für Tests und Pilot-Umschaltung (Laufzeit vor Session-Storage); sonst null. */
+export function readDashboardEditorOverride(): boolean | null {
+  if (runtimeEditorV2Override !== null) return runtimeEditorV2Override;
   if (typeof window !== 'undefined' && window.sessionStorage) {
     try {
       const stored = window.sessionStorage.getItem(DASHBOARD_EDITOR_V2_STORAGE_KEY);
@@ -46,7 +65,49 @@ export function isDashboardEditorV2Enabled(): boolean {
       // sessionStorage nicht verfügbar (z. B. Sandbox)
     }
   }
+  return null;
+}
+
+export function readDashboardEditorBuildFlag(): boolean {
   return import.meta.env?.VITE_DASHBOARD_EDITOR_V2 === 'true';
+}
+
+/**
+ * Reihenfolge (Auftrag 174 §2 Nr. 2): Override > Server-Schalter > Build-Variable.
+ * Solange der Serverstand lädt, ist noch keine Wahl getroffen ('laden'; die Seite zeigt
+ * einen Ladezustand, damit kein Editor kurz aufblitzt). Ohne Server gilt die Build-Variable.
+ */
+export function resolveDashboardEditorV2(input: {
+  override: boolean | null;
+  server: DashboardEditorServerState;
+  buildFlag: boolean;
+}): boolean | 'laden' {
+  if (input.override !== null) return input.override;
+  if (input.server === 'laden') return 'laden';
+  if (input.server === 'nicht_verfuegbar') return input.buildFlag;
+  return input.server.editor === 'v2';
+}
+
+let latchedServerChoice: { key: string; choice: DashboardEditorServerChoice } | null = null;
+
+/** Hält den beim Öffnen geladenen Serverstand fest (je Organisation und Nutzer). */
+export function latchDashboardEditorServerChoice(
+  key: string,
+  choice: DashboardEditorServerChoice | null,
+): void {
+  latchedServerChoice = choice ? { key, choice } : null;
+}
+
+/**
+ * Prüft, ob der neue visuelle Dashboard-Editor (V2) aktiv ist.
+ * Standard ist strikt false (alter V1-Editor aktiv).
+ * Reihenfolge: Override (Tests/Pilot) > zuletzt geladener Server-Schalter > VITE_DASHBOARD_EDITOR_V2.
+ */
+export function isDashboardEditorV2Enabled(): boolean {
+  const override = readDashboardEditorOverride();
+  if (override !== null) return override;
+  if (latchedServerChoice) return latchedServerChoice.choice.editor === 'v2';
+  return readDashboardEditorBuildFlag();
 }
 
 /** Setzt einen programmatischen Override (für Tests oder Pilot-Umschaltung) */

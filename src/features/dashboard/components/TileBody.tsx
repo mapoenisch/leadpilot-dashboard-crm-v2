@@ -11,6 +11,7 @@ import { isChartView, type ChartLoaders } from './charts/chartLoaders';
 import { DashboardChart, reserveFor, TableToggleReserve } from './DashboardChart';
 import { BLOCKING_STATES, blockingText, InlineStateBadge } from './TileStatus';
 import { readTileStand } from '../time/useTimeControlledData';
+import { useTileFit } from './tileFit';
 
 export const MIN_HEIGHT: Partial<Record<DashboardView, string>> = {
   zahl: 'min-h-[48px]',
@@ -58,6 +59,10 @@ export function TileBody({
   onRetryChartLoad,
   chartLoaders,
 }: TileBodyProps) {
+  // Auftrag 174b (K2): eingepasst gibt es keine feste Höhe mit eigenem Scrollbereich.
+  const fit = useTileFit();
+  const heightClass =
+    fit && SCROLLING_VIEWS.includes(tile.view) ? undefined : MIN_HEIGHT[tile.view];
   const chartView = isChartView(tile.view) ? tile.view : null;
   const caption = `${title}, ${period || 'Zeitraum unbekannt'}`;
   const stand = readTileStand(data);
@@ -70,9 +75,7 @@ export function TileBody({
   ) {
     const hint = `Für ${formatBerlinDateTime(stand.analysisAt)} ist kein Stand gespeichert.`;
     return (
-      <div
-        className={cn('flex flex-col items-start justify-center gap-[6px]', MIN_HEIGHT[tile.view])}
-      >
+      <div className={cn('flex flex-col items-start justify-center gap-[6px]', heightClass)}>
         <p data-testid="tile-no-data" className="m-0 text-[13px] text-[var(--color-text-muted)]">
           {hint}
         </p>
@@ -85,8 +88,9 @@ export function TileBody({
       return (
         <>
           <ChartLoadingPlaceholder
-            label={caption}
-            reserve={reserveFor(chartView, [])}
+            // Auftrag 174b (K3): eingepasst ohne den langen Zeitbezug im sichtbaren Ladehinweis.
+            label={fit ? title : caption}
+            reserve={reserveFor(chartView, [], !fit)}
             hadFocus={loadingHadFocus}
           />
           <TableToggleReserve />
@@ -106,7 +110,7 @@ export function TileBody({
         }}
         className={cn(
           'flex items-center rounded-md text-[13px] text-[var(--color-text-muted)] outline-none focus-visible:ring-2 focus-visible:ring-primary',
-          MIN_HEIGHT[tile.view],
+          heightClass,
         )}
       >
         {title}: wird geladen …
@@ -128,16 +132,14 @@ export function TileBody({
     if (chartView) {
       return (
         <div className="relative">
-          <ChartLayoutReserve {...reserveFor(chartView, [])} />
+          <ChartLayoutReserve {...reserveFor(chartView, [], !fit)} />
           <TableToggleReserve />
           <div className={cn(OVERLAY, 'items-start')}>{blockedContent}</div>
         </div>
       );
     }
     return (
-      <div
-        className={cn('flex flex-col items-start justify-center gap-[6px]', MIN_HEIGHT[tile.view])}
-      >
+      <div className={cn('flex flex-col items-start justify-center gap-[6px]', heightClass)}>
         {blockedContent}
       </div>
     );
@@ -157,7 +159,7 @@ export function TileBody({
       loaders={chartLoaders}
     />
   );
-  if (SCROLLING_VIEWS.includes(tile.view)) {
+  if (!fit && SCROLLING_VIEWS.includes(tile.view)) {
     return (
       <div
         role="region"
@@ -165,12 +167,12 @@ export function TileBody({
         tabIndex={0}
         className={cn(
           'overflow-y-auto rounded-md outline-none focus-visible:ring-2 focus-visible:ring-primary',
-          MIN_HEIGHT[tile.view],
+          heightClass,
         )}
       >
         {chartElement}
       </div>
     );
   }
-  return <div className={MIN_HEIGHT[tile.view]}>{chartElement}</div>;
+  return <div className={heightClass}>{chartElement}</div>;
 }
