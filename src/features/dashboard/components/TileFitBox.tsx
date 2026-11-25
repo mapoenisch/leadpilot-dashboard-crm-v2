@@ -31,6 +31,7 @@ export function TileFitBox({ children, onMinimum }: TileFitBoxProps) {
     if (!outer || !inner) return;
 
     let frame = 0;
+    let disposed = false;
     let mutationObserver: MutationObserver | null = null;
 
     const apply = () => {
@@ -44,21 +45,41 @@ export function TileFitBox({ children, onMinimum }: TileFitBoxProps) {
 
       const measure = (layoutWidth: number) => {
         inner.style.width = `${layoutWidth}px`;
-        return inner.offsetHeight;
+        return Math.max(inner.offsetHeight, inner.scrollHeight);
       };
       inner.style.transform = 'none';
+      inner.style.left = '0px';
+      inner.style.top = '0px';
       inner.style.width = 'min-content';
-      const minContent = inner.offsetWidth;
+      const minContent = Math.max(inner.offsetWidth, inner.scrollWidth);
 
       const minimum = computeTileFitMinimum(minContent, measure);
       const fit = computeTileFit(width, height, minContent, measure);
 
-      inner.style.width = `${fit.layoutWidth}px`;
-      inner.style.left = `${fit.left}px`;
-      inner.style.top = `${fit.top}px`;
-      inner.style.transform = fit.scale < 1 ? `scale(${fit.scale})` : 'none';
-      outer.dataset.fitScale = fit.scale.toFixed(3);
-      outer.dataset.fitBelowMinimum = String(fit.scale < TILE_FIT_MIN_SCALE - 0.001);
+      let scale = fit.scale;
+      let left = fit.left;
+      let top = fit.top;
+      const write = () => {
+        inner.style.width = `${fit.layoutWidth}px`;
+        inner.style.left = `${left}px`;
+        inner.style.top = `${top}px`;
+        inner.style.transform = scale < 1 ? `scale(${scale})` : 'none';
+      };
+      write();
+
+      // Prüft nach dem Setzen am echten Box-Modell (Subpixel-Rundung, überstehende SVG-/Kindboxen)
+      // und engt bei Bedarf nach, bis kein Scrollüberlauf mehr messbar ist.
+      for (let i = 0; i < 3 && (outer.scrollWidth > width || outer.scrollHeight > height); i++) {
+        const rx = outer.scrollWidth > width ? width / outer.scrollWidth : 1;
+        const ry = outer.scrollHeight > height ? height / outer.scrollHeight : 1;
+        scale = Math.max(0.05, scale * Math.min(rx, ry) * 0.995);
+        left = Math.max(0, Math.floor((width - fit.layoutWidth * scale) / 2));
+        top = Math.max(0, Math.floor((height - fit.layoutHeight * scale) / 2));
+        write();
+      }
+
+      outer.dataset.fitScale = scale.toFixed(3);
+      outer.dataset.fitBelowMinimum = String(scale < TILE_FIT_MIN_SCALE - 0.001);
 
       // Codex-Befund PR #223: bei jeder Messung melden, nicht nur bei geändertem Inhaltsbedarf.
       // Ein höherer Kopf (längerer Titel, schmalere Fläche) ändert die Fläche, nicht den Inhalt;
@@ -69,7 +90,7 @@ export function TileFitBox({ children, onMinimum }: TileFitBoxProps) {
     };
 
     const schedule = () => {
-      if (frame) return;
+      if (disposed || frame) return;
       frame = requestAnimationFrame(apply);
     };
 
@@ -87,10 +108,23 @@ export function TileFitBox({ children, onMinimum }: TileFitBoxProps) {
     // feuert ResizeObserver bei fester Layoutbreite nicht. Inhaltsänderungen deshalb mitbeobachten.
     if (typeof MutationObserver !== 'undefined') {
       mutationObserver = new MutationObserver(schedule);
-      mutationObserver.observe(inner, { childList: true, subtree: true, characterData: true });
+      mutationObserver.observe(inner, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+        attributes: true,
+        attributeFilter: ['class'],
+      });
+    }
+
+    if (typeof document !== 'undefined' && document.fonts?.ready) {
+      void document.fonts.ready.then(() => {
+        if (!disposed) schedule();
+      });
     }
 
     return () => {
+      disposed = true;
       applyRef.current = null;
       resizeObserver?.disconnect();
       mutationObserver?.disconnect();

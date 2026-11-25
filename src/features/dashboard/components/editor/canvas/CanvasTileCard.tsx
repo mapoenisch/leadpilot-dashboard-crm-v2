@@ -165,7 +165,7 @@ export function CanvasTileCard({
         }
       }}
       className={cn(
-        'group relative min-w-0 rounded-xl transition-all duration-150',
+        'group relative min-w-0 rounded-xl transition-all duration-150 motion-reduce:transition-none',
         placementClasses,
         isMobile && MOBILE_SIZE_MIN_HEIGHT_CLASS[mobileSizeFromHeight(position.h)],
         listMode && 'flex flex-col',

@@ -43,6 +43,15 @@ describe('computeTileFit', () => {
     expect(fit.scale).toBe(1);
   });
 
+  it('lässt keinen halben Pixel Überstand zu, damit scrollHeight nicht aufrundet', () => {
+    const lineChart = () => 385;
+    const fit = computeTileFit(362, 206, 560, lineChart);
+    expect(fit.layoutWidth * fit.scale).toBeLessThanOrEqual(362);
+    expect(fit.layoutHeight * fit.scale).toBeLessThanOrEqual(206);
+    expect(fit.top + fit.layoutHeight * fit.scale).toBeLessThanOrEqual(206);
+    expect(fit.left + fit.layoutWidth * fit.scale).toBeLessThanOrEqual(362);
+  });
+
   it('kommt auch mit einer leeren Fläche zurecht', () => {
     const fit = computeTileFit(0, 0, 560, chart);
     expect(fit.scale).toBeGreaterThan(0);

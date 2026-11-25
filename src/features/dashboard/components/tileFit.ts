@@ -49,8 +49,8 @@ export function computeTileFit(
     layoutWidth,
     layoutHeight,
     scale,
-    left: Math.max(0, (width - layoutWidth * scale) / 2),
-    top: Math.max(0, (height - layoutHeight * scale) / 2),
+    left: Math.max(0, Math.floor((width - layoutWidth * scale) / 2)),
+    top: Math.max(0, Math.floor((height - layoutHeight * scale) / 2)),
   });
 
   if (width >= minWidth) {
@@ -59,12 +59,13 @@ export function computeTileFit(
   }
 
   // Für einen Faktor s: passt der Inhalt bei voller Breite (W/s) oder bei Mindestbreite?
+  // Kein +0,5-Puffer: bereits ein halber Pixel Überhang rundet scrollHeight über clientHeight auf.
   const tryScale = (scale: number): TileFitResult | null => {
     const candidates = [Math.max(minWidth, Math.floor(width / scale)), minWidth];
     for (const layoutWidth of candidates) {
-      if (layoutWidth * scale > width + 0.5) continue;
+      if (layoutWidth * scale > width) continue;
       const layoutHeight = measure(layoutWidth);
-      if (layoutHeight * scale <= height + 0.5) return place(layoutWidth, layoutHeight, scale);
+      if (layoutHeight * scale <= height) return place(layoutWidth, layoutHeight, scale);
     }
     return null;
   };

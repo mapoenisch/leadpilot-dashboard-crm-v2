@@ -124,7 +124,7 @@ export function SectionAreaGridV2({
         data-area-id={areaId ?? 'unsectioned'}
         data-edit-mode={list.listMode ? 'liste' : 'raster'}
         className={cn(
-          'w-full relative transition-all grid',
+          'w-full relative transition-all motion-reduce:transition-none grid',
           isMobile
             ? 'grid-cols-1 auto-rows-auto gap-3'
             : activeBreakpoint === 'tablet'

@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { DashboardChart } from '../components/DashboardChart';
 import { DashboardTile } from '../components/DashboardTile';
 import { LEGEND_RESERVE_CLASS, READOUT_STABLE_CLASS } from '../components/charts/ChartReadout';
+import { TileFitBox } from '../components/TileFitBox';
 import { TileFitContext } from '../components/tileFit';
 import { getCatalogEntry, isActiveEntry, type ActiveCatalogEntry } from '../model/dashboardCatalog';
 import type { DashboardTileConfig } from '../model/dashboardConfig';
@@ -238,5 +239,59 @@ describe('Kachelkarte im Raster (K1, K5)', () => {
     expect(legend.className).not.toContain('overflow-y-auto');
     expect(readout.className).not.toContain(READOUT_STABLE_CLASS);
     expect(readout.className).not.toContain('overflow-y-auto');
+  });
+
+  it('TileFitBox korrigiert den Faktor nach, wenn outer.scrollHeight danach überläuft', () => {
+    const props = [
+      'clientWidth',
+      'clientHeight',
+      'offsetWidth',
+      'offsetHeight',
+      'scrollWidth',
+      'scrollHeight',
+    ] as const;
+    const saved = props.map(
+      (p) => [p, Object.getOwnPropertyDescriptor(HTMLElement.prototype, p)] as const,
+    );
+    for (const p of props) {
+      Object.defineProperty(HTMLElement.prototype, p, {
+        configurable: true,
+        get(this: HTMLElement) {
+          const id = this.dataset.testid;
+          if (id === 'tile-fit-box') {
+            if (p === 'clientWidth') return 362;
+            if (p === 'clientHeight') return 206;
+            if (p === 'scrollWidth') return 362;
+            if (p === 'scrollHeight') {
+              const t =
+                this.querySelector<HTMLElement>('[data-testid="tile-fit-content"]')?.style
+                  .transform ?? '';
+              const m = t.match(/scale\(([^)]+)\)/);
+              const s = m ? Number(m[1]) : 1;
+              return Math.ceil(440 * s);
+            }
+          }
+          if (id === 'tile-fit-content') {
+            if (p === 'offsetWidth' || p === 'scrollWidth') return 560;
+            if (p === 'offsetHeight' || p === 'scrollHeight') return 385;
+          }
+          return 0;
+        },
+      });
+    }
+    try {
+      render(
+        <TileFitBox>
+          <div>Diagramm</div>
+        </TileFitBox>,
+      );
+      const box = screen.getByTestId('tile-fit-box');
+      expect(Number(box.dataset.fitScale)).toBeLessThan(0.5);
+      expect(box.scrollHeight).toBeLessThanOrEqual(box.clientHeight);
+    } finally {
+      for (const [p, desc] of saved) {
+        if (desc) Object.defineProperty(HTMLElement.prototype, p, desc);
+      }
+    }
   });
 });
