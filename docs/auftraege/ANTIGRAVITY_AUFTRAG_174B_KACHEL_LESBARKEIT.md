@@ -95,7 +95,7 @@ Nach Review und Merge baut Marc die App neu (`npm run build:production`) und lie
 6. **K7 ohne Fehler.** Säulen- und Balkendiagramme beginnen bei 0 (`niceSignedScale` nimmt 0 immer in den Wertebereich). Im Bildschirmfoto war nur der obere Teil der Achse sichtbar. Regressionstest in `gridRowPlacement.vitest.ts`.
 7. **Ladehinweis ohne langen Zeitbezug.** Solange ein Diagramm lädt, nennt der sichtbare Hinweis im Einpass-Modus nur den Titel.
 
-## 8. Offene Entscheidungen für Marc
+## 8. Entscheidungen Marc (25.11.2026)
 
-1. Sollen die Vorlagen größere Standardmaße für Diagrammkacheln bekommen, damit sie von Anfang an lesbar sind (eigener Auftrag)?
-2. Sollen Diagramme in der Smartphone-Liste ebenfalls ohne Scrollen eingepasst werden, trotz kleiner Schrift?
+1. **Größere Standardmaße für Diagrammkacheln in den Vorlagen:** Umsetzen wie empfohlen als eigener, kleiner Folgeauftrag nach Abschluss und Merge von PR #223.
+2. **Smartphone-Liste:** Das waagerechte Scrollen der Diagramme in der Smartphone-Liste (< 640 px) bleibt unverändert bestehen.

@@ -23,16 +23,21 @@ export function TileFitBox({ children, onMinimum }: TileFitBoxProps) {
   const innerRef = useRef<HTMLDivElement>(null);
   const onMinimumRef = useRef(onMinimum);
   onMinimumRef.current = onMinimum;
+  const applyRef = useRef<(() => void) | null>(null);
 
   useLayoutEffect(() => {
     const outer = outerRef.current;
     const inner = innerRef.current;
-    if (!outer || !inner || typeof ResizeObserver === 'undefined') return;
+    if (!outer || !inner) return;
 
     let frame = 0;
+    let mutationObserver: MutationObserver | null = null;
 
     const apply = () => {
-      frame = 0;
+      if (frame) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      }
       const width = outer.clientWidth;
       const height = outer.clientHeight;
       if (width <= 0 || height <= 0) return;
@@ -59,6 +64,8 @@ export function TileFitBox({ children, onMinimum }: TileFitBoxProps) {
       // Ein höherer Kopf (längerer Titel, schmalere Fläche) ändert die Fläche, nicht den Inhalt;
       // die Kachel rechnet Kopf und Fuß beim Empfang hinzu und filtert gleiche Werte selbst.
       onMinimumRef.current?.(minimum, outer);
+      // Bereits verarbeitete DOM-Änderungen desselben Commits nicht noch einmal einplanen.
+      mutationObserver?.takeRecords();
     };
 
     const schedule = () => {
@@ -66,18 +73,35 @@ export function TileFitBox({ children, onMinimum }: TileFitBoxProps) {
       frame = requestAnimationFrame(apply);
     };
 
-    apply();
+    applyRef.current = apply;
+
     // Auch wenn die Fläche beim ersten Messen noch 0 px hatte (Kachel lädt noch), rechnet jede
     // spätere Größenänderung neu. Eine eigene Breitenänderung mit gleichem Ergebnis ändert keine
     // Größe mehr und löst daher keine weitere Runde aus.
-    const observer = new ResizeObserver(schedule);
-    observer.observe(outer);
-    observer.observe(inner);
+    const resizeObserver =
+      typeof ResizeObserver !== 'undefined' ? new ResizeObserver(schedule) : null;
+    resizeObserver?.observe(outer);
+    resizeObserver?.observe(inner);
+
+    // Codex-Befund PR #223 Runde 2: Vergrößert sich der Inhalt nur waagerecht (gleiche Höhe),
+    // feuert ResizeObserver bei fester Layoutbreite nicht. Inhaltsänderungen deshalb mitbeobachten.
+    if (typeof MutationObserver !== 'undefined') {
+      mutationObserver = new MutationObserver(schedule);
+      mutationObserver.observe(inner, { childList: true, subtree: true, characterData: true });
+    }
+
     return () => {
-      observer.disconnect();
+      applyRef.current = null;
+      resizeObserver?.disconnect();
+      mutationObserver?.disconnect();
       if (frame) cancelAnimationFrame(frame);
     };
   }, []);
+
+  // Reagiert vor dem Zeichnen auf geänderte Kinder/Daten.
+  useLayoutEffect(() => {
+    applyRef.current?.();
+  }, [children]);
 
   return (
     <div

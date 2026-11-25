@@ -23266,3 +23266,14 @@ Umgesetzt und lokal verifiziert. Review durch einen anderen Agenten ausstehend. 
 | P2 `TileFitBox.tsx`: Die Mindestgröße wurde nur gemeldet, wenn sich der Bedarf des Inhalts änderte. Ein höherer Kopf (Titel bricht um) blieb unberücksichtigt. | Die Einpassfläche meldet nach jeder Messung. Die Kachel rechnet Kopf und Fuß jedes Mal neu hinzu und meldet nur geänderte Gesamtwerte. Zusätzlich behoben: Beim ersten Messen war der Ref auf den Inhaltsbereich noch nicht gesetzt. Die Kachel ermittelt ihn jetzt über die gemeldete Fläche. |
 
 Tests: neue Datei `tileFitReview.ui.vitest.tsx` (7 Tests: Portal außerhalb der abschneidenden Kachel, Lage unter/über dem Kopf und auf schmalen Fenstern, neue Gesamthöhe bei wachsendem Kopf, keine Doppelmeldung). E2E K3 prüft zusätzlich, dass die Erläuterung vollständig im Fenster liegt. Verifikation: `tsc`, `lint`, `format:check` grün; `npm test` 497 Dateien, 3.816 Tests grün; `verify` 25/25; `build` grün; `size-limit` 172,52 kB; Qualitätsbudget unverändert; `dashboard-tile-fit-preview.spec.ts` dreifach wiederholt 21/21 grün. Schutzbereichs-Diff gegen `5e5d17ac` leer.
+
+### 9. Nacharbeit Codex-Runde 2 (geprüfter Head `e064b082`)
+
+| Befund | Behebung |
+| --- | --- |
+| P2 `TileExplanation.tsx`: Beim Öffnen nach oben wurde `offsetHeight` gemessen, bevor `place.width` gesetzt war. Bei schmaler Kachel bricht Text danach stärker um und kann nach unten überstehen. | `useLayoutEffect` setzt die Zielbreite (`explanationWidth`) vor `offsetHeight` und berechnet die Position erst danach. Zusätzlich schließt der Scroll-Listener die Erläuterung nur noch, wenn ein übergeordneter Container scrollt und sich der Kachelkopf dabei tatsächlich bewegt (> 2 px). |
+| P2 `TileFitBox.tsx`: Breiterer Inhalt bei gleicher Höhe (z. B. längere Zahl bei fester Boxbreite) löste keinen `ResizeObserver` aus. | Ein zusätzlicher `useLayoutEffect` auf `children` rechnet vor dem Zeichnen sofort neu; ein `MutationObserver` auf `inner` (`childList`, `subtree`, `characterData`) fängt auch interne Inhaltsänderungen der Kinder ab. |
+
+Außerdem Marcs Entscheidungen vom 25.11.2026 in `docs/auftraege/ANTIGRAVITY_AUFTRAG_174B_KACHEL_LESBARKEIT.md` §8 festgehalten: größere Standardmaße für Diagrammkacheln in den Vorlagen als eigener kleiner Folgeauftrag nach Merge von PR #223; auf Smartphones bleibt das waagerechte Scrollen bestehen.
+
+Tests: 3 neue Tests in `tileFitReview.ui.vitest.tsx` (insgesamt 11 Tests: endgültige Breite vor Höhenmessung beim Öffnen nach oben, Scroll-Filter erst bei Kopfbewegung, Neuberechnung bei breiterem Inhalt via `children` und `MutationObserver`). Verifikation nach letztem Edit: `tsc`, `lint`, `format:check` grün; `npm test` 497 Dateien, 3.820 Tests grün; `verify` 25/25; `build` grün; `size-limit` 172,51 kB; Qualitätsbudget unverändert; `dashboard-tile-fit-preview.spec.ts` dreifach wiederholt 21/21 grün. Schutzbereichs-Diff gegen `5e5d17ac` leer.
