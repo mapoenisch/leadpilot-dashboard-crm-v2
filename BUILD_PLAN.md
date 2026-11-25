@@ -2,7 +2,9 @@
 
 **Stand:** 24.11.2026
 
-**Aktueller Auftrag:** 174 – gestufte Umstellung auf den neuen Editor mit Schalter je Organisation und Rückweg (P16b; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_174_GESTUFTE_UMSTELLUNG.md`; Branch `auftrag-174-gestufte-umstellung`; Builder Claude Code; Prüfer Codex; Status: FERTIGGESTELLT / PR ERSTELLT, Review ausstehend). Davor: 173a Alarm-Rechte (PR #220) und 173 Gesamtabnahme (PR #219), beide gemergt. Der zunächst erwogene Zwischenauftrag 173b (Fadenkreuz-Flake unter Linux) entfällt: Der Fix ist bereits mit #219 in `main` (`c4d4a68d`), die CI ist seither grün. Nächster Schritt: Review und Merge 174, danach Stufe 1 durch Marc per SQL (`docs/dashboard/UMSTELLUNG_P16.md`) und Smoke.
+**Aktueller Auftrag:** 174b – Kacheln ohne Scrollen: Inhalt passt sich an, Mindestgröße je Darstellung, ruhiger Kachelkopf (Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_174B_KACHEL_LESBARKEIT.md`; Branch `auftrag-174b-kachel-lesbarkeit`; Builder Claude Code; Status: BEAUFTRAGT). Herkunft: Hosted-Smoke von Marc am 25.11.2026. Davor: 174a Smoke-Nacharbeit (PR #222) und 174 gestufte Umstellung (PR #221), beide gemergt. Hosted: alle Migrationen bis `20261130` eingespielt, „LeadPilot Demo“ seit 24.11.2026 auf Stufe 1. Nächster Schritt: 174b umsetzen, Review, Merge, neuer Produktionsbuild, erneuter Smoke durch Marc.
+
+**Entscheidungen Marc 25.11.2026:** Kein Scrollen in Kacheln; Inhalt verkleinert sich bis zu einer lesbaren Mindestgröße je Darstellung, darunter lässt sich die Kachel nicht verkleinern (ersetzt 174a Festlegungen 3 und 4). Lange Erklärungstexte im Kachelkopf eingeklappt. Rollout: Stufe 2 entfällt (nur eine Organisation); Stufe 3 nach mindestens 7 Tagen auf Stufe 1 ohne offenen Fehler, Frist ab Auslieferung von 174b. Panel-Editor (155) nicht in `v4.0.0` (Entscheidung 24.11.2026).
 
 **Entscheidungen Marc 23.11.2026 (Empfehlungen aus 173 angenommen):** Zwischenauftrag 173a vor 174; Rollout-Stufen wie 174 §0 (Test-Organisation → ausgewählte Organisationen → alle); Nutzer der Klasse `beide_geaendert` ohne Entscheidung: Pilot behalten, V1 bleibt als Sicherung lesbar.
 
