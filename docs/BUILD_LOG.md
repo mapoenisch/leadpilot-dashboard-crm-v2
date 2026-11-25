@@ -23190,3 +23190,13 @@ Lokale Testdaten: nur Seed-Nutzer `manager-a`. Der Test stellt Größe und Stand
 ### 6. Ergebnis & Freigabestatus
 
 Umgesetzt und lokal verifiziert. Review durch Codex auf GitHub ausstehend. Nicht enthalten: Panel-Editor (Auftrag 155, Entscheidung Marc vor Release), Release-Doku, Hosted-DB, Netlify, Stufen, Tag. Nach Merge: neuer Produktionsbuild, Hosted-Smoke mit der Demo-Organisation, Eintrag im Stufenprotokoll. Merge durch Marc.
+
+### 7. Nacharbeit Codex-Runde 1 (geprüfter Head `daa06696`)
+
+| Befund | Behebung |
+| --- | --- |
+| P2 `useEditorTouchLayout.ts`: Nach 1440 → 768 → 1440 px blieb die Tablet-Sperre gesetzt, beim zweiten Verkleinern auf 768 px blieb das Desktop-Layout aktiv. | Nimmt der Hook die automatische Auswahl auf Desktop-Breite zurück, setzt er auch die Tablet-Sperre zurück. Eine Auswahl von Hand bleibt erhalten, weil dann nichts zurückgenommen wird. |
+
+Tests: zwei neue Hook-Tests mit veränderlicher Fensterbreite (Folge 1440 → 768 → 1440 → 768 → 1440 ergibt Desktop, Tablet, Desktop, Tablet, Desktop; eine Wahl von Hand auf Tabletbreite bleibt beim erneuten Verkleinern). Der Test schlug vor dem Fix fehl. Der Viewport-Block wurde dafür aus `editorTouch.ui.vitest.tsx` in die neue Datei `editorTouchViewport.ui.vitest.tsx` verschoben (Lint-Grenze 400 Zeilen).
+
+Verifikation: `npx tsc --noEmit`, `npm run lint` grün; `npm test` 493 Dateien, 3.784 Tests grün; `npm run verify` 25/25 grün; `npm run build` grün. Schutzbereiche: `git diff 8b481c63 -- src/simulation src/types src/context src/services/data src/features/resources` → leer. Erneutes Review per `@codex review` angefordert.

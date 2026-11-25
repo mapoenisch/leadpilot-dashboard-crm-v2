@@ -77,7 +77,13 @@ export function useEditorTouchLayout({
       const restore = activeBreakpoint === autoTo.current;
       autoFrom.current = null;
       autoTo.current = null;
-      if (restore && from) setActiveBreakpoint(from);
+      if (restore && from) {
+        // Codex-Befund PR #222: Mit der automatischen Auswahl fällt auch ihre Tablet-Sperre weg,
+        // damit das nächste Verkleinern wieder Tablet wählt. Nach einer Auswahl von Hand
+        // (restore = false) bleibt die Sperre, die Wahl des Nutzers gilt weiter.
+        tabletApplied.current = false;
+        setActiveBreakpoint(from);
+      }
     }
   }, [isPhone, viewport, activeBreakpoint, setActiveBreakpoint]);
 
