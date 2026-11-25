@@ -42,6 +42,7 @@ export const E2E_PARALLEL = [
   'e2e/dashboard-alarms-preview.spec.ts',
   'e2e/dashboard-transformations-preview.spec.ts',
   'e2e/dashboard-compare-preview.spec.ts',
+  'e2e/dashboard-tile-fit-preview.spec.ts',
   'e2e/dashboard-kiosk.spec.ts',
   'e2e/dashboard-mobile.spec.ts',
   'e2e/dashboard-report.spec.ts',

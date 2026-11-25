@@ -16,6 +16,7 @@ import { DashboardTile } from './DashboardTile';
 import { TileThresholdBadge } from './TileThresholdBadge';
 import { isDataOlderThanMaxAlarmAge } from '../model/alarmDataAge';
 import { applyTransformations, getUnitConversion } from '../model/transformations';
+import type { TileFitMinimum } from './tileFit';
 
 export type TileDataHook = (
   tile: DashboardTileConfig,
@@ -37,6 +38,9 @@ export interface LazyDashboardTileProps {
   /** Auftrag 166 (P13a): Schwellenwert-Regel der Kachel */
   threshold?: TileThresholdRule;
   alarm?: { status: string; reason?: string };
+  /** Auftrag 174b: Inhalt in die feste Rasterfläche einpassen (Dashboard-Editor V2). */
+  fit?: boolean;
+  onFitMinimum?: (minimum: TileFitMinimum) => void;
 }
 
 export function LazyDashboardTile({
@@ -51,6 +55,8 @@ export function LazyDashboardTile({
   chartLoaders,
   threshold,
   alarm,
+  fit,
+  onFitMinimum,
 }: LazyDashboardTileProps) {
   const { ref, near, active, activate } = useTileActivation();
   const lastApplied = useRef(filters);
@@ -185,6 +191,8 @@ export function LazyDashboardTile({
         chartLoaders={chartLoaders}
         dashboardFilters={filters}
         className={cn(borderClass)}
+        fit={fit}
+        onFitMinimum={onFitMinimum}
       />
     </div>
   );

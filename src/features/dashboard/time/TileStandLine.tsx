@@ -56,7 +56,11 @@ function baseText(data: ResolvedTileData, entry: ActiveCatalogEntry): string {
     const windowText = formatTimeSeriesWindowText(data.timeSeries);
     return stand ? `Verlauf ${windowText}, Stand ${stand}` : `Verlauf ${windowText}`;
   }
-  if (history.kind === 'fest') return `Referenzwert, Stand ${data.timeBasis}`;
+  if (history.kind === 'fest') {
+    // Auftrag 174b (K4): „Stand 31.12.2025“ nicht zu „Stand Stand 31.12.2025“ verdoppeln.
+    const basis = data.timeBasis.startsWith('Stand ') ? data.timeBasis : `Stand ${data.timeBasis}`;
+    return `Referenzwert, ${basis}`;
+  }
   if (history.kind === 'puffer') {
     const stand = formatStand(data.asOf);
     return stand ? `Live, zuletzt ${stand}` : 'noch keine Live-Daten';

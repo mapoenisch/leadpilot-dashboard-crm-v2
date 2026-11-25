@@ -28,6 +28,7 @@ import {
   type MobileTileSize,
 } from './editorListMode';
 import { MobileTileListActions } from './MobileTileListActions';
+import type { TileFitMinimum } from '../../tileFit';
 import { TileSectionMenu } from './TileSectionMenu';
 
 export interface CanvasTileCardProps {
@@ -58,6 +59,8 @@ export interface CanvasTileCardProps {
   onListResize?: (tileId: string, size: MobileTileSize) => void;
   /** Auftrag 172: Kachel per langem Drücken (Touch) aufgenommen. */
   isDragArmed?: boolean;
+  /** Auftrag 174b (K2): gemessener Platzbedarf der Kachel bei Mindestfaktor (px). */
+  onFitMinimum?: (tileId: string, minimum: TileFitMinimum) => void;
 }
 
 export function parseTimeframeToPeriod(timeframe: string): DashboardPeriod | undefined {
@@ -124,6 +127,7 @@ export function CanvasTileCard({
   onListMove,
   onListResize,
   isDragArmed = false,
+  onFitMinimum,
 }: CanvasTileCardProps) {
   const v1Tile = convertV2TileToV1(tile, globalTimeframe, globalPipeline);
   const filters: DashboardFilters = { pipeline: globalPipeline };
@@ -132,6 +136,9 @@ export function CanvasTileCard({
   const listContext = useEditorListModeContext();
   const listMode = !isPreviewMode && Boolean(listInfo && onListMove && onListResize);
   const tileTitle = tile.title?.trim() || getCatalogEntry(tile.catalogId)?.name || tile.catalogId;
+  // Auftrag 174b (K2): Im Raster füllt die Kachel ihre Fläche, der Inhalt wird eingepasst.
+  // In der Liste (Smartphone) bestimmt der Inhalt die Höhe wie bisher.
+  const fit = !listMode && !isMobile;
 
   return (
     <div
@@ -149,13 +156,16 @@ export function CanvasTileCard({
         onSelectTile(tile.id);
       }}
       onKeyDown={(e) => {
+        // Nur direkte Tastendrücke auf der Gridcell selbst behandeln; fokussierte Buttons/Schalter
+        // innerhalb der Kachel (z. B. Erläuterungsschalter, Details) müssen Enter/Space behalten.
+        if (e.target !== e.currentTarget) return;
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onSelectTile(tile.id);
         }
       }}
       className={cn(
-        'group relative min-w-0 rounded-xl transition-all duration-150',
+        'group relative min-w-0 rounded-xl transition-all duration-150 motion-reduce:transition-none',
         placementClasses,
         isMobile && MOBILE_SIZE_MIN_HEIGHT_CLASS[mobileSizeFromHeight(position.h)],
         listMode && 'flex flex-col',
@@ -167,28 +177,28 @@ export function CanvasTileCard({
         className,
       )}
     >
-      {/* Drag-Handle im Bearbeitungsmodus (nur Desktop & Tablet) */}
-      {!isPreviewMode && !isMobile && (
-        <div
-          data-testid={`drag-handle-${tile.id}`}
-          data-drag-handle="true"
-          title="Kachel verschieben"
-          onPointerDown={(e) => onPointerDownHandle(tile.id, e)}
-          className="absolute top-2 left-2 z-20 flex h-6 w-6 touch-none cursor-grab active:cursor-grabbing items-center justify-center rounded bg-[var(--color-bg-deep,#051413)]/80 text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 group-data-[selected=true]:opacity-100 hover:text-white transition-opacity"
-        >
-          <GripVertical className="h-3.5 w-3.5" />
-        </div>
-      )}
-
       {/* Schnellaktions-Leiste im Bearbeitungsmodus (im Listenmodus ersetzt durch die Aktionsleiste) */}
       {!isPreviewMode && !listMode && (
         <div
           data-testid={`tile-quick-actions-${tile.id}`}
           className={cn(
-            'absolute -top-3 right-3 z-20 flex items-center gap-1 rounded-md border border-[var(--color-border,#1b3d39)] bg-[var(--color-bg-deep,#051413)] p-0.5 shadow-md transition-opacity',
+            'absolute bottom-full right-3 z-20 flex translate-y-[6px] items-center gap-1 rounded-md border border-[var(--color-border,#1b3d39)] bg-[var(--color-bg-deep,#051413)] p-0.5 shadow-md transition-opacity',
             isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
           )}
         >
+          {/* Auftrag 174b (K1): Ziehgriff in der Leiste statt über Kategorie und Titel (nur Desktop & Tablet) */}
+          {!isMobile && (
+            <div
+              data-testid={`drag-handle-${tile.id}`}
+              data-drag-handle="true"
+              title="Kachel verschieben"
+              onPointerDown={(e) => onPointerDownHandle(tile.id, e)}
+              className="flex h-6 w-6 touch-none cursor-grab active:cursor-grabbing items-center justify-center rounded text-[var(--color-text-muted)] hover:bg-white/10 hover:text-white transition-colors"
+            >
+              <GripVertical className="h-3.5 w-3.5" />
+            </div>
+          )}
+
           {availableSections && availableSections.length > 0 && onMoveTileToSection && (
             <TileSectionMenu
               tileId={tile.id}
@@ -247,14 +257,14 @@ export function CanvasTileCard({
       )}
 
       {/* Eigentlicher Kachel-Renderer. Auftrag 174a (L2/L4): im Raster in der belegten Fläche
-          eingefasst; längere Inhalte (Zeitwahl, Wertetabelle, Details) scrollen in der Kachel,
-          statt Nachbarkacheln zu überdecken. Container für die KPI-Schriftgröße (L2). */}
+          eingefasst. Auftrag 174b (K2/K5): ohne Scrollen, der Inhalt wird eingepasst. Container
+          für die KPI-Schriftgröße (L2). */}
       <div
         data-testid={`tile-body-${tile.id}`}
         className={
           listMode
             ? 'w-full flex-1'
-            : 'h-full w-full overflow-auto overscroll-contain rounded-xl [container-type:inline-size]'
+            : 'h-full w-full overflow-hidden rounded-xl [container-type:inline-size]'
         }
       >
         <LazyDashboardTile
@@ -264,6 +274,8 @@ export function CanvasTileCard({
           onShowDetails={onShowDetails}
           detailsBlocked={!isPreviewMode}
           threshold={tile.threshold}
+          fit={fit}
+          onFitMinimum={onFitMinimum ? (minimum) => onFitMinimum(tile.id, minimum) : undefined}
           alarm={(() => {
             const tr = tile as unknown as Record<string, unknown>;
             const a =

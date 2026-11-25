@@ -22079,7 +22079,6 @@ Im Review von Codex zu PR #203 wurden insgesamt 8 Befunde identifiziert (7× P2,
    - _Behebung:_ `useCrosshairController` speichert `localLabel` statt des numerischen Index und ermittelt `activeIndex` über `data.findIndex((e) => e.label === localLabel)`. Entfällt das Label aus den Daten, wird der Zustand über einen `useEffect` explizit auf `null` zurückgesetzt.
    - _Regressionstest:_ `crosshairResolutionAndAnchoring.ui.vitest.tsx` Test `bewahrt Auswahl über Label bei Datenverschiebungen, löscht bei Wegfall und wählt bei Rückkehr nicht ungewollt neu`.
 
-
 ---
 
 ## 2026-11-18 — Auftrag 165: Dashboard-Editor: Versionshistorie, Vergleich, Wiederherstellen, Import/Export (P12)
@@ -22089,6 +22088,7 @@ Im Review von Codex zu PR #203 wurden insgesamt 8 Befunde identifiziert (7× P2,
 ### 1. Zusammenfassung
 
 Mit Auftrag 165 (Phase P12 des Masterplans) werden die seit P07 bei jeder Speicherung versionierten Dashboard-Revisionen in der Oberfläche vollständig nutzbar:
+
 1. **Server-Ergänzung (Migration `20261123_dashboard_revision_detail.sql`):** Zwei neue RPCs (`list_dashboard_v2_revisions_page` und `get_dashboard_v2_revision_detail`) ermöglichen seitenweises Laden der Versionshistorie (Standard 50, max. 100) sowie den gezielten Abruf der historischen Konfiguration (`config` JSONB) für berechtigte Leser. Autoren werden für alle Leser ausgewiesen (`created_by_name` als E-Mail, `created_by_is_self`, `created_by_active`).
 2. **Strukturierter Konfigurationsvergleich (`dashboardConfigDiff.ts`):** Zuordnung von Kacheln und Sektionen über stabile `id`-Attribute (nicht Array-Positionen). Erkennung von Positionsänderungen als „verschoben“ (`geaendert`), Hinzufügen, Entfernen und Ändern. Temporäre Felder (`id`, `ownerUserId`, `organizationId`, `scope`, `teamId`, `metadata`, Zeitstempel) werden semantisch ignoriert. Deutsche Kurzfassung via `summarizeDiffV2`.
 3. **Verlustfreier JSON-Austausch (`dashboardExchangeV2.ts`):** Exportiert Dashboards in standardisiertem Umschlag (`format: 'leadpilot-dashboard'`, `formatVersion: 1`) bereinigt um alle Bezugs- und Rechtefelder. Import legt stets ein neues Dashboard im gewählten Ziel an (kein Überschreiben). Doppelte Prüfung: Clientseitiger Schutz vor Prototype-Pollution (`__proto__`, `constructor`, `prototype`), Größenlimit ($\le 128\text{ KiB}$), Schema-Validierung und Katalogprüfung aller Kachel-IDs; serverseitige Validierung beim Erzeugen.
@@ -22104,6 +22104,7 @@ Mit Auftrag 165 (Phase P12 des Masterplans) werden die seit P07 bei jeder Speich
 ### 2. Rot-Nachweise (T1)
 
 Gemäß §3 Nr. 9 wurden vor der Implementierung fünf gezielte Tests ausgeführt und deren initiales Fehlschlagen nachgewiesen:
+
 - **(a) Vitest `diffDashboardConfigsV2`:** Kachel an neuer Position wird als `verschoben` identifiziert → **Rot** (Modul existierte noch nicht).
 - **(b) Vitest `buildDashboardExportV2`:** Export entfernt `ownerUserId`, `organizationId`, `scope`, `teamId` → **Rot** (Modul existierte noch nicht).
 - **(c) Vitest `parseDashboardImportV2`:** Import mit `__proto__`-Injektion wird abgelehnt → **Rot** (Modul existierte noch nicht).
@@ -22183,6 +22184,7 @@ Gemäß §3 Nr. 9 wurden vor der Implementierung fünf gezielte Tests ausgeführ
 ### 5. Leistungsmessung (§2.5 Nr. 31)
 
 Gemäß §2.5 Nr. 31 wurde der Vergleich zweier komplexer Konfigurationen (24 Kacheln und 6 Sektionen) gemessen:
+
 - **Ergebnis:** Mittelwert über 20 Läufe: **0.062 ms** (weit unter der geforderten Grenze von 20 ms).
 
 ### 6. Screenshots-Gate (§2.5 Nr. 32)
@@ -22197,7 +22199,7 @@ Gemäß §2.5 Nr. 31 wurde der Vergleich zweier komplexer Konfigurationen (24 Ka
 1. **Reihenfolge:**
    - **Schritt 1:** Migration `supabase/migrations/20261123_dashboard_revision_detail.sql` auf der Hosted Supabase Instance ausführen.
    - **Schritt 2:** App-Build deployen (`npm run build:production`).
-   - *(Hinweis: Sollte die App vor der Migration deployed werden, fängt der implementierte Fallback den Zustand über `server_funktion_fehlt` transparent ab: Versionsliste zeigt Basishistorie ohne Namen, Wiederherstellen und Import funktionieren weiter).*
+   - _(Hinweis: Sollte die App vor der Migration deployed werden, fängt der implementierte Fallback den Zustand über `server_funktion_fehlt` transparent ab: Versionsliste zeigt Basishistorie ohne Namen, Wiederherstellen und Import funktionieren weiter)._
 2. **Smoke-Test im Browser (5 Minuten):**
    - Dashboard öffnen und zweimal mit kleinen Änderungen speichern (z. B. Titel oder Kachelanordnung).
    - Menüpunkt „Versionen“ in der Kopfleiste anklicken (`editor-open-versions`).
@@ -22250,6 +22252,7 @@ Gemäß §2.5 Nr. 31 wurde der Vergleich zweier komplexer Konfigurationen (24 Ka
 Mit Auftrag 166 (Phase P13a des Masterplans) wird die kachelspezifische Schwellenwert-Logik im V2-Dashboard-Editor formalisiert, typisiert und in der Benutzeroberfläche verankert. Gemäß Marcs Vorgabe werden in diesem Schritt noch keine serverseitigen Hintergrund-Alarme ausgeführt, sondern das deklarative Datenmodell, die visuelle Kachel-Auswertung, die Alarmfähigkeits-Matrix im Katalog und die architektonische Entscheidung für den späteren Server-Betriebsweg festgelegt.
 
 ### 1. Regelmodell V2 & Auswertung (`thresholdRuleV2.ts`, `thresholdMessages.ts`)
+
 - **Regelarten (`ThresholdArt`):**
   - `hoch_ist_schlecht`: Normalwert `< warnung`, Warnung ab `warnung`, Kritisch ab `kritisch`. Validierung fordert zwingend `warnung < kritisch`.
   - `niedrig_ist_schlecht`: Normalwert `> warnung`, Warnung ab `warnung`, Kritisch ab `kritisch`. Validierung fordert zwingend `warnung > kritisch`.
@@ -22259,11 +22262,13 @@ Mit Auftrag 166 (Phase P13a des Masterplans) wird die kachelspezifische Schwelle
 - **57 Referenzfälle:** Vollständig abgedeckt in `thresholdReferenceCases.json` und über 67 Tests in `thresholdRuleV2.vitest.ts` verifiziert.
 
 ### 2. Abwärtskompatibilität & Migration (`dashboardConfigV2.ts`)
+
 - Vorhandene V1-Regeln mit Operatoren (`gte`, `gt`, `lte`, `lt`) werden transparent in V2-Regeln überführt.
 - Der uneindeutige Operator `between` wird als `regel_ungueltig` eingestuft und zeigt das Badge „Schwellenwert prüfen“ zur manuellen Reparatur.
 - Bestandsanalyse: In allen bestehenden Dashboard-Presets und Vorlagen gibt es 0 Kacheln mit `between`.
 
 ### 3. Alarmfähigkeits-Matrix (`alarmCapability.ts`, `alarmEntries.ts`)
+
 - Alle 62 aktiven Katalogeinträge wurden typisiert:
   - **16 prüfbar:** Skalare Einzelwerte mit eindeutiger Zielrichtung (ARR, EBITDA, Umsatz, Lead Velocity etc.).
   - **13 ausgeschlossen:** Qualitative Übersichten, Meilensteine, Roadmap etc.
@@ -22271,17 +22276,20 @@ Mit Auftrag 166 (Phase P13a des Masterplans) wird die kachelspezifische Schwelle
 - Automatische Verifikation über `scripts/verifyAlarmCapability.ts`.
 
 ### 4. Benutzeroberfläche (Kachel & Inspector)
+
 - **`TileThresholdBadge.tsx`:** Barrierefreies Status-Badge auf der Kachel (amber-300 bei Warnung, rose-300 bei Kritisch, sky-300 bei Regelprüfung).
 - **`LazyDashboardTile.tsx` & `CanvasTileCard.tsx`:** Integration des Schwellenwertes bei maximal 1 Zeile Zuwachs (`CanvasTileCard.tsx` wuchs von 327 auf 328 Zeilen, Limit ≤ 337).
 - **`InspectorThresholdTab.tsx` (197 Zeilen ≤ 200):** Tab „Alarme“ im Inspector mit Aktivierungsschalter, Radio-Auswahl der Regelart, formatierten Eingabefeldern in Landessprache (Komma als Dezimaltrenner), Live-Validierungsfehlern und Sperrhinweis für Zeitreihen-Kacheln.
 - **Fix Hook-Regeln in `EditorInspectorV2.tsx`:** Aufteilung in `EditorInspectorV2` und `TileInspectorContent`, wodurch der konditionale Hook-Aufruf von `useData` (React Error #310) dauerhaft eliminiert wurde.
 
 ### 5. Architekturentscheidung: Betriebsweg für Alarme (Marc, 18.11.2026)
+
 - **Beschluss:** Out-of-Process Worker (Golang oder Node CLI als eigenständiger Cron-Dienst) für den späteren Server-Alarmierungsbetrieb.
 - **Verworfen:** Supabase Database Triggers / `pg_cron` / Edge Functions zur Vermeidung von DB-Kopplung und Timeouts.
 - Dokumentiert in `docs/dashboard/SCHWELLENWERTE_P13A.md`, `docs/dashboard/DASHBOARD_EDITOR_MASTERPLAN.md` (§6 & §9.2), `docs/dashboard/EDITOR_UX_FACHVERTRAEGE_145.md` (§8) und `ARCHITECTURE_DECISIONS.md`.
 
 ### 6. Qualitätssicherung & Nachweise
+
 - **Tests:** 124 Vitest-Dateien (1166 Tests grün), keine Regressionen.
 - **E2E:** `e2e/dashboard-thresholds-preview.spec.ts` auf allen 3 Viewports (1440, 768, 375) erfolgreich.
 - **a11y:** `e2e/a11y.spec.ts` 36/36 Tests grün, keine neuen Verstöße.
@@ -22299,11 +22307,13 @@ Mit Auftrag 166 (Phase P13a des Masterplans) wird die kachelspezifische Schwelle
 Mit Auftrag 167 (Phase P13b des Masterplans) wird die serverseitige Alarmauswertung in der Supabase-PostgreSQL-Datenbank via `pg_cron` realisiert. Die Auswertung erfolgt vollkommen unabhängig von geöffneten Browsern. Zeitgleich werden die Client-/Server-Parität für 16 Kennzahlen, die gemeinsame CRM-Berechnungsfunktion, der Lebenszeichen-Mechanismus sowie die 12-monatige Aufbewahrung von Dashboard-Revisionen und Alarmereignissen etabliert.
 
 ### 1. Richtigstellung des Betriebswegs (Entscheidung Marc)
+
 - In Auftrag 166 (§6) war versehentlich ein Out-of-Process Worker dokumentiert.
 - **Richtigstellung:** Gemäß Auftrag 166 §8 ist `pg_cron` in der Datenbank die verbindliche Ausführungsarchitektur (alle 5 Minuten `evaluate_dashboard_alarms()`, Ausfallhinweis ab 15 Minuten Verzug via `alarm_worker_status()`, Alarmregeln ausschließlich für Rollen `manager` und `admin`).
 - Die Dokumentation in `docs/dashboard/SCHWELLENWERTE_P13A.md` (§6), `docs/dashboard/DASHBOARD_EDITOR_MASTERPLAN.md` (§9.2), `ARCHITECTURE_DECISIONS.md` (Teil D4) und `docs/dashboard/ALARME_P13B.md` wurde entsprechend datiert richtiggestellt; historische Entwurfszeilen blieben erhalten.
 
 ### 2. T2 Rot-Nachweise (Vorab-Prüfungen vor Implementierung)
+
 - **(a) pgTAP `dashboard_alarms.sql`:** Auswertung von Referenzfall `hoch-02` gegen `alarm_evaluate_threshold` sowie `evaluate_dashboard_alarms` vor Erstellung der Migration ausgeführt → **ROT** (Funktionen `alarm_evaluate_threshold` und `evaluate_dashboard_alarms` existierten nicht).
 - **(b) pgTAP `dashboard_alarms.sql`:** 10 Läufe auf gleicher Stufe erzeugen genau 1 Ereignis → **ROT** (Tabelle `dashboard_alarm_events` und Hysterese-Logik fehlten).
 - **(c) pgTAP `dashboard_alarm_rules_rights.sql`:** Viewer legt Regel an → **ROT** (RPC `create_dashboard_alarm_rule` fehlte).
@@ -22311,6 +22321,7 @@ Mit Auftrag 167 (Phase P13b des Masterplans) wird die serverseitige Alarmauswert
 - **(e) pgTAP `dashboard_revision_retention.sql`:** 130 Revisionen aufbewahren und bereinigen → **ROT** (Funktion `cleanup_dashboard_revisions` fehlte).
 
 ### 3. Server-Architektur & Migration (`20261124_dashboard_alarms.sql`)
+
 - **Tabellen & Mandantenisolation:**
   - `alarm_settings`: Globale Not-Aus-Steuerung (`is_paused`), Schwellenwerte für Lebenszeichen.
   - `dashboard_alarm_rules`: Alarmregeln bezogen auf Kacheln (`dashboard_id`, `tile_id`, `rule` im V2-Format). RLS erlaubt SELECT für Mandantenmitglieder; INSERT/UPDATE/DELETE nur über RLS-geprüfte RPCs für `manager` und `admin`.
@@ -22342,6 +22353,7 @@ Mit Auftrag 167 (Phase P13b des Masterplans) wird die serverseitige Alarmauswert
   - Job `dashboard-daily-cleanup` (`0 3 * * *`, täglich um 03:00) angelegt und via `cron.alter_job(..., active := false)` inaktiviert (vom Betreiber manuell aktivierbar).
 
 ### 4. Client-/Server-Parität & Fixtures
+
 - `src/features/dashboard/model/alarmCapability.ts`: Neuer Status `'alarmfaehig'` für verifizierte Kennzahlen.
 - `src/features/dashboard/model/catalog/alarmEntries.ts`: Alle 16 geprüften KPIs auf `alarmfaehig` angehoben (16 alarmfähig, 0 prüfbar, 13 ausgeschlossen, 33 nicht_einzelwert).
 - `supabase/tests/fixtures/alarm_parity/alarm_kpis.json`: 16 Kennzahlen-Definitionen mit Einheiten, Quell-Tabellen und Standard-Schwellenwerten.
@@ -22350,12 +22362,14 @@ Mit Auftrag 167 (Phase P13b des Masterplans) wird die serverseitige Alarmauswert
 - `src/features/dashboard/__tests__/alarmParity.vitest.ts`: Vitest-Gegenstück zur Absicherung der TypeScript-Evaluierung gegen dieselben Fixtures.
 
 ### 5. Leistungsmessung (Benchmark)
+
 - Benchmark-Skript `scripts/measureAlarmRun.sql`:
   - Test-Setup: 200 aktive Alarmregeln über 5 Mandantenorganisationen mit realistischen Schwellenwerten und CRM-/Live-Daten.
   - Ausführungszeit von `evaluate_dashboard_alarms()`: **16 ms**.
   - Erfüllung des Leistungsbudgets (< 2.000 ms): Weit unterboten (Faktor 125 schneller als gefordert).
 
 ### 6. Smoke-Test-Anleitung für Marc (Lokal & Hosted)
+
 1. **Lokal ausführen:**
    ```bash
    npx supabase db reset
@@ -22390,6 +22404,7 @@ Mit Auftrag 167 (Phase P13b des Masterplans) wird die serverseitige Alarmauswert
    ```
 
 ### 7. Qualitätssicherung & Verifikation
+
 - `npx supabase test db`: **24 Testdateien, 607 Tests PASS (100% GRÜN)**.
 - `npm test`: **449 Testdateien, 3371 Tests PASS (100% GRÜN)**.
 - `npx tsc --noEmit`: 0 Fehler.
@@ -22407,6 +22422,7 @@ Mit Auftrag 167 (Phase P13b des Masterplans) wird die serverseitige Alarmauswert
 Mit Auftrag 168 (Phase P13c des Masterplans) wird die Benutzeroberfläche für das serverseitige Alarmsystem aus P13b vollständig erschlossen. Dies umfasst die Konfiguration im Inspector, den Kachel-Indikator, die persönliche Quittierung und Lesebestätigung, die zentrale Alarmliste, den Zähler ungelesener Alarme im Header, den Ausfallhinweis bei überfälligem Worker sowie die Admin-Übernahme verwaister Regeln. Damit ist Phase P13 des Dashboard-Editor-Masterplans abgeschlossen.
 
 ### 1. Rot-Nachweise (T1)
+
 - **(a) Vitest `AlarmSection.ui.vitest.tsx`:** Schwellenwert-Tab rendert Server-Alarm-Konfiguration für `alarmfaehig`-Kacheln inkl. Toggle, Mindestdauer, Cooldown und Quittierungspflicht → **ROT** (Komponente und Toggle fehlten).
 - **(b) Vitest `alarmAcknowledge.vitest.ts`:** Quittierungsdialog verlangt bei `quittierung_erforderlich` Pflichtkommentar und erzeugt persönlichen Quittungsvermerk, ohne den Regelzustand zu ändern → **ROT** (Dialog und Service fehlten).
 - **(c) Vitest `alarmSwitchPermitted.vitest.ts`:** Rollenprüfung (`useDashboardAlarmPermitted`): Viewer sehen schreibgeschützte Ansicht ohne Toggle; Manager/Admin dürfen schalten → **ROT** (Hook und Rechteprüfung fehlten).
@@ -22415,6 +22431,7 @@ Mit Auftrag 168 (Phase P13c des Masterplans) wird die Benutzeroberfläche für d
 - **(f) Vitest `revisionRetentionNotice.vitest.ts`:** Versionshistorie weist transparent auf 12-monatige Aufbewahrung hin → **ROT** (Hinweis fehlte).
 
 ### 2. Server-Architektur & Migration (`20261125_dashboard_alarm_receipts.sql`)
+
 - **Tabelle `public.dashboard_alarm_receipts`:**
   - Zusammengesetzter Primärschlüssel `(event_id, user_id)`.
   - Felder: `organization_id`, `gelesen_am`, `quittiert_am`, `kommentar`.
@@ -22428,6 +22445,7 @@ Mit Auftrag 168 (Phase P13c des Masterplans) wird die Benutzeroberfläche für d
 - **pgTAP-Tests:** 22 Tests in `supabase/tests/dashboard_alarm_receipts.sql` verifizieren Mandantenisolation, Rechte, Quittierung und Unveränderlichkeit des Alarmzustands.
 
 ### 3. Datenzugriff & Services
+
 - `src/features/dashboard/services/dashboardAlarmTypes.ts`: Typdefinitionen für Alarme, Quittierungen, Belege und Filter.
 - `src/features/dashboard/services/dashboardAlarmService.ts`: Mandanten- und Dashboard-bezogener Datenzugriff auf Regeln, Events, Belege, Quittierung und Lesestatus.
 - `src/features/dashboard/services/dashboardAlarmAdminService.ts`: Spezifischer Service für die Admin-Übernahme via `takeover_dashboard_alarm_rule`.
@@ -22438,6 +22456,7 @@ Mit Auftrag 168 (Phase P13c des Masterplans) wird die Benutzeroberfläche für d
 - `src/features/dashboard/model/alarmDataAge.ts`: Datenalter-Einstufung für Live-Werte (Entscheidung Marc: 24h Frischefenster).
 
 ### 4. Komponenten & Benutzeroberfläche
+
 - **Inspector (`InspectorThresholdTab.tsx` [199 Zeilen] & `AlarmSection.tsx` [280 Zeilen]):**
   - Server-Alarm-Toggle für Kacheln mit Kennzahlen vom Status `alarmfaehig`.
   - Einstellungen für Mindestdauer (1-12 Läufe), Abklingzeit (60-86400 s) und Quittierungspflicht.
@@ -22463,6 +22482,7 @@ Mit Auftrag 168 (Phase P13c des Masterplans) wird die Benutzeroberfläche für d
   - Fußnoten-Hinweis auf die 12-Monate-Aufbewahrungsregel der Revisionen.
 
 ### 5. Qualitätssicherung & Verifikation
+
 - `npx supabase test db`: **25 Testdateien, 629 Tests PASS (100% GRÜN)**.
 - `npm test`: **454 Testdateien, 3388 Tests PASS (100% GRÜN)**.
 - `npx tsc --noEmit`: **0 Fehler**.
@@ -22507,11 +22527,13 @@ Mit Auftrag 168 (Phase P13c des Masterplans) wird die Benutzeroberfläche für d
 **Rolle:** Builder (Antigravity) · **Branch:** `auftrag-169-transformationen` · **Basis:** Merge von PR #209 (`c168a929`)
 
 Mit Auftrag 169 (Phase P14a des Masterplans) erhält der Dashboard-Editor die Fähigkeit, Kacheln über deterministische Transformationsketten (höchstens drei Schritte in fester Reihenfolge) umzuformen:
+
 1. `umbenennen`: Ändert den Anzeigenamen des Werts bzw. der Serie (1–60 Zeichen); Metadaten bleiben sichtbar.
 2. `einheit_umrechnen`: Nur Paare aus einer festen, begründeten Positivliste mit Faktor und Zielformat; Server-Parität via `dashboard_unit_conversions`.
 3. `gleitender_durchschnitt`: Ausschließlich bei Zeitreihen (Fenster 2–30 Punkte, nachlaufend); Lücken bleiben strikt erhalten.
 
 ### 1. Rot-Nachweise (T1 §3 Nr. 6)
+
 - **(a) Referenzfall `EUR → Tsd. EUR` (1.234.567 → 1.234,567):** `applyTransformations` fehlte → **ROT**.
 - **(b) Gleitender Durchschnitt mit Lücke:** Lücke im Fenster muss Lücke bleiben, erste `Fenster - 1` Punkte leer → **ROT**.
 - **(c) Schwellenwert nach Einheitenwechsel:** Regel wird `regel_ungueltig` wenn Einheit der Kette von Schwellenwert-Einheit abweicht → **ROT**.
@@ -22519,6 +22541,7 @@ Mit Auftrag 169 (Phase P14a des Masterplans) erhält der Dashboard-Editor die F�
 - **(e) Kette mit Durchschnitt pausiert aktiven Alarm:** Trigger `trg_dashboard_alarm_transformations` fehlte → **ROT**.
 
 ### 2. Modell, Referenzfälle & Client-Rechenkern (T2)
+
 - `src/features/dashboard/model/transformations/types.ts`: Typdefinitionen (`RenameTransformation`, `UnitConversionTransformation`, `MovingAverageTransformation`, `TileTransformation`).
 - `src/features/dashboard/model/transformations/unitConversions.ts`: Feste Positivliste (`EUR → Tsd. EUR`, `EUR → Mio. EUR`, `Anzahl → Tsd.`, `Anteil 0–1 → %`).
 - `src/features/dashboard/model/transformations/transformationAlarm.ts`: Alarmmatrix (`umbenennen` erbt, `einheit_umrechnen` alarmfähig, `gleitender_durchschnitt` nicht alarmfähig).
@@ -22528,6 +22551,7 @@ Mit Auftrag 169 (Phase P14a des Masterplans) erhält der Dashboard-Editor die F�
 - `src/features/dashboard/model/dashboardConfigV2.ts`: `TileQueryConfig.transformations?: TileTransformation[]` ergänzt; Datei bei 396 Zeilen gehalten (≤ 400).
 
 ### 3. Server-Architektur & Migration (`20261126_dashboard_transformations.sql`) (T3)
+
 - **Tabelle `public.dashboard_unit_conversions`:** Feste Umrechnungstabelle mit RLS (`auth.uid() IS NOT NULL`, Grants für `authenticated, service_role`).
 - **SQL-Generator & Paritätsprüfer:** `scripts/generateUnitConversionsSql.ts` sichert 100% Code-Parität zwischen TypeScript und SQL (`--check`).
 - **Erweiterung `dashboard_config_v2_invalid_reason`:** Formprüfung für `transformations` (Array max. 3, Art-Prüfung, Feld-Validierung, SECURITY DEFINER).
@@ -22537,10 +22561,11 @@ Mit Auftrag 169 (Phase P14a des Masterplans) erhält der Dashboard-Editor die F�
 - **pgTAP-Tests:** 22 Tests in `supabase/tests/dashboard_transformations.sql` verifizieren alle Aspekte (100% GRÜN).
 
 ### 4. Oberfläche & Komponenten (T4)
+
 - **Inspector-Abschnitt „Umformen“ (`InspectorTransformationSection.tsx` [387 Zeilen]):**
   - Bis zu 3 Schritte in fester Reihenfolge anlegen, verschieben (↑ / ↓), entfernen.
   - Gesperrte Arten (gleitender Durchschnitt bei Einzelwerten) mit Begründung sichtbar deaktiviert.
-  - Warnung: *„Der Alarm dieser Kachel wird pausiert.“* wenn Kachel aktiven Alarm hat und eine nicht-alarmfähige Transformation existiert.
+  - Warnung: _„Der Alarm dieser Kachel wird pausiert.“_ wenn Kachel aktiven Alarm hat und eine nicht-alarmfähige Transformation existiert.
   - Mini-Vorschau: Zeigt Vorher/Nachher-Werte und Einheiten.
 - **Inspector Data- & Threshold-Tabs:**
   - `InspectorDataTab.tsx` (339 Zeilen) bindet `InspectorTransformationSection` ein.
@@ -22553,38 +22578,42 @@ Mit Auftrag 169 (Phase P14a des Masterplans) erhält der Dashboard-Editor die F�
   - Wendet `applyTransformations` auf Kacheldaten an und nennt die Transformationskette in der Fußnote.
 
 ### 5. Vorschau, E2E & Screenshots (T5)
+
 - **Vorschau-Szenario:** `?bereich=editor_v2&transformationen=1` (`previewTransformations.ts`) mit 4 Demonstrationskacheln (Umbenennen, EUR → Tsd. EUR, Gleitender Durchschnitt, pausierter Alarm).
 - **E2E-Test:** `e2e/dashboard-transformations-preview.spec.ts` (Viewports 1440, 768, 375, Interaktionen und Badges).
 - **Screenshots:** `scripts/captureAuftrag169GateScreenshots.mjs` erzeugt 36 Screenshots in `docs/screenshots/auftrag-169/` mit 0 px Überlauf und distinkten Hashes.
 - **Bundle & Size-Limit:** Initial JS: 171.96 kB (Budget < 180 kB, Baseline 171.95 kB, Zuwachs +0.01 kB), Largest Chunk: 79.41 kB (Budget < 250 kB).
 
 ### 6. Smoke-Test für Marc
+
 1. Im Vorschau-Szenario `/?bereich=editor_v2&transformationen=1` öffnen.
 2. Kachel „Umsatzerlöse“ anklicken → Kachel ist auf `Tsd. EUR` umgerechnet (z. B. `1.234,567 Tsd. EUR`), Badge `umgeformt` sichtbar.
 3. Im Inspector unter „Alarme“ Schwellenwert prüfen → Schwellenwert ist in `Tsd. EUR` hinterlegt (`1000` Warnung, `500` Kritisch), Badge spiegelt die umgerechnete Einheit wider.
 4. Kachel „Pipeline Volumen (Pausierter Alarm)“ ansehen → Badge zeigt `Alarm pausiert` mit Grund `kennzahl_nicht_alarmfaehig`, da ein gleitender Durchschnitt aktiv ist.
-
 
 ## 2026-11-20 — Auftrag 170: Dashboard-Editor: Vergleichszeitraum, zeitbezogene Verknüpfung, Heatmap, Erwartungsbänder (P14b)
 
 **Rolle:** Builder. Begonnen von Antigravity; nach Abbruch durch das Antigravity-Nutzungslimit (Stand ungetestet, nicht committet: 22 TypeScript- und 6 Lint-Fehler) von **Claude Code** übernommen und fertiggestellt. **Branch:** `auftrag-170-vergleich-joins-heatmap` · **Basis:** `ac9da030` (Merge PR #210, Auftrag 169). Prüfer: unabhängiger Agent nach `CLAUDE.md` §4.1 (nicht Claude Code, nicht Antigravity).
 
 ### 1. Ziel & Kontext
+
 Phase P14b des Masterplans: Zeitreihen-Kacheln zeigen einen Vergleichszeitraum (Vorperiode, gleiche Periode Vorjahr) nur mit belegter Historie, verknüpfen zwei Reihen über den Zeitstempel, eine neue Darstellung „Heatmap“ zeigt Woche × Wochentag bzw. Phase × Woche, und Erwartungsbänder folgen dem am 18.11.2026 entschiedenen Verfahren (§8). Vergleich, Join und Heatmap sind nicht alarmfähig.
 
 ### 2. Befunde am übernommenen Zwischenstand (alle behoben)
-| Nr. | Befund | Behebung |
-|---|---|---|
-| Ü1 | Migration ersetzte `dashboard_config_v2_invalid_reason` durch eine **ältere** Fassung (fehlende Prüfung eindeutiger Kachel-IDs, `id`-Prüfung, geänderte Meldungen). | Validator aus `20261126` übernommen, nur die 170-Felder ergänzt (Diff gegen 20261126 enthält ausschließlich 170-Blöcke). |
-| Ü2 | Vergleichs-RPC duplizierte die Zeitreihenlogik (eigene Lückenregeln, Vorperiode für Monate falsch). | RPC ruft das unveränderte `dashboard_time_series` zweimal auf; Vorperiode = gleiche Anzahl Abschnitte kalendergenau davor. |
-| Ü3 | Heatmap „Phase × Woche“ war eine Attrappe: fünf erfundene Phasen mit identischem Wert. | Neue RPC `dashboard_time_series_phases` (sieben normalisierte Phasen) und echtes Raster je Phase. |
-| Ü4 | Heatmap nur bei den zwei wöchentlichen CRM-Reihen erlaubt – Woche × Wochentag ist mit Wochenwerten nicht darstellbar. | Heatmap lädt 84 Tage in Tagesauflösung; Darstellung auch für die 12 Live-Verläufe freigegeben. |
-| Ü5 | Kalenderrechnung abhängig von der Zeitzone des Rechners (CI läuft in UTC). | `model/timeseries/berlinDate.ts`; Tests grün unter `TZ=UTC` und `TZ=America/Los_Angeles`. |
-| Ü6 | Keine echte Datenanbindung: Vergleich/Join/Band existierten nur als erfundene Werte in der Vorschau. | `hooks/useTimeSeriesExtras.ts` in `useDashboardData`; Vorschau läuft über denselben Zusammenbau (`buildTimeSeriesExtras`). |
-| Ü7 | Neuer Alarm-Sperrgrund „Transformationen werden nicht unterstützt“ sperrte **alle** Transformationen – Regression gegenüber 169 (Umbenennen/Einheit sind alarmfähig). | Entfernt; nur Vergleich/Join/Heatmap sperren. |
-| Ü8 | `DepthLineChart.tsx` 429 Zeilen, Inline-Style in der Heatmap, feste Farbwerte statt Tokens. | Zusatzebenen in `DepthLineOverlays.tsx`; Heatmap ohne Inline-Style, Farben aus `MANAGEMENT_CHART_THEME`/`SERIES_COLORS`. |
+
+| Nr. | Befund                                                                                                                                                                | Behebung                                                                                                                   |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Ü1  | Migration ersetzte `dashboard_config_v2_invalid_reason` durch eine **ältere** Fassung (fehlende Prüfung eindeutiger Kachel-IDs, `id`-Prüfung, geänderte Meldungen).   | Validator aus `20261126` übernommen, nur die 170-Felder ergänzt (Diff gegen 20261126 enthält ausschließlich 170-Blöcke).   |
+| Ü2  | Vergleichs-RPC duplizierte die Zeitreihenlogik (eigene Lückenregeln, Vorperiode für Monate falsch).                                                                   | RPC ruft das unveränderte `dashboard_time_series` zweimal auf; Vorperiode = gleiche Anzahl Abschnitte kalendergenau davor. |
+| Ü3  | Heatmap „Phase × Woche“ war eine Attrappe: fünf erfundene Phasen mit identischem Wert.                                                                                | Neue RPC `dashboard_time_series_phases` (sieben normalisierte Phasen) und echtes Raster je Phase.                          |
+| Ü4  | Heatmap nur bei den zwei wöchentlichen CRM-Reihen erlaubt – Woche × Wochentag ist mit Wochenwerten nicht darstellbar.                                                 | Heatmap lädt 84 Tage in Tagesauflösung; Darstellung auch für die 12 Live-Verläufe freigegeben.                             |
+| Ü5  | Kalenderrechnung abhängig von der Zeitzone des Rechners (CI läuft in UTC).                                                                                            | `model/timeseries/berlinDate.ts`; Tests grün unter `TZ=UTC` und `TZ=America/Los_Angeles`.                                  |
+| Ü6  | Keine echte Datenanbindung: Vergleich/Join/Band existierten nur als erfundene Werte in der Vorschau.                                                                  | `hooks/useTimeSeriesExtras.ts` in `useDashboardData`; Vorschau läuft über denselben Zusammenbau (`buildTimeSeriesExtras`). |
+| Ü7  | Neuer Alarm-Sperrgrund „Transformationen werden nicht unterstützt“ sperrte **alle** Transformationen – Regression gegenüber 169 (Umbenennen/Einheit sind alarmfähig). | Entfernt; nur Vergleich/Join/Heatmap sperren.                                                                              |
+| Ü8  | `DepthLineChart.tsx` 429 Zeilen, Inline-Style in der Heatmap, feste Farbwerte statt Tokens.                                                                           | Zusatzebenen in `DepthLineOverlays.tsx`; Heatmap ohne Inline-Style, Farben aus `MANAGEMENT_CHART_THEME`/`SERIES_COLORS`.   |
 
 ### 3. Weitere Befunde während der Umsetzung
+
 - **P14a-Fehler (vor 170 vorhanden):** `normalizeTileQuery` verwarf `query.transformations` beim Speichern (`prepareConfigForStorage`) – gespeicherte V2-Dashboards verloren ihre Transformationen. Nachweis per Skript am Basisstand, behoben, Regressionstest `timeseriesExtras.vitest.ts`.
 - **Leistung:** Join über 500 Abschnitte dauerte 41 ms (Zeilenbeschriftung über neu erzeugte `Intl`-Formatierer). Beschriftung optional gemacht → Test „< 5 ms“ grün.
 - **Kachel-Metadaten:** Abrufzeit/Stand hängen per WeakMap am Datenobjekt; die Zusammenführung erzeugt ein neues Objekt. `keepMeta` überträgt beides (Test).
@@ -22592,6 +22621,7 @@ Phase P14b des Masterplans: Zeitreihen-Kacheln zeigen einen Vergleichszeitraum (
 - **Darstellung (Screenshot-Prüfung):** abgeschnittene Phasennamen und überlappende KW-Beschriftung korrigiert; Kachelkopf der Wochentag-Heatmap nennt jetzt „letzte 84 Tage, je Tag“ statt „24 Stunden“.
 
 ### 4. Geänderte Dateien
+
 - **Server:** `supabase/migrations/20261127_dashboard_time_series_compare.sql` (neu: `dashboard_time_series_compare`, `dashboard_time_series_phases`; Validator; Alarm-Trigger), `supabase/tests/dashboard_time_series_compare.sql` (28 pgTAP-Tests).
 - **Modell:** neu `model/timeseries/` (`types`, `berlinDate`, `computeComparison`, `alignSeries`, `toHeatmapGrid`, `expectationBands`, `buildTimeSeriesExtras`, `timeSeriesQuery`, je ≥ 20 Referenzfälle in `*ReferenceCases.json`); `dashboardConfigV2.ts` (+3 Zeilen), `dashboardCatalog.ts` (Darstellung `heatmap`), `catalog/historyEntries.ts`, `catalog/liveEntries.ts`, `dashboardAlarmPermitted.ts`, `normalizeTileQuery.ts`, `tileQuery.ts`.
 - **Daten:** neu `data/resolveTimeSeriesCompare.ts`, `data/timeSeriesSource.ts`, `hooks/useTimeSeriesExtras.ts`; `data/dashboardData.ts` (Feld `timeSeriesExtras`), `hooks/useDashboardData.ts` (Hülle + Quellhelfer, 398 Zeilen).
@@ -22603,6 +22633,7 @@ Phase P14b des Masterplans: Zeitreihen-Kacheln zeigen einen Vergleichszeitraum (
 **Begründete Abweichungen von der Ziel-Dateien-Tabelle:** `normalizeTileQuery.ts`/`tileQuery.ts` (ohne sie gehen die neuen Abfragefelder beim Speichern verloren, zugleich Behebung des P14a-Fehlers), `useDashboardData.ts` (einziger Einhängepunkt des echten Datenwegs), `liveEntries.ts` (Heatmap bei Live-Verläufen), zweite RPC `dashboard_time_series_phases` in derselben Migration (Phase × Woche ist mit der Vergleichs-RPC nicht abbildbar), `runV23Acceptance.mjs` (Pflichtliste aller E2E-Dateien). Keine neue Abhängigkeit, keine Chart-Bibliothek.
 
 ### 5. Funktionale Prüfungen
+
 - Vergleich nur mit belegter Historie; Teilhistorie: „Vergleich unvollständig: Daten ab TT.MM.JJJJ“, fehlende Abschnitte bleiben Lücken (pgTAP 11–16, Vitest).
 - 0-Vergleichswert → „nicht berechenbar“; Einheit `%` → Differenz in `Pp.` (Referenzfälle, Fadenkreuz, Druck).
 - Join nur bei gleicher Auflösung (Kandidatenliste + Client/Server-Prüfung), höchstens 500 Abschnitte, andere Einheit → rechte Achse.
@@ -22611,35 +22642,40 @@ Phase P14b des Masterplans: Zeitreihen-Kacheln zeigen einen Vergleichszeitraum (
 - Alarme: Schalter gesperrt mit Grund bei Vergleich/Join/Heatmap; Trigger pausiert aktive Regeln (`kennzahl_nicht_alarmfaehig`).
 
 ### 6. Schutzbereichs-Prüfung
+
 `git diff ac9da030 -- src/simulation src/types src/context src/services/data src/features/resources` → **leer**.
 
 ### 7. Automatisierte Verifikation (lokal, 20.11.2026)
-| Prüfung | Ergebnis |
-|---|---|
-| `npx tsc --noEmit` | 0 Fehler |
-| `npm run lint` / `npm run format:check` | grün |
-| `npm run test:coverage` | 474 Dateien, 3.597 Tests grün; Zweige 80,40 % (Schwelle 80 %) |
-| `npm run verify` | Integritätssuiten 001–025 grün |
-| `npm run build` | grün |
-| `npm run build:production` | lokal **rot** durch Umgebungsprüfung (lokale `VITE_SUPABASE_URL` ist http) – erwartetes Verhalten des Fail-closed-Checks, kein Codefehler |
-| `npx size-limit` | Initial-JS 171,97 kB (Basis `ac9da030`: 172,06 kB, −0,09 kB), größter Chunk 79,41 kB |
-| `npx tsx scripts/verifyAlarmCapability.ts` | grün |
-| `supabase db reset --yes && supabase test db` | 27 Dateien, 679 Tests, PASS (davon 28 in `dashboard_time_series_compare.sql`) |
-| `npm run verify:migrations` | GRÜN (leere DB, Upgrade v2.2.0, Schemagleichheit, pgTAP) |
-| E2E `dashboard-compare-preview` + `dashboard-transformations-preview` + `a11y` | 60 bestanden |
-| E2E `editor-*.spec.ts` (`--workers=1`) | 18 bestanden |
-| E2E `visual.spec.ts` | lokal 15 Abweichungen auf macOS-Referenzbildern – **identisch auf sauberem `ac9da030`** (gleiche 15 Fälle, nicht durch 170 verursacht); CI prüft gegen Linux-Referenzen |
-| Leistung | Heatmap-Raster 52 × 7 < 16 ms (Vitest), Join 500 Abschnitte < 5 ms (Vitest) |
+
+| Prüfung                                                                        | Ergebnis                                                                                                                                                                |
+| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npx tsc --noEmit`                                                             | 0 Fehler                                                                                                                                                                |
+| `npm run lint` / `npm run format:check`                                        | grün                                                                                                                                                                    |
+| `npm run test:coverage`                                                        | 474 Dateien, 3.597 Tests grün; Zweige 80,40 % (Schwelle 80 %)                                                                                                           |
+| `npm run verify`                                                               | Integritätssuiten 001–025 grün                                                                                                                                          |
+| `npm run build`                                                                | grün                                                                                                                                                                    |
+| `npm run build:production`                                                     | lokal **rot** durch Umgebungsprüfung (lokale `VITE_SUPABASE_URL` ist http) – erwartetes Verhalten des Fail-closed-Checks, kein Codefehler                               |
+| `npx size-limit`                                                               | Initial-JS 171,97 kB (Basis `ac9da030`: 172,06 kB, −0,09 kB), größter Chunk 79,41 kB                                                                                    |
+| `npx tsx scripts/verifyAlarmCapability.ts`                                     | grün                                                                                                                                                                    |
+| `supabase db reset --yes && supabase test db`                                  | 27 Dateien, 679 Tests, PASS (davon 28 in `dashboard_time_series_compare.sql`)                                                                                           |
+| `npm run verify:migrations`                                                    | GRÜN (leere DB, Upgrade v2.2.0, Schemagleichheit, pgTAP)                                                                                                                |
+| E2E `dashboard-compare-preview` + `dashboard-transformations-preview` + `a11y` | 60 bestanden                                                                                                                                                            |
+| E2E `editor-*.spec.ts` (`--workers=1`)                                         | 18 bestanden                                                                                                                                                            |
+| E2E `visual.spec.ts`                                                           | lokal 15 Abweichungen auf macOS-Referenzbildern – **identisch auf sauberem `ac9da030`** (gleiche 15 Fälle, nicht durch 170 verursacht); CI prüft gegen Linux-Referenzen |
+| Leistung                                                                       | Heatmap-Raster 52 × 7 < 16 ms (Vitest), Join 500 Abschnitte < 5 ms (Vitest)                                                                                             |
 
 ### 8. Screenshot-Matrix
+
 `node scripts/captureAuftrag170GateScreenshots.mjs` → `docs/screenshots/auftrag-170/README.md`: 9 Szenarien × 3 Viewports × 2 Farbschemata = 54 Aufnahmen, 0 px Überlauf, je Viewport/Thema 9 eindeutige SHA-256-Hashes. Bilder lokal, nicht im Git.
 
 ### 9. Grenzen
+
 - Die Anlage einer Alarmregel prüft serverseitig nicht die Kachelkonfiguration (wie in 169); der Trigger pausiert beim Speichern, die Oberfläche sperrt den Schalter.
 - Das Erwartungsband nutzt Perioden als feste Abschnittsanzahl; am Tag der Zeitumstellung verschiebt sich die Stundenposition um eine Stunde.
 - Budget-Bänder bleiben außerhalb des Umfangs.
 
 ### 10. Ergebnis & Freigabestatus
+
 Builder-Seite abgeschlossen, alle lokalen Pflichtprüfungen grün (Ausnahmen oben begründet). **Freigabe steht aus:** unabhängiges Review auf GitHub, grüne Pflicht-Checks, gelöste Konversationen; Merge durch Marc.
 
 ### 11. Nacharbeit Codex-Review Runde 1 (Head `f5318be`, 6 P2-Befunde, alle behoben)
@@ -22709,14 +22745,17 @@ Builder-Seite abgeschlossen, alle lokalen Pflichtprüfungen grün (Ausnahmen obe
 **Rolle:** Builder **Claude Code** (Auftrag „bau #212“ von Marc). **Branch:** `auftrag-171-kiosk-rotation` · **Basis:** `7c69aa8e` (Merge PR #211, Auftrag 170). Prüfer: unabhängiger Agent nach `CLAUDE.md` §4.1 (Standard Codex-App auf GitHub).
 
 ### 1. Ziel & Kontext
+
 Phase P15a: Ein Dashboard läuft dauerhaft auf einem Bürobildschirm — Vollbild ohne Menüs, größere Schrift, Rotation zwischen lesbaren Dashboards. Läuft die Sitzung ab oder fällt das Netz aus, ist das sofort sichtbar; bei Ablauf werden keine Daten mehr abgerufen oder gezeigt. Kein öffentlicher Zugang (Masterplan §4.E).
 
 ### 2. T0 – Ist-Stand und Auth-Ablaufverhalten
+
 - Kein Kiosk im Dashboard (nur `features/resources`, eingefroren) — bestätigt.
 - supabase-js erneuert das Token selbst (autoRefreshToken). Ist das Refresh-Token ungültig, entfernt es die Sitzung und meldet `SIGNED_OUT`; `AuthContext` setzt `user = null` und `resetUserQueries()`, `ProtectedRoute` leitet **still** auf `/login` um. Ein Kiosk verschwände also ohne Hinweis. Folge: Kiosk-Route außerhalb von `ProtectedRoute` mit eigener Anmeldeprüfung und Sitzungswächter. `src/auth/**` blieb unverändert (alle Ereignisse vorhanden).
 - `size-limit` Basis `7c69aa8e`: Initial 172,05 kB, größter Chunk 79,41 kB.
 
 ### 3. Umsetzung
+
 - **Route/Seite:** `/dashboard/kiosk?ids=…&intervall=…[&theme=hell|dunkel]`, `pages/DashboardKioskPage.tsx` (lazy, eigener Chunk 6,5 kB gz), außerhalb von `Layout`. Nicht angemeldet beim Öffnen → `/login` (Rücksprung inkl. Parameter).
 - **Hülle:** `components/kiosk/KioskShell.tsx` + `KioskBody.tsx` (Raster per `SectionedCanvasV2` im Lesemodus, Sektionen ausgeklappt), `KioskStatusBar.tsx` (Name, Position, Datenstand, Verbindung, Pause/Weiter, Blättern, Theme, Vollbild, Beenden; `aria-live`), `KioskNotices.tsx`, `KioskAlarmIndicator.tsx` (Zähler, kein Link/kein Quittieren), `kiosk.css` (Token-Skala „kiosk“, `zoom` 1,15/1,3 ab 1600/1900 px, keine neuen Farben).
 - **Rotation:** `hooks/useKioskRotation.ts` — ein Timer, Pause manuell (Leertaste/Schaltfläche), bei Interaktion (endet nach einem ruhigen Intervall) und solange das Dashboard lädt; Pfeiltasten blättern; ohne Animation. Konfiguration wird bei jeder Aktivierung frisch geladen (Änderungen über Stunden), offline bleibt der letzte Stand.
@@ -22727,15 +22766,18 @@ Phase P15a: Ein Dashboard läuft dauerhaft auf einem Bürobildschirm — Vollbil
 - **Vorschau:** `dashboard-vorschau.html?bereich=kiosk` (`preview/KioskPreview.tsx`; `ablauf=<s>` simuliert Token-Ablauf, `offline=1`).
 
 ### 4. Geänderte Dateien
+
 Neu: `src/features/dashboard/{pages/DashboardKioskPage.tsx, components/kiosk/* (9), hooks/useSessionGuard.ts, hooks/supabaseSessionSource.ts, hooks/useKioskRotation.ts, hooks/useOnlineStatus.ts, model/kioskParams.ts, preview/KioskPreview.tsx}`, 5 Vitest-Suiten, `e2e/dashboard-kiosk.spec.ts`, `scripts/captureAuftrag171GateScreenshots.mjs`, `docs/dashboard/KIOSK_P15.md`, `docs/screenshots/auftrag-171/README.md`.
 Geändert: `src/app/App.tsx` (Route), `components/editor/EditorTopBarV2.tsx` (Einstieg), `preview/DashboardPreviewPage.tsx` (Szenario), `.github/workflows/ci.yml` (E2E-Liste), Doku (Masterplan §6, ADR C15, BUILD_PLAN, Auftrag).
 
 **Begründete Abweichungen von der Ziel-Dateien-Tabelle:**
+
 - `components/LazyDashboardTile.tsx` + `TileThresholdBadge.tsx`: Das Badge zeigte `nicht_bewertet` bisher nur bei > 24 h alten Werten; ohne die Ergänzung wäre „Schwellenwert-Badges zeigen `nicht_bewertet`“ (§2.1 Nr. 5) offline unsichtbar. Neu „Nicht bewertet (veraltet)“; zugleich neutrale Token-Farben für dieses und das 24-h-Badge, das im hellen Theme unlesbar war (dunkle Schrift auf dunklem Grund — Vorbefund).
 - Einstieg in der Kopfzeile statt im Umschaltmenü: `DashboardSwitcherMenuV2.tsx` hat 371 Zeilen und index-basierte Tastaturnavigation; die Kopfzeile ist auch für Viewer sichtbar.
 - Neue lucide-Icons vermieden (nur bereits gebündelte): `manualChunks` legt alle Bibliotheks-Icons in den Start-Chunk `vendor` (sonst +0,40 kB Initial).
 
 ### 5. Funktionale Prüfungen
+
 - Nur lesbare Dashboards; fremde ID übersprungen mit Hinweis; ohne Anmeldung → `/login` (Vitest + E2E).
 - Rotation 30–600 s, Pause per Leertaste/Schaltfläche/Interaktion/Laden (Vitest Fake-Timer + E2E mit `page.clock`).
 - **Echte Sitzung (E2E Teil B, lokaler Supabase-Stack):** Kiosk aus dem Editor geöffnet; abgelaufenes Access-Token + gültiges Refresh-Token → Token erneuert, Anzeige bleibt; `context.setOffline` → Hinweis, wieder online → Hinweis weg; ungültiges Refresh-Token → Hinweis „Sitzung abgelaufen“, keine Kacheln, **0 Anfragen an Supabase in 6 s danach**.
@@ -22744,36 +22786,42 @@ Geändert: `src/app/App.tsx` (Route), `components/editor/EditorTopBarV2.tsx` (Ei
 - Smoke für Marc: zwei Dashboards im Kiosk rotieren lassen, WLAN aus/an (Anleitung `KIOSK_P15.md` §1–3).
 
 ### 6. Schutzbereichs-Prüfung
+
 `git diff 7c69aa8e -- src/simulation src/types src/context src/services/data src/features/resources src/auth` → **leer**. `git diff 7c69aa8e --stat -- supabase` → **leer** (kein Server-Code).
 
 ### 7. Automatisierte Verifikation (lokal, 21.11.2026)
+
 - `npx tsc --noEmit` 0 Fehler · `npm run lint` 0 · `npm run format:check` grün.
 - `npm test`: 481 Dateien / 3.641 Tests grün (vor letzter Ergänzung; Kiosk-Suiten danach 31/31 grün).
 - `npm run verify`: 25/25 Integrity-Suiten grün · `npm run build` grün · `npx size-limit`: Initial **172,10 kB** (Basis 172,05 kB → **+0,05 kB**, Toleranz 0,1 kB), Chunk 79,41 kB; Kiosk-Chunk 18,3 kB (6,5 kB gz) + 0,35 kB CSS, komplett nachgeladen.
 - **Rot-Nachweise:** Die Tests entstanden nach der ersten Implementierung; Rot wurde deshalb per gezielter Mutation belegt (Verhalten entfernt → Test rot → zurückgesetzt → grün):
-  | Mutation | Rote Tests |
-  |---|---|
+  | Mutation                                                    | Rote Tests                                             |
+  | ----------------------------------------------------------- | ------------------------------------------------------ |
   | M1 Ablauf-Erkennung entfernt (Sitzungsablauf stoppt Abrufe) | 4 (u. a. `DashboardKioskPage` „keine weiteren Abrufe“) |
-  | M2 Interaktionspause entfernt | 2 |
-  | M3 Offline-Hinweis entfernt | 1 |
-  | M4 Lesbarkeitsfilter entfernt (fremde ID) | 2 |
-  | M5 Frist nach erstem Lesen nicht gestellt | 1 |
+  | M2 Interaktionspause entfernt                               | 2                                                      |
+  | M3 Offline-Hinweis entfernt                                 | 1                                                      |
+  | M4 Lesbarkeitsfilter entfernt (fremde ID)                   | 2                                                      |
+  | M5 Frist nach erstem Lesen nicht gestellt                   | 1                                                      |
 - **E2E:** `e2e/dashboard-kiosk.spec.ts` 18/18 grün (3 Viewports; Vorschau + echte Sitzung). `team-dashboards-preview`, `a11y` (inkl. Kiosk-Leiste hell/dunkel ohne critical/serious), `personal-dashboard*.spec.ts` grün.
 - **Lokale Vorbefunde, nicht durch 171:** `visual.spec.ts` 15/15 rot nur gegen veraltete **darwin**-Baselines (Höhe/Full-Page; betrifft auch unberührte Seiten wie `/finance/p-and-l`; CI vergleicht Linux-Baselines; die geänderte V2-Kopfzeile ist in keiner Visual-Route, da `/dashboard` ohne V2-Schalter V1 zeigt). `team-dashboards.spec.ts` 3/3 rot (Timeout `add-team-member-select` in `/admin/teams`) — **identisch auf unverändertem `7c69aa8e` reproduziert**, lokaler DB-Zustand; CI setzt die DB per `db reset` neu auf.
 - Während der E2E-Läufe gefunden und behoben: Nach dem ersten Lesen der Ablaufzeit stellte der Wächter die Frist nicht neu (Ablauf erst nach bis zu 60 s erkannt) → behoben, Regressionstest M5.
 
 ### 8. Screenshot-Matrix
+
 `node scripts/captureAuftrag171GateScreenshots.mjs` (Vorschau-Build): 5 Szenarien (Rotation, pausiert, offline, Ablauf, Editor-Einstieg) × 1920/1440/768/375 × hell/dunkel = **40 Aufnahmen, 0 px Überlauf**, Hashes je Viewport/Theme paarweise verschieden. Neue Ansicht ohne Vorher-Zustand (Route existierte nicht). Matrix: `docs/screenshots/auftrag-171/README.md`.
 
 ### 9. Grenzen
+
 - Einstieg nur im V2-Editor (V2 noch nicht Standard, P16); direkte Adresse funktioniert immer. Kiosk zeigt V2-Dashboards.
 - Kein eigenes Kiosk-Konto (§8, Entscheidung Marc offen; Viewer-Rolle genügt).
 - Der 12-h-Nachweis ist simuliert (Fake-Timer, Abo-/Listener-Zählung), kein realer 12-h-Browserlauf.
 
 ### 10. Ergebnis & Freigabestatus
+
 Alle Tasks T0–T6 erledigt, Pflicht-Verifikation grün (lokale Vorbefunde oben benannt). **Status:** PR erstellt, wartet auf unabhängiges Review (Codex-App) und grüne Pflicht-Checks; Merge durch Marc.
 
 ### 11. Nacharbeit Runde 1 (PR #212, Codex-Review auf `d18b498c`, CI `test`)
+
 - **CI `test` rot:** `scripts/__tests__/runV23Acceptance.vitest.ts` verlangt jede E2E-Datei auch im Orchestrator. `e2e/dashboard-kiosk.spec.ts` in `E2E_PARALLEL` von `scripts/runV23Acceptance.mjs` ergänzt (CI-Liste hatte sie schon).
 - **P2 Rotation offline:** `useKioskRotation` hat neuen Pausegrund `offline` („Rotation pausiert (offline)“); offline wechselt der Kiosk nicht mehr auf ein nicht geladenes Dashboard, der letzte Stand bleibt sichtbar. Test „pausiert die Rotation offline …“.
 - **P2 Ladefehler ohne Wiederholung:** Technische Fehler von `source.load()` (nicht Rechte/nicht gefunden) setzen `loadError`; Platzhalter „Das Dashboard konnte nicht geladen werden.“ mit „Erneut versuchen“ (`kiosk-retry`, neuer Ladeversuch). Test „bietet nach technischem Ladefehler …“.
@@ -22783,23 +22831,27 @@ Alle Tasks T0–T6 erledigt, Pflicht-Verifikation grün (lokale Vorbefunde oben 
 - **Verifikation:** `tsc` 0, `lint` 0, `format:check` grün, `npm test` 482 Dateien / 3.646 Tests grün, `verify` 25/25, `build` ok, `size-limit` Initial 172,09 kB, E2E `dashboard-kiosk.spec.ts` 18/18 grün. Schutzbereiche unverändert.
 
 ### 12. Nacharbeit Runde 2 (Codex-Review auf `2657247a`)
+
 - **P1 Benutzerwechsel ohne Abmeldung:** `DashboardKioskPage` blendet die Hülle aus, solange `isOrgLoading` gilt oder `session.userId` nicht zur Auth-Identität (`user.id`) passt. Der Schlüssel der Hülle ist jetzt `organizationId:userId`, damit verfällt lokaler Zustand (Liste, Konfigurationen) beim Wechsel. Test: Nach dem Wechsel sind sofort keine Kacheln und kein Titel des vorherigen Nutzers mehr zu sehen, danach wird frisch geladen.
 - **P2 Zeitreihe offline über Abschnittswechsel:** `createKioskDataHook` merkt sich je Kachel den letzten Stand `bereit`/`veraltet` (gleiche `catalogId`). Liefert der Basis-Hook offline `laden` (neuer Abschnitt ohne Cache), bleibt dieser Stand als `veraltet` sichtbar. Neuer Test `KioskDataHook.ui.vitest.tsx`.
 - **Rot-Nachweis:** Die 2 neuen Tests sind gegen `2657247a` rot und mit der Nacharbeit grün.
 - **Verifikation:** `tsc` 0, `lint` 0, `format:check` grün, `npm test` 483 Dateien / 3.648 Tests grün, `verify` 25/25, `build` ok, `size-limit` Initial 172,10 kB (+4 B ggü. Runde 1), E2E `dashboard-kiosk.spec.ts` 18/18 grün. Schutzbereiche unverändert.
 
 ### 13. Nacharbeit Runde 3 (Codex-Review auf `e6c896e3`)
+
 - **P2 Rotation bei Tastaturfokus:** `KioskBody` meldet `onFocusCapture` am Kiosk-Container als Bedienung; damit pausiert `useKioskRotation` beim Tabben auf Kacheln/Bedienelemente für ein ruhiges Intervall (Doku `KIOSK_P15.md`: „Maus-, Touch- oder Tastaturbedienung“). Test „pausiert bei Tastaturfokus auf ein Bedienelement“.
 - **P2 Rotationszustand bei Token-Erneuerung:** `DashboardKioskPage` behandelt `isOrgLoading` nicht mehr als Identitätswechsel. Die Hülle bleibt montiert, solange `session.userId === user.id`; nur ein echter Benutzerwechsel (`session.userId !== user.id`) blendet sie aus und setzt über den Schlüssel `organizationId:userId` den lokalen Zustand zurück. Eine normale Token-Erneuerung (neues `User`-Objekt, gleiche ID) setzt Rotation und manuelle Pause damit nicht mehr zurück. Test „Token-Erneuerung: Hülle bleibt samt Pause und Rotation montiert“.
 - **Rot-Nachweis:** Die 2 neuen Tests sind gegen `e6c896e3` rot (Hülle verschwindet bei `isOrgLoading`, Fokus ohne Pause) und mit der Nacharbeit grün.
 - **Verifikation:** `tsc` 0, `lint` 0, `format:check` grün, `npm test` 483 Dateien / 3.650 Tests grün, `verify` 25/25, `build` ok, `size-limit` Initial 172,09 kB (unverändert), E2E `dashboard-kiosk.spec.ts` 18/18 grün. Schutzbereiche unverändert.
 
 ### 14. Nacharbeit Runde 4 (Codex-Review auf `19572d94`)
+
 - **P2 Konfigurationsabrufe beim Sitzungsablauf:** `KioskDashboardSource.load` nimmt jetzt ein `AbortSignal`; `KioskShell` erzeugt je Ladeeffekt einen `AbortController` und bricht ihn beim Aushängen ab. `fetchDashboardById(id, signal)` prüft vor dem Start und vor dem Team-Namensabruf; `loadDashboardV2` und `listDashboardTeamsV2` reichen das Signal per `.abortSignal()` an den RPC weiter und protokollieren einen Abbruch nicht als technischen Fehler. Damit startet eine bereits laufende Ladefolge nach dem Ablauf keine neuen Anfragen mehr. Tests: `KioskShell.ui.vitest.tsx` (Signal wird abgebrochen), `dashboardAccessAndFallback.vitest.ts` (kein `listDashboardTeamsV2` nach Abbruch, kein Laden bei bereits abgebrochenem Signal).
 - **Rot-Nachweis:** Die 2 Kern-Tests sind gegen `19572d94` rot (kein Signal, Team-Abruf läuft trotz Abbruch) und mit der Nacharbeit grün.
 - **Verifikation:** `tsc` 0, `lint` 0, `format:check` grün, `npm test` 483 Dateien / 3.653 Tests grün, `verify` 25/25, `build` ok, `size-limit` Initial 172,09 kB (unverändert), E2E `dashboard-kiosk.spec.ts` 18/18 grün. Schutzbereiche unverändert.
 
 ### 15. Nacharbeit Runde 5 (Codex-Review auf `44420b90`)
+
 - **P2 Listenladefolge beim Ablauf abbrechen:** `KioskDashboardSource.list` bekommt ein `AbortSignal`. `KioskShell` bricht es beim Aushängen ab. `fetchAccessibleDashboards(signal)` prüft das Signal vor dem Start und vor dem persönlichen Rückfallabruf (`server_funktion_fehlt`). `listAccessibleDashboardsV2`/`listPersonalDashboardsV2` reichen es per `.abortSignal()` an den RPC weiter und werten einen Abbruch nicht als protokollierten technischen Fehler. Tests in `dashboardAccessAndFallback.vitest.ts` (kein Rückfall nach Abbruch, kein Listen-RPC bei bereits abgebrochenem Signal) und `KioskShell.ui.vitest.tsx` (Signal wird beim Aushängen abgebrochen).
 - **P2 Pfeiltasten in Diagrammen:** Der Kiosk-Tastaturhandler blättert nicht mehr, wenn das Ereignis schon behandelt ist (`defaultPrevented`, z. B. `DepthLineChart`/`HeatmapChart`) oder aus einem Eingabefeld bzw. Regler (`role="slider"`) kommt. Das zählt dann als Bedienung. Test „lässt Pfeiltasten der Diagrammsteuerung unangetastet“.
 - Begonnen von OpenCode, das am Nutzungslimit abbrach; fertiggestellt und verifiziert von Claude Code.
@@ -22816,15 +22868,15 @@ V2-Editor und Leseansicht auf Telefon und Tablet sicher bedienbar, dokumentierte
 
 ### 2. T0 – Ist-Stand
 
-| Befund | Stelle |
-| --- | --- |
-| Editor-Layoutwahl rein manuell; auf 375 px wurde das Desktop-Raster (12 Spalten) gezeigt | `DashboardEditorShellV2` |
-| Smartphone-Ansicht: „Nach oben/unten“ änderte nur `y`, die Anzeige folgte der Konfigurationsreihenfolge (Reihenfolge änderte sich sichtbar nicht) | `EditorCanvasV2`, `SectionAreaGridV2` |
-| Ziehen per Touch sofort aktiv; Griffe 24 px, Bedienelemente 28–36 px | `useGridDragAndDrop`, Top-Bar |
+| Befund                                                                                                                                                                                                    | Stelle                                                         |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Editor-Layoutwahl rein manuell; auf 375 px wurde das Desktop-Raster (12 Spalten) gezeigt                                                                                                                  | `DashboardEditorShellV2`                                       |
+| Smartphone-Ansicht: „Nach oben/unten“ änderte nur `y`, die Anzeige folgte der Konfigurationsreihenfolge (Reihenfolge änderte sich sichtbar nicht)                                                         | `EditorCanvasV2`, `SectionAreaGridV2`                          |
+| Ziehen per Touch sofort aktiv; Griffe 24 px, Bedienelemente 28–36 px                                                                                                                                      | `useGridDragAndDrop`, Top-Bar                                  |
 | axe (1440/375, alle V2-Ansichten): `aria-required-children/parent` (critical), `color-contrast` 9–26 Knoten (serious), `label-title-only`, `select-name` (Alarmfilter), moderate Überschriften/Landmarken | Raster-ARIA, fehlende Tailwind-Opazitätsklassen ohne Preflight |
-| Reportexport existierte nur im V1-Arbeitsbereich; im V2-Editor gab es keinen Report | `DashboardWorkspace` |
-| Panel-Editor: `onOpenPanelEditor` wird von keiner Seite angebunden, der Inspector übernimmt die Rolle | – |
-| `size-limit` Initial-JS 172,09 kB | – |
+| Reportexport existierte nur im V1-Arbeitsbereich; im V2-Editor gab es keinen Report                                                                                                                       | `DashboardWorkspace`                                           |
+| Panel-Editor: `onOpenPanelEditor` wird von keiner Seite angebunden, der Inspector übernimmt die Rolle                                                                                                     | –                                                              |
+| `size-limit` Initial-JS 172,09 kB                                                                                                                                                                         | –                                                              |
 
 ### 3. Umsetzung
 
@@ -22871,6 +22923,7 @@ Geändert: Editor-Hülle, Top-Bar(+Aktionen), Canvas/Sektionsraster, Kachelkarte
 Umgesetzt und lokal verifiziert. **Smoke für Marc:** Vorschau auf dem Telefon öffnen, eine Kachel per „Nach unten“ verschieben, „Bearbeiten“ → Zurück-Taste; im Editor „Report“ → „Drucken“ und Statuszeilen prüfen. Freigabe durch unabhängigen Prüfer (CLAUDE.md §4.1) ausstehend.
 
 ### 11. Nacharbeit Runde 1 (Codex-Review auf `2d2747bc`, CI-Lauf 44946679737)
+
 - **CI e2e rot:** Playwright verlangt im ersten Argument von `beforeEach` eine Objekt-Destrukturierung; `(_fixtures, info)` aus der Lint-Korrektur brach das Laden von `dashboard-mobile.spec.ts` und `dashboard-report.spec.ts`. Jetzt `test.beforeEach(() => test.skip(test.info().project.name …))` wie in den übrigen Specs.
 - **P2 Report übernimmt eingefrorenen Datenstand:** Neues `export/reportTileData.ts` (`createReportTileDataHook`). Der V2-Report liest für bereits angezeigte Kacheln den Rohdatenstand aus dem geteilten `tileDataStore` (wie der Inspector seit Auftrag 166), auch im Druckanhang; die Quelle gilt nur, wenn die Ansicht noch nichts oder nur „laden“ hat. Bildschirm und Report zeigen damit nach dem Pausieren dieselben Werte und Schwellenwert-Status.
 - **P2 Long-Press in Sektionen:** In `useGridDragAndDrop` räumt der Listener-Effekt die Haltezeit nicht mehr ab; ein eigener Effekt verwirft sie nur beim Aushängen. Der Timer nutzt die aktuelle `stepAutoScroll`-Fassung über eine Ref. Ein neues Kachel-Array nach der Auswahl bricht das lange Drücken nicht mehr ab.
@@ -22881,6 +22934,7 @@ Umgesetzt und lokal verifiziert. **Smoke für Marc:** Vorschau auf dem Telefon �
 - **Verifikation:** `tsc` 0, `lint` 0, Prettier grün, `npm test` 486 Dateien / 3.691 Tests grün, Vorschau-Build ok. E2E lokal: `dashboard-mobile`, `dashboard-report`, `a11y`, `dashboard-thresholds-preview`, `dashboard-kiosk` 90 grün / 18 übersprungen; Editor- und Vorschau-Gruppe (`personal-dashboard*`, `dashboard-config-states`, `editor-time-*`, `dashboard-*-preview`, `team-dashboards-preview`) 63 grün / 48 übersprungen. Schutzbereiche gegen `a41e5fbe` unverändert (leerer Diff).
 
 ### 12. Nacharbeit Runde 2 (Codex-Review auf `68a5df4b`, CI-Lauf 45000100165)
+
 - **CI e2e rot (`dashboard-alarms.spec.ts`, mobile-375):** Auf dem Telefon verdeckte das Inspector-Blatt den Speichern-Knopf (gleiches Muster wie zuvor bei `dashboard-thresholds-preview`). Der Test schließt das Blatt vor dem Speichern und öffnet es danach über „Bearbeiten“ und den Tab „Schwellenwerte“ wieder. Lokal ist die Spec wegen der bekannten DB-Altlast (Auftrag 171: Manager fehlt in der Team-Auswahl) nicht lauffähig; der Nachweis kommt aus der CI.
 - **P2 Analysezeitpunkt aus der Zeitsteuerung:** `DashboardPrintViewV2` nennt im Modus „pausiert“ den Pausenbeginn, im Modus „zeitpunkt“ den gewählten historischen Zeitpunkt (jeweils mit Kennzeichnung), im Live-Modus die Erstellung. Der Erstellungszeitpunkt steht zusätzlich in einer eigenen Zeile („Erstellt am“, `print-report-created-at`).
 - **P2 Fokus im Bibliotheks-Blatt:** `WidgetLibraryV2` erhält `asSheet` (gesetzt vom Editor auf dem Telefon): Dialog-Semantik, `useModalA11y` mit Initialfokus auf „Schließen“, Fokusbegrenzung, Escape und Fokusrückgabe; die Schaltfläche trägt einen sprechenden Namen.
@@ -22888,12 +22942,14 @@ Umgesetzt und lokal verifiziert. **Smoke für Marc:** Vorschau auf dem Telefon �
 - **Verifikation:** `tsc` 0, `lint` 0, Prettier grün, `npm test` 486 Dateien / 3.695 Tests grün, Vorschau-Build ok. E2E lokal (Mobil, Report, a11y, Schwellenwerte, Kiosk, Editor- und Vorschau-Gruppe): 153 grün / 66 übersprungen. Schutzbereiche gegen `a41e5fbe` unverändert (leerer Diff).
 
 ### 13. Nacharbeit Runde 3 (Codex-Review auf `116c5e73`)
+
 - **P2 Gespeicherter Stand nur bei passendem Kontext:** `reportTileData.ts` übernimmt den Store-Eintrag der Ansicht nur, wenn Kennzahl, Pipeline und Zeitraum des wirksamen Filters mit der aktuellen Quelle übereinstimmen und der Datenstand (`readTileStand`) zum aktuellen Zeitmodus bzw. Analysezeitpunkt passt (`matchesReportContext`). Sonst gilt die neu abgefragte Quelle, auch im Anhang. Damit liefert eine eingeklappte Sektion nach Filter- oder Zeitpunktwechsel keinen alten Stand mehr.
 - **P2 Druck wartet auf Alarmregeln:** `DashboardReportV2` reicht den Ladezustand von `useDashboardAlarms` (`isRulesLoading`, `isRulesError`) als `alarmsState` an `DashboardPrintViewV2` weiter. Die Druckfreigabe wartet auf geladene Regeln (der bestehende Zeitablauf von 3,5 s bleibt als Rückfall). Ein Fehler oder ein noch laufender Abruf steht ausdrücklich im Kopf (`print-report-alarms-note`) statt wie „keine Alarme“ zu wirken.
 - **Tests:** `reportV2Data.ui.vitest.tsx` (+6: Pipeline-, Zeitmodus- und Zeitpunktwechsel; Druck wartet beim Laden, druckt ohne Abfrage, Fehlervermerk). Rot-Nachweis gegen `116c5e73`: die Alarmtests (Laden, Fehler) sowie ein Hook-Test zum Filterwechsel (Store 250 „standard“, Quelle 900 „enterprise“) sind rot und mit der Nacharbeit grün.
 - **Verifikation:** `tsc` 0, `lint` 0, Prettier grün, `npm test` 486 Dateien / 3.701 Tests grün, Vorschau-Build ok, E2E `dashboard-report`, `a11y`, `dashboard-mobile`, `dashboard-alarms-preview` 72 grün. Schutzbereiche gegen `a41e5fbe` unverändert (leerer Diff).
 
 ### 14. Nacharbeit Runde 4 (Codex-Review auf `3f9a838b`, CI-Lauf 45008272827)
+
 - **CI e2e rot, erstmals Gruppe „persönliches Dashboard“ erreicht** (die Läufe davor brachen in früheren Gruppen ab). Lokal auf macOS nicht nachstellbar; nachgestellt im Linux-Container `mcr.microsoft.com/playwright:v1.65.1-noble` gegen den CI-Build (Artefakt `dashboard-preview`) und gegen `a41e5fbe` als Vergleich.
   - **`personal-dashboard-sections` (mobile-375):** Die Ohne-Sektion-Fläche hatte ihr Polster `p-2` nur als aktiver Bereich. Drücken auf eine Sektion nahm es weg, die Listenkacheln wurden 16 px breiter, brachen unter Linux-Schriften neu um (je −26 px) und der Inhalt sprang zwischen `pointerdown` und `pointerup` um 320 px. Der Klick traf den Sektionscontainer statt „Sektion entfernen“. Fix `SectionedCanvasV2`: Polster unabhängig vom aktiven Bereich, nur Rahmen/Hintergrund markieren. Das beseitigt auch den Sprung auf echten Telefonen.
   - **`editor-time-point` (tablet-768):** `useGridKeyboard` wertete die Pfeiltasten des fokussierten Diagramm-Reglers zusätzlich als Kachelnavigation; die Auswahl wechselte zur Nachbarkachel, der Regler verlor den Fokus und das Fadenkreuz erlosch. Seit Auftrag 172 nutzt der Tablet-Viewport das Tablet-Layout, in dem eine Nachbarkachel rechts liegt (im Desktop-Layout auf `main` nicht). Container-Vergleich unter Last: Branch 3/12 rot, `a41e5fbe` 0/12. Fix: bereits behandelte Tasten (`defaultPrevented`) und `role="slider"` werden ignoriert (wie der Kiosk in PR #212).
@@ -22917,13 +22973,13 @@ Vor jeder Umstellung den Gesamtstand P01–P15 abnehmen (Funktion, Rechte, Last,
 
 ### 2. T0 – Ist-Stand
 
-| Befund | Stelle |
-| --- | --- |
-| Paketstand P01–P15 vollständig gemergt (Tabelle in `GESAMTABNAHME_P16.md` §1) | Git-Historie |
-| **Kopiermigration speicherte immer `last_migrated_revision = 1`**, weil `useDashboardV2Storage` die V1-Revision nicht übergab (Befund B-3) | `hooks/useDashboardV2Storage.ts` |
-| Vorlagen-Dashboards tragen ebenfalls `migrated_from_v1 = true` → V2-Kopie = ältestes migriertes persönliches Dashboard | `model/dashboardTemplatesV2.ts` |
-| Hosted-Stand bis `20261122`; es fehlen `20261123`–`20261128` | Supabase-Verwaltung (lesend) |
-| Alarm-pgTAP aus 167 prüfte überwiegend nur die Existenz von Funktionen; Betriebsverhalten ohne Nachweis | `supabase/tests/dashboard_alarms.sql`, `dashboard_alarm_rules_rights.sql` |
+| Befund                                                                                                                                     | Stelle                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| Paketstand P01–P15 vollständig gemergt (Tabelle in `GESAMTABNAHME_P16.md` §1)                                                              | Git-Historie                                                              |
+| **Kopiermigration speicherte immer `last_migrated_revision = 1`**, weil `useDashboardV2Storage` die V1-Revision nicht übergab (Befund B-3) | `hooks/useDashboardV2Storage.ts`                                          |
+| Vorlagen-Dashboards tragen ebenfalls `migrated_from_v1 = true` → V2-Kopie = ältestes migriertes persönliches Dashboard                     | `model/dashboardTemplatesV2.ts`                                           |
+| Hosted-Stand bis `20261122`; es fehlen `20261123`–`20261128`                                                                               | Supabase-Verwaltung (lesend)                                              |
+| Alarm-pgTAP aus 167 prüfte überwiegend nur die Existenz von Funktionen; Betriebsverhalten ohne Nachweis                                    | `supabase/tests/dashboard_alarms.sql`, `dashboard_alarm_rules_rights.sql` |
 
 ### 3. Umsetzung
 
@@ -22953,13 +23009,13 @@ Vollständig in `docs/dashboard/GESAMTABNAHME_P16.md`. Kurzfassung:
 
 ### 6. Befunde
 
-| Nr. | Schwere | Kurz | Umgang |
-| --- | --- | --- | --- |
-| B-1 | hoch | Alarm-RPCs prüfen kein Dashboard-Recht; `create` übernimmt fremde Regel per `ON CONFLICT` | pgTAP-TODO; Zwischenauftrag 173a vor 174 vorgeschlagen |
-| B-2 | mittel | Rückkehr-Hinweis im alten Editor fehlt | 174 T4 |
-| B-3 | mittel | Kopiermigration ohne echte Quellrevision | in 173 behoben |
-| B-4 | niedrig | `alarm_worker_status().aktiveRegeln` über alle Organisationen | 173a |
-| B-5 | niedrig | `team-dashboards.spec.ts` räumt mit falschen Tabellennamen auf | 173a |
+| Nr. | Schwere | Kurz                                                                                      | Umgang                                                 |
+| --- | ------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| B-1 | hoch    | Alarm-RPCs prüfen kein Dashboard-Recht; `create` übernimmt fremde Regel per `ON CONFLICT` | pgTAP-TODO; Zwischenauftrag 173a vor 174 vorgeschlagen |
+| B-2 | mittel  | Rückkehr-Hinweis im alten Editor fehlt                                                    | 174 T4                                                 |
+| B-3 | mittel  | Kopiermigration ohne echte Quellrevision                                                  | in 173 behoben                                         |
+| B-4 | niedrig | `alarm_worker_status().aktiveRegeln` über alle Organisationen                             | 173a                                                   |
+| B-5 | niedrig | `team-dashboards.spec.ts` räumt mit falschen Tabellennamen auf                            | 173a                                                   |
 
 ### 7. Schutzbereiche
 
@@ -22967,21 +23023,21 @@ Vollständig in `docs/dashboard/GESAMTABNAHME_P16.md`. Kurzfassung:
 
 ### 8. Automatisierte Verifikation
 
-| Prüfung | Ergebnis |
-| --- | --- |
-| `npx tsc --noEmit` | 0 Fehler |
-| `npm run lint` | 0 Warnungen |
-| `npm run format:check` | grün |
-| `npm test` | 489 Dateien, 3.750 Tests grün (nach Umbenennung der Rückweg-Spec; vorher 1 rot, siehe unten) |
-| `npm run verify` | 25/25 Integrity-Suiten grün |
-| `npm run build` | grün |
-| `npm run build:production` | mit lokaler http-URL rot durch den Konfigurationswächter (erwartet); mit https-Platzhalter-URL grün |
-| `npx size-limit` | Initial-JS 172,34 kB / 180 kB, Vendor 79,41 kB / 250 kB |
-| `supabase db reset` + `supabase test db` | 30 Dateien, 785 Tests grün, 5 TODO (B-1) |
-| `npm run verify:migrations` | grün (Schema nach Upgrade = Schema aus leerer DB) |
-| `npm run verify:realtime -- --fail-if-offline` | grün |
-| Playwright, CI-Block parallel (Zeile 230 `ci.yml`) | 745 bestanden, 26 übersprungen, 15 rot: nur `visual.spec.ts` auf macOS (veraltete darwin-Baselines vom 12.09.2026, auch auf `main` rot); maßgeblich ist Linux, siehe Nachtrag §11 |
-| Playwright, CI-Block seriell (Zeile 232 `ci.yml`, `--workers=1`) | 65 bestanden, 10 übersprungen, 0 fehlgeschlagen |
+| Prüfung                                                          | Ergebnis                                                                                                                                                                          |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npx tsc --noEmit`                                               | 0 Fehler                                                                                                                                                                          |
+| `npm run lint`                                                   | 0 Warnungen                                                                                                                                                                       |
+| `npm run format:check`                                           | grün                                                                                                                                                                              |
+| `npm test`                                                       | 489 Dateien, 3.750 Tests grün (nach Umbenennung der Rückweg-Spec; vorher 1 rot, siehe unten)                                                                                      |
+| `npm run verify`                                                 | 25/25 Integrity-Suiten grün                                                                                                                                                       |
+| `npm run build`                                                  | grün                                                                                                                                                                              |
+| `npm run build:production`                                       | mit lokaler http-URL rot durch den Konfigurationswächter (erwartet); mit https-Platzhalter-URL grün                                                                               |
+| `npx size-limit`                                                 | Initial-JS 172,34 kB / 180 kB, Vendor 79,41 kB / 250 kB                                                                                                                           |
+| `supabase db reset` + `supabase test db`                         | 30 Dateien, 785 Tests grün, 5 TODO (B-1)                                                                                                                                          |
+| `npm run verify:migrations`                                      | grün (Schema nach Upgrade = Schema aus leerer DB)                                                                                                                                 |
+| `npm run verify:realtime -- --fail-if-offline`                   | grün                                                                                                                                                                              |
+| Playwright, CI-Block parallel (Zeile 230 `ci.yml`)               | 745 bestanden, 26 übersprungen, 15 rot: nur `visual.spec.ts` auf macOS (veraltete darwin-Baselines vom 12.09.2026, auch auf `main` rot); maßgeblich ist Linux, siehe Nachtrag §11 |
+| Playwright, CI-Block seriell (Zeile 232 `ci.yml`, `--workers=1`) | 65 bestanden, 10 übersprungen, 0 fehlgeschlagen                                                                                                                                   |
 
 Hinweis Playwright: Der erste Komplettlauf (`npx playwright test`) zeigte Ausfälle in CRM-, Mitglieder- und Mandanten-Specs. Ursache: Der lokale Edge-Runtime-Container war gestoppt (CRM-Liste und Einladungen laufen über Edge Functions). Nach Neustart wie in der CI (`supabase start -x studio,imgproxy,storage-api,logflare,vector,supavisor,postgres-meta`) sind beide CI-Blöcke grün. Die Rückweg-Probe öffnete auf Tablet/Telefon zunächst ein anderes persönliches Dashboard aus früheren Specs; sie bindet den Editor jetzt ausdrücklich an die V1-Kopie.
 
@@ -23002,7 +23058,6 @@ Umgesetzt und lokal verifiziert. Prüfer ist Codex (CLAUDE.md §4.1; Klarstellun
 - **Korrektur:** Der Menüpunkt erscheint wie „Alarme“ (Auftrag 168) nur innerhalb des Admin-Bereichs. Die Seitenleiste der übrigen Seiten bleibt unverändert, keine neuen Baselines nötig.
 - **Nachweis:** Die Linux-Baseline (CI) ist 1440 × 1519 px; die Aufnahme nach der Korrektur ebenfalls 1519 px, mit dem dauerhaften Menüpunkt waren es 1558 px. Lokal auf macOS bleibt `visual.spec.ts` rot, weil die darwin-Baselines seit 12.09.2026 nicht gepflegt sind (900 px); das betrifft `main` gleichermaßen und ist kein Befund dieses Auftrags. Die CI-Prüfung unter Linux ist maßgeblich.
 
-
 ### 12. Nacharbeit Runde 1 (Codex-Review auf `3a5eb7b5`/`e2766119`, 23.11.2026)
 
 - **P2 Entscheidung an die Pilotkopie binden:** `dashboard_rollout_decide` und `dashboard_rollout_adopt_v1` erhalten `p_expected_dashboard_id`; weicht die aktuelle Pilotkopie ab → `LP_ROLLOUT_STALE`. Der Abgleich wertet eine Entscheidung nur als gültig, wenn auch die gespeicherte Dashboard-ID zur aktuellen Kopie passt. Damit fällt der Austausch der Kopie durch ein Duplikat gleicher Revision auf. Client und In-Memory-Dienst senden bzw. spiegeln die ID.
@@ -23010,6 +23065,7 @@ Umgesetzt und lokal verifiziert. Prüfer ist Codex (CLAUDE.md §4.1; Klarstellun
 - **P2 Wertebereich der Migrationsmetadaten:** `dashboard_rollout_int` akzeptiert nur ganze Zahlen von 0 bis 2.147.483.647; andere Werte gelten als fehlende Herkunft, statt den ganzen Abgleich abzubrechen.
 - **Tests:** pgTAP `dashboard_rollout_reconciliation.sql` +5 (falsche Dashboard-ID abgewiesen, passende gespeichert, ausgetauschte Kopie → verfallen, Überlauf bricht nicht ab, ungültiger Wert = leer; jetzt 46). Neu `rolloutReconciliationCodex.vitest.ts` (4), `RolloutPrepPage.ui.vitest.tsx` +1. **Rot-Nachweis:** pgTAP gegen die alte Migration rot (Signatur fehlt), die 5 neuen Vitest-Fälle gegen den alten Client rot, mit der Nacharbeit grün.
 - **Verifikation:** `tsc` 0, `lint` 0, Prettier grün, `npm test` 490 Dateien / 3.755 Tests grün, `verify` 25/25, Build und size-limit (172,34 kB) grün, `supabase test db` 30 Dateien grün (5 TODO = B-1, Behebung in 173a), `verify:migrations` grün, E2E `dashboard-rollout-prep` und `dashboard-rueckweg-probe` 6 grün. Schutzbereiche gegen `c48ac8b1` unverändert (leerer Diff).
+
 ### 13. Nacharbeit Runde 2 (Codex-Review auf `739ea6197f`, 23.11.2026)
 
 - **P2 Zurückgestellte Entscheidungen bei Klasse „gleich“ weiterhin offen und entscheidbar:** Wenn nach „Alten Stand übernehmen“ im Pilot weitergearbeitet und anschließend „Später entscheiden“ gewählt wird, bleibt die Klasse `gleich`, während die Entscheidung wieder gültig ist. `needsDecision` und `isDecidable` berücksichtigen nun `entscheidung === 'spaeter'` auch bei Klasse `gleich`. Damit zählt der Eintrag als offene Entscheidung und bietet weiterhin die Aktionen zur endgültigen Entscheidung an.
@@ -23046,18 +23102,18 @@ Die offenen Befunde aus der Gesamtabnahme 173 schließen, damit 174 auf einer Ab
 
 ### 5. Automatisierte Verifikation
 
-| Prüfung | Ergebnis |
-| --- | --- |
-| `npx tsc --noEmit`, `npm run lint`, `npm run format:check` | grün |
-| `npm test` | 490 Dateien, 3.758 Tests grün |
-| `npm run verify` | 25/25 grün |
-| `npm run build`; `build:production` (https-Platzhalter) | grün |
-| `npx size-limit` | 172,35 kB / 180 kB |
-| `supabase test db` | 30 Dateien, 797 Tests grün, **0 TODO** |
-| `npm run verify:migrations`, `verify:realtime -- --fail-if-offline` | grün |
-| Playwright seriell (CI-Zeile 232) | 65 bestanden, 10 übersprungen, 0 rot |
-| Playwright `dashboard-alarms-preview` | 3 bestanden |
-| Playwright parallel (CI-Zeile 230) | 745 bestanden; 15 rot nur `visual.spec.ts` auf macOS (veraltete darwin-Baselines, auch auf `main`), siehe 173 §11 |
+| Prüfung                                                             | Ergebnis                                                                                                          |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `npx tsc --noEmit`, `npm run lint`, `npm run format:check`          | grün                                                                                                              |
+| `npm test`                                                          | 490 Dateien, 3.758 Tests grün                                                                                     |
+| `npm run verify`                                                    | 25/25 grün                                                                                                        |
+| `npm run build`; `build:production` (https-Platzhalter)             | grün                                                                                                              |
+| `npx size-limit`                                                    | 172,35 kB / 180 kB                                                                                                |
+| `supabase test db`                                                  | 30 Dateien, 797 Tests grün, **0 TODO**                                                                            |
+| `npm run verify:migrations`, `verify:realtime -- --fail-if-offline` | grün                                                                                                              |
+| Playwright seriell (CI-Zeile 232)                                   | 65 bestanden, 10 übersprungen, 0 rot                                                                              |
+| Playwright `dashboard-alarms-preview`                               | 3 bestanden                                                                                                       |
+| Playwright parallel (CI-Zeile 230)                                  | 745 bestanden; 15 rot nur `visual.spec.ts` auf macOS (veraltete darwin-Baselines, auch auf `main`), siehe 173 §11 |
 
 Dabei aufgefallen und auf 173 korrigiert (`e2766119`): Der Menüpunkt „Umstellung vorbereiten“ verlängerte die Seitenleiste auf allen Seiten (Linux-Baselines wären rot gewesen); der Eintrag erscheint jetzt nur im Admin-Bereich.
 
@@ -23095,19 +23151,19 @@ Der neue Editor wird je Organisation in Stufen zum Standard (0 → 1 Test-Organi
 
 ### 5. Automatisierte Verifikation
 
-| Prüfung | Ergebnis |
-| --- | --- |
-| `npx tsc --noEmit`, `npm run lint`, `npm run format:check` | grün |
-| `npm test` | 491 Dateien, 3.777 Tests grün |
-| `npm run verify` | 25/25 grün |
-| `npm run build`; `build:production` (https-Platzhalter) | grün |
-| `npx size-limit` | 172,47 kB / 180 kB |
-| `supabase db reset` + `supabase test db` | 31 Dateien, 845 Tests grün |
-| `npm run verify:migrations` | grün |
-| `e2e/dashboard-rollout.spec.ts` | 9/9 grün (3 Viewports × 3 Wiederholungen) |
-| Playwright parallel (CI-Zeile 230) | 745 bestanden; 15 rot nur `visual.spec.ts` auf macOS (veraltete darwin-Baselines, wie 173/173a) |
-| Playwright seriell (CI-Zeile 232, inkl. neuer Spec) | 68 bestanden, 10 übersprungen, 0 rot |
-| Playwright Dashboard (CI-Zeile 237, `E2E_DASHBOARD_SERIAL`) | 75/75 grün |
+| Prüfung                                                     | Ergebnis                                                                                        |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `npx tsc --noEmit`, `npm run lint`, `npm run format:check`  | grün                                                                                            |
+| `npm test`                                                  | 491 Dateien, 3.777 Tests grün                                                                   |
+| `npm run verify`                                            | 25/25 grün                                                                                      |
+| `npm run build`; `build:production` (https-Platzhalter)     | grün                                                                                            |
+| `npx size-limit`                                            | 172,47 kB / 180 kB                                                                              |
+| `supabase db reset` + `supabase test db`                    | 31 Dateien, 845 Tests grün                                                                      |
+| `npm run verify:migrations`                                 | grün                                                                                            |
+| `e2e/dashboard-rollout.spec.ts`                             | 9/9 grün (3 Viewports × 3 Wiederholungen)                                                       |
+| Playwright parallel (CI-Zeile 230)                          | 745 bestanden; 15 rot nur `visual.spec.ts` auf macOS (veraltete darwin-Baselines, wie 173/173a) |
+| Playwright seriell (CI-Zeile 232, inkl. neuer Spec)         | 68 bestanden, 10 übersprungen, 0 rot                                                            |
+| Playwright Dashboard (CI-Zeile 237, `E2E_DASHBOARD_SERIAL`) | 75/75 grün                                                                                      |
 
 Hinweis lokal: Ein erster Lauf war rot, weil ohne `VITE_DASHBOARD_PREVIEW=true` gebaut wurde und die Edge-Runtime nach `supabase db reset` gestoppt war (wie in 173 beschrieben). Nach Build wie in der CI und `docker start supabase_edge_runtime_…` grün.
 
@@ -23125,12 +23181,12 @@ Umgesetzt und lokal verifiziert. Review durch Codex ausstehend. Nach Merge (T6):
 
 ### 9. Nacharbeit Codex-Runde 1 (Review auf `13a9c3f9`, 4 × P2)
 
-| Befund | Behebung | Nachweis |
-| --- | --- | --- |
+| Befund                                                                          | Behebung                                                                                                                                                                                        | Nachweis                                                                                                   |
+| ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | Revisionsprüfung nicht bis zur Fixierung abgesichert (gleichzeitiges Speichern) | `dashboard_editor_rollout_status` sperrt vor der Prüfung V1-Zeile, Pilotkopie und Entscheidung (`FOR SHARE`); ein gleichzeitiges Speichern wartet und zählt als Bearbeitung nach der Umstellung | Lokal mit zwei Sitzungen: Update wartete bis zum Commit der Umstellung, Umstellung hält V1-Revision 1 fest |
-| Detailseite übernahm modulweit festgehaltenen Stand | Wiederverwendung entfernt; jede Seite lädt beim Öffnen den aktuellen Serverstand | Vitest „Detailseite lädt den aktuellen Stand …“ |
-| `gleich` mit „Später“/verfallener Entscheidung wurde umgestellt | Regel wie `needsDecision` (173), Ausnahme nur `beide_geaendert` ohne Entscheidung | pgTAP 3 neue Tests (Nutzer 31, 32), Übersicht zählt sie |
-| Audit-Eintrag bei `INSERT … ON CONFLICT` doppelt/fälschlich | BEFORE-Trigger setzt nur Felder, AFTER-Trigger protokolliert nur echtes Anlegen/Stufenwechsel; gleiche Stufe lässt `aktiviert_at` stehen | pgTAP 5 neue Tests |
+| Detailseite übernahm modulweit festgehaltenen Stand                             | Wiederverwendung entfernt; jede Seite lädt beim Öffnen den aktuellen Serverstand                                                                                                                | Vitest „Detailseite lädt den aktuellen Stand …“                                                            |
+| `gleich` mit „Später“/verfallener Entscheidung wurde umgestellt                 | Regel wie `needsDecision` (173), Ausnahme nur `beide_geaendert` ohne Entscheidung                                                                                                               | pgTAP 3 neue Tests (Nutzer 31, 32), Übersicht zählt sie                                                    |
+| Audit-Eintrag bei `INSERT … ON CONFLICT` doppelt/fälschlich                     | BEFORE-Trigger setzt nur Felder, AFTER-Trigger protokolliert nur echtes Anlegen/Stufenwechsel; gleiche Stufe lässt `aktiviert_at` stehen                                                        | pgTAP 5 neue Tests                                                                                         |
 
 Übersicht: Feld heißt jetzt „Warten auf Entscheidung“ (zählt nur tatsächlich blockierte Umstellungen). Nachprüfung: `tsc`, `lint`, `format:check` grün; `npm test` 3.777 grün; `supabase test db` 853 grün; `verify:migrations` grün; `e2e/dashboard-rollout.spec.ts` 3/3; Playwright-Block 3 (`E2E_DASHBOARD_SERIAL`) 75/75.
 
@@ -23152,18 +23208,18 @@ Der Hosted-Smoke-Test nach Stufe 1 und der lokale Browser-Audit vom 24.11.2026 e
 
 ### 3. Vorher/Nachher (Harness `scripts/captureAuftrag174aGateScreenshots.mjs`, vollständige App-Hülle, lokales Supabase, Stufe 1, ohne Override)
 
-| Messung | Vorher | Nachher |
-| --- | --- | --- |
-| Arbeitsfläche 1440 / 1059 px (Direktaufruf) | 516 / 135 px | 796 / 735 px |
-| Resize mit Entwurf 1440 → … → 375 → 1440: kleinste Arbeitsfläche | 100 px (bei 1024) | 636 px (bei 1280) |
-| Info bzw. Bibliothek nach Resize auf 375 px | beide als Vollbild-Blatt | zu |
-| „Speichern“/„Abbrechen“ bei 375 px | abgeschnitten (x = 613/488) | sichtbar und klickbar |
-| Überstehende Kacheln (1440 px) | 16 von 17, bis 407 px | 0 |
-| ARR-Verlauf: letzter Punkt „Q3 25“ | erreichbar, Karte nicht eingefasst | erreichbar, in der Karte eingefasst |
-| Layoutansicht nach Rückkehr auf 1440 px | blieb Smartphone | Desktop |
-| F1 Panel-Editor-Buttons ohne Handler | 1 | 0 |
-| F2 nach „Abbrechen“ + Neuladen | V1 (Override `false`) | V2 (kein Override) |
-| Dokument-Überlauf | 0 px (Fehler trotzdem vorhanden) | 0 px |
+| Messung                                                          | Vorher                             | Nachher                             |
+| ---------------------------------------------------------------- | ---------------------------------- | ----------------------------------- |
+| Arbeitsfläche 1440 / 1059 px (Direktaufruf)                      | 516 / 135 px                       | 796 / 735 px                        |
+| Resize mit Entwurf 1440 → … → 375 → 1440: kleinste Arbeitsfläche | 100 px (bei 1024)                  | 636 px (bei 1280)                   |
+| Info bzw. Bibliothek nach Resize auf 375 px                      | beide als Vollbild-Blatt           | zu                                  |
+| „Speichern“/„Abbrechen“ bei 375 px                               | abgeschnitten (x = 613/488)        | sichtbar und klickbar               |
+| Überstehende Kacheln (1440 px)                                   | 16 von 17, bis 407 px              | 0                                   |
+| ARR-Verlauf: letzter Punkt „Q3 25“                               | erreichbar, Karte nicht eingefasst | erreichbar, in der Karte eingefasst |
+| Layoutansicht nach Rückkehr auf 1440 px                          | blieb Smartphone                   | Desktop                             |
+| F1 Panel-Editor-Buttons ohne Handler                             | 1                                  | 0                                   |
+| F2 nach „Abbrechen“ + Neuladen                                   | V1 (Override `false`)              | V2 (kein Override)                  |
+| Dokument-Überlauf                                                | 0 px (Fehler trotzdem vorhanden)   | 0 px                                |
 
 Vollständige Matrix mit 14 Paaren (alle Hashes verschieden): `docs/screenshots/auftrag-174a/README.md`. Gespeicherte Layouts und Revisionen blieben in beiden Läufen unverändert. Die Bilder bleiben lokal.
 
@@ -23173,17 +23229,17 @@ Vollständige Matrix mit 14 Paaren (alle Hashes verschieden): `docs/screenshots/
 
 ### 5. Automatisierte Verifikation
 
-| Prüfung | Ergebnis |
-| --- | --- |
-| `npx tsc --noEmit`, `npm run lint`, `npm run format:check` | grün |
-| `npm test` | 492 Dateien, 3.782 Tests grün (neu: `editorSmokeNacharbeit.ui.vitest.tsx`, 4 Tests) |
-| `npm run verify` | 25/25 grün |
-| `npm run build` | grün |
-| `npx size-limit` | 172,34 kB / 180 kB |
-| `e2e/dashboard-editor-smoke.spec.ts` (neu, 2 Tests) | grün, zweifach wiederholt. 375 px: Speichern per Touch, Neuladen, Abbrechen per Tastatur, V2 bleibt. Desktop: Kachel-Einfassung in Bearbeitung und Vorschau, F1, Resize 1440 → 1059 → 375 → 1440 mit Entwurf, F2 mit und ohne Änderung, Revision unverändert. |
-| Playwright parallel (Dashboard-/Mobile-/A11y-Auswahl aus CI-Zeile 230) | 132 bestanden; 15 rot nur in `visual.spec.ts` auf macOS. Umgebungshindernis: Die darwin-Baselines zeigen einen veralteten Seitenstand (ganze Seite verschieden, auch Routen ohne Dashboard), wie bei 173/174. Die CI vergleicht gegen linux. |
-| Playwright seriell (Dashboard-Auswahl aus CI-Zeile 232, inkl. neuer Spec) | 17 bestanden, 0 rot |
-| Playwright Dashboard (CI-Zeile 237, `E2E_DASHBOARD_SERIAL`) | 75/75 grün |
+| Prüfung                                                                   | Ergebnis                                                                                                                                                                                                                                                      |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npx tsc --noEmit`, `npm run lint`, `npm run format:check`                | grün                                                                                                                                                                                                                                                          |
+| `npm test`                                                                | 492 Dateien, 3.782 Tests grün (neu: `editorSmokeNacharbeit.ui.vitest.tsx`, 4 Tests)                                                                                                                                                                           |
+| `npm run verify`                                                          | 25/25 grün                                                                                                                                                                                                                                                    |
+| `npm run build`                                                           | grün                                                                                                                                                                                                                                                          |
+| `npx size-limit`                                                          | 172,34 kB / 180 kB                                                                                                                                                                                                                                            |
+| `e2e/dashboard-editor-smoke.spec.ts` (neu, 2 Tests)                       | grün, zweifach wiederholt. 375 px: Speichern per Touch, Neuladen, Abbrechen per Tastatur, V2 bleibt. Desktop: Kachel-Einfassung in Bearbeitung und Vorschau, F1, Resize 1440 → 1059 → 375 → 1440 mit Entwurf, F2 mit und ohne Änderung, Revision unverändert. |
+| Playwright parallel (Dashboard-/Mobile-/A11y-Auswahl aus CI-Zeile 230)    | 132 bestanden; 15 rot nur in `visual.spec.ts` auf macOS. Umgebungshindernis: Die darwin-Baselines zeigen einen veralteten Seitenstand (ganze Seite verschieden, auch Routen ohne Dashboard), wie bei 173/174. Die CI vergleicht gegen linux.                  |
+| Playwright seriell (Dashboard-Auswahl aus CI-Zeile 232, inkl. neuer Spec) | 17 bestanden, 0 rot                                                                                                                                                                                                                                           |
+| Playwright Dashboard (CI-Zeile 237, `E2E_DASHBOARD_SERIAL`)               | 75/75 grün                                                                                                                                                                                                                                                    |
 
 Lokale Testdaten: nur Seed-Nutzer `manager-a`. Der Test stellt Größe und Stand nach dem Speichern wieder her. Rollout- und Umstellungszeilen sind danach entfernt (geprüft: 0/0).
 
@@ -23193,10 +23249,119 @@ Umgesetzt und lokal verifiziert. Review durch Codex auf GitHub ausstehend. Nicht
 
 ### 7. Nacharbeit Codex-Runde 1 (geprüfter Head `daa06696`)
 
-| Befund | Behebung |
-| --- | --- |
+| Befund                                                                                                                                                       | Behebung                                                                                                                                                                                |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | P2 `useEditorTouchLayout.ts`: Nach 1440 → 768 → 1440 px blieb die Tablet-Sperre gesetzt, beim zweiten Verkleinern auf 768 px blieb das Desktop-Layout aktiv. | Nimmt der Hook die automatische Auswahl auf Desktop-Breite zurück, setzt er auch die Tablet-Sperre zurück. Eine Auswahl von Hand bleibt erhalten, weil dann nichts zurückgenommen wird. |
 
 Tests: zwei neue Hook-Tests mit veränderlicher Fensterbreite (Folge 1440 → 768 → 1440 → 768 → 1440 ergibt Desktop, Tablet, Desktop, Tablet, Desktop; eine Wahl von Hand auf Tabletbreite bleibt beim erneuten Verkleinern). Der Test schlug vor dem Fix fehl. Der Viewport-Block wurde dafür aus `editorTouch.ui.vitest.tsx` in die neue Datei `editorTouchViewport.ui.vitest.tsx` verschoben (Lint-Grenze 400 Zeilen).
 
 Verifikation: `npx tsc --noEmit`, `npm run lint` grün; `npm test` 493 Dateien, 3.784 Tests grün; `npm run verify` 25/25 grün; `npm run build` grün. Schutzbereiche: `git diff 8b481c63 -- src/simulation src/types src/context src/services/data src/features/resources` → leer. Erneutes Review per `@codex review` angefordert.
+
+## 2026-11-25 — Auftrag 174b: Kacheln ohne Scrollen, Mindestgröße, ruhiger Kachelkopf (K1–K7)
+
+Builder: Claude Code (beauftragt von Marc am 25.11.2026). Baseline `5e5d17ac` (`main` nach Merge von #222). Branch `auftrag-174b-kachel-lesbarkeit`. Detailauftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_174B_KACHEL_LESBARKEIT.md`. Herkunft: Hosted-Smoke von Marc am 25.11.2026 (Stufe 1, „LeadPilot Demo“).
+
+### 1. Ziel & Kontext
+
+Marc lehnt Kacheln mit innerem Scrollen ab. Beim Verkleinern soll sich der Inhalt mitverkleinern bis zu einem lesbaren Mindestmaß; darunter lässt sich die Kachel nicht ziehen. Lange Erklärungstexte sollen dezent einklappbar sein. Zusätzlich: Ziehgriff über der Schrift (K1), „Stand Stand“ (K4), grauer Block über der Nachbarkachel (K5), unterer Griff verschiebt die Kachel (K6), Prüfpunkt Säulenachse (K7). Entscheidungen Marc 25.11.2026: kein Scrollen in Kacheln (ersetzt 174a Festlegungen 3 und 4), Stufe 2 entfällt, Stufe 3 nach mindestens 7 Tagen auf Stufe 1 ohne offenen Fehler.
+
+### 2. Geänderte Dateien
+
+| Bereich          | Dateien                                                                                                                                                                                                                                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Einpassung (neu) | `components/tileFit.ts`, `components/TileFitBox.tsx`, `components/editor/grid/tileMinSizes.ts`                                                                                                                                                                                                                           |
+| Kachel           | `components/DashboardTile.tsx` (Einpass-Modus, kompakter Kopf und Fuß), `components/TileExplanation.tsx` (neu), `components/LazyDashboardTile.tsx`, `components/TileBody.tsx`, `components/DashboardChart.tsx`, `components/charts/ChartReadout.tsx`, `components/charts/DepthFunnelChart.tsx`, `time/TileStandLine.tsx` |
+| Editor-Raster    | `editor/canvas/CanvasTileCard.tsx`, `editor/EditorCanvasV2.tsx`, `editor/sections/SectionAreaGridV2.tsx`, `editor/grid/useGridDragAndDrop.ts`, `editor/grid/useGridKeyboard.ts`, `editor/grid/gridTailwindClasses.ts`                                                                                                    |
+| Konfiguration    | `tailwind.config.js` (Startzeilen 14–200, safelist)                                                                                                                                                                                                                                                                      |
+| Tests            | `__tests__/tileFit.vitest.ts`, `__tests__/tileFitHeader.ui.vitest.tsx`, `__tests__/gridRowPlacement.vitest.ts` (neu), `__tests__/TileStandLine.ui.vitest.tsx`, `e2e/dashboard-tile-fit-preview.spec.ts` (neu)                                                                                                            |
+| CI und Abnahme   | `.github/workflows/ci.yml`, `scripts/runV23Acceptance.mjs` (neue E2E-Datei in der parallelen Vorschau-Gruppe)                                                                                                                                                                                                            |
+| Harness und Doku | `scripts/captureAuftrag174bGateScreenshots.mjs` (neu), `docs/screenshots/auftrag-174b/README.md`, Auftrag 174b, `docs/dashboard/UMSTELLUNG_P16.md`, `BUILD_PLAN.md`                                                                                                                                                      |
+
+Außerhalb der Einstiegspunkte (begründet): `tailwind.config.js` (Ursache K6), `TileExplanation.tsx`, `tileMinSizes.ts`, `LazyDashboardTile.tsx` (Durchreichen des Einpass-Modus), `ChartReadout.tsx`/`DepthFunnelChart.tsx` (feste Scrollbereiche), `ci.yml`/`runV23Acceptance.mjs` (neue E2E-Datei).
+
+### 3. Funktionale Prüfungen
+
+- **K1:** Ziehgriff in der Aktionsleiste über der Kachelkante; Leiste endet 11 px über der Kategoriezeile. Verschieben per Griff unverändert (Vitest).
+- **K2/K5:** Kachelkörper ohne Scrollbereich; Inhalt per `transform` eingepasst; Mindestgröße aus Messung bei Faktor 0,8, durchgesetzt beim Ziehen und per Tastatur. „Umsatzerlöse“ lässt sich nicht unter 3 × 3 ziehen (Faktor 1,0).
+- **K3:** Kopf mit Kategorie, Titel, Klartextname, Stand-Zeile und Pfeil „Erläuterung anzeigen“; Zeitbezug, Quelle und Formel als Überlagerung; Escape und Klick außerhalb schließen, Fokus zurück. Fußzeile einzeilig, Hinweis „Erst speichern …“ bleibt sichtbar (gekürzt, voller Text als Titel).
+- **K4:** „Referenzwert, Stand 31.12.2025“ ohne Dopplung.
+- **K6:** Ursache: Tailwind erzeugte `row-start-*` nur bis 13. Vorher sprang die Kachel in Zeile 18 um 44 px, die Ziehvorschau lag 864 px daneben; nachher 0 px / 0 px.
+- **K7:** kein Fehler, Achse beginnt bei 0 (Test).
+- Festlegungen und Abweichungen (keine automatische Anhebung, Tabelle ohne Überlagerung, Smartphone-Liste unverändert) im Auftrag §7; offene Entscheidungen §8.
+
+### 4. Schutzbereiche
+
+`git diff 5e5d17ac -- src/simulation src/types src/context src/services/data src/features/resources` → leer.
+
+### 5. Automatisierte Verifikation
+
+| Prüfung                                                                                                                     | Ergebnis                                                                                                                                   |
+| --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npx tsc --noEmit`, `npm run lint`, `npm run format:check`                                                                  | grün                                                                                                                                       |
+| `npm test`                                                                                                                  | 496 Dateien, 3.809 Tests grün (neu: 25 Tests in 3 Dateien, 1 Test ergänzt)                                                                 |
+| `npm run verify`                                                                                                            | 25/25 grün                                                                                                                                 |
+| `npm run build`                                                                                                             | grün                                                                                                                                       |
+| `npx size-limit`                                                                                                            | 172,52 kB / 180 kB                                                                                                                         |
+| `verify:quality-budget`                                                                                                     | unverändert (forbid-dom-props 49/49, Inline-Styles `src/` 0)                                                                               |
+| `e2e/dashboard-tile-fit-preview.spec.ts` (neu, 7 Tests)                                                                     | grün, dreifach wiederholt (21/21)                                                                                                          |
+| Vorschau-E2E (team-dashboards, versions, thresholds, alarms, transformations, compare, kiosk, mobile, report, rollout-prep) | 73 bestanden; 3 rot nur in `dashboard-kiosk.spec.ts` „echte Sitzung“ (braucht lokales Supabase, lokal nicht gestartet; Umgebungshindernis) |
+
+### 6. Screenshot-Matrix
+
+`docs/screenshots/auftrag-174b/README.md`, 1440/768/375 px, Bearbeiten und Vorschau, Vorher-Build `5e5d17ac`. Nachher bei 1440 und 768 px: 0 Kacheln mit Scrollbereich, 0 Überstände, 0 × „Stand Stand“, Ziehgriff frei, Dokument-Überlauf 0 px. 375 px (Smartphone-Liste): Diagramme behalten den waagerechten Scrollbereich aus 174a (Festlegung 5). Alle SHA-256-Paare verschieden. Bilder bleiben lokal.
+
+### 7. Ergebnis & Freigabestatus
+
+Umgesetzt und lokal verifiziert. Review durch einen anderen Agenten ausstehend. Nach Merge: neuer Produktionsbuild (`npm run build:production`), Netlify-Upload und Smoke durch Marc; danach Eintrag im Stufenprotokoll, Beginn der 7-Tage-Frist. Merge durch Marc.
+
+### 8. Nacharbeit Codex-Runde 1 (geprüfter Head `0763963d`)
+
+| Befund                                                                                                                                                                        | Behebung                                                                                                                                                                                                                                                                                       |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P2 `TileExplanation.tsx`: Die aufgeklappte Erläuterung lag in Kachel und Rasterzelle mit `overflow-hidden` und wurde bei schmalen oder niedrigen Kacheln unten abgeschnitten. | Die Überlagerung liegt per Portal am Dokument (`fixed`). Sie öffnet unter dem Kachelkopf oder darüber, je nachdem, wo Platz ist, bleibt im Fenster und schließt bei Escape, Klick außerhalb, Scrollen oder Fenstergröße. Position wird am Element gesetzt, ohne `style`-Attribut.              |
+| P2 `TileFitBox.tsx`: Die Mindestgröße wurde nur gemeldet, wenn sich der Bedarf des Inhalts änderte. Ein höherer Kopf (Titel bricht um) blieb unberücksichtigt.                | Die Einpassfläche meldet nach jeder Messung. Die Kachel rechnet Kopf und Fuß jedes Mal neu hinzu und meldet nur geänderte Gesamtwerte. Zusätzlich behoben: Beim ersten Messen war der Ref auf den Inhaltsbereich noch nicht gesetzt. Die Kachel ermittelt ihn jetzt über die gemeldete Fläche. |
+
+Tests: neue Datei `tileFitReview.ui.vitest.tsx` (7 Tests: Portal außerhalb der abschneidenden Kachel, Lage unter/über dem Kopf und auf schmalen Fenstern, neue Gesamthöhe bei wachsendem Kopf, keine Doppelmeldung). E2E K3 prüft zusätzlich, dass die Erläuterung vollständig im Fenster liegt. Verifikation: `tsc`, `lint`, `format:check` grün; `npm test` 497 Dateien, 3.816 Tests grün; `verify` 25/25; `build` grün; `size-limit` 172,52 kB; Qualitätsbudget unverändert; `dashboard-tile-fit-preview.spec.ts` dreifach wiederholt 21/21 grün. Schutzbereichs-Diff gegen `5e5d17ac` leer.
+
+### 9. Nacharbeit Codex-Runde 2 (geprüfter Head `e064b082`)
+
+| Befund                                                                                                                                                                                            | Behebung                                                                                                                                                                                                                                                                                      |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P2 `TileExplanation.tsx`: Beim Öffnen nach oben wurde `offsetHeight` gemessen, bevor `place.width` gesetzt war. Bei schmaler Kachel bricht Text danach stärker um und kann nach unten überstehen. | `useLayoutEffect` setzt die Zielbreite (`explanationWidth`) vor `offsetHeight` und berechnet die Position erst danach. Zusätzlich schließt der Scroll-Listener die Erläuterung nur noch, wenn ein übergeordneter Container scrollt und sich der Kachelkopf dabei tatsächlich bewegt (> 2 px). |
+| P2 `TileFitBox.tsx`: Breiterer Inhalt bei gleicher Höhe (z. B. längere Zahl bei fester Boxbreite) löste keinen `ResizeObserver` aus.                                                              | Ein zusätzlicher `useLayoutEffect` auf `children` rechnet vor dem Zeichnen sofort neu; ein `MutationObserver` auf `inner` (`childList`, `subtree`, `characterData`) fängt auch interne Inhaltsänderungen der Kinder ab.                                                                       |
+
+Außerdem Marcs Entscheidungen vom 25.11.2026 in `docs/auftraege/ANTIGRAVITY_AUFTRAG_174B_KACHEL_LESBARKEIT.md` §8 festgehalten: größere Standardmaße für Diagrammkacheln in den Vorlagen als eigener kleiner Folgeauftrag nach Merge von PR #223; auf Smartphones bleibt das waagerechte Scrollen bestehen.
+
+Tests: 3 neue Tests in `tileFitReview.ui.vitest.tsx` (insgesamt 11 Tests: endgültige Breite vor Höhenmessung beim Öffnen nach oben, Scroll-Filter erst bei Kopfbewegung, Neuberechnung bei breiterem Inhalt via `children` und `MutationObserver`). Verifikation nach letztem Edit: `tsc`, `lint`, `format:check` grün; `npm test` 497 Dateien, 3.820 Tests grün; `verify` 25/25; `build` grün; `size-limit` 172,51 kB; Qualitätsbudget unverändert; `dashboard-tile-fit-preview.spec.ts` dreifach wiederholt 21/21 grün. Schutzbereichs-Diff gegen `5e5d17ac` leer.
+
+### 10. Nacharbeit Codex-Runde 3 (geprüfter Head `d645bdd3`)
+
+| Befund                                                                                                                                                                                                                                                                      | Behebung                                                                                                                                                                                                          |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P2 `TileExplanation.tsx` / `CanvasTileCard.tsx`: Enter und Leertaste auf dem fokussierten Erläuterungsschalter wurden vom `onKeyDown` der `CanvasTileCard` abgefangen (`preventDefault()`), sodass die Erläuterung per Tastatur im V2-Raster nicht öffnete.                 | `CanvasTileCard` behandelt Enter/Space nur noch, wenn `e.target === e.currentTarget` (direkt auf der Gridcell). Zusätzlich stoppt `TileExplanationToggle` bei Enter/Space die Weitergabe per `stopPropagation()`. |
+| P2 `DashboardChart.tsx` / `TileBody.tsx`: `LazyChart` und `reserveFor` übergaben auch im Einpass-Modus `stableLegend`, sodass Legende (`h-[62px] overflow-y-auto`) und Ablesezeile (`h-[60px] overflow-y-auto`) weiter scrollten und `TileFitBox` nicht die volle Höhe maß. | `reserveFor` nimmt `stableLegend = true` entgegen; `LazyChart` und `TileBody` übergeben `!fit` für `reserveFor` und `stableLegend={!fit}` an das Diagramm.                                                        |
+
+Tests: 2 neue Tests in `tileFitHeader.ui.vitest.tsx` (Enter/Space auf dem Erläuterungsschalter in `CanvasTileCard`; keine `LEGEND_RESERVE_CLASS`/`READOUT_STABLE_CLASS`/`overflow-y-auto` im Einpass-Modus). E2E K3 öffnet die Erläuterung jetzt per Enter, und `overflowReport` prüft zusätzlich `chart-readout` und die Legende auf Scrollüberlauf. Verifikation nach letztem Edit: `tsc`, `lint`, `format:check` grün; `npm test` 497 Dateien, 3.822 Tests grün; `verify` 25/25; `build` grün; `size-limit` 172,51 kB; Qualitätsbudget unverändert; `dashboard-tile-fit-preview.spec.ts` dreifach wiederholt 21/21 grün. Schutzbereichs-Diff gegen `5e5d17ac` leer.
+
+### 11. Prüfnachweis Codex-Review Runde 4 (Head `ed511020`, 25.11.2026)
+
+- **Prüfer:** Codex-App auf GitHub (unabhängig; Builder war Claude Code, Nacharbeit Runden 2–3 durch Antigravity/Gemini 4 Hydrogen). Geprüfter Commit: `ed51102021a43b0810ecb6429de08f59845ff7ef`.
+- **Ergebnis:** „Codex Review: Didn't find any major issues. 🚀“ (25.11.2026 14:46 UTC). Alle 6 Review-Konversationen (Runden 1–3) gelöst (`has_unresolved_findings: false`).
+- **Behobene Befunde insgesamt:** Runden 1–3 (Abschnitte 8–10). Reiner Doku-Commit ohne Codeänderung nach `CLAUDE.md` §4.1 Nr. 5 (kein erneutes Review erforderlich).
+
+### 12. Nacharbeit CI-`e2e` (Lauf `45637971920`, Head `d7517463`)
+
+- **Fehlerbild:** `e2e/dashboard-tile-fit-preview.spec.ts` meldete auf Ubuntu Linux im `e2e`-Job Überlauf (`scrollHeight > clientHeight`) an den drei Diagrammkacheln (`std_baseline_arr_verlauf`, `std_baseline_mrr_paketmix`, `std_crm_pipeline_stufen_volumen`).
+- **Ursache & Behebung:**
+  - `tileFit.ts`: Der `+0,5`-px-Puffer in `tryScale` und ungeglättete Bruchwerte in `left`/`top` erlaubten auf knappen Diagrammflächen 1 px Rundungsüberstand (`scrollHeight = 207 > 206`). Puffer entfernt (`<= width`, `<= height`) und `left`/`top` mit `Math.floor` berechnet.
+  - `TileFitBox.tsx`: `measure` und `minContent` nutzen `Math.max(offset*, scroll*)` und setzen vor dem Messen `left`/`top` zurück; nach dem Schreiben prüft eine DOM-Nachkorrektur auf `outer.scrollWidth > width || outer.scrollHeight > height` und verengt den Faktor bei Subpixel-/Überlaufabweichungen (max. 3 Schritte) auf die reale Box; zusätzlich Nachlauf bei `document.fonts.ready` sowie Beobachtung von `class`-Attributen in `MutationObserver`.
+  - `CanvasTileCard.tsx`, `SectionAreaGridV2.tsx`: `motion-reduce:transition-none` ergänzt, damit Größenwechsel bei reduzierter Bewegung nicht durch laufende CSS-Übergänge verzögert werden.
+- **Tests:** Je 1 neuer Test in `tileFit.vitest.ts` (kein `+0,5`-Überstand) und `tileFitHeader.ui.vitest.tsx` (`TileFitBox` korrigiert nachträglichen `scrollHeight`-Überlauf).
+- **Verifikation:** `tsc`, `lint`, `format:check` grün; `npm test` 497 Dateien, 3.824 Tests grün; `npm run verify` 25/25 grün; `npm run build` und `size-limit` (172,52 kB / 180 kB, größter Chunk 79,41 kB / 250 kB) grün; Qualitätsbudget unverändert (`inlineStyles:src/` = 0); Schutzbereichs-Diff gegen `5e5d17ac` leer; `dashboard-tile-fit-preview.spec.ts` dreifach wiederholt 21/21 grün (`std_baseline_arr_verlauf` 362 × 206 ohne 1-px-Überlauf). Code geändert → erneutes unabhängiges Review auf GitHub per `@codex review` erforderlich.
+
+### 13. Nacharbeit CI-`e2e` Runde 2 (Lauf `45664879494`, Head `62ca71ea`)
+
+- **Zwischenstand:** Synchronisierungs-Commit `62ca71ea` (ohne Codeänderung auf `1e5c288e`) wurde von Codex ohne Befunde geprüft („Didn't find any major issues. Delightful!“, 25.11.2026); im CI-Lauf `45664879494` waren 1440 px und 1024 px nun grün (766 `e2e`-Tests bestanden), nur bei **768 px** schlugen weiterhin `std_baseline_arr_verlauf` (`scroll 702x395`), `std_baseline_mrr_paketmix` und `std_crm_pipeline_stufen_volumen` (`scroll 702x398`) fehl.
+- **Ursache:** In `src/styles/global.css` setzt `@media (prefers-reduced-motion: reduce)` für `*` pauschal `transition-duration: 0.01ms !important`. Da `transition-property` im CSS-Standard `all` ist, startete Chromium beim Wechsel `min-content` (560 px) → `measure(layoutWidth)` (z. B. 1674 px) auf `[data-testid="tile-fit-content"]` eine asynchrone `CSSTransition` auf `width`. Während `apply()` las `offsetHeight` daher noch die Höhe der 560-px-Breite (385 px), wählte 1674 px als `layoutWidth`, und erst nach Ende des `0,01`-ms-Übergangs sprang die Breite auf 1674 px (`scrollHeight` 395/398 px > 162 px).
+- **Behebung:** `TileFitBox.tsx` setzt `transition-none` (`transition-property: none`) auf `tile-fit-box` und `tile-fit-content`, sodass kein `width`/`transform`-Übergang mehr startet (`document.getAnimations()` = 0). Regressionstest in `tileFitHeader.ui.vitest.tsx` prüft `transition-none` auf beiden Elementen.
+- **Verifikation:** `tsc`, `lint`, `format:check` grün; `npm test` 497 Dateien, 3.824 Tests grün; `npm run verify` 25/25 grün; Vorschau-Build + `size-limit` (163,04 kB / 180 kB) und Produktionsbuild + `size-limit` (172,52 kB / 180 kB, größter Chunk 79,41 kB / 250 kB) grün; Qualitätsbudget unverändert (`inlineStyles:src/` = 0); Schutzbereichs-Diff gegen `5e5d17ac` leer; `e2e/dashboard-tile-fit-preview.spec.ts` dreifach wiederholt 21/21 grün (inkl. 768 px mit `wAttr = csW = 560px`, `scrollHeight = 162`). Code geändert → neues `@codex review` nach Push nötig.
