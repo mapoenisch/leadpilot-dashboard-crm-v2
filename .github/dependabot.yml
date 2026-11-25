@@ -26,10 +26,13 @@ updates:
         update-types: ["minor", "patch"]
     # U5 (ANTIGRAVITY_AUFTRAG_DEPS_DEPENDABOT_CI.md): ESLint 10 wird von eslint-plugin-react
     # und eslint-plugin-import noch nicht unterstützt. Major-Updates vorerst sperren.
+    # @vitejs/plugin-react >= 5/6 erfordert Vite >= 7/8 (Projekt nutzt vite@^6.4.4).
     ignore:
       - dependency-name: "eslint"
         update-types: ["version-update:semver-major"]
       - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitejs/plugin-react"
         update-types: ["version-update:semver-major"]
     labels: ["dependencies"]
 
