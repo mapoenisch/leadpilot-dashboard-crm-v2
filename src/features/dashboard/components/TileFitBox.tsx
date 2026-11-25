@@ -14,8 +14,8 @@ import {
 
 export interface TileFitBoxProps {
   children: ReactNode;
-  /** Meldet den Platzbedarf bei Mindestfaktor, sobald er sich ändert. */
-  onMinimum?: (minimum: TileFitMinimum) => void;
+  /** Meldet den Platzbedarf bei Mindestfaktor nach jeder Messung (Größe der Fläche oder des Inhalts geändert). */
+  onMinimum?: (minimum: TileFitMinimum, box: HTMLElement) => void;
 }
 
 export function TileFitBox({ children, onMinimum }: TileFitBoxProps) {
@@ -30,7 +30,6 @@ export function TileFitBox({ children, onMinimum }: TileFitBoxProps) {
     if (!outer || !inner || typeof ResizeObserver === 'undefined') return;
 
     let frame = 0;
-    let lastMinimum = '';
 
     const apply = () => {
       frame = 0;
@@ -56,11 +55,10 @@ export function TileFitBox({ children, onMinimum }: TileFitBoxProps) {
       outer.dataset.fitScale = fit.scale.toFixed(3);
       outer.dataset.fitBelowMinimum = String(fit.scale < TILE_FIT_MIN_SCALE - 0.001);
 
-      const key = `${minimum.width}x${minimum.height}`;
-      if (key !== lastMinimum) {
-        lastMinimum = key;
-        onMinimumRef.current?.(minimum);
-      }
+      // Codex-Befund PR #223: bei jeder Messung melden, nicht nur bei geändertem Inhaltsbedarf.
+      // Ein höherer Kopf (längerer Titel, schmalere Fläche) ändert die Fläche, nicht den Inhalt;
+      // die Kachel rechnet Kopf und Fuß beim Empfang hinzu und filtert gleiche Werte selbst.
+      onMinimumRef.current?.(minimum, outer);
     };
 
     const schedule = () => {

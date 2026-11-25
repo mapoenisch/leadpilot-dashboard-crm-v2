@@ -132,14 +132,21 @@ export function DashboardTile({
     }
   }, [warned, data.state]);
   // Auftrag 174b (K2/K3): Platzbedarf der Kachel = Bedarf des Inhalts + Kopf, Fuß, Abstände.
-  const handleBodyMinimum = (body: TileFitMinimum) => {
-    const bodyEl = bodyRef.current;
+  // Codex-Befund PR #223: Kopf und Fuß bei jeder Messung neu hinzurechnen; nur Änderungen melden.
+  const lastMinimum = useRef('');
+  // Über die gemeldete Fläche statt bodyRef: Beim ersten Messen ist der Ref noch nicht gesetzt.
+  const handleBodyMinimum = (body: TileFitMinimum, box: HTMLElement) => {
+    const bodyEl = box.closest<HTMLElement>('[data-testid="tile-body"]');
     const card = bodyEl?.closest<HTMLElement>('[data-testid="dashboard-tile"]');
     if (!bodyEl || !card || !onFitMinimum) return;
-    onFitMinimum({
+    const total = {
       width: body.width + (card.offsetWidth - bodyEl.offsetWidth),
       height: body.height + (card.offsetHeight - bodyEl.offsetHeight),
-    });
+    };
+    const key = `${total.width}x${total.height}`;
+    if (key === lastMinimum.current) return;
+    lastMinimum.current = key;
+    onFitMinimum(total);
   };
   const standMeta = readTileStand(data);
   const timeReference = (

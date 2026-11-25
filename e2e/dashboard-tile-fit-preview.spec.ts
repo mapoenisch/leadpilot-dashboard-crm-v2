@@ -119,9 +119,18 @@ test.describe('Dashboard-Editor V2: Kacheln ohne Scrollen (Auftrag 174b)', () =>
     await expect(card.getByText(/closeDate/)).toHaveCount(0);
     const toggle = card.getByTestId('tile-explanation-toggle');
     await toggle.click();
-    await expect(card.getByTestId('tile-explanation')).toContainText('closeDate');
+    // Codex-Befund PR #223: die Überlagerung liegt außerhalb der Kachel und ist ganz sichtbar.
+    const panel = page.getByTestId('tile-explanation');
+    await expect(panel).toContainText('closeDate');
+    const box = (await panel.boundingBox())!;
+    const viewport = page.viewportSize()!;
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
+    expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
+    expect(await panel.evaluate((el) => el.scrollHeight <= el.clientHeight + 1)).toBe(true);
+    expect(await card.getByTestId('tile-explanation').count()).toBe(0);
     await page.keyboard.press('Escape');
-    await expect(card.getByTestId('tile-explanation')).toHaveCount(0);
+    await expect(panel).toHaveCount(0);
     await expect(toggle).toBeFocused();
   });
 

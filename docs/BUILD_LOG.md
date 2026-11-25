@@ -23257,3 +23257,12 @@ Außerhalb der Einstiegspunkte (begründet): `tailwind.config.js` (Ursache K6), 
 ### 7. Ergebnis & Freigabestatus
 
 Umgesetzt und lokal verifiziert. Review durch einen anderen Agenten ausstehend. Nach Merge: neuer Produktionsbuild (`npm run build:production`), Netlify-Upload und Smoke durch Marc; danach Eintrag im Stufenprotokoll, Beginn der 7-Tage-Frist. Merge durch Marc.
+
+### 8. Nacharbeit Codex-Runde 1 (geprüfter Head `0763963d`)
+
+| Befund | Behebung |
+| --- | --- |
+| P2 `TileExplanation.tsx`: Die aufgeklappte Erläuterung lag in Kachel und Rasterzelle mit `overflow-hidden` und wurde bei schmalen oder niedrigen Kacheln unten abgeschnitten. | Die Überlagerung liegt per Portal am Dokument (`fixed`). Sie öffnet unter dem Kachelkopf oder darüber, je nachdem, wo Platz ist, bleibt im Fenster und schließt bei Escape, Klick außerhalb, Scrollen oder Fenstergröße. Position wird am Element gesetzt, ohne `style`-Attribut. |
+| P2 `TileFitBox.tsx`: Die Mindestgröße wurde nur gemeldet, wenn sich der Bedarf des Inhalts änderte. Ein höherer Kopf (Titel bricht um) blieb unberücksichtigt. | Die Einpassfläche meldet nach jeder Messung. Die Kachel rechnet Kopf und Fuß jedes Mal neu hinzu und meldet nur geänderte Gesamtwerte. Zusätzlich behoben: Beim ersten Messen war der Ref auf den Inhaltsbereich noch nicht gesetzt. Die Kachel ermittelt ihn jetzt über die gemeldete Fläche. |
+
+Tests: neue Datei `tileFitReview.ui.vitest.tsx` (7 Tests: Portal außerhalb der abschneidenden Kachel, Lage unter/über dem Kopf und auf schmalen Fenstern, neue Gesamthöhe bei wachsendem Kopf, keine Doppelmeldung). E2E K3 prüft zusätzlich, dass die Erläuterung vollständig im Fenster liegt. Verifikation: `tsc`, `lint`, `format:check` grün; `npm test` 497 Dateien, 3.816 Tests grün; `verify` 25/25; `build` grün; `size-limit` 172,52 kB; Qualitätsbudget unverändert; `dashboard-tile-fit-preview.spec.ts` dreifach wiederholt 21/21 grün. Schutzbereichs-Diff gegen `5e5d17ac` leer.
