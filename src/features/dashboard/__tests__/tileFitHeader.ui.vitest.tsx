@@ -2,8 +2,12 @@
 // Kachelkörper ohne Scrollbereich.
 
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import { DashboardChart } from '../components/DashboardChart';
 import { DashboardTile } from '../components/DashboardTile';
+import { LEGEND_RESERVE_CLASS, READOUT_STABLE_CLASS } from '../components/charts/ChartReadout';
+import { TileFitContext } from '../components/tileFit';
 import { getCatalogEntry, isActiveEntry, type ActiveCatalogEntry } from '../model/dashboardCatalog';
 import type { DashboardTileConfig } from '../model/dashboardConfig';
 import type { ResolvedTileData } from '../data/dashboardData';
@@ -175,5 +179,64 @@ describe('Kachelkarte im Raster (K1, K5)', () => {
     const body = screen.getByTestId('tile-body-a');
     expect(body.className).toContain('overflow-hidden');
     expect(body.className).not.toContain('overflow-auto');
+  });
+
+  it('Enter und Leertaste auf dem Erläuterungsschalter öffnen die Erläuterung im Raster (Runde 3)', async () => {
+    const user = userEvent.setup();
+    const onSelectTile = vi.fn();
+    render(
+      <CanvasTileCard
+        tile={tileV2}
+        position={{ x: 0, y: 0, w: 3, h: 3 }}
+        activeBreakpoint="desktop"
+        isSelected={false}
+        onSelectTile={onSelectTile}
+        onRemoveTile={vi.fn()}
+        onDuplicateTile={vi.fn()}
+        onPointerDownHandle={vi.fn()}
+        onResizeStart={vi.fn()}
+        useData={useData}
+        globalTimeframe="letzte_30_tage"
+      />,
+    );
+    const toggle = screen.getByTestId('tile-explanation-toggle');
+    toggle.focus();
+    await user.keyboard('{Enter}');
+    expect(screen.getByTestId('tile-explanation')).toBeInTheDocument();
+    expect(onSelectTile).not.toHaveBeenCalled();
+
+    await user.keyboard(' ');
+    expect(screen.queryByTestId('tile-explanation')).toBeNull();
+    expect(onSelectTile).not.toHaveBeenCalled();
+  });
+
+  it('im Einpass-Modus entfallen feste Höhen mit Scrollbereich für Legende und Ablesezeile (Runde 3)', async () => {
+    const chartData = resolved({
+      series: [
+        { label: 'Qualifizierung', value: 10 },
+        { label: 'Erstgespräch', value: 20 },
+        { label: 'Angebot', value: 30 },
+        { label: 'Verhandlung', value: 40 },
+      ],
+    });
+    render(
+      <TileFitContext.Provider value={true}>
+        <DashboardChart
+          view="saeulen"
+          data={chartData}
+          title="Pipeline"
+          period="Letzte 30 Tage"
+          idPrefix="fitChart"
+          onRetryChartLoad={() => undefined}
+        />
+      </TileFitContext.Provider>,
+    );
+    await screen.findByTestId('depth-bar-chart');
+    const legend = screen.getByRole('group', { name: 'Säule wählen' });
+    const readout = screen.getByTestId('chart-readout');
+    expect(legend.className).not.toContain(LEGEND_RESERVE_CLASS);
+    expect(legend.className).not.toContain('overflow-y-auto');
+    expect(readout.className).not.toContain(READOUT_STABLE_CLASS);
+    expect(readout.className).not.toContain('overflow-y-auto');
   });
 });

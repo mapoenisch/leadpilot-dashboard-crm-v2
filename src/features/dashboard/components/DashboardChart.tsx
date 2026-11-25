@@ -44,10 +44,14 @@ export interface DashboardChartProps {
 }
 
 /** Bedienelemente unter dem Diagramm; Lade- und Fehlerzustand bauen sie für die Endhöhe nach. */
-export function reserveFor(view: ChartView, labels: readonly string[]): ChartReserveSpec {
+export function reserveFor(
+  view: ChartView,
+  labels: readonly string[],
+  stableLegend = true,
+): ChartReserveSpec {
   return {
     labels,
-    stableLegend: true,
+    stableLegend,
     controls:
       view === 'linie' || view === 'flaeche' || view === 'sparkline' || view === 'heatmap'
         ? 'slider'
@@ -328,6 +332,7 @@ function LazyChart({
   const reserve = reserveFor(
     view,
     rows.map((row) => row.label),
+    !fit,
   );
   return (
     <>
@@ -366,7 +371,7 @@ function LazyChart({
               orientation={view === 'balken' ? 'horizontal' : 'vertical'}
               solid={view === 'kreis'}
               formatValue={formatValue}
-              stableLegend
+              stableLegend={!fit}
               resolution={data.timeSeries?.resolution}
               windowEnd={data.timeSeries?.to}
               extras={data.timeSeriesExtras}

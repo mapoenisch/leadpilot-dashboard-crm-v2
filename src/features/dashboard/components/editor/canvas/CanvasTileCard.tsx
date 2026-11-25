@@ -156,6 +156,9 @@ export function CanvasTileCard({
         onSelectTile(tile.id);
       }}
       onKeyDown={(e) => {
+        // Nur direkte Tastendrücke auf der Gridcell selbst behandeln; fokussierte Buttons/Schalter
+        // innerhalb der Kachel (z. B. Erläuterungsschalter, Details) müssen Enter/Space behalten.
+        if (e.target !== e.currentTarget) return;
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onSelectTile(tile.id);

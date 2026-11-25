@@ -30,11 +30,13 @@ async function overflowReport(page: Page) {
         t.querySelector<HTMLElement>('[data-testid^="tile-body-"]'),
         t.querySelector<HTMLElement>('[data-testid="tile-fit-box"]'),
         t.querySelector<HTMLElement>('[data-testid="dashboard-tile"]'),
+        t.querySelector<HTMLElement>('[data-testid="chart-readout"]'),
+        t.querySelector<HTMLElement>('[data-testid="tile-chart"] [role="group"]'),
       ];
       for (const el of checks) {
         if (!el) continue;
         if (el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1) {
-          problems.push(`${el.dataset.testid}: scroll ${el.scrollWidth}x${el.scrollHeight}`);
+          problems.push(`${el.dataset.testid ?? 'legend'}: scroll ${el.scrollWidth}x${el.scrollHeight}`);
         }
       }
       const content = t.querySelector<HTMLElement>('[data-testid="tile-fit-content"]');
@@ -118,7 +120,8 @@ test.describe('Dashboard-Editor V2: Kacheln ohne Scrollen (Auftrag 174b)', () =>
     const card = await tile(page, 'std_crm_pipeline_volumen');
     await expect(card.getByText(/closeDate/)).toHaveCount(0);
     const toggle = card.getByTestId('tile-explanation-toggle');
-    await toggle.click();
+    await toggle.focus();
+    await page.keyboard.press('Enter');
     // Codex-Befund PR #223: die Überlagerung liegt außerhalb der Kachel und ist ganz sichtbar.
     const panel = page.getByTestId('tile-explanation');
     await expect(panel).toContainText('closeDate');

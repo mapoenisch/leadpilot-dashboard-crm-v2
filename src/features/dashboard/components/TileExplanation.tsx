@@ -125,6 +125,10 @@ export function TileExplanationToggle({ children }: { children: ReactNode }) {
           e.stopPropagation();
           setOpen((value) => !value);
         }}
+        onKeyDown={(e) => {
+          // Verhindert, dass übergeordnete Kachel-Handler Enter/Space abfangen (Codex-Befund PR #223).
+          if (e.key === 'Enter' || e.key === ' ') e.stopPropagation();
+        }}
         className="flex h-5 w-5 items-center justify-center rounded text-[var(--color-text-muted)] opacity-70 transition hover:bg-white/10 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         <ChevronDown

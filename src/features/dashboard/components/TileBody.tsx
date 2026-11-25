@@ -90,7 +90,7 @@ export function TileBody({
           <ChartLoadingPlaceholder
             // Auftrag 174b (K3): eingepasst ohne den langen Zeitbezug im sichtbaren Ladehinweis.
             label={fit ? title : caption}
-            reserve={reserveFor(chartView, [])}
+            reserve={reserveFor(chartView, [], !fit)}
             hadFocus={loadingHadFocus}
           />
           <TableToggleReserve />
@@ -132,7 +132,7 @@ export function TileBody({
     if (chartView) {
       return (
         <div className="relative">
-          <ChartLayoutReserve {...reserveFor(chartView, [])} />
+          <ChartLayoutReserve {...reserveFor(chartView, [], !fit)} />
           <TableToggleReserve />
           <div className={cn(OVERLAY, 'items-start')}>{blockedContent}</div>
         </div>
