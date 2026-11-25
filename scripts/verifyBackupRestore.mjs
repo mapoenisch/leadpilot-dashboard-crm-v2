@@ -30,7 +30,14 @@ const DB_URL = 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
 const BASE_SCHEMA = join(root, 'supabase/migrations/20260101000000_base_schema.sql');
 // Plattforminterne Storage-Vektortabellen: für den Rolle-postgres-Zugang gesperrt,
 // von LeadPilot nicht genutzt (Runbook, Abschnitt 3).
-const DUMP_EXCLUDES = ['storage.buckets_vectors', 'storage.vector_indexes'];
+// public.alarm_worker_runs: Ephemeres Laufzeit- und Lebenszeichenprotokoll des pg_cron-Workers,
+// der asynchron im Hintergrund läuft. Aus dem Dump/Tabellenvergleich ausgenommen, um
+// zeitliche Kollisionen an der 5-Minuten-Schwelle während des Testlaufs auszuschließen.
+const DUMP_EXCLUDES = [
+  'storage.buckets_vectors',
+  'storage.vector_indexes',
+  'public.alarm_worker_runs',
+];
 const LOGIN_EMAIL = process.env.E2E_AUTH_EMAIL ?? 'admin-a@e2e.local';
 const LOGIN_PASSWORD = process.env.E2E_AUTH_PASSWORD;
 
@@ -115,6 +122,34 @@ SELECT count(*) || ':' || COALESCE(md5(string_agg(
   ',' ORDER BY organization_id, user_id)), '-')
 FROM public.executive_dashboard_preferences;`;
 
+// G65 / Auftrag 167: pg_cron führt alle 5 Minuten evaluate_dashboard_alarms() aus.
+// Während des Backup- und Restore-Laufs wird der Job vorübergehend pausiert/entfernt,
+// damit keine asynchronen Hintergrundläufe während Dump, Reset und Zeilenvergleich feuern.
+const CRON_UNSCHEDULE = `
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+    BEGIN
+      PERFORM cron.unschedule('dashboard-alarms-eval');
+    EXCEPTION WHEN OTHERS THEN NULL;
+    END;
+  END IF;
+END;
+$$;`;
+
+const CRON_RESCHEDULE = `
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+    BEGIN
+      PERFORM cron.unschedule('dashboard-alarms-eval');
+    EXCEPTION WHEN OTHERS THEN NULL;
+    END;
+    PERFORM cron.schedule('dashboard-alarms-eval', '*/5 * * * *', 'SELECT public.evaluate_dashboard_alarms(now());');
+  END IF;
+END;
+$$;`;
+
 async function login() {
   const status = JSON.parse(run(supabaseCli, ['status', '-o', 'json']).out || '{}');
   const api = status.API_URL;
@@ -171,6 +206,7 @@ try {
   );
 
   // 2. Backup wie im Runbook
+  psql(CRON_UNSCHEDULE);
   const dump = run(supabaseCli, [
     'db',
     'dump',
@@ -200,6 +236,7 @@ try {
   }
   const reset = run(supabaseCli, ['db', 'reset', '--no-seed']);
   if (reset.code !== 0) throw new Error(`db reset fehlgeschlagen: ${reset.err.trim()}`);
+  psql(CRON_UNSCHEDULE);
   const users = query('SELECT count(*) FROM auth.users;');
   check(users === '0', 'Nach Reset ohne Seed: keine Benutzer', `auth.users=${users}`);
 
@@ -245,6 +282,7 @@ try {
 } catch (error) {
   check(false, 'Ablauf', error instanceof Error ? error.message : String(error));
 } finally {
+  psql(CRON_RESCHEDULE);
   if (probeCreated) {
     const cleanup = psql(PREFERENCES_PROBE_CLEANUP);
     check(cleanup.code === 0, 'Backup-Probe wieder entfernt', cleanup.err.trim());
