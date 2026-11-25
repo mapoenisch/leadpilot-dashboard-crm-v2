@@ -25,6 +25,7 @@ import { toHeatmapGrid } from '../model/timeseries/toHeatmapGrid';
 import { TileNumber, TileTable } from './TileValue';
 import { TileOverview } from './TileOverview';
 import { formatTileValue, NO_DATA } from './tileFormat';
+import { useTileFit } from './tileFit';
 
 export interface DashboardChartProps {
   view: DashboardView;
@@ -184,6 +185,8 @@ export function DashboardChart(props: DashboardChartProps) {
   const { view, entry, data, title, period } = props;
   const check = checkTileValues(view, entry, data, title);
   const caption = `${title}, ${period}`;
+  // Auftrag 174b (K2): eingepasst entfallen Reserveflächen und Scrollbereiche mit fester Höhe.
+  const fit = useTileFit();
 
   // Unzulässige gespeicherte Kombination zuerst erklären, auch bei der Übersicht.
   if (view === 'uebersicht' && check.kind !== 'hinweis') {
@@ -213,7 +216,7 @@ export function DashboardChart(props: DashboardChartProps) {
       <ChartFrame view={chartView} label={`${caption}, scrollbar`}>
         {hint}
       </ChartFrame>
-    ) : view === 'zahl' ? (
+    ) : view === 'zahl' && !fit ? (
       // Zahlkachel: der Hinweis bleibt in der reservierten Ladehöhe (96 px), der Rest scrollt.
       <div
         role="region"
@@ -267,6 +270,14 @@ export function ChartFrame({
   label?: string;
   children: ReactNode;
 }) {
+  const fit = useTileFit();
+  if (fit) {
+    return (
+      <div className="flex min-h-[120px] flex-col justify-center" data-testid="tile-chart-frame">
+        {children}
+      </div>
+    );
+  }
   return (
     <div className="relative" data-testid="tile-chart-frame">
       <ChartLayoutReserve {...reserveFor(view, [])} />
@@ -300,6 +311,8 @@ function LazyChart({
   caption: string;
 }) {
   const reducedMotion = useReducedMotion();
+  // Auftrag 174b (K3): eingepasst ohne den langen Zeitbezug im sichtbaren Ladehinweis.
+  const fit = useTileFit();
   const unit = data.unit;
   const tableRows = useMemo(
     () => (view === 'heatmap' ? (heatmapTableRows(data) ?? rows) : rows),
@@ -327,7 +340,7 @@ function LazyChart({
         <Suspense
           fallback={
             <ChartLoadingPlaceholder
-              label={caption}
+              label={fit ? title : caption}
               reserve={reserve}
               hadFocus={placeholderHadFocus}
             />

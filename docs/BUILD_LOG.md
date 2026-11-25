@@ -23200,3 +23200,60 @@ Umgesetzt und lokal verifiziert. Review durch Codex auf GitHub ausstehend. Nicht
 Tests: zwei neue Hook-Tests mit veränderlicher Fensterbreite (Folge 1440 → 768 → 1440 → 768 → 1440 ergibt Desktop, Tablet, Desktop, Tablet, Desktop; eine Wahl von Hand auf Tabletbreite bleibt beim erneuten Verkleinern). Der Test schlug vor dem Fix fehl. Der Viewport-Block wurde dafür aus `editorTouch.ui.vitest.tsx` in die neue Datei `editorTouchViewport.ui.vitest.tsx` verschoben (Lint-Grenze 400 Zeilen).
 
 Verifikation: `npx tsc --noEmit`, `npm run lint` grün; `npm test` 493 Dateien, 3.784 Tests grün; `npm run verify` 25/25 grün; `npm run build` grün. Schutzbereiche: `git diff 8b481c63 -- src/simulation src/types src/context src/services/data src/features/resources` → leer. Erneutes Review per `@codex review` angefordert.
+
+## 2026-11-25 — Auftrag 174b: Kacheln ohne Scrollen, Mindestgröße, ruhiger Kachelkopf (K1–K7)
+
+Builder: Claude Code (beauftragt von Marc am 25.11.2026). Baseline `5e5d17ac` (`main` nach Merge von #222). Branch `auftrag-174b-kachel-lesbarkeit`. Detailauftrag: `docs/auftraege/ANTIGRAVITY_AUFTRAG_174B_KACHEL_LESBARKEIT.md`. Herkunft: Hosted-Smoke von Marc am 25.11.2026 (Stufe 1, „LeadPilot Demo“).
+
+### 1. Ziel & Kontext
+
+Marc lehnt Kacheln mit innerem Scrollen ab. Beim Verkleinern soll sich der Inhalt mitverkleinern bis zu einem lesbaren Mindestmaß; darunter lässt sich die Kachel nicht ziehen. Lange Erklärungstexte sollen dezent einklappbar sein. Zusätzlich: Ziehgriff über der Schrift (K1), „Stand Stand“ (K4), grauer Block über der Nachbarkachel (K5), unterer Griff verschiebt die Kachel (K6), Prüfpunkt Säulenachse (K7). Entscheidungen Marc 25.11.2026: kein Scrollen in Kacheln (ersetzt 174a Festlegungen 3 und 4), Stufe 2 entfällt, Stufe 3 nach mindestens 7 Tagen auf Stufe 1 ohne offenen Fehler.
+
+### 2. Geänderte Dateien
+
+| Bereich          | Dateien                                                                                                                                                                                                                                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Einpassung (neu) | `components/tileFit.ts`, `components/TileFitBox.tsx`, `components/editor/grid/tileMinSizes.ts`                                                                                                                                                                                                                           |
+| Kachel           | `components/DashboardTile.tsx` (Einpass-Modus, kompakter Kopf und Fuß), `components/TileExplanation.tsx` (neu), `components/LazyDashboardTile.tsx`, `components/TileBody.tsx`, `components/DashboardChart.tsx`, `components/charts/ChartReadout.tsx`, `components/charts/DepthFunnelChart.tsx`, `time/TileStandLine.tsx` |
+| Editor-Raster    | `editor/canvas/CanvasTileCard.tsx`, `editor/EditorCanvasV2.tsx`, `editor/sections/SectionAreaGridV2.tsx`, `editor/grid/useGridDragAndDrop.ts`, `editor/grid/useGridKeyboard.ts`, `editor/grid/gridTailwindClasses.ts`                                                                                                    |
+| Konfiguration    | `tailwind.config.js` (Startzeilen 14–200, safelist)                                                                                                                                                                                                                                                                      |
+| Tests            | `__tests__/tileFit.vitest.ts`, `__tests__/tileFitHeader.ui.vitest.tsx`, `__tests__/gridRowPlacement.vitest.ts` (neu), `__tests__/TileStandLine.ui.vitest.tsx`, `e2e/dashboard-tile-fit-preview.spec.ts` (neu)                                                                                                            |
+| CI und Abnahme   | `.github/workflows/ci.yml`, `scripts/runV23Acceptance.mjs` (neue E2E-Datei in der parallelen Vorschau-Gruppe)                                                                                                                                                                                                            |
+| Harness und Doku | `scripts/captureAuftrag174bGateScreenshots.mjs` (neu), `docs/screenshots/auftrag-174b/README.md`, Auftrag 174b, `docs/dashboard/UMSTELLUNG_P16.md`, `BUILD_PLAN.md`                                                                                                                                                      |
+
+Außerhalb der Einstiegspunkte (begründet): `tailwind.config.js` (Ursache K6), `TileExplanation.tsx`, `tileMinSizes.ts`, `LazyDashboardTile.tsx` (Durchreichen des Einpass-Modus), `ChartReadout.tsx`/`DepthFunnelChart.tsx` (feste Scrollbereiche), `ci.yml`/`runV23Acceptance.mjs` (neue E2E-Datei).
+
+### 3. Funktionale Prüfungen
+
+- **K1:** Ziehgriff in der Aktionsleiste über der Kachelkante; Leiste endet 11 px über der Kategoriezeile. Verschieben per Griff unverändert (Vitest).
+- **K2/K5:** Kachelkörper ohne Scrollbereich; Inhalt per `transform` eingepasst; Mindestgröße aus Messung bei Faktor 0,8, durchgesetzt beim Ziehen und per Tastatur. „Umsatzerlöse“ lässt sich nicht unter 3 × 3 ziehen (Faktor 1,0).
+- **K3:** Kopf mit Kategorie, Titel, Klartextname, Stand-Zeile und Pfeil „Erläuterung anzeigen“; Zeitbezug, Quelle und Formel als Überlagerung; Escape und Klick außerhalb schließen, Fokus zurück. Fußzeile einzeilig, Hinweis „Erst speichern …“ bleibt sichtbar (gekürzt, voller Text als Titel).
+- **K4:** „Referenzwert, Stand 31.12.2025“ ohne Dopplung.
+- **K6:** Ursache: Tailwind erzeugte `row-start-*` nur bis 13. Vorher sprang die Kachel in Zeile 18 um 44 px, die Ziehvorschau lag 864 px daneben; nachher 0 px / 0 px.
+- **K7:** kein Fehler, Achse beginnt bei 0 (Test).
+- Festlegungen und Abweichungen (keine automatische Anhebung, Tabelle ohne Überlagerung, Smartphone-Liste unverändert) im Auftrag §7; offene Entscheidungen §8.
+
+### 4. Schutzbereiche
+
+`git diff 5e5d17ac -- src/simulation src/types src/context src/services/data src/features/resources` → leer.
+
+### 5. Automatisierte Verifikation
+
+| Prüfung                                                                                                                     | Ergebnis                                                                                                                                   |
+| --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npx tsc --noEmit`, `npm run lint`, `npm run format:check`                                                                  | grün                                                                                                                                       |
+| `npm test`                                                                                                                  | 496 Dateien, 3.809 Tests grün (neu: 25 Tests in 3 Dateien, 1 Test ergänzt)                                                                 |
+| `npm run verify`                                                                                                            | 25/25 grün                                                                                                                                 |
+| `npm run build`                                                                                                             | grün                                                                                                                                       |
+| `npx size-limit`                                                                                                            | 172,52 kB / 180 kB                                                                                                                         |
+| `verify:quality-budget`                                                                                                     | unverändert (forbid-dom-props 49/49, Inline-Styles `src/` 0)                                                                               |
+| `e2e/dashboard-tile-fit-preview.spec.ts` (neu, 7 Tests)                                                                     | grün, dreifach wiederholt (21/21)                                                                                                          |
+| Vorschau-E2E (team-dashboards, versions, thresholds, alarms, transformations, compare, kiosk, mobile, report, rollout-prep) | 73 bestanden; 3 rot nur in `dashboard-kiosk.spec.ts` „echte Sitzung“ (braucht lokales Supabase, lokal nicht gestartet; Umgebungshindernis) |
+
+### 6. Screenshot-Matrix
+
+`docs/screenshots/auftrag-174b/README.md`, 1440/768/375 px, Bearbeiten und Vorschau, Vorher-Build `5e5d17ac`. Nachher bei 1440 und 768 px: 0 Kacheln mit Scrollbereich, 0 Überstände, 0 × „Stand Stand“, Ziehgriff frei, Dokument-Überlauf 0 px. 375 px (Smartphone-Liste): Diagramme behalten den waagerechten Scrollbereich aus 174a (Festlegung 5). Alle SHA-256-Paare verschieden. Bilder bleiben lokal.
+
+### 7. Ergebnis & Freigabestatus
+
+Umgesetzt und lokal verifiziert. Review durch einen anderen Agenten ausstehend. Nach Merge: neuer Produktionsbuild (`npm run build:production`), Netlify-Upload und Smoke durch Marc; danach Eintrag im Stufenprotokoll, Beginn der 7-Tage-Frist. Merge durch Marc.

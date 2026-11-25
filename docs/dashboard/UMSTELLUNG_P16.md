@@ -4,12 +4,12 @@
 
 ## 1. Stufen
 
-| Stufe | Wer                               | Voraussetzung                                                                                    |
-| ----- | --------------------------------- | ------------------------------------------------------------------------------------------------ |
-| 0     | niemand (alter Editor, Standard)  | –                                                                                                |
-| 1     | Demo-/Test-Organisation           | Merge 174, Hosted-Migration `20261130_dashboard_editor_rollout.sql` angewendet, Smoke durch Marc |
-| 2     | ausgewählte Organisationen        | Stufe 1 mindestens 7 Tage ohne offenen Fehler; Abgleich 173 für diese Organisationen entschieden |
-| 3     | alle Organisationen (V2 Standard) | Stufe 2 mindestens 14 Tage ohne offenen Fehler; Marcs Release-Entscheidung                       |
+| Stufe | Wer                               | Voraussetzung                                                                                             |
+| ----- | --------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| 0     | niemand (alter Editor, Standard)  | –                                                                                                         |
+| 1     | Demo-/Test-Organisation           | Merge 174, Hosted-Migration `20261130_dashboard_editor_rollout.sql` angewendet, Smoke durch Marc          |
+| 2     | ausgewählte Organisationen        | entfällt (Entscheidung Marc 25.11.2026: es gibt nur eine Organisation)                                    |
+| 3     | alle Organisationen (V2 Standard) | Stufe 1 mindestens 7 Tage ohne offenen Fehler, Frist ab Auslieferung von 174b; Marcs Release-Entscheidung |
 
 Technisch gilt: Stufe 0 (oder keine Zeile) = alter Editor; Stufe 1, 2 oder 3 = neuer Editor für diese Organisation. Die Nummer dokumentiert die Welle.
 
@@ -17,14 +17,14 @@ Technisch gilt: Stufe 0 (oder keine Zeile) = alter Editor; Stufe 1, 2 oder 3 = n
 
 Ist die Organisation auf Stufe 1–3, wird ein Nutzer beim nächsten Öffnen des Dashboards umgestellt, wenn:
 
-| Ergebnisklasse aus 173            | Umstellung                                                                   |
-| --------------------------------- | ---------------------------------------------------------------------------- |
-| `nur_v2`, `keine_kopie`           | ja                                                                           |
-| `gleich`                          | ja, außer bei „Später entscheiden“ oder verfallener Entscheidung             |
-| ohne jeden Stand                  | ja (neuer Editor mit Standard-Dashboard)                                     |
-| `v1_geaendert`                    | nur mit gültiger Entscheidung „Pilot behalten“ oder „Alten Stand übernehmen“ |
-| `beide_geaendert`                 | ohne Entscheidung ja (Pilot behalten, Entscheidung Marc 23.11.2026); mit gültiger Entscheidung ja |
-| „Später entscheiden“ oder verfallene Entscheidung | nein, bleibt im alten Editor                                 |
+| Ergebnisklasse aus 173                            | Umstellung                                                                                        |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `nur_v2`, `keine_kopie`                           | ja                                                                                                |
+| `gleich`                                          | ja, außer bei „Später entscheiden“ oder verfallener Entscheidung                                  |
+| ohne jeden Stand                                  | ja (neuer Editor mit Standard-Dashboard)                                                          |
+| `v1_geaendert`                                    | nur mit gültiger Entscheidung „Pilot behalten“ oder „Alten Stand übernehmen“                      |
+| `beide_geaendert`                                 | ohne Entscheidung ja (Pilot behalten, Entscheidung Marc 23.11.2026); mit gültiger Entscheidung ja |
+| „Später entscheiden“ oder verfallene Entscheidung | nein, bleibt im alten Editor                                                                      |
 
 „Gültig“ heißt: V1-Revision, V2-Revision und Pilotkopie sind seit der Entscheidung unverändert. Nach der Umstellung ist der Übergang fixiert (`dashboard_editor_switches.umgestellt_at`); spätere Bearbeitungen führen nicht zurück in den alten Editor. Prüfung und Fixierung sind gegen gleichzeitiges Speichern gesperrt: Ein Speichern während der Umstellung wartet und zählt als Bearbeitung danach.
 
@@ -95,8 +95,8 @@ ORDER BY created_at DESC;
 
 Einträge je Stufe: Datum, Organisationen, Prüfer, Marcs Freigabe, Befunde. Stufe 1 trägt der Builder nach Marcs Smoke nach; spätere Stufen trägt Marc bzw. der jeweilige Builder als reinen Doku-Commit nach.
 
-| Stufe | Datum | Organisationen | Prüfer | Freigabe Marc | Befunde |
-| ----- | ----- | -------------- | ------ | ------------- | ------- |
-| 1     | offen | –              | –      | –             | –       |
-| 2     | offen | –              | –      | –             | –       |
-| 3     | offen | –              | –      | –             | –       |
+| Stufe | Datum      | Organisationen | Prüfer                       | Freigabe Marc | Befunde                                                                                                                                                                            |
+| ----- | ---------- | -------------- | ---------------------------- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | 24.11.2026 | LeadPilot Demo | Smoke Marc 24.11. und 25.11. | offen         | 24.11.: L1–L7, F1, F2 → Auftrag 174a (behoben, PR #222). 25.11.: K1–K7 → Auftrag 174b. Die 7-Tage-Frist beginnt nach Auslieferung von 174b und erneutem Smoke ohne offenen Fehler. |
+| 2     | entfällt   | –              | –                            | –             | Entscheidung Marc 25.11.2026                                                                                                                                                       |
+| 3     | offen      | –              | –                            | –             | –                                                                                                                                                                                  |

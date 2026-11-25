@@ -11,14 +11,9 @@ import type {
 import type { TileMovement } from '../../../core/layoutCommands';
 import { planLayoutChange } from '../editorPlacement';
 import { isModalKeyboardLocked } from '../modalKeyboardLock';
-import {
-  clamp,
-  getBreakpointLayout,
-  GRID_CONFIGS,
-  MAX_TILE_HEIGHT,
-  MIN_TILE_HEIGHT,
-  MIN_TILE_WIDTH,
-} from './gridEngine';
+import { clamp, getBreakpointLayout, GRID_CONFIGS, MAX_TILE_HEIGHT } from './gridEngine';
+import { minGridSize } from './tileMinSizes';
+import type { TileFitMinimum } from '../../tileFit';
 
 export interface UseGridKeyboardOptions {
   tiles: readonly DashboardTileConfigV2[];
@@ -28,6 +23,9 @@ export interface UseGridKeyboardOptions {
   onDeselect: () => void;
   onCommitLayout: (moves: TileMovement[]) => void;
   disabled?: boolean;
+  /** Auftrag 174b (K2): gemessene Mindestgröße wie beim Ziehen am Griff. */
+  getMinSize?: (tileId: string) => TileFitMinimum | undefined;
+  containerRef?: React.RefObject<HTMLDivElement>;
 }
 
 export function useGridKeyboard({
@@ -38,6 +36,8 @@ export function useGridKeyboard({
   onDeselect,
   onCommitLayout,
   disabled = false,
+  getMinSize,
+  containerRef,
 }: UseGridKeyboardOptions) {
   const [announcement, setAnnouncement] = useState<string>('');
 
@@ -97,12 +97,14 @@ export function useGridKeyboard({
 
         e.preventDefault();
 
-        const targetW = clamp(
-          currentPos.w + deltaW,
-          breakpoint === 'mobile' ? 1 : MIN_TILE_WIDTH,
+        const min = minGridSize(
+          getMinSize?.(tile.id),
+          containerRef?.current?.getBoundingClientRect().width ?? 0,
+          breakpoint,
           cols - currentPos.x,
         );
-        const targetH = clamp(currentPos.h + deltaH, MIN_TILE_HEIGHT, MAX_TILE_HEIGHT);
+        const targetW = clamp(currentPos.w + deltaW, min.w, cols - currentPos.x);
+        const targetH = clamp(currentPos.h + deltaH, min.h, MAX_TILE_HEIGHT);
 
         if (targetW === currentPos.w && targetH === currentPos.h) return;
 
@@ -204,6 +206,8 @@ export function useGridKeyboard({
       announce,
       onCommitLayout,
       onSelectTile,
+      getMinSize,
+      containerRef,
     ],
   );
 

@@ -11,6 +11,7 @@ import { CanvasTileCard } from '../canvas/CanvasTileCard';
 import { getBreakpointLayout, GRID_CONFIGS } from '../grid/gridEngine';
 import { useGridDragAndDrop } from '../grid/useGridDragAndDrop';
 import { useGridKeyboard } from '../grid/useGridKeyboard';
+import { useTileMinSizes } from '../grid/tileMinSizes';
 import { getGridPlacementClasses } from '../grid/gridTailwindClasses';
 import { useAreaListMode } from '../canvas/editorListMode';
 
@@ -65,6 +66,10 @@ export function SectionAreaGridV2({
 }: SectionAreaGridV2Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Auftrag 174b (K2): gemessene Mindestgröße je Kachel
+
+  const minSizes = useTileMinSizes();
+
   // 1. Pointer Drag & Drop und Resizing innerhalb des Bereichs
   const { activeGhost, previewPositions, armedTileId, handlePointerDown, handleResizeStart } =
     useGridDragAndDrop({
@@ -74,6 +79,7 @@ export function SectionAreaGridV2({
       onCommitLayout,
       onSelectTile,
       disabled: isPreviewMode,
+      getMinSize: minSizes.get,
     });
 
   // 2. WAI-ARIA Grid Keyboard-Steuerung innerhalb des Bereichs
@@ -85,6 +91,8 @@ export function SectionAreaGridV2({
     onDeselect,
     onCommitLayout,
     disabled: isPreviewMode,
+    getMinSize: minSizes.get,
+    containerRef,
   });
 
   const { cols } = GRID_CONFIGS[activeBreakpoint];
@@ -165,6 +173,7 @@ export function SectionAreaGridV2({
                 onMoveTileToSection={onMoveTileToSection}
                 alarm={alarmRules ? alarmRules[tile.id] : undefined}
                 isDragArmed={armedTileId === tile.id}
+                onFitMinimum={minSizes.set}
                 listInfo={list.listMode ? list.infoFor(tile.id) : undefined}
                 onListMove={list.listMode ? list.moveTile : undefined}
                 onListResize={list.listMode ? list.resizeTile : undefined}

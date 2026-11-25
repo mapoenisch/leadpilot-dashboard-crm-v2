@@ -14,6 +14,7 @@ import {
 } from './ChartReadout';
 import { CHART_VIEWBOX, SERIES_COLORS, type DepthChartProps } from './chartTypes';
 import { formatDe, shortenLabel, summarizeFunnel } from './depthGeometry';
+import { useTileFit } from '../tileFit';
 
 const THEME = MANAGEMENT_CHART_THEME.colors;
 
@@ -86,12 +87,14 @@ export function DepthFunnelChart({
   const activeIndex = active ?? null;
   const activeEntry = activeIndex !== null ? (data[activeIndex] ?? null) : null;
   const activeStage = activeIndex !== null ? (stages[activeIndex] ?? null) : null;
+  // Auftrag 174b (K2): eingepasst zeigt der Trichter alle Stufen ohne eigenen Scrollbereich.
+  const fit = useTileFit();
   const extraInfo = activeStage ? `Rang ${activeStage.index + 1} von ${stages.length}` : undefined;
 
   return (
     <div className="flex flex-col gap-[10px]" data-testid="depth-funnel-chart">
       <ScrollableChart label={`${title}: Trichterdiagramm, waagerecht scrollbar`}>
-        <div className={cn(count > 6 && 'max-h-[300px] overflow-y-auto')}>
+        <div className={cn(count > 6 && !fit && 'max-h-[300px] overflow-y-auto')}>
           <svg
             viewBox={`0 0 ${CHART_VIEWBOX.width} ${viewBoxHeight}`}
             width="100%"

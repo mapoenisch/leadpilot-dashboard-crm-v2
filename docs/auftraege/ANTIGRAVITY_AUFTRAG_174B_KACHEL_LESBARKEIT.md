@@ -1,6 +1,6 @@
 # Auftrag 174b – Kacheln ohne Scrollen: Inhalt passt sich an, Mindestgröße, ruhiger Kachelkopf
 
-**Status:** Beauftragt (Marc, 25.11.2026). Builder: Claude Code, sofern Marc nichts anderes festlegt. Prüfer: ein anderer Agent nach `CLAUDE.md` §4.1.
+**Status:** Umgesetzt (Builder Claude Code, beauftragt von Marc am 25.11.2026), Review ausstehend. Prüfer: ein anderer Agent nach `CLAUDE.md` §4.1.
 **Basis:** `main` nach Merge von PR #222 (`5e5d17ac`).
 **Ziel:** Jede Kachel zeigt ihren Inhalt vollständig und lesbar, ohne Scrollen in der Kachel. Wird eine Kachel kleiner gezogen, verkleinert sich der Inhalt bis zu einem lesbaren Mindestmaß. Kleiner als dieses Mindestmaß lässt sich die Kachel nicht ziehen. Lange Erklärungstexte sind eingeklappt, und die Bedienelemente überdecken keinen Inhalt.
 **Herkunft der Befunde:** Hosted-Smoke-Test von Marc am 25.11.2026 auf `leadpilot-dashboard-crm.netlify.app` (Stand `5e5d17ac`, Organisation „LeadPilot Demo“, Stufe 1). Die Bildschirmfotos bleiben lokal. Die Befunde sind unten so beschrieben, dass sie ohne Bilder nachvollziehbar sind.
@@ -53,12 +53,12 @@ Voraussetzungen wie in Auftrag 174a §2 (lokaler Supabase-Stack, Seed-Nutzer `ma
 
 ## 3. Umsetzung in prüfbaren Schritten
 
-- [ ] **T0 – Vorher-Stand messen.** Screenshot-Harness `scripts/captureAuftrag174bGateScreenshots.mjs` nach Vorbild 174a. Er misst je Darstellungsart Scroll- und Überlaufwerte im Kachelkörper, die Lage des Ziehgriffs im Verhältnis zur Kategoriezeile und die Resize-Folge für K6. Alle Befunde K1–K7 werden nachgestellt oder begründet als nicht reproduzierbar dokumentiert.
-- [ ] **T1 – Mindestgröße je Darstellungsart (K2).** Tabelle der Mindestgrößen in Rasterzellen je Darstellungsart und Breakpoint, abgeleitet aus Messungen statt geschätzt. Durchsetzung beim Ziehen (`grid/useGridDragAndDrop.ts`), in der Kollisionsauflösung (`grid/gridEngine.ts`), per Tastatur (`grid/useGridKeyboard.ts`), beim Darstellungswechsel und beim Laden (Anhebung als Entwurf). Unit-Tests für jede Grenze.
-- [ ] **T2 – Inhalt passt sich an (K2, K5).** Kachelkörper ohne `overflow-auto`. Renderer und Diagramme skalieren über Container-Größen (vorhandene Chart-Primitives und Tokens nutzen, keine neue Bibliothek). Die 560-px-Lesebreite mit horizontalem Scrollen aus 174a entfällt. Ausklappbare Bereiche werden zu Überlagerungen.
-- [ ] **T3 – Kachelkopf (K1, K3, K4).** Ziehgriff in eine eigene Fläche, die keinen Inhalt überdeckt, etwa links in die Schnellaktionsleiste oder als Griffleiste über dem Kopf. Kurze Stand-Zeile plus einklappbare Erläuterung. Die Stand-Dopplung beheben.
-- [ ] **T4 – Resize ohne Verschieben (K6) und Säulenachse (K7).** Ursache bestimmen und beheben, mit Regressionstest (Vitest für die Rechnung, E2E für den Ablauf in einer Sektion).
-- [ ] **T5 – Gates und Doku.** E2E-Ergänzung in `e2e/dashboard-editor-smoke.spec.ts` oder einer neuen Datei in der seriellen Gruppe (dann auch `.github/workflows/ci.yml` und `scripts/runV23Acceptance.mjs`). Vorher/Nachher-Matrix `docs/screenshots/auftrag-174b/README.md` (1440/768/375 px, 0 px Überlauf, keine Scrollleiste in Kacheln). BUILD_LOG-Eintrag. Stufenprotokoll und Stufenregel in `docs/dashboard/UMSTELLUNG_P16.md` nach §0 Nr. 4 anpassen.
+- [x] **T0 – Vorher-Stand messen.** Harness `scripts/captureAuftrag174bGateScreenshots.mjs` auf der Editor-Vorschau mit Testdaten (ohne Datenbank), Vorher-Build `5e5d17ac`. Nachgestellt: K1 (Griff überdeckt Kategorie), K2/K5 (16 von 17 Kacheln mit Scrollbereich bei 1440 px), K3 (Text „closeDate“ sichtbar), K4 (5× „Stand Stand“), K6 (tiefe Kachel springt 44 px, Vorschau 864 px daneben). K7 nicht als Fehler bestätigt (siehe §7 Nr. 6).
+- [x] **T1 – Mindestgröße (K2).** Gemessen statt als Tabelle: Jede Kachel meldet ihren Platzbedarf bei Mindestfaktor (`tileFit.ts`, `TileFitBox.tsx`), umgerechnet in Rasterzellen (`grid/tileMinSizes.ts`). Durchgesetzt beim Ziehen (`useGridDragAndDrop.ts`) und per Tastatur (`useGridKeyboard.ts`). Abweichungen in §7 Nr. 2 und 3.
+- [x] **T2 – Inhalt passt sich an (K2, K5).** Kachelkörper `overflow-hidden`; der Inhalt wird in der Einpassfläche gesetzt und per `transform` verkleinert. Feste Scrollhöhen (Tabelle, Übersicht, Hinweise, Trichter, waagerechter Diagramm-Scrollbereich) entfallen im Einpass-Modus. Abweichung „Werte als Tabelle“ in §7 Nr. 4.
+- [x] **T3 – Kachelkopf (K1, K3, K4).** Ziehgriff in der Aktionsleiste über der Kachelkante. Kopf: Kategorie, Titel, Klartextname (eine Zeile), Stand-Zeile, daneben ein kleiner Pfeil „Erläuterung anzeigen“ mit Zeitbezug, Quelle und Formel als Überlagerung. Fußzeile einzeilig. `TileStandLine` ohne doppeltes „Stand“.
+- [x] **T4 – Resize ohne Verschieben (K6) und Säulenachse (K7).** Ursache K6: Tailwind erzeugte `row-start-*` nur bis 13; tiefere Kacheln fielen in die automatische Platzierung. Behoben über `tailwind.config.js` (Startzeilen bis 200, safelist) und `rowStartClass()`. Tests: `gridRowPlacement.vitest.ts`, E2E.
+- [x] **T5 – Gates und Doku.** Neue E2E-Datei `e2e/dashboard-tile-fit-preview.spec.ts` (parallele Vorschau-Gruppe, braucht keine Datenbank; deshalb nicht in der seriellen Gruppe), eingetragen in `ci.yml` und `runV23Acceptance.mjs`. Matrix `docs/screenshots/auftrag-174b/README.md`, BUILD_LOG, Stufenregel in `UMSTELLUNG_P16.md`.
 
 ## 4. Ziel-Dateien (Einstiegspunkte)
 
@@ -84,3 +84,18 @@ Muss der Builder weitere Dateien ändern, begründet er das im BUILD_LOG.
 ## 6. Übergang
 
 Nach Review und Merge baut Marc die App neu (`npm run build:production`) und liefert sie auf Netlify aus. Danach wiederholt Marc den Smoke-Test. Ist er ohne offenen Fehler, trägt der Builder das Ergebnis ins Stufenprotokoll ein. Ab diesem Datum läuft die 7-Tage-Frist bis Stufe 3, danach folgen Release-PR und Tag `v4.0.0`.
+
+## 7. Festlegungen des Builders
+
+1. **Einpassung per Verkleinerung.** Kopf und Fußzeile bleiben in Originalgröße. Der Inhalt dazwischen (Zahl, Diagramm, Legende, Ausgabezeile, „Werte als Tabelle“) wird in einer Layoutbreite gesetzt und so weit verkleinert, dass er vollständig in die Fläche passt. Bei knapper Höhe darf die Layoutbreite schmaler sein; der Inhalt steht dann zentriert. Die Diagramme selbst bleiben unverändert (SVG mit 560 px Zeichenfläche). Gilt nur im Dashboard-Editor V2 (Bearbeiten und Vorschau). Alte Ansicht, Kiosk, Druck und Bericht sind unverändert.
+2. **Mindestfaktor 0,8.** Darunter gilt der Inhalt nicht mehr als gut lesbar (12-px-Text wird zu 9,6 px; die Diagrammfläche bleibt mindestens 448 px breit). Die Mindestgröße einer Kachel ergibt sich aus der Messung ihres Inhalts bei diesem Faktor, nicht aus einer festen Tabelle je Darstellungsart. So zählen auch Titellänge und Datenmenge. Folge: Diagrammkacheln brauchen auf einer schmalen Arbeitsfläche viele Spalten. Bei 1440 px mit beiden offenen Seitenleisten sind es etwa 7 von 12 Spalten.
+3. **Keine automatische Anhebung beim Öffnen (Abweichung von §1, „K2 Bestandslayouts“).** Die Mindestgröße in Rasterzellen hängt von der Breite der Arbeitsfläche ab, also davon, ob Bibliothek und Inspector offen sind. Eine automatische Anhebung würde beim bloßen Öffnen oder Schließen eines Seitenbereichs ungespeicherte Änderungen erzeugen. Stattdessen werden zu kleine Kacheln vollständig, aber kleiner dargestellt. Beim Ziehen rasten sie auf die Mindestgröße ein, kleiner geht nicht. Die Vorlage „Executive Dashboard“ hat Diagrammkacheln unter der Mindestgröße (Faktor 0,46 bei 1440 px mit offenen Seitenleisten). Ob die Vorlage größere Standardmaße bekommt, entscheidet Marc (§8).
+4. **„Werte als Tabelle“ und Zeitwahl ohne Überlagerung (Abweichung von §1, „Ausklappbare Bereiche“).** Sie öffnen weiter in der Kachel. Die Einpassung verkleinert den Inhalt dann so, dass auch die geöffnete Tabelle ohne Scrollen hineinpasst. Eine Überlagerung hätte bei langen Tabellen einen eigenen Scrollbereich gebraucht. Die Erläuterung (K3) öffnet wie gefordert als Überlagerung.
+5. **Smartphone-Liste unverändert.** In der Listenansicht (< 640 px) bestimmt der Inhalt die Kachelhöhe. Diagramme behalten dort den waagerecht scrollbaren Bereich aus 174a, weil ein auf 343 px eingepasstes Diagramm (Faktor 0,55) nicht lesbar wäre. Entscheidung Marc offen (§8).
+6. **K7 ohne Fehler.** Säulen- und Balkendiagramme beginnen bei 0 (`niceSignedScale` nimmt 0 immer in den Wertebereich). Im Bildschirmfoto war nur der obere Teil der Achse sichtbar. Regressionstest in `gridRowPlacement.vitest.ts`.
+7. **Ladehinweis ohne langen Zeitbezug.** Solange ein Diagramm lädt, nennt der sichtbare Hinweis im Einpass-Modus nur den Titel.
+
+## 8. Offene Entscheidungen für Marc
+
+1. Sollen die Vorlagen größere Standardmaße für Diagrammkacheln bekommen, damit sie von Anfang an lesbar sind (eigener Auftrag)?
+2. Sollen Diagramme in der Smartphone-Liste ebenfalls ohne Scrollen eingepasst werden, trotz kleiner Schrift?

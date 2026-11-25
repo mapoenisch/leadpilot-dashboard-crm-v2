@@ -19,10 +19,10 @@ import {
   getBreakpointLayout,
   GRID_CONFIGS,
   MAX_TILE_HEIGHT,
-  MIN_TILE_HEIGHT,
-  MIN_TILE_WIDTH,
 } from './gridEngine';
 import type { ResizeDirection } from './GridResizeHandle';
+import { minGridSize } from './tileMinSizes';
+import type { TileFitMinimum } from '../../tileFit';
 
 export interface UseGridDragAndDropOptions {
   tiles: readonly DashboardTileConfigV2[];
@@ -31,6 +31,8 @@ export interface UseGridDragAndDropOptions {
   onCommitLayout: (moves: Array<{ tileId: string; from: GridPosition; to: GridPosition }>) => void;
   onSelectTile?: (tileId: string) => void;
   disabled?: boolean;
+  /** Auftrag 174b (K2): gemessener Platzbedarf je Kachel; darunter gibt der Griff nicht nach. */
+  getMinSize?: (tileId: string) => TileFitMinimum | undefined;
 }
 
 export interface DragGhostState {
@@ -84,6 +86,7 @@ export function useGridDragAndDrop({
   onCommitLayout,
   onSelectTile,
   disabled = false,
+  getMinSize,
 }: UseGridDragAndDropOptions) {
   const [activeGhost, setActiveGhost] = useState<DragGhostState | null>(null);
   const [previewPositions, setPreviewPositions] = useState<Map<string, GridPosition> | null>(null);
@@ -126,11 +129,17 @@ export function useGridDragAndDrop({
     } else {
       const growsX = state.resizeDir === 'se' || state.resizeDir === 'e';
       const growsY = state.resizeDir === 'se' || state.resizeDir === 's';
+      const min = minGridSize(
+        getMinSize?.(state.tileId),
+        container.getBoundingClientRect().width,
+        breakpoint,
+        cols - init.x,
+      );
       targetPos = {
         x: init.x,
         y: init.y,
-        w: growsX ? clamp(init.w + deltaX, MIN_TILE_WIDTH, cols - init.x) : init.w,
-        h: growsY ? clamp(init.h + deltaY, MIN_TILE_HEIGHT, MAX_TILE_HEIGHT) : init.h,
+        w: growsX ? clamp(init.w + deltaX, min.w, cols - init.x) : init.w,
+        h: growsY ? clamp(init.h + deltaY, min.h, MAX_TILE_HEIGHT) : init.h,
       };
     }
 
@@ -138,7 +147,7 @@ export function useGridDragAndDrop({
     pendingMovesRef.current = plan.moves;
     setActiveGhost({ tileId: state.tileId, position: targetPos });
     setPreviewPositions(plan.positions);
-  }, [breakpoint, containerRef, tiles]);
+  }, [breakpoint, containerRef, tiles, getMinSize]);
 
   // Auto-Scroll-Schleife; aktualisiert die Vorschau auch ohne Zeigerbewegung
   const stepAutoScroll = useCallback(() => {

@@ -15,6 +15,7 @@ import { calculateGridCoordsFromPixel, getBreakpointLayout, GRID_CONFIGS } from 
 import { isAddableCatalogId } from './editorPlacement';
 import { useGridDragAndDrop } from './grid/useGridDragAndDrop';
 import { useGridKeyboard } from './grid/useGridKeyboard';
+import { useTileMinSizes } from './grid/tileMinSizes';
 import { getGridPlacementClasses } from './grid/gridTailwindClasses';
 import { useDashboardAlarms } from '../../hooks/useDashboardAlarms';
 import { useAreaListMode } from './canvas/editorListMode';
@@ -68,6 +69,10 @@ export function EditorCanvasV2({
     return map;
   }, [serverAlarmRules]);
 
+  // Auftrag 174b (K2): gemessene Mindestgröße je Kachel
+
+  const minSizes = useTileMinSizes();
+
   // 1. Pointer-Drag & Drop und Resizing
   const {
     activeGhost,
@@ -84,6 +89,7 @@ export function EditorCanvasV2({
     onCommitLayout,
     onSelectTile,
     disabled: isPreviewMode,
+    getMinSize: minSizes.get,
   });
 
   // 2. WAI-ARIA Grid Keyboard-Steuerung
@@ -95,6 +101,8 @@ export function EditorCanvasV2({
     onDeselect,
     onCommitLayout,
     disabled: isPreviewMode,
+    getMinSize: minSizes.get,
+    containerRef,
   });
 
   const { cols } = GRID_CONFIGS[activeBreakpoint];
@@ -241,6 +249,7 @@ export function EditorCanvasV2({
                   globalPipeline={config.globalPipeline}
                   alarm={effectiveAlarmRules[tile.id]}
                   isDragArmed={armedTileId === tile.id}
+                  onFitMinimum={minSizes.set}
                   listInfo={list.listMode ? list.infoFor(tile.id) : undefined}
                   onListMove={list.listMode ? list.moveTile : undefined}
                   onListResize={list.listMode ? list.resizeTile : undefined}

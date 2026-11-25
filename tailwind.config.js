@@ -1,9 +1,9 @@
+/** Höchste Startzeile im Dashboard-Raster (Auftrag 174b, K6). */
+const GRID_MAX_ROW_START = 200;
+
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    './index.html',
-    './src/**/*.{ts,tsx}'
-  ],
+  content: ['./index.html', './src/**/*.{ts,tsx}'],
   corePlugins: {
     preflight: false,
   },
@@ -119,8 +119,16 @@ export default {
         DEFAULT: '12px',
         sm: '8px',
       },
+      // Auftrag 174b (K6): Rasterzeilen des Dashboard-Editors über 13 hinaus. Tailwind kennt
+      // standardmäßig nur row-start-1 bis 13; tiefere Kacheln fielen ohne Klasse in die
+      // automatische Platzierung und sprangen z. B. unter die Ziehvorschau.
+      gridRowStart: Object.fromEntries(
+        Array.from({ length: GRID_MAX_ROW_START - 13 }, (_, i) => [String(i + 14), String(i + 14)]),
+      ),
     },
   },
+  // Die Klassen entstehen zur Laufzeit (`row-start-${n}`) und stehen nicht im Quelltext.
+  safelist: [{ pattern: /^row-start-([1-9]|[1-9]\d|1\d\d|200)$/ }],
   // G39 Welle 1 (Auftrag 054, Block B): Container Queries für
   // layouts, die von ihrer eigenen Breite (nicht Viewport) abhängen
   // (executiveCockpit-Grids neben ein-/ausblendbarer Sidebar).
