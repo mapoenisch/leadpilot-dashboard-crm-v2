@@ -286,6 +286,9 @@ describe('Kachelkarte im Raster (K1, K5)', () => {
         </TileFitBox>,
       );
       const box = screen.getByTestId('tile-fit-box');
+      const content = screen.getByTestId('tile-fit-content');
+      expect(box.className).toContain('transition-none');
+      expect(content.className).toContain('transition-none');
       expect(Number(box.dataset.fitScale)).toBeLessThan(0.5);
       expect(box.scrollHeight).toBeLessThanOrEqual(box.clientHeight);
     } finally {

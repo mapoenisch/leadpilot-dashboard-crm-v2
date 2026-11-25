@@ -138,15 +138,19 @@ export function TileFitBox({ children, onMinimum }: TileFitBoxProps) {
   }, [children]);
 
   return (
+    // transition-none (transition-property: none): global.css setzt unter
+    // prefers-reduced-motion: reduce global transition-duration: 0.01ms !important auf *.
+    // Ohne transition-property: none startet eine asynchrone width-Transition bei measure(),
+    // sodass offsetHeight noch die alte min-content-Breite misst und scale überschießt.
     <div
       ref={outerRef}
       data-testid="tile-fit-box"
-      className="relative h-full w-full min-h-0 overflow-hidden"
+      className="relative h-full w-full min-h-0 overflow-hidden transition-none"
     >
       <div
         ref={innerRef}
         data-testid="tile-fit-content"
-        className="absolute left-0 top-0 w-full origin-top-left"
+        className="absolute left-0 top-0 w-full origin-top-left transition-none"
       >
         <TileFitContext.Provider value={true}>{children}</TileFitContext.Provider>
       </div>
