@@ -115,6 +115,20 @@ describe('TileStandLine', () => {
     expect(line.getAttribute('title')).toBe('Test-Hinweis');
   });
 
+  it('wiederholt „Stand“ nicht, wenn der Zeitbezug schon damit beginnt (Auftrag 174b, K4)', () => {
+    const data = makeData('bereit', {
+      mode: 'live',
+      analysisAt: null,
+      observedAt: '2026-11-15T14:30:00.000Z',
+      loadedAfterPause: false,
+    }) as ResolvedTileData;
+    data.timeBasis = 'Stand 31.12.2025';
+    render(<TileStandLine data={data} entry={makeEntry('fest')} />);
+    expect(screen.getByTestId('tile-stand-line').textContent).toBe(
+      'Referenzwert, Stand 31.12.2025',
+    );
+  });
+
   it('unterscheidet Puffer-Stände mit und ohne Live-Daten', () => {
     const entry = makeEntry('puffer');
     const stand: TileStand = {

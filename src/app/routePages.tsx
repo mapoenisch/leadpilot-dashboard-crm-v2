@@ -261,6 +261,11 @@ const DashboardAlarmsPage = React.lazy(() =>
     default: m.DashboardAlarmsPage,
   })),
 );
+const RolloutPrepPage = React.lazy(() =>
+  import('@/features/admin/pages/RolloutPrepPage').then((m) => ({
+    default: m.RolloutPrepPage,
+  })),
+);
 const AdminAlarmsPage = React.lazy(() =>
   import('@/features/admin/pages/AdminAlarmsPage').then((m) => ({
     default: m.AdminAlarmsPage,
@@ -344,6 +349,7 @@ export const ROUTE_PAGE_ENTRIES: readonly RoutePageEntry[] = [
   { id: 's-admin-audit', component: AuditPage },
   { id: 's-admin-health', component: SystemHealthPage },
   { id: 's-admin-alarms', component: AdminAlarmsPage },
+  { id: 's-admin-rollout', component: RolloutPrepPage },
   { id: 's-dashboard-alarme', component: DashboardAlarmsPage },
 ] as const;
 

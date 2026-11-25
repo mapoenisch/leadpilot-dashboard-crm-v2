@@ -6,6 +6,7 @@ import { useEffect, useState, type ReactNode, type SetStateAction } from 'react'
 import { cn } from '@/lib/utils';
 import { formatDe } from './depthGeometry';
 import type { DatumInput, TimeDatumInput } from './depthGeometry';
+import { useTileFit } from '../tileFit';
 
 function getDatumKey(entry: DatumInput | TimeDatumInput): string {
   if ('at' in entry && typeof entry.at === 'string' && entry.at.length > 0) {
@@ -44,6 +45,16 @@ export function useActiveDatum(
  * Der Bereich ist per Tastatur fokussierbar, damit das Scrollen ohne Maus möglich bleibt.
  */
 export function ScrollableChart({ label, children }: { label: string; children: ReactNode }) {
+  // Auftrag 174b (K2): eingepasst ist die Layoutbreite nie schmaler als das Diagramm; ohne
+  // Scrollbereich und ohne den Hinweis „scrollbar“ in der Beschriftung.
+  const fit = useTileFit();
+  if (fit) {
+    return (
+      <div role="group" aria-label={label.replace(/,\s*waagerecht scrollbar/, '')}>
+        {children}
+      </div>
+    );
+  }
   return (
     <div
       role="region"

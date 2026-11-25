@@ -48,7 +48,10 @@ export function TileNumber({
   return (
     <div data-testid="tile-number" className="flex min-h-[48px] flex-col justify-center">
       <p className="m-0 flex flex-wrap items-baseline gap-x-[8px] text-[var(--color-text-primary,#fff)]">
-        <span aria-hidden="true" className="font-mono text-[32px] font-bold leading-none">
+        <span
+          aria-hidden="true"
+          className="font-mono text-[length:min(32px,max(20px,12cqi))] font-bold leading-none"
+        >
           {parts.number}
         </span>{' '}
         {parts.unit ? (

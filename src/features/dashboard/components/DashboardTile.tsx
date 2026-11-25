@@ -24,6 +24,9 @@ import { formatAsOf, NO_DATA, SOURCE_LABEL, timeLabel } from './tileFormat';
 import { TileStandLine } from '../time/TileStandLine';
 import { readTileStand } from '../time/useTimeControlledData';
 import { TileBody } from './TileBody';
+import { TileExplanationToggle } from './TileExplanation';
+import { TileFitBox } from './TileFitBox';
+import type { TileFitMinimum } from './tileFit';
 import { formatTransformationSummary, getEffectiveTitle } from '../model/transformations';
 
 export interface DashboardTileProps {
@@ -45,6 +48,13 @@ export interface DashboardTileProps {
   /** Zentrale Filter: nur zur Anzeige einer abgelehnten Pipeline-Wahl im Zeitbezug. */
   dashboardFilters?: DashboardFilters;
   className?: string;
+  /**
+   * Auftrag 174b: Die Kachel füllt eine feste Rasterfläche (Dashboard-Editor V2). Der Inhalt wird
+   * ohne Scrollen eingepasst, lange Erläuterungen sind eingeklappt.
+   */
+  fit?: boolean;
+  /** Mit `fit`: Platzbedarf der ganzen Kachel bei Mindestfaktor (px). */
+  onFitMinimum?: (minimum: TileFitMinimum) => void;
 }
 
 /** Live-Kacheln: feste Höhe für bis zu drei Hinweiszeilen; mehr scrollt. */
@@ -82,6 +92,8 @@ export function DashboardTile({
   chartLoaders,
   dashboardFilters,
   className,
+  fit = false,
+  onFitMinimum,
 }: DashboardTileProps) {
   const transformations = tile.query?.transformations;
   const hasTransformations = Boolean(transformations && transformations.length > 0);
@@ -119,7 +131,61 @@ export function DashboardTile({
       setRecovered(false);
     }
   }, [warned, data.state]);
+  // Auftrag 174b (K2/K3): Platzbedarf der Kachel = Bedarf des Inhalts + Kopf, Fuß, Abstände.
+  // Codex-Befund PR #223: Kopf und Fuß bei jeder Messung neu hinzurechnen; nur Änderungen melden.
+  const lastMinimum = useRef('');
+  // Über die gemeldete Fläche statt bodyRef: Beim ersten Messen ist der Ref noch nicht gesetzt.
+  const handleBodyMinimum = (body: TileFitMinimum, box: HTMLElement) => {
+    const bodyEl = box.closest<HTMLElement>('[data-testid="tile-body"]');
+    const card = bodyEl?.closest<HTMLElement>('[data-testid="dashboard-tile"]');
+    if (!bodyEl || !card || !onFitMinimum) return;
+    const total = {
+      width: body.width + (card.offsetWidth - bodyEl.offsetWidth),
+      height: body.height + (card.offsetHeight - bodyEl.offsetHeight),
+    };
+    const key = `${total.width}x${total.height}`;
+    if (key === lastMinimum.current) return;
+    lastMinimum.current = key;
+    onFitMinimum(total);
+  };
   const standMeta = readTileStand(data);
+  const timeReference = (
+    <TimeReference
+      tile={tile}
+      data={resolved}
+      dashboardFilters={dashboardFilters}
+      leading={
+        resolved ? (
+          <span data-testid="tile-meta">
+            {period}
+            {resolved.origin.layer === 'live' && !resolved.asOf ? (
+              // Reserviert den Umbruch des späteren „Stand …“, damit der Kopf nicht springt.
+              <span aria-hidden="true" className="invisible" data-testid="tile-stand-reserve">
+                {' · Stand 00.00.0000, 00:00'}
+              </span>
+            ) : null}
+            {/* Auftrag 091: Quelle ohne Vorsilbe; nicht doppelt, wenn der Stand sie schon nennt (Live). */}
+            {period.startsWith(SOURCE_LABEL[resolved.origin.layer])
+              ? null
+              : ` · ${SOURCE_LABEL[resolved.origin.layer]}`}
+          </span>
+        ) : null
+      }
+    />
+  );
+  const body = (
+    <TileBody
+      loadingHadFocus={loadingHadFocus}
+      tile={tile}
+      entry={entry}
+      data={data}
+      title={title}
+      period={period}
+      idPrefix={idPrefix}
+      onRetryChartLoad={onRetryChartLoad}
+      chartLoaders={chartLoaders}
+    />
+  );
   const isTimePoint = standMeta?.mode === 'zeitpunkt';
   const isTimePointNoData =
     isTimePoint && entry && (entry.history.kind === 'puffer' || entry.history.kind === 'keine');
@@ -153,11 +219,20 @@ export function DashboardTile({
       data-size={tile.size}
       data-view={tile.view}
       data-state={data.state}
-      className={cn('w-full min-w-0 motion-reduce:transition-none', className)}
+      className={cn(
+        'w-full min-w-0 motion-reduce:transition-none',
+        fit && 'flex h-full flex-col overflow-hidden',
+        className,
+      )}
     >
       {/* Auftrag 091 (Muster 1): 8 px Abstand statt 12 px. */}
-      <div className="flex flex-col gap-[8px]">
-        <header className="flex flex-wrap items-start justify-between gap-[10px]">
+      <div className={cn('flex flex-col gap-[8px]', fit && 'h-full min-h-0')}>
+        <header
+          className={cn(
+            'flex flex-wrap items-start justify-between gap-[10px]',
+            fit && 'relative shrink-0',
+          )}
+        >
           <div className="min-w-0">
             {entry ? (
               <p className="m-0 text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
@@ -180,41 +255,33 @@ export function DashboardTile({
             {!tile.title && entry?.plainName ? (
               <p
                 data-testid="tile-plain-name"
-                className="m-0 break-words text-[12px] text-[var(--color-text-muted)]"
+                title={fit ? entry.plainName : undefined}
+                className={cn(
+                  'm-0 text-[12px] text-[var(--color-text-muted)]',
+                  fit ? 'truncate' : 'break-words',
+                )}
               >
                 {entry.plainName}
               </p>
             ) : null}
-            <div className="mt-[2px]">
-              <TimeReference
-                tile={tile}
-                data={resolved}
-                dashboardFilters={dashboardFilters}
-                leading={
-                  resolved ? (
-                    <span data-testid="tile-meta">
-                      {period}
-                      {resolved.origin.layer === 'live' && !resolved.asOf ? (
-                        // Reserviert den Umbruch des späteren „Stand …“, damit der Kopf nicht springt.
-                        <span
-                          aria-hidden="true"
-                          className="invisible"
-                          data-testid="tile-stand-reserve"
-                        >
-                          {' · Stand 00.00.0000, 00:00'}
-                        </span>
-                      ) : null}
-                      {/* Auftrag 091: Quelle ohne Vorsilbe; nicht doppelt, wenn der Stand sie schon nennt (Live). */}
-                      {period.startsWith(SOURCE_LABEL[resolved.origin.layer])
-                        ? null
-                        : ` · ${SOURCE_LABEL[resolved.origin.layer]}`}
-                    </span>
-                  ) : null
-                }
-              />
-            </div>
-            <TileStandLine data={data} entry={entry} />
-            <CombinationFormula entry={entry} />
+            {fit ? (
+              // Auftrag 174b (K3): eine kurze Stand-Zeile; Zeitbezug, Quelle und Formel klappen auf.
+              <div className="mt-[2px] flex items-start gap-[4px]">
+                <div className="min-w-0 flex-1">
+                  <TileStandLine data={data} entry={entry} />
+                </div>
+                <TileExplanationToggle>
+                  {timeReference}
+                  <CombinationFormula entry={entry} />
+                </TileExplanationToggle>
+              </div>
+            ) : (
+              <>
+                <div className="mt-[2px]">{timeReference}</div>
+                <TileStandLine data={data} entry={entry} />
+                <CombinationFormula entry={entry} />
+              </>
+            )}
           </div>
           <TileStateBadge data={data} />
         </header>
@@ -251,25 +318,27 @@ export function DashboardTile({
         <div
           ref={bodyRef}
           tabIndex={-1}
-          className="min-w-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className={cn(
+            'min-w-0 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-primary',
+            fit && 'min-h-0 flex-1',
+          )}
           data-testid="tile-body"
         >
-          <TileBody
-            loadingHadFocus={loadingHadFocus}
-            tile={tile}
-            entry={entry}
-            data={data}
-            title={title}
-            period={period}
-            idPrefix={idPrefix}
-            onRetryChartLoad={onRetryChartLoad}
-            chartLoaders={chartLoaders}
-          />
+          {fit ? <TileFitBox onMinimum={handleBodyMinimum}>{body}</TileFitBox> : body}
         </div>
 
-        <footer className="flex flex-wrap items-center justify-end gap-[8px] border-0 border-t border-solid border-border pt-[8px]">
+        <footer
+          className={cn(
+            'flex items-center justify-end gap-[8px] border-0 border-t border-solid border-border pt-[8px]',
+            fit ? 'shrink-0 flex-nowrap' : 'flex-wrap',
+          )}
+        >
           {detailsBlocked ? (
-            <p id={`${idPrefix}-details-hint`} className={cn(MUTED, 'mr-auto')}>
+            <p
+              id={`${idPrefix}-details-hint`}
+              title={fit ? DETAILS_BLOCKED_HINT : undefined}
+              className={cn(MUTED, 'mr-auto', fit && 'min-w-0 flex-1 truncate text-[11px]')}
+            >
               {DETAILS_BLOCKED_HINT}
             </p>
           ) : null}

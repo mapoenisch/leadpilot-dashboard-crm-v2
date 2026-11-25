@@ -1,8 +1,12 @@
 # LeadPilot Dashboard-CRM — Bauplan
 
-**Stand:** 21.11.2026
+**Stand:** 24.11.2026
 
-**Aktueller Auftrag:** Auftrag 172 – Dashboard-Editor: Mobile Bedienung, Barrierefreiheits-Abnahme, Reportexport (P15b; Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_172_MOBIL_BARRIEREFREIHEIT_REPORT.md`; Branch `auftrag-172-mobil-a11y-report`; Builder Claude Code; Status: FERTIGGESTELLT / PR ERSTELLT, wartet auf unabhängiges Review). Zuletzt: 171 Kiosk, Rotation, Sitzung, Offline (P15a; PR #212 gemergt als `a41e5fbe`), 170 Vergleich, Verknüpfung, Heatmap, Erwartungsbänder (P14b; PR #211). Nächster Schritt P16 (Gesamtabnahme und gestufte Umstellung).
+**Aktueller Auftrag:** 174b – Kacheln ohne Scrollen: Inhalt passt sich an, Mindestgröße je Darstellung, ruhiger Kachelkopf (Detailauftrag `docs/auftraege/ANTIGRAVITY_AUFTRAG_174B_KACHEL_LESBARKEIT.md`; Branch `auftrag-174b-kachel-lesbarkeit`; Builder Claude Code; Status: FERTIGGESTELLT / PR ERSTELLT, Review ausstehend). Herkunft: Hosted-Smoke von Marc am 25.11.2026. Davor: 174a Smoke-Nacharbeit (PR #222) und 174 gestufte Umstellung (PR #221), beide gemergt. Hosted: alle Migrationen bis `20261130` eingespielt, „LeadPilot Demo“ seit 24.11.2026 auf Stufe 1. Nächster Schritt: Review und Merge 174b, neuer Produktionsbuild, erneuter Smoke durch Marc; offene Entscheidungen in 174b §8.
+
+**Entscheidungen Marc 25.11.2026:** Kein Scrollen in Kacheln; Inhalt verkleinert sich bis zu einer lesbaren Mindestgröße je Darstellung, darunter lässt sich die Kachel nicht verkleinern (ersetzt 174a Festlegungen 3 und 4). Lange Erklärungstexte im Kachelkopf eingeklappt. Rollout: Stufe 2 entfällt (nur eine Organisation); Stufe 3 nach mindestens 7 Tagen auf Stufe 1 ohne offenen Fehler, Frist ab Auslieferung von 174b. Panel-Editor (155) nicht in `v4.0.0` (Entscheidung 24.11.2026).
+
+**Entscheidungen Marc 23.11.2026 (Empfehlungen aus 173 angenommen):** Zwischenauftrag 173a vor 174; Rollout-Stufen wie 174 §0 (Test-Organisation → ausgewählte Organisationen → alle); Nutzer der Klasse `beide_geaendert` ohne Entscheidung: Pilot behalten, V1 bleibt als Sicherung lesbar.
 
 **Zielversion (festgelegt 18.11.2026, Marc):** `v3.2.0` – umfasst alles seit `v3.1.0` (10.11.2026) bis einschließlich P13 (Aufträge 151–168: Dashboard-Editor V2 mit Raster, Panel-Editor, Sektionen, Vorlagen, Zeitsteuerung, Server-Zeitreihen, Team-Freigaben, Versionen/Import/Export, Schwellenwerte, Server-Alarme). Neue Funktionen ohne Bruch bestehender Daten → Minor-Sprung. Release, Tag und Anheben von `package.json` macht Marc nach Merge von 168. Folgeplanung: P14–P15 → `v3.3.0`; P16 (neuer Editor wird Standard) → `v4.0.0`.
 
